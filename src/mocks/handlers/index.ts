@@ -5,6 +5,7 @@ import { allowedIps, apiKeyBundles, recentRequests, revealed } from '@/mocks/dat
 const wait=()=>delay(200+Math.random()*600);
 export const handlers=[
 http.post('*/auth/login',async()=>{await wait(); return HttpResponse.json({accessToken:'mock_access_token',refreshToken:'mock_refresh_token'})}),
+http.post('*/auth/refresh',async()=>{await wait(); const { mockLogin } = await import('@/mocks/data/auth'); return HttpResponse.json({user:mockLogin.user,accessToken:'mock_access_token_refreshed',refreshToken:'mock_refresh_token_refreshed'})}),
 http.get('*/admin/dashboard/metrics',async({request})=>{await wait(); const p=new URL(request.url).searchParams.get('period') as keyof typeof metricsByPeriod || '7d'; return HttpResponse.json(metricsByPeriod[p]??metricsByPeriod['7d'])}),
 http.get('*/admin/dashboard/activity',async()=>{await wait(); return HttpResponse.json(activity)}),
 http.get('*/admin/system/status',async()=>{await wait(); return HttpResponse.json(systemStatus)}),
