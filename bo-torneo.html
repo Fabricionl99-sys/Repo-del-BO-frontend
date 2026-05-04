@@ -1,0 +1,1529 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BO Operador · Crear Torneo</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Urbanist:ital,wght@0,300;0,400;0,500;0,600;1,300&display=swap" rel="stylesheet">
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg-primary: #0E1116;
+  --bg-secondary: #161B22;
+  --bg-tertiary: #1C2128;
+  --bg-elevated: #21262D;
+  --bg-hover: #262C36;
+  
+  --accent: #0AF784;
+  --accent-hover: #08D971;
+  --accent-glow: rgba(10, 247, 132, 0.15);
+  --accent-subtle: rgba(10, 247, 132, 0.08);
+  
+  --text-primary: #FFFFFF;
+  --text-secondary: #B8BEC9;
+  --text-tertiary: #7D8590;
+  --text-disabled: #484F58;
+  
+  --border-subtle: rgba(255, 255, 255, 0.06);
+  --border-default: rgba(255, 255, 255, 0.10);
+  --border-strong: rgba(255, 255, 255, 0.16);
+  
+  --success: #0AF784;
+  --warning: #F0B72F;
+  --danger: #F85149;
+  --info: #58A6FF;
+  --purple: #A78BFA;
+  --gold: #FFD700;
+  --silver: #C0C0C0;
+  --bronze: #CD7F32;
+}
+
+body {
+  font-family: 'Urbanist', system-ui, sans-serif;
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  font-size: 14px;
+  line-height: 1.5;
+  font-weight: 400;
+}
+
+button { font-family: inherit; cursor: pointer; }
+
+.app {
+  display: grid;
+  grid-template-columns: 240px 1fr;
+  min-height: 100vh;
+}
+
+/* === SIDEBAR === */
+.sidebar {
+  background: var(--bg-secondary);
+  border-right: 1px solid var(--border-subtle);
+  padding: 16px 0;
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  overflow-y: auto;
+}
+
+.sidebar-brand {
+  padding: 0 20px 20px;
+  border-bottom: 1px solid var(--border-subtle);
+  margin-bottom: 16px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.brand-logo {
+  width: 28px; height: 28px;
+  border-radius: 8px;
+  background: linear-gradient(135deg, var(--accent), #00D9FF);
+  display: flex; align-items: center; justify-content: center;
+  font-weight: 600; color: var(--bg-primary); font-size: 13px;
+}
+
+.brand-name { font-size: 15px; font-weight: 600; }
+
+.operator-selector {
+  margin: 0 12px 16px;
+  padding: 10px 12px;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-default);
+  border-radius: 8px;
+  display: flex; align-items: center; gap: 10px;
+  cursor: pointer;
+}
+
+.operator-avatar {
+  width: 24px; height: 24px;
+  border-radius: 6px;
+  background: linear-gradient(135deg, #4D9FFF, #2563EB);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 11px; font-weight: 600; color: white;
+}
+
+.operator-info { flex: 1; min-width: 0; }
+.operator-name { font-size: 13px; font-weight: 500; }
+.operator-tier { font-size: 10px; color: var(--text-tertiary); }
+
+.sidebar-section { margin-bottom: 8px; padding: 0 12px; }
+.section-label {
+  font-size: 10px; font-weight: 600;
+  text-transform: uppercase; letter-spacing: 0.08em;
+  color: var(--text-tertiary); padding: 8px 12px;
+}
+
+.nav-item {
+  display: flex; align-items: center; gap: 10px;
+  padding: 7px 12px; border-radius: 6px;
+  font-size: 13px; color: var(--text-secondary);
+  cursor: pointer; margin-bottom: 1px; text-decoration: none;
+}
+
+.nav-item:hover { background: var(--bg-tertiary); color: var(--text-primary); }
+.nav-item.active {
+  background: var(--accent-subtle); color: var(--accent);
+  font-weight: 500; position: relative;
+}
+.nav-item.active::before {
+  content: ''; position: absolute; left: -12px; top: 50%;
+  transform: translateY(-50%); width: 3px; height: 18px;
+  background: var(--accent); border-radius: 0 2px 2px 0;
+}
+
+.nav-icon { width: 16px; height: 16px; display: flex; align-items: center; }
+.nav-badge {
+  margin-left: auto; font-size: 10px; padding: 2px 6px;
+  border-radius: 999px; background: var(--bg-elevated);
+  color: var(--text-tertiary); font-weight: 500;
+}
+.nav-badge.alert { background: rgba(248, 81, 73, 0.15); color: var(--danger); }
+
+/* === MAIN === */
+.main { display: flex; flex-direction: column; min-width: 0; }
+
+.topbar {
+  height: 56px;
+  border-bottom: 1px solid var(--border-subtle);
+  padding: 0 28px;
+  display: flex; align-items: center; justify-content: space-between;
+  background: var(--bg-primary);
+  position: sticky; top: 0; z-index: 10;
+}
+
+.breadcrumb { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--text-secondary); }
+.breadcrumb-current { color: var(--text-primary); font-weight: 500; }
+.breadcrumb a { color: var(--text-secondary); text-decoration: none; cursor: pointer; }
+
+.topbar-actions { display: flex; align-items: center; gap: 12px; }
+
+.icon-btn {
+  width: 32px; height: 32px;
+  border-radius: 8px;
+  border: 1px solid var(--border-default);
+  background: var(--bg-tertiary);
+  color: var(--text-secondary);
+  display: flex; align-items: center; justify-content: center;
+}
+
+.icon-btn:hover { background: var(--bg-elevated); color: var(--text-primary); }
+
+.user-pill {
+  display: flex; align-items: center; gap: 8px;
+  padding: 4px 12px 4px 4px; border-radius: 999px;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-default); cursor: pointer;
+}
+
+.user-avatar {
+  width: 24px; height: 24px; border-radius: 50%;
+  background: linear-gradient(135deg, #F0B72F, #E0901F);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 10px; font-weight: 600; color: var(--bg-primary);
+}
+
+.user-name { font-size: 12px; font-weight: 500; }
+.user-role { font-size: 10px; color: var(--text-tertiary); }
+
+/* === CONTENT === */
+.content { padding: 28px 28px 80px; max-width: 1500px; }
+
+.page-header {
+  margin-bottom: 24px;
+  display: flex; justify-content: space-between;
+  align-items: flex-start; gap: 24px;
+}
+
+.page-title {
+  font-size: 24px; font-weight: 600;
+  margin-bottom: 6px; letter-spacing: -0.01em;
+}
+
+.page-subtitle {
+  font-size: 13px; color: var(--text-tertiary);
+  font-weight: 300; font-style: italic;
+}
+
+.btn {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 8px 14px; border-radius: 8px;
+  font-size: 13px; font-weight: 500;
+  border: 1px solid transparent;
+  font-family: inherit; cursor: pointer;
+  transition: all 150ms ease;
+}
+
+.btn-primary {
+  background: var(--accent); color: var(--bg-primary);
+  border-color: var(--accent);
+  box-shadow: 0 0 16px var(--accent-glow);
+}
+.btn-primary:hover {
+  background: var(--accent-hover);
+  box-shadow: 0 0 24px rgba(10, 247, 132, 0.25);
+}
+
+.btn-secondary {
+  background: var(--bg-tertiary); color: var(--text-primary);
+  border-color: var(--border-default);
+}
+.btn-secondary:hover { background: var(--bg-elevated); border-color: var(--border-strong); }
+
+.btn-ghost { background: transparent; color: var(--text-secondary); }
+.btn-ghost:hover { background: var(--bg-tertiary); color: var(--text-primary); }
+
+.btn-sm { padding: 6px 10px; font-size: 12px; }
+
+/* === LAYOUT === */
+.config-layout {
+  display: grid;
+  grid-template-columns: 1fr 380px;
+  gap: 20px;
+  align-items: flex-start;
+}
+
+.config-main {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  min-width: 0;
+}
+
+.config-side {
+  position: sticky;
+  top: 76px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+/* === SECTION CARD === */
+.section-card {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-subtle);
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.section-card-head {
+  padding: 14px 18px;
+  border-bottom: 1px solid var(--border-subtle);
+  display: flex; align-items: center; gap: 10px;
+}
+
+.section-num {
+  width: 24px;
+  height: 24px;
+  border-radius: 6px;
+  background: var(--accent-subtle);
+  color: var(--accent);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  font-weight: 600;
+  flex-shrink: 0;
+}
+
+.section-card-title {
+  font-size: 14px;
+  font-weight: 500;
+  flex: 1;
+}
+
+.section-card-help {
+  font-size: 11px;
+  color: var(--text-tertiary);
+  font-weight: 300;
+  font-style: italic;
+}
+
+.section-card-body { padding: 18px; }
+
+/* === FORM === */
+.form-row { margin-bottom: 14px; }
+.form-row:last-child { margin-bottom: 0; }
+
+.form-row-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.form-row-grid-3 {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 12px;
+}
+
+.form-label {
+  display: block;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text-secondary);
+  margin-bottom: 6px;
+}
+
+.form-help {
+  font-size: 11px;
+  color: var(--text-tertiary);
+  font-weight: 300;
+  font-style: italic;
+  margin-top: 4px;
+}
+
+.form-input,
+.form-select,
+.form-textarea {
+  width: 100%;
+  padding: 9px 12px;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-default);
+  border-radius: 8px;
+  color: var(--text-primary);
+  font-family: inherit;
+  font-size: 13px;
+}
+
+.form-textarea { resize: vertical; min-height: 80px; }
+
+.form-input:focus,
+.form-select:focus,
+.form-textarea:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-subtle);
+}
+
+.form-input::placeholder,
+.form-textarea::placeholder { color: var(--text-tertiary); }
+
+/* === BANNER UPLOAD === */
+.banner-uploader {
+  position: relative;
+  aspect-ratio: 16/6;
+  border-radius: 10px;
+  background: linear-gradient(135deg, #FFD700 0%, #C8941F 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  gap: 8px;
+  cursor: pointer;
+  overflow: hidden;
+  border: 1px dashed rgba(255, 255, 255, 0.3);
+}
+
+.banner-uploader::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, rgba(255,215,0,0.15), rgba(0,0,0,0.4));
+}
+
+.banner-uploader-content {
+  position: relative;
+  text-align: center;
+  color: white;
+}
+
+.banner-uploader-title {
+  font-size: 18px;
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+
+.banner-uploader-sub {
+  font-size: 12px;
+  opacity: 0.9;
+  font-weight: 300;
+  font-style: italic;
+}
+
+.banner-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+/* === TYPE SELECTOR === */
+.type-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+}
+
+.type-card {
+  padding: 14px;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-default);
+  border-radius: 10px;
+  cursor: pointer;
+  text-align: left;
+  font-family: inherit;
+  color: inherit;
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  transition: all 150ms ease;
+}
+
+.type-card:hover {
+  background: var(--bg-elevated);
+  border-color: var(--border-strong);
+}
+
+.type-card.active {
+  border-color: var(--accent);
+  background: var(--accent-subtle);
+  box-shadow: 0 0 0 1px var(--accent);
+}
+
+.type-icon {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.type-card .type-icon {
+  background: var(--bg-elevated);
+  color: var(--text-tertiary);
+}
+
+.type-card.active .type-icon {
+  background: var(--accent);
+  color: var(--bg-primary);
+}
+
+.type-content { flex: 1; min-width: 0; }
+.type-title {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-primary);
+  margin-bottom: 2px;
+}
+
+.type-desc {
+  font-size: 11px;
+  color: var(--text-tertiary);
+  font-weight: 300;
+  font-style: italic;
+}
+
+/* === FILTER CHIPS === */
+.chip-group {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.chip {
+  padding: 6px 12px;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-default);
+  border-radius: 999px;
+  font-size: 12px;
+  color: var(--text-secondary);
+  cursor: pointer;
+  font-family: inherit;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.chip:hover {
+  background: var(--bg-elevated);
+  border-color: var(--border-strong);
+  color: var(--text-primary);
+}
+
+.chip.active {
+  background: var(--accent-subtle);
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.chip svg { flex-shrink: 0; }
+
+/* === PRIZES === */
+.prize-row {
+  display: grid;
+  grid-template-columns: 60px 1fr 130px 140px auto;
+  gap: 10px;
+  align-items: center;
+  padding: 10px 12px;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-default);
+  border-radius: 8px;
+  margin-bottom: 8px;
+}
+
+.prize-row:last-child { margin-bottom: 0; }
+
+.prize-position {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.prize-position .pos-num {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  color: var(--bg-primary);
+}
+
+.pos-num.gold { background: linear-gradient(135deg, #FFD700, #B8860B); }
+.pos-num.silver { background: linear-gradient(135deg, #E8E8E8, #999); color: var(--bg-primary); }
+.pos-num.bronze { background: linear-gradient(135deg, #CD7F32, #8B4513); color: white; }
+.pos-num.regular { background: var(--bg-elevated); color: var(--text-primary); }
+
+.prize-input {
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-default);
+  border-radius: 6px;
+  padding: 7px 10px;
+  font-family: inherit;
+  font-size: 13px;
+  color: var(--text-primary);
+}
+
+.prize-input:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+
+.prize-select {
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-default);
+  border-radius: 6px;
+  padding: 7px 10px;
+  font-family: inherit;
+  font-size: 13px;
+  color: var(--text-primary);
+}
+
+.action-btn {
+  width: 28px; height: 28px;
+  border-radius: 6px;
+  background: transparent;
+  border: 1px solid transparent;
+  color: var(--text-tertiary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: inherit;
+}
+
+.action-btn:hover {
+  background: var(--bg-elevated);
+  color: var(--text-primary);
+  border-color: var(--border-default);
+}
+
+.add-row-btn {
+  margin-top: 12px;
+  padding: 10px 14px;
+  width: 100%;
+  background: transparent;
+  border: 1px dashed var(--border-default);
+  border-radius: 8px;
+  color: var(--text-tertiary);
+  font-family: inherit;
+  font-size: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+
+.add-row-btn:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+  background: var(--accent-subtle);
+}
+
+/* === ELIGIBILITY === */
+.eligibility-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  background: var(--bg-tertiary);
+  border-radius: 8px;
+  margin-bottom: 8px;
+}
+
+.eligibility-row:last-child { margin-bottom: 0; }
+
+.elig-icon {
+  width: 32px; height: 32px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.elig-info { flex: 1; }
+.elig-title {
+  font-size: 13px;
+  font-weight: 500;
+  margin-bottom: 2px;
+}
+
+.elig-desc {
+  font-size: 11px;
+  color: var(--text-tertiary);
+  font-weight: 300;
+  font-style: italic;
+}
+
+.switch {
+  position: relative;
+  width: 36px; height: 20px;
+  background: var(--bg-elevated);
+  border-radius: 999px;
+  cursor: pointer;
+  border: none;
+  padding: 0;
+  flex-shrink: 0;
+}
+
+.switch::after {
+  content: '';
+  position: absolute;
+  top: 2px; left: 2px;
+  width: 16px; height: 16px;
+  border-radius: 50%;
+  background: var(--text-secondary);
+  transition: all 150ms ease;
+}
+
+.switch.on { background: var(--accent); }
+.switch.on::after { left: 18px; background: var(--bg-primary); }
+
+/* === PREVIEW (sidebar derecha) === */
+.preview-card {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-subtle);
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.preview-head {
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--border-subtle);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.preview-title {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-tertiary);
+}
+
+.preview-content { padding: 16px; }
+
+.preview-tournament-card {
+  background: var(--bg-tertiary);
+  border-radius: 12px;
+  overflow: hidden;
+  border: 1px solid var(--border-default);
+}
+
+.preview-banner {
+  aspect-ratio: 16/6;
+  background: linear-gradient(135deg, #FFD700 0%, #C8941F 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+
+.preview-banner::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, rgba(255,215,0,0.15), rgba(0,0,0,0.4));
+}
+
+.preview-banner-status {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  background: rgba(0, 0, 0, 0.6);
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 10px;
+  font-weight: 600;
+  color: white;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.preview-banner-status .dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--accent);
+  box-shadow: 0 0 6px var(--accent);
+}
+
+.preview-banner-icon {
+  position: relative;
+  font-size: 36px;
+  color: white;
+}
+
+.preview-body { padding: 16px; }
+
+.preview-tournament-name {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 4px;
+}
+
+.preview-tournament-desc {
+  font-size: 12px;
+  color: var(--text-tertiary);
+  margin-bottom: 14px;
+  line-height: 1.5;
+}
+
+.preview-stat-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-bottom: 14px;
+}
+
+.preview-stat {
+  background: var(--bg-elevated);
+  border-radius: 8px;
+  padding: 8px 10px;
+}
+
+.preview-stat-label {
+  font-size: 10px;
+  color: var(--text-tertiary);
+  font-weight: 500;
+  margin-bottom: 2px;
+}
+
+.preview-stat-value {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.preview-stat-value.gold { color: var(--gold); }
+
+.preview-prizes {
+  margin-bottom: 14px;
+  padding: 12px;
+  background: var(--bg-elevated);
+  border-radius: 8px;
+}
+
+.preview-prizes-title {
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--text-tertiary);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin-bottom: 8px;
+}
+
+.preview-prize-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 4px 0;
+  font-size: 12px;
+}
+
+.preview-prize-position {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--text-secondary);
+}
+
+.preview-prize-value {
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.preview-prize-value.gold { color: var(--gold); }
+
+.preview-cta {
+  width: 100%;
+  padding: 10px;
+  background: var(--accent);
+  color: var(--bg-primary);
+  border: none;
+  border-radius: 8px;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+/* === SUMMARY === */
+.summary-card {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-subtle);
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.summary-head {
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.summary-title {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-tertiary);
+}
+
+.summary-body { padding: 16px; }
+
+.summary-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  padding: 6px 0;
+  border-bottom: 1px solid var(--border-subtle);
+  font-size: 12px;
+}
+
+.summary-row:last-child { border-bottom: none; }
+
+.summary-label { color: var(--text-tertiary); }
+.summary-value { color: var(--text-primary); font-weight: 500; }
+.summary-value.success { color: var(--success); }
+.summary-value.warning { color: var(--warning); }
+
+/* === BOTTOM BAR === */
+.bottom-bar {
+  position: sticky;
+  bottom: 0;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-subtle);
+  border-radius: 10px;
+  padding: 14px 18px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 4px;
+  backdrop-filter: blur(8px);
+  z-index: 5;
+}
+
+.save-state {
+  font-size: 12px;
+  color: var(--text-tertiary);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-style: italic;
+  font-weight: 300;
+}
+
+.save-state .dot {
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: var(--success);
+}
+
+.bottom-actions { display: flex; gap: 8px; }
+
+/* === DATETIME PICKER STYLED === */
+input[type="datetime-local"] {
+  color-scheme: dark;
+}
+
+/* === SCROLLBAR === */
+::-webkit-scrollbar { width: 8px; height: 8px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border-default); border-radius: 4px; }
+::-webkit-scrollbar-thumb:hover { background: var(--border-strong); }
+
+/* === RESPONSIVE === */
+@media (max-width: 1100px) {
+  .config-layout { grid-template-columns: 1fr; }
+  .config-side { position: static; }
+  .form-row-grid, .form-row-grid-3 { grid-template-columns: 1fr; }
+  .type-grid { grid-template-columns: 1fr; }
+}
+
+@media (max-width: 768px) {
+  .app { grid-template-columns: 1fr; }
+  .sidebar { display: none; }
+}
+</style>
+</head>
+<body>
+
+<div class="app">
+
+<aside class="sidebar">
+  <div class="sidebar-brand">
+    <div class="brand-logo">N</div>
+    <div class="brand-name">niveles</div>
+  </div>
+  <div class="operator-selector">
+    <div class="operator-avatar">CA</div>
+    <div class="operator-info">
+      <div class="operator-name">Casino Astral</div>
+      <div class="operator-tier">plan growth · es-AR</div>
+    </div>
+    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="color: var(--text-tertiary);"><polyline points="6 9 12 15 18 9"/></svg>
+  </div>
+
+  <div class="sidebar-section">
+    <a class="nav-item" href="#">
+      <span class="nav-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg></span>
+      Dashboard
+    </a>
+  </div>
+
+  <div class="sidebar-section">
+    <p class="section-label">Competencia</p>
+    <a class="nav-item" href="#">
+      <span class="nav-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 18h4l3-9 4 18 3-9h4"/></svg></span>
+      Ranking
+    </a>
+    <a class="nav-item active" href="#">
+      <span class="nav-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 4h10v3a5 5 0 0 1-10 0V4zM5 7h14M9 14h6v3l1 3H8l1-3v-3z"/></svg></span>
+      Torneos
+      <span class="nav-badge alert">2 vivo</span>
+    </a>
+    <a class="nav-item" href="#">
+      <span class="nav-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l8 6v8a8 8 0 0 1-16 0V8z"/></svg></span>
+      Predicciones
+    </a>
+  </div>
+
+  <div class="sidebar-section">
+    <p class="section-label">Setup</p>
+    <a class="nav-item" href="#">
+      <span class="nav-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2M9 11a4 4 0 1 0 0-8"/></svg></span>
+      Equipo
+    </a>
+  </div>
+</aside>
+
+<div class="main">
+
+  <div class="topbar">
+    <div class="breadcrumb">
+      <a>Competencia</a>
+      <span style="color: var(--text-tertiary);">/</span>
+      <a>Torneos</a>
+      <span style="color: var(--text-tertiary);">/</span>
+      <span class="breadcrumb-current">Crear torneo</span>
+    </div>
+    
+    <div class="topbar-actions">
+      <button class="icon-btn"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg></button>
+      <button class="icon-btn"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 1 1 5.83 1c0 2-3 3-3 3M12 17h.01"/></svg></button>
+      <div class="user-pill">
+        <div class="user-avatar">FL</div>
+        <div>
+          <div class="user-name">Fabricio L.</div>
+          <div class="user-role">admin</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="content">
+
+    <div class="page-header">
+      <div>
+        <h1 class="page-title">Crear torneo</h1>
+        <p class="page-subtitle">configurá un evento competitivo con premios para tus jugadores</p>
+      </div>
+      <div style="display: flex; gap: 8px;">
+        <button class="btn btn-secondary">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2zM17 21v-8H7v8M7 3v5h8"/></svg>
+          Guardar borrador
+        </button>
+      </div>
+    </div>
+
+    <div class="config-layout">
+
+      <!-- =========== MAIN COLUMN =========== -->
+      <div class="config-main">
+
+        <!-- ===== SECCIÓN 1: INFO BÁSICA ===== -->
+        <div class="section-card">
+          <div class="section-card-head">
+            <div class="section-num">1</div>
+            <div class="section-card-title">Información básica</div>
+            <span class="section-card-help">nombre, descripción y banner del torneo</span>
+          </div>
+          <div class="section-card-body">
+
+            <div class="form-row">
+              <label class="form-label">nombre del torneo</label>
+              <input type="text" class="form-input" value="Liga semanal de slots">
+              <p class="form-help">visible para los jugadores · max 60 caracteres</p>
+            </div>
+
+            <div class="form-row">
+              <label class="form-label">descripción</label>
+              <textarea class="form-textarea" placeholder="describí el torneo en pocas palabras...">Compita esta semana para ganar el premio mayor. Cada apuesta en slots cuenta para tu posición en el leaderboard.</textarea>
+              <p class="form-help">explicá las reglas y mecánica del torneo · max 280 caracteres</p>
+            </div>
+
+            <div class="form-row">
+              <label class="form-label">banner del torneo</label>
+              <div class="banner-uploader">
+                <div class="banner-uploader-content">
+                  <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" style="margin: 0 auto 8px;"><path d="M7 4h10v3a5 5 0 0 1-10 0V4zM5 7h14M9 14h6v3l1 3H8l1-3v-3z"/></svg>
+                  <div class="banner-uploader-title">Liga semanal de slots</div>
+                  <div class="banner-uploader-sub">click o arrastrá una imagen · 1200×450px recomendado</div>
+                </div>
+              </div>
+              <div class="banner-actions">
+                <button class="btn btn-secondary btn-sm">
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M17 8l-5-5-5 5M12 3v12"/></svg>
+                  subir imagen
+                </button>
+                <button class="btn btn-ghost btn-sm">
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15 15 0 0 1 4 10 15 15 0 0 1-4 10 15 15 0 0 1-4-10 15 15 0 0 1 4-10z"/></svg>
+                  usar generador
+                </button>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+        <!-- ===== SECCIÓN 2: TIPO DE TORNEO ===== -->
+        <div class="section-card">
+          <div class="section-card-head">
+            <div class="section-num">2</div>
+            <div class="section-card-title">Tipo de torneo</div>
+            <span class="section-card-help">qué métrica decide quién gana</span>
+          </div>
+          <div class="section-card-body">
+
+            <div class="type-grid">
+
+              <button class="type-card active">
+                <div class="type-icon">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="6"/><path d="M9 13l-2 8 5-3 5 3-2-8"/></svg>
+                </div>
+                <div class="type-content">
+                  <div class="type-title">Por XP acumulada</div>
+                  <div class="type-desc">gana quien acumule más XP en el período</div>
+                </div>
+              </button>
+
+              <button class="type-card">
+                <div class="type-icon">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+                </div>
+                <div class="type-content">
+                  <div class="type-title">Por cantidad de eventos</div>
+                  <div class="type-desc">gana quien apueste más veces</div>
+                </div>
+              </button>
+
+              <button class="type-card">
+                <div class="type-icon">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M16 8h-6a2 2 0 1 0 0 4h4a2 2 0 1 1 0 4H8M12 6v2m0 8v2"/></svg>
+                </div>
+                <div class="type-content">
+                  <div class="type-title">Por monto apostado</div>
+                  <div class="type-desc">gana quien apueste más volumen total</div>
+                </div>
+              </button>
+
+              <button class="type-card">
+                <div class="type-icon">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3h18v18H3zM3 9h18M9 21V9"/></svg>
+                </div>
+                <div class="type-content">
+                  <div class="type-title">Mixto · custom</div>
+                  <div class="type-desc">combiná varias métricas con peso</div>
+                </div>
+              </button>
+
+            </div>
+
+            <div style="margin-top: 18px; padding: 14px; background: var(--bg-tertiary); border-radius: 8px;">
+              <div class="form-label" style="margin-bottom: 10px;">categorías que cuentan</div>
+              <div class="chip-group">
+                <button class="chip">
+                  <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+                  todas
+                </button>
+                <button class="chip active">
+                  <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+                  slots
+                </button>
+                <button class="chip">deportes</button>
+                <button class="chip">poker</button>
+                <button class="chip">bingo</button>
+                <button class="chip">casino vivo</button>
+              </div>
+              <p class="form-help" style="margin-top: 10px;">solo los eventos de las categorías marcadas suman para este torneo</p>
+            </div>
+
+          </div>
+        </div>
+
+        <!-- ===== SECCIÓN 3: FECHAS ===== -->
+        <div class="section-card">
+          <div class="section-card-head">
+            <div class="section-num">3</div>
+            <div class="section-card-title">Fechas y duración</div>
+            <span class="section-card-help">cuándo arranca, cuándo termina</span>
+          </div>
+          <div class="section-card-body">
+
+            <div class="form-row-grid">
+              <div>
+                <label class="form-label">inicio</label>
+                <input type="datetime-local" class="form-input" value="2026-05-09T00:00">
+                <p class="form-help">cuándo empiezan a contar los eventos</p>
+              </div>
+              <div>
+                <label class="form-label">fin</label>
+                <input type="datetime-local" class="form-input" value="2026-05-15T23:59">
+                <p class="form-help">después de esta fecha se cierra el ranking</p>
+              </div>
+            </div>
+
+            <div class="form-row" style="margin-top: 14px;">
+              <label class="form-label">zona horaria</label>
+              <select class="form-select">
+                <option>America/Argentina/Buenos_Aires (GMT-3)</option>
+                <option>America/Mexico_City (GMT-6)</option>
+                <option>Europe/Madrid (GMT+1)</option>
+              </select>
+              <p class="form-help">las fechas mostradas a los jugadores se ajustan a su zona horaria local</p>
+            </div>
+
+            <div class="form-row" style="margin-top: 14px;">
+              <label class="form-label">pre-anuncio (opcional)</label>
+              <select class="form-select">
+                <option>3 días antes</option>
+                <option>1 día antes</option>
+                <option>1 hora antes</option>
+                <option>sin pre-anuncio</option>
+              </select>
+              <p class="form-help">los jugadores ven el torneo en "próximos" antes de que arranque</p>
+            </div>
+
+          </div>
+        </div>
+
+        <!-- ===== SECCIÓN 4: PREMIOS ===== -->
+        <div class="section-card">
+          <div class="section-card-head">
+            <div class="section-num">4</div>
+            <div class="section-card-title">Estructura de premios</div>
+            <span class="section-card-help">prize pool y distribución</span>
+          </div>
+          <div class="section-card-body">
+
+            <div class="form-row-grid" style="margin-bottom: 18px;">
+              <div>
+                <label class="form-label">prize pool total</label>
+                <input type="text" class="form-input" value="$1,500 USD">
+                <p class="form-help">suma de todos los premios</p>
+              </div>
+              <div>
+                <label class="form-label">moneda de premios</label>
+                <select class="form-select">
+                  <option>USD · dinero del operador</option>
+                  <option>monedas oro · gamificación</option>
+                  <option>mixto</option>
+                </select>
+              </div>
+            </div>
+
+            <label class="form-label">distribución por puesto</label>
+
+            <div class="prize-row">
+              <div class="prize-position">
+                <div class="pos-num gold">1°</div>
+              </div>
+              <div style="font-size: 12px; color: var(--text-secondary);">primer puesto</div>
+              <input type="text" class="prize-input" value="$500">
+              <select class="prize-select">
+                <option>USD</option>
+                <option>monedas</option>
+              </select>
+              <button class="action-btn"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg></button>
+            </div>
+
+            <div class="prize-row">
+              <div class="prize-position">
+                <div class="pos-num silver">2°</div>
+              </div>
+              <div style="font-size: 12px; color: var(--text-secondary);">segundo puesto</div>
+              <input type="text" class="prize-input" value="$300">
+              <select class="prize-select">
+                <option>USD</option>
+                <option>monedas</option>
+              </select>
+              <button class="action-btn"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg></button>
+            </div>
+
+            <div class="prize-row">
+              <div class="prize-position">
+                <div class="pos-num bronze">3°</div>
+              </div>
+              <div style="font-size: 12px; color: var(--text-secondary);">tercer puesto</div>
+              <input type="text" class="prize-input" value="$200">
+              <select class="prize-select">
+                <option>USD</option>
+                <option>monedas</option>
+              </select>
+              <button class="action-btn"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg></button>
+            </div>
+
+            <div class="prize-row">
+              <div class="prize-position">
+                <div class="pos-num regular">4-10</div>
+              </div>
+              <div style="font-size: 12px; color: var(--text-secondary);">por rango (cada uno recibe)</div>
+              <input type="text" class="prize-input" value="$50">
+              <select class="prize-select">
+                <option>USD</option>
+                <option>monedas</option>
+              </select>
+              <button class="action-btn"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg></button>
+            </div>
+
+            <div class="prize-row">
+              <div class="prize-position">
+                <div class="pos-num regular">11-50</div>
+              </div>
+              <div style="font-size: 12px; color: var(--text-secondary);">por rango</div>
+              <input type="text" class="prize-input" value="100">
+              <select class="prize-select">
+                <option>monedas</option>
+                <option>USD</option>
+              </select>
+              <button class="action-btn"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg></button>
+            </div>
+
+            <button class="add-row-btn">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+              agregar puesto o rango
+            </button>
+
+          </div>
+        </div>
+
+        <!-- ===== SECCIÓN 5: ELEGIBILIDAD ===== -->
+        <div class="section-card">
+          <div class="section-card-head">
+            <div class="section-num">5</div>
+            <div class="section-card-title">Elegibilidad</div>
+            <span class="section-card-help">quiénes pueden participar</span>
+          </div>
+          <div class="section-card-body">
+
+            <div class="eligibility-row">
+              <div class="elig-icon" style="background: var(--accent-subtle); color: var(--accent);">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8z"/></svg>
+              </div>
+              <div class="elig-info">
+                <div class="elig-title">abierto a todos</div>
+                <div class="elig-desc">cualquier jugador puede inscribirse</div>
+              </div>
+              <button class="switch on"></button>
+            </div>
+
+            <div class="eligibility-row">
+              <div class="elig-icon" style="background: rgba(255, 215, 0, 0.10); color: var(--gold);">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2 L4 7 v10 l8 5 8-5 V7 z"/></svg>
+              </div>
+              <div class="elig-info">
+                <div class="elig-title">solo VIP plata o superior</div>
+                <div class="elig-desc">jugadores con tier VIP plata, oro o diamond</div>
+              </div>
+              <button class="switch"></button>
+            </div>
+
+            <div class="eligibility-row">
+              <div class="elig-icon" style="background: rgba(88, 166, 255, 0.10); color: var(--info);">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+              </div>
+              <div class="elig-info">
+                <div class="elig-title">nivel mínimo requerido</div>
+                <div class="elig-desc">jugadores con nivel 10 o superior</div>
+              </div>
+              <input type="number" class="prize-input" value="10" style="width: 70px; text-align: center;">
+            </div>
+
+            <div class="eligibility-row">
+              <div class="elig-icon" style="background: rgba(167, 139, 250, 0.10); color: var(--purple);">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2M8.5 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM20 8v6M23 11h-6"/></svg>
+              </div>
+              <div class="elig-info">
+                <div class="elig-title">límite de participantes</div>
+                <div class="elig-desc">cap máximo de inscritos · vacío = ilimitado</div>
+              </div>
+              <input type="number" class="prize-input" value="500" style="width: 80px; text-align: center;" placeholder="∞">
+            </div>
+
+          </div>
+        </div>
+
+        <!-- ===== BOTTOM BAR ===== -->
+        <div class="bottom-bar">
+          <div class="save-state">
+            <span class="dot"></span>
+            guardado automáticamente · hace 8 seg · borrador
+          </div>
+          <div class="bottom-actions">
+            <button class="btn btn-ghost">descartar</button>
+            <button class="btn btn-secondary">guardar borrador</button>
+            <button class="btn btn-primary">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+              programar y publicar
+            </button>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- =========== SIDEBAR DERECHA =========== -->
+      <div class="config-side">
+
+        <!-- Vista previa del jugador -->
+        <div class="preview-card">
+          <div class="preview-head">
+            <span class="preview-title">vista previa · widget jugador</span>
+            <span style="font-size: 10px; color: var(--text-tertiary); font-weight: 300; font-style: italic;">así lo ven</span>
+          </div>
+          <div class="preview-content">
+            <div class="preview-tournament-card">
+              <div class="preview-banner">
+                <div class="preview-banner-status">
+                  <span class="dot"></span>
+                  destacado
+                </div>
+                <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" style="position: relative;"><path d="M7 4h10v3a5 5 0 0 1-10 0V4zM5 7h14M9 14h6v3l1 3H8l1-3v-3z"/></svg>
+              </div>
+              <div class="preview-body">
+                <div class="preview-tournament-name">Liga semanal de slots</div>
+                <div class="preview-tournament-desc">Compita esta semana para ganar el premio mayor.</div>
+
+                <div class="preview-stat-row">
+                  <div class="preview-stat">
+                    <div class="preview-stat-label">prize pool</div>
+                    <div class="preview-stat-value gold">$1,500</div>
+                  </div>
+                  <div class="preview-stat">
+                    <div class="preview-stat-label">duración</div>
+                    <div class="preview-stat-value">7 días</div>
+                  </div>
+                </div>
+
+                <div class="preview-prizes">
+                  <div class="preview-prizes-title">premios</div>
+                  <div class="preview-prize-row">
+                    <span class="preview-prize-position">
+                      <span style="font-size: 13px;">🥇</span> 1° puesto
+                    </span>
+                    <span class="preview-prize-value gold">$500</span>
+                  </div>
+                  <div class="preview-prize-row">
+                    <span class="preview-prize-position">
+                      <span style="font-size: 13px;">🥈</span> 2° puesto
+                    </span>
+                    <span class="preview-prize-value gold">$300</span>
+                  </div>
+                  <div class="preview-prize-row">
+                    <span class="preview-prize-position">
+                      <span style="font-size: 13px;">🥉</span> 3° puesto
+                    </span>
+                    <span class="preview-prize-value gold">$200</span>
+                  </div>
+                  <div class="preview-prize-row">
+                    <span class="preview-prize-position">
+                      <span style="opacity: 0.5;">★</span> 4°-10°
+                    </span>
+                    <span class="preview-prize-value">$50</span>
+                  </div>
+                  <div class="preview-prize-row">
+                    <span class="preview-prize-position">
+                      <span style="opacity: 0.5;">★</span> 11°-50°
+                    </span>
+                    <span class="preview-prize-value">100 mon</span>
+                  </div>
+                </div>
+
+                <button class="preview-cta">inscribirme · gratis</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Resumen de configuración -->
+        <div class="summary-card">
+          <div class="summary-head">
+            <span class="summary-title">resumen</span>
+          </div>
+          <div class="summary-body">
+            <div class="summary-row">
+              <span class="summary-label">tipo</span>
+              <span class="summary-value">XP acumulada</span>
+            </div>
+            <div class="summary-row">
+              <span class="summary-label">categorías</span>
+              <span class="summary-value">slots</span>
+            </div>
+            <div class="summary-row">
+              <span class="summary-label">duración</span>
+              <span class="summary-value">7 días</span>
+            </div>
+            <div class="summary-row">
+              <span class="summary-label">prize pool</span>
+              <span class="summary-value success">$1,500 USD</span>
+            </div>
+            <div class="summary-row">
+              <span class="summary-label">premios</span>
+              <span class="summary-value">50 puestos</span>
+            </div>
+            <div class="summary-row">
+              <span class="summary-label">elegibles estimados</span>
+              <span class="summary-value">~12,800 jugadores</span>
+            </div>
+            <div class="summary-row">
+              <span class="summary-label">cap participantes</span>
+              <span class="summary-value">500</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Recomendaciones -->
+        <div class="summary-card">
+          <div class="summary-head">
+            <span class="summary-title">recomendaciones</span>
+          </div>
+          <div class="summary-body">
+            <div style="display: flex; align-items: flex-start; gap: 8px; padding: 8px 0;">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--success)" stroke-width="2" style="flex-shrink: 0; margin-top: 2px;"><polyline points="20 6 9 17 4 12"/></svg>
+              <span style="font-size: 12px; color: var(--text-secondary); line-height: 1.5;">la duración de 7 días tiene mejor engagement vs torneos de 1 día</span>
+            </div>
+            <div style="display: flex; align-items: flex-start; gap: 8px; padding: 8px 0; border-top: 1px solid var(--border-subtle);">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--warning)" stroke-width="2" style="flex-shrink: 0; margin-top: 2px;"><circle cx="12" cy="12" r="10"/><path d="M12 8v4M12 16h.01"/></svg>
+              <span style="font-size: 12px; color: var(--text-secondary); line-height: 1.5;">el cap de 500 puede limitar el engagement · considerá subirlo o dejarlo ilimitado</span>
+            </div>
+            <div style="display: flex; align-items: flex-start; gap: 8px; padding: 8px 0; border-top: 1px solid var(--border-subtle);">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--info)" stroke-width="2" style="flex-shrink: 0; margin-top: 2px;"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+              <span style="font-size: 12px; color: var(--text-secondary); line-height: 1.5;">activá el pre-anuncio para que más jugadores conozcan el torneo antes de que arranque</span>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+
+  </div>
+</div>
+
+</div>
+
+</body>
+</html>

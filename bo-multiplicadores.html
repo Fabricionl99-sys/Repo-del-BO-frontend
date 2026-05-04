@@ -1,0 +1,1206 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BO Operador · Multiplicadores</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Urbanist:ital,wght@0,300;0,400;0,500;0,600;1,300&display=swap" rel="stylesheet">
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg-primary: #0E1116;
+  --bg-secondary: #161B22;
+  --bg-tertiary: #1C2128;
+  --bg-elevated: #21262D;
+  --bg-hover: #262C36;
+  
+  --accent: #0AF784;
+  --accent-hover: #08D971;
+  --accent-glow: rgba(10, 247, 132, 0.15);
+  --accent-subtle: rgba(10, 247, 132, 0.08);
+  
+  --text-primary: #FFFFFF;
+  --text-secondary: #B8BEC9;
+  --text-tertiary: #7D8590;
+  --text-disabled: #484F58;
+  
+  --border-subtle: rgba(255, 255, 255, 0.06);
+  --border-default: rgba(255, 255, 255, 0.10);
+  --border-strong: rgba(255, 255, 255, 0.16);
+  
+  --success: #0AF784;
+  --warning: #F0B72F;
+  --danger: #F85149;
+  --info: #58A6FF;
+  --purple: #A78BFA;
+  --gold: #FFD700;
+  --orange: #FF8C42;
+}
+
+body {
+  font-family: 'Urbanist', system-ui, sans-serif;
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+button { font-family: inherit; cursor: pointer; }
+input, select, textarea { font-family: inherit; }
+
+.app {
+  display: grid;
+  grid-template-columns: 240px 1fr;
+  min-height: 100vh;
+}
+
+/* === SIDEBAR === */
+.sidebar {
+  background: var(--bg-secondary);
+  border-right: 1px solid var(--border-subtle);
+  padding: 16px 0;
+  position: sticky; top: 0;
+  height: 100vh;
+  overflow-y: auto;
+}
+
+.sidebar-brand {
+  padding: 0 20px 20px;
+  border-bottom: 1px solid var(--border-subtle);
+  margin-bottom: 16px;
+  display: flex; align-items: center; gap: 10px;
+}
+
+.brand-logo {
+  width: 28px; height: 28px;
+  border-radius: 8px;
+  background: linear-gradient(135deg, var(--accent), #00D9FF);
+  display: flex; align-items: center; justify-content: center;
+  font-weight: 600; color: var(--bg-primary); font-size: 13px;
+}
+
+.brand-name { font-size: 15px; font-weight: 600; }
+
+.operator-selector {
+  margin: 0 12px 16px;
+  padding: 10px 12px;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-default);
+  border-radius: 8px;
+  display: flex; align-items: center; gap: 10px;
+  cursor: pointer;
+}
+
+.operator-avatar {
+  width: 24px; height: 24px;
+  border-radius: 6px;
+  background: linear-gradient(135deg, #4D9FFF, #2563EB);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 11px; font-weight: 600; color: white;
+}
+
+.operator-info { flex: 1; min-width: 0; }
+.operator-name { font-size: 13px; font-weight: 500; }
+.operator-tier { font-size: 10px; color: var(--text-tertiary); }
+
+.sidebar-section { margin-bottom: 8px; padding: 0 12px; }
+.section-label {
+  font-size: 10px; font-weight: 600;
+  text-transform: uppercase; letter-spacing: 0.08em;
+  color: var(--text-tertiary); padding: 8px 12px;
+}
+
+.nav-item {
+  display: flex; align-items: center; gap: 10px;
+  padding: 7px 12px; border-radius: 6px;
+  font-size: 13px; color: var(--text-secondary);
+  cursor: pointer; margin-bottom: 1px; text-decoration: none;
+}
+
+.nav-item:hover { background: var(--bg-tertiary); color: var(--text-primary); }
+.nav-item.active {
+  background: var(--accent-subtle); color: var(--accent);
+  font-weight: 500; position: relative;
+}
+.nav-item.active::before {
+  content: ''; position: absolute; left: -12px; top: 50%;
+  transform: translateY(-50%); width: 3px; height: 18px;
+  background: var(--accent); border-radius: 0 2px 2px 0;
+}
+
+.nav-icon { width: 16px; height: 16px; display: flex; align-items: center; }
+
+/* === MAIN === */
+.main { display: flex; flex-direction: column; min-width: 0; }
+
+.topbar {
+  height: 56px;
+  border-bottom: 1px solid var(--border-subtle);
+  padding: 0 28px;
+  display: flex; align-items: center; justify-content: space-between;
+  background: var(--bg-primary);
+  position: sticky; top: 0; z-index: 10;
+}
+
+.breadcrumb { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--text-secondary); }
+.breadcrumb-current { color: var(--text-primary); font-weight: 500; }
+.breadcrumb a { color: var(--text-secondary); text-decoration: none; cursor: pointer; }
+
+.topbar-actions { display: flex; align-items: center; gap: 12px; }
+
+.icon-btn {
+  width: 32px; height: 32px;
+  border-radius: 8px;
+  border: 1px solid var(--border-default);
+  background: var(--bg-tertiary);
+  color: var(--text-secondary);
+  display: flex; align-items: center; justify-content: center;
+}
+
+.icon-btn:hover { background: var(--bg-elevated); color: var(--text-primary); }
+
+.user-pill {
+  display: flex; align-items: center; gap: 8px;
+  padding: 4px 12px 4px 4px; border-radius: 999px;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-default); cursor: pointer;
+}
+
+.user-avatar {
+  width: 24px; height: 24px; border-radius: 50%;
+  background: linear-gradient(135deg, #F0B72F, #E0901F);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 10px; font-weight: 600; color: var(--bg-primary);
+}
+
+.user-name { font-size: 12px; font-weight: 500; }
+.user-role { font-size: 10px; color: var(--text-tertiary); }
+
+/* === CONTENT === */
+.content { padding: 28px 28px 60px; max-width: 1500px; }
+
+.page-header {
+  margin-bottom: 24px;
+  display: flex; justify-content: space-between;
+  align-items: flex-start; gap: 24px;
+}
+
+.page-title {
+  font-size: 24px; font-weight: 600;
+  margin-bottom: 6px; letter-spacing: -0.01em;
+}
+
+.page-subtitle {
+  font-size: 13px; color: var(--text-tertiary);
+  font-weight: 300; font-style: italic;
+}
+
+.page-actions { display: flex; gap: 8px; align-items: center; }
+
+.btn {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 8px 14px; border-radius: 8px;
+  font-size: 13px; font-weight: 500;
+  border: 1px solid transparent;
+  font-family: inherit; cursor: pointer;
+}
+
+.btn-primary {
+  background: var(--accent); color: var(--bg-primary);
+  border-color: var(--accent);
+  box-shadow: 0 0 16px var(--accent-glow);
+}
+.btn-primary:hover { background: var(--accent-hover); }
+
+.btn-secondary {
+  background: var(--bg-tertiary); color: var(--text-primary);
+  border-color: var(--border-default);
+}
+.btn-secondary:hover { background: var(--bg-elevated); border-color: var(--border-strong); }
+
+.btn-ghost { background: transparent; color: var(--text-secondary); }
+.btn-ghost:hover { background: var(--bg-tertiary); color: var(--text-primary); }
+
+.btn-sm { padding: 6px 10px; font-size: 12px; }
+
+/* === STATS BAR === */
+.stats-bar {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.stat-card {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-subtle);
+  border-radius: 10px;
+  padding: 14px 16px;
+}
+
+.stat-label {
+  font-size: 11px;
+  color: var(--text-tertiary);
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin-bottom: 6px;
+}
+
+.stat-value {
+  font-size: 22px;
+  font-weight: 600;
+  margin-bottom: 4px;
+  letter-spacing: -0.01em;
+}
+
+.stat-trend {
+  font-size: 11px;
+  display: flex; align-items: center;
+  gap: 4px;
+}
+
+.stat-trend.up { color: var(--success); }
+.stat-trend.neutral { color: var(--text-tertiary); }
+
+/* === TOOLBAR === */
+.toolbar {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.search-input {
+  flex: 1;
+  position: relative;
+}
+
+.search-input input {
+  width: 100%;
+  padding: 9px 12px 9px 36px;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-default);
+  border-radius: 8px;
+  color: var(--text-primary);
+  font-size: 13px;
+}
+
+.search-input input:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-subtle);
+}
+
+.search-input svg {
+  position: absolute;
+  left: 12px; top: 50%;
+  transform: translateY(-50%);
+  color: var(--text-tertiary);
+  pointer-events: none;
+}
+
+.filter-chip {
+  padding: 8px 12px;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-default);
+  border-radius: 8px;
+  color: var(--text-secondary);
+  font-size: 12px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+}
+
+.filter-chip:hover { background: var(--bg-tertiary); color: var(--text-primary); }
+.filter-chip.active {
+  background: var(--accent-subtle);
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.filter-chip .count {
+  background: var(--bg-elevated);
+  padding: 1px 6px;
+  border-radius: 999px;
+  font-size: 10px;
+  color: var(--text-tertiary);
+}
+
+.filter-chip.active .count {
+  background: var(--accent);
+  color: var(--bg-primary);
+}
+
+/* === MULTIPLIERS LIST === */
+.multipliers-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.multiplier-card {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-subtle);
+  border-radius: 10px;
+  padding: 16px;
+  display: grid;
+  grid-template-columns: 80px 1fr auto auto auto;
+  gap: 16px;
+  align-items: center;
+  cursor: pointer;
+  transition: all 150ms ease;
+}
+
+.multiplier-card:hover {
+  border-color: var(--border-strong);
+  background: var(--bg-tertiary);
+}
+
+.multiplier-card.disabled { opacity: 0.5; }
+
+/* === FACTOR BIG DISPLAY === */
+.factor-display {
+  width: 70px; height: 70px;
+  border-radius: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 22px;
+  font-weight: 700;
+  font-feature-settings: 'tnum';
+  letter-spacing: -0.01em;
+  position: relative;
+  overflow: hidden;
+}
+
+.factor-display::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, var(--factor-color), transparent);
+  opacity: 0.20;
+  pointer-events: none;
+}
+
+.factor-display.x2 { --factor-color: var(--success); color: var(--success); border: 1px solid rgba(10, 247, 132, 0.30); }
+.factor-display.x15 { --factor-color: var(--info); color: var(--info); border: 1px solid rgba(88, 166, 255, 0.30); }
+.factor-display.x3 { --factor-color: var(--purple); color: var(--purple); border: 1px solid rgba(167, 139, 250, 0.30); }
+.factor-display.x5 { --factor-color: var(--orange); color: var(--orange); border: 1px solid rgba(255, 140, 66, 0.30); }
+.factor-display.x10 { --factor-color: var(--gold); color: var(--gold); border: 1px solid rgba(255, 215, 0, 0.30); }
+.factor-display.x05 { --factor-color: var(--text-tertiary); color: var(--text-tertiary); border: 1px solid var(--border-default); }
+
+/* === MULTIPLIER INFO === */
+.multiplier-info { min-width: 0; }
+
+.multiplier-header-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 6px;
+}
+
+.multiplier-name {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.multiplier-tag {
+  font-size: 10px;
+  padding: 3px 8px;
+  border-radius: 999px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.multiplier-tag.permanent {
+  background: rgba(10, 247, 132, 0.10);
+  color: var(--success);
+}
+
+.multiplier-tag.temporal {
+  background: rgba(167, 139, 250, 0.10);
+  color: var(--purple);
+}
+
+.multiplier-tag.event {
+  background: rgba(255, 140, 66, 0.10);
+  color: var(--orange);
+}
+
+.multiplier-tag.scheduled {
+  background: rgba(88, 166, 255, 0.10);
+  color: var(--info);
+}
+
+.multiplier-conditions {
+  font-size: 12px;
+  color: var(--text-secondary);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+  font-weight: 300;
+  font-style: italic;
+}
+
+.condition-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 8px;
+  background: var(--bg-tertiary);
+  border-radius: 6px;
+  font-style: normal;
+  font-weight: 500;
+  color: var(--text-primary);
+}
+
+.condition-pill.code {
+  font-family: 'SF Mono', monospace;
+  font-size: 11px;
+}
+
+.connector {
+  color: var(--text-tertiary);
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  font-weight: 600;
+  font-style: normal;
+}
+
+/* === COUNTER STATS === */
+.counter-mini {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 2px;
+}
+
+.counter-value {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--accent);
+  font-feature-settings: 'tnum';
+}
+
+.counter-label {
+  font-size: 10px;
+  color: var(--text-tertiary);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  font-weight: 600;
+}
+
+/* === SCHEDULE INDICATOR === */
+.schedule-indicator {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  font-size: 11px;
+  color: var(--text-secondary);
+  gap: 2px;
+}
+
+.schedule-indicator .live-dot {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  color: var(--success);
+  font-weight: 600;
+  font-size: 11px;
+}
+
+.schedule-indicator .live-dot::before {
+  content: '';
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: var(--success);
+  box-shadow: 0 0 6px var(--success);
+  animation: pulse 2s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
+}
+
+.schedule-indicator .upcoming {
+  color: var(--info);
+}
+
+.schedule-indicator .expired {
+  color: var(--text-disabled);
+}
+
+.schedule-time {
+  font-size: 10px;
+  color: var(--text-tertiary);
+}
+
+/* === SWITCH + ACTIONS === */
+.multiplier-controls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.switch {
+  position: relative;
+  width: 36px; height: 20px;
+  background: var(--bg-elevated);
+  border-radius: 999px;
+  cursor: pointer;
+  border: none;
+  padding: 0;
+  flex-shrink: 0;
+}
+
+.switch::after {
+  content: '';
+  position: absolute;
+  top: 2px; left: 2px;
+  width: 16px; height: 16px;
+  border-radius: 50%;
+  background: var(--text-secondary);
+  transition: all 150ms ease;
+}
+
+.switch.on { background: var(--accent); }
+.switch.on::after { left: 18px; background: var(--bg-primary); }
+
+.action-btn {
+  width: 32px; height: 32px;
+  border-radius: 6px;
+  background: transparent;
+  border: 1px solid transparent;
+  color: var(--text-tertiary);
+  display: flex; align-items: center; justify-content: center;
+}
+
+.action-btn:hover {
+  background: var(--bg-elevated);
+  color: var(--text-primary);
+  border-color: var(--border-default);
+}
+
+/* === ALERT === */
+.alert {
+  padding: 12px 16px;
+  border-radius: 10px;
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  font-size: 12px;
+  margin-bottom: 16px;
+}
+
+.alert.info {
+  background: rgba(88, 166, 255, 0.08);
+  border: 1px solid rgba(88, 166, 255, 0.25);
+}
+.alert.info svg { color: var(--info); flex-shrink: 0; }
+.alert .alert-text { color: var(--text-secondary); flex: 1; }
+.alert strong { color: var(--text-primary); }
+
+/* === SECTION ===*/
+.section-label-h {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-tertiary);
+  margin-bottom: 10px;
+  padding-top: 8px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* === COMBINATION INFO === */
+.combination-card {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-subtle);
+  border-radius: 10px;
+  padding: 16px 18px;
+  margin-bottom: 20px;
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  gap: 16px;
+  align-items: center;
+}
+
+.combination-icon {
+  width: 40px; height: 40px;
+  border-radius: 10px;
+  background: rgba(167, 139, 250, 0.10);
+  color: var(--purple);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.combination-info { min-width: 0; }
+.combination-title {
+  font-size: 13px;
+  font-weight: 500;
+  margin-bottom: 4px;
+}
+
+.combination-formula {
+  font-family: 'SF Mono', monospace;
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+
+.formula-x {
+  color: var(--accent);
+  font-weight: 700;
+  margin: 0 4px;
+}
+
+.combination-cap {
+  font-size: 11px;
+  color: var(--text-tertiary);
+  font-style: italic;
+  font-weight: 300;
+}
+
+/* === SCROLLBAR === */
+::-webkit-scrollbar { width: 8px; height: 8px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border-default); border-radius: 4px; }
+::-webkit-scrollbar-thumb:hover { background: var(--border-strong); }
+
+@media (max-width: 1100px) {
+  .stats-bar { grid-template-columns: repeat(2, 1fr); }
+  .multiplier-card { grid-template-columns: 60px 1fr auto; gap: 12px; }
+  .multiplier-card .counter-mini, .multiplier-card .schedule-indicator { display: none; }
+  .combination-card { grid-template-columns: auto 1fr; }
+  .combination-cap { grid-column: 1 / -1; padding-top: 8px; border-top: 1px solid var(--border-subtle); }
+}
+
+@media (max-width: 768px) {
+  .app { grid-template-columns: 1fr; }
+  .sidebar { display: none; }
+  .stats-bar { grid-template-columns: 1fr; }
+  .toolbar { flex-wrap: wrap; }
+  .multiplier-card { grid-template-columns: 1fr; }
+  .factor-display { width: 60px; height: 60px; }
+}
+</style>
+</head>
+<body>
+
+<div class="app">
+
+<aside class="sidebar">
+  <div class="sidebar-brand">
+    <div class="brand-logo">N</div>
+    <div class="brand-name">niveles</div>
+  </div>
+  <div class="operator-selector">
+    <div class="operator-avatar">CA</div>
+    <div class="operator-info">
+      <div class="operator-name">Casino Astral</div>
+      <div class="operator-tier">plan growth · es-AR</div>
+    </div>
+    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="color: var(--text-tertiary);"><polyline points="6 9 12 15 18 9"/></svg>
+  </div>
+
+  <div class="sidebar-section">
+    <a class="nav-item" href="#">
+      <span class="nav-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg></span>
+      Dashboard
+    </a>
+  </div>
+
+  <div class="sidebar-section">
+    <p class="section-label">Configuración</p>
+    <a class="nav-item" href="#">
+      <span class="nav-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2 L4 7 v10 l8 5 8-5 V7 z"/></svg></span>
+      Niveles
+    </a>
+    <a class="nav-item" href="#">
+      <span class="nav-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"/></svg></span>
+      Reglas de XP
+    </a>
+    <a class="nav-item active" href="#">
+      <span class="nav-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="13 17 18 12 13 7"/><polyline points="6 17 11 12 6 7"/></svg></span>
+      Multiplicadores
+    </a>
+  </div>
+</aside>
+
+<div class="main">
+
+  <div class="topbar">
+    <div class="breadcrumb">
+      <a>Configuración</a>
+      <span style="color: var(--text-tertiary);">/</span>
+      <span class="breadcrumb-current">Multiplicadores</span>
+    </div>
+    
+    <div class="topbar-actions">
+      <button class="icon-btn"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg></button>
+      <button class="icon-btn"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 1 1 5.83 1c0 2-3 3-3 3M12 17h.01"/></svg></button>
+      <div class="user-pill">
+        <div class="user-avatar">FL</div>
+        <div>
+          <div class="user-name">Fabricio L.</div>
+          <div class="user-role">admin</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="content">
+
+    <div class="page-header">
+      <div>
+        <h1 class="page-title">Multiplicadores</h1>
+        <p class="page-subtitle">factores que aumentan el XP en condiciones específicas · se combinan multiplicativamente</p>
+      </div>
+      <div class="page-actions">
+        <button class="btn btn-secondary">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+          plantillas
+        </button>
+        <button class="btn btn-primary">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          nuevo multiplicador
+        </button>
+      </div>
+    </div>
+
+    <!-- ===== STATS BAR ===== -->
+    <div class="stats-bar">
+      <div class="stat-card">
+        <div class="stat-label">multiplicadores activos</div>
+        <div class="stat-value">8</div>
+        <div class="stat-trend up">
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="6 15 12 9 18 15"/></svg>
+          +2 este mes
+        </div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">aplicados (últimos 7d)</div>
+        <div class="stat-value">847k</div>
+        <div class="stat-trend up">
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="6 15 12 9 18 15"/></svg>
+          +18.2% vs semana previa
+        </div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">XP extra otorgada</div>
+        <div class="stat-value">+2.4M</div>
+        <div class="stat-trend neutral">
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          gracias a multiplicadores
+        </div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">multiplicador promedio</div>
+        <div class="stat-value">x1.84</div>
+        <div class="stat-trend neutral">
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          factor combinado
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== ALERT === -->
+    <div class="alert info">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+      <span class="alert-text">los multiplicadores se aplican <strong>multiplicativamente</strong> · si dos coinciden (ej: VIP gold x2 + finde x2), el factor final es x4 · ver tope global abajo</span>
+    </div>
+
+    <!-- ===== TOOLBAR ===== -->
+    <div class="toolbar">
+      <div class="search-input">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
+        <input type="text" placeholder="buscar multiplicador por nombre o condición...">
+      </div>
+
+      <button class="filter-chip active">
+        todos <span class="count">10</span>
+      </button>
+      <button class="filter-chip">
+        permanentes <span class="count">4</span>
+      </button>
+      <button class="filter-chip">
+        temporales <span class="count">3</span>
+      </button>
+      <button class="filter-chip">
+        eventos <span class="count">2</span>
+      </button>
+      <button class="filter-chip">
+        deshabilitados <span class="count">1</span>
+      </button>
+    </div>
+
+    <!-- ===== ACTIVOS AHORA ===== -->
+    <p class="section-label-h">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--success)" stroke-width="2.5"><circle cx="12" cy="12" r="10"/></svg>
+      activos ahora · 5
+    </p>
+
+    <div class="multipliers-list">
+
+      <!-- VIP gold permanente -->
+      <div class="multiplier-card">
+        <div class="factor-display x2">×2</div>
+        <div class="multiplier-info">
+          <div class="multiplier-header-row">
+            <div class="multiplier-name">VIP gold · doble XP</div>
+            <span class="multiplier-tag permanent">permanente</span>
+          </div>
+          <div class="multiplier-conditions">
+            <span>aplica si:</span>
+            <span class="condition-pill code">player.vip_tier = "gold"</span>
+            <span class="connector">o</span>
+            <span class="condition-pill code">player.vip_tier = "diamond"</span>
+          </div>
+        </div>
+        <div class="counter-mini">
+          <div class="counter-value">142,847</div>
+          <div class="counter-label">aplicaciones / 7d</div>
+        </div>
+        <div class="schedule-indicator">
+          <span class="live-dot">en vivo</span>
+          <span class="schedule-time">desde el inicio</span>
+        </div>
+        <div class="multiplier-controls">
+          <button class="switch on"></button>
+          <button class="action-btn">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="1"/><circle cx="12" cy="5" r="1"/><circle cx="12" cy="19" r="1"/></svg>
+          </button>
+        </div>
+      </div>
+
+      <!-- Blackjack & Poker x1.5 -->
+      <div class="multiplier-card">
+        <div class="factor-display x15">×1.5</div>
+        <div class="multiplier-info">
+          <div class="multiplier-header-row">
+            <div class="multiplier-name">Juegos de habilidad bonificados</div>
+            <span class="multiplier-tag permanent">permanente</span>
+          </div>
+          <div class="multiplier-conditions">
+            <span>aplica si:</span>
+            <span class="condition-pill code">event.game_type ∈ [blackjack, poker, baccarat]</span>
+          </div>
+        </div>
+        <div class="counter-mini">
+          <div class="counter-value">312,420</div>
+          <div class="counter-label">aplicaciones / 7d</div>
+        </div>
+        <div class="schedule-indicator">
+          <span class="live-dot">en vivo</span>
+          <span class="schedule-time">desde 22 mar 2026</span>
+        </div>
+        <div class="multiplier-controls">
+          <button class="switch on"></button>
+          <button class="action-btn">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="1"/><circle cx="12" cy="5" r="1"/><circle cx="12" cy="19" r="1"/></svg>
+          </button>
+        </div>
+      </div>
+
+      <!-- Doble XP fin de semana - ACTIVO -->
+      <div class="multiplier-card">
+        <div class="factor-display x2">×2</div>
+        <div class="multiplier-info">
+          <div class="multiplier-header-row">
+            <div class="multiplier-name">Doble XP fin de semana</div>
+            <span class="multiplier-tag temporal">temporal</span>
+          </div>
+          <div class="multiplier-conditions">
+            <span>aplica si:</span>
+            <span class="condition-pill">viernes 18hs → domingo 23hs</span>
+            <span class="connector">y</span>
+            <span class="condition-pill code">event.amount &gt; $1.00 USD</span>
+          </div>
+        </div>
+        <div class="counter-mini">
+          <div class="counter-value">98,234</div>
+          <div class="counter-label">aplicaciones / 7d</div>
+        </div>
+        <div class="schedule-indicator">
+          <span class="live-dot">en vivo</span>
+          <span class="schedule-time">termina dom 11 may · 23hs</span>
+        </div>
+        <div class="multiplier-controls">
+          <button class="switch on"></button>
+          <button class="action-btn">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="1"/><circle cx="12" cy="5" r="1"/><circle cx="12" cy="19" r="1"/></svg>
+          </button>
+        </div>
+      </div>
+
+      <!-- Cumpleaños -->
+      <div class="multiplier-card">
+        <div class="factor-display x5">×5</div>
+        <div class="multiplier-info">
+          <div class="multiplier-header-row">
+            <div class="multiplier-name">Día de cumpleaños 🎂</div>
+            <span class="multiplier-tag permanent">permanente</span>
+          </div>
+          <div class="multiplier-conditions">
+            <span>aplica si:</span>
+            <span class="condition-pill code">player.birthday = today</span>
+          </div>
+        </div>
+        <div class="counter-mini">
+          <div class="counter-value">847</div>
+          <div class="counter-label">aplicaciones / 7d</div>
+        </div>
+        <div class="schedule-indicator">
+          <span class="live-dot">en vivo</span>
+          <span class="schedule-time">desde el inicio</span>
+        </div>
+        <div class="multiplier-controls">
+          <button class="switch on"></button>
+          <button class="action-btn">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="1"/><circle cx="12" cy="5" r="1"/><circle cx="12" cy="19" r="1"/></svg>
+          </button>
+        </div>
+      </div>
+
+      <!-- Primera apuesta del día -->
+      <div class="multiplier-card">
+        <div class="factor-display x3">×3</div>
+        <div class="multiplier-info">
+          <div class="multiplier-header-row">
+            <div class="multiplier-name">Primera apuesta del día</div>
+            <span class="multiplier-tag permanent">permanente</span>
+          </div>
+          <div class="multiplier-conditions">
+            <span>aplica si:</span>
+            <span class="condition-pill code">player.bets_today = 0</span>
+            <span class="connector">y</span>
+            <span class="condition-pill code">event.type = "bet_placed"</span>
+          </div>
+        </div>
+        <div class="counter-mini">
+          <div class="counter-value">12,847</div>
+          <div class="counter-label">aplicaciones / 7d</div>
+        </div>
+        <div class="schedule-indicator">
+          <span class="live-dot">en vivo</span>
+          <span class="schedule-time">desde el inicio</span>
+        </div>
+        <div class="multiplier-controls">
+          <button class="switch on"></button>
+          <button class="action-btn">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="1"/><circle cx="12" cy="5" r="1"/><circle cx="12" cy="19" r="1"/></svg>
+          </button>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- ===== PROGRAMADOS ===== -->
+    <p class="section-label-h" style="margin-top: 24px;">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--info)" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+      programados · 2
+    </p>
+
+    <div class="multipliers-list">
+
+      <!-- Aniversario casino -->
+      <div class="multiplier-card">
+        <div class="factor-display x10">×10</div>
+        <div class="multiplier-info">
+          <div class="multiplier-header-row">
+            <div class="multiplier-name">Aniversario · Casino Astral cumple 10</div>
+            <span class="multiplier-tag event">evento</span>
+          </div>
+          <div class="multiplier-conditions">
+            <span>aplica si:</span>
+            <span class="condition-pill">15 mayo 00:00 → 17 mayo 23:59</span>
+            <span class="connector">y</span>
+            <span class="condition-pill code">player.country ∈ [AR, UY, CL, MX]</span>
+          </div>
+        </div>
+        <div class="counter-mini">
+          <div class="counter-value">—</div>
+          <div class="counter-label">no iniciado</div>
+        </div>
+        <div class="schedule-indicator">
+          <span class="upcoming">📅 inicia en 12 días</span>
+          <span class="schedule-time">15 may 00:00 hs</span>
+        </div>
+        <div class="multiplier-controls">
+          <button class="switch on"></button>
+          <button class="action-btn">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="1"/><circle cx="12" cy="5" r="1"/><circle cx="12" cy="19" r="1"/></svg>
+          </button>
+        </div>
+      </div>
+
+      <!-- Mundial 2026 -->
+      <div class="multiplier-card">
+        <div class="factor-display x3">×3</div>
+        <div class="multiplier-info">
+          <div class="multiplier-header-row">
+            <div class="multiplier-name">Apuestas deportivas · Mundial 2026</div>
+            <span class="multiplier-tag scheduled">programado</span>
+          </div>
+          <div class="multiplier-conditions">
+            <span>aplica si:</span>
+            <span class="condition-pill">11 jun → 19 jul 2026</span>
+            <span class="connector">y</span>
+            <span class="condition-pill code">event.sport = "football"</span>
+          </div>
+        </div>
+        <div class="counter-mini">
+          <div class="counter-value">—</div>
+          <div class="counter-label">no iniciado</div>
+        </div>
+        <div class="schedule-indicator">
+          <span class="upcoming">📅 inicia en 39 días</span>
+          <span class="schedule-time">11 jun 00:00 hs</span>
+        </div>
+        <div class="multiplier-controls">
+          <button class="switch on"></button>
+          <button class="action-btn">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="1"/><circle cx="12" cy="5" r="1"/><circle cx="12" cy="19" r="1"/></svg>
+          </button>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- ===== EXPIRADOS / DESHABILITADOS ===== -->
+    <p class="section-label-h" style="margin-top: 24px;">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--text-disabled)" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg>
+      expirados o deshabilitados · 3
+    </p>
+
+    <div class="multipliers-list">
+
+      <!-- Black Friday 2025 (expirado) -->
+      <div class="multiplier-card disabled">
+        <div class="factor-display x5">×5</div>
+        <div class="multiplier-info">
+          <div class="multiplier-header-row">
+            <div class="multiplier-name">Black Friday 2025</div>
+            <span class="multiplier-tag event">evento</span>
+          </div>
+          <div class="multiplier-conditions">
+            <span>aplica si:</span>
+            <span class="condition-pill">29 nov → 2 dic 2025</span>
+          </div>
+        </div>
+        <div class="counter-mini">
+          <div class="counter-value">847,302</div>
+          <div class="counter-label">aplicaciones (total)</div>
+        </div>
+        <div class="schedule-indicator">
+          <span class="expired">expirado · hace 5 meses</span>
+          <span class="schedule-time">2 dic 2025 23:59 hs</span>
+        </div>
+        <div class="multiplier-controls">
+          <button class="switch"></button>
+          <button class="action-btn">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="1"/><circle cx="12" cy="5" r="1"/><circle cx="12" cy="19" r="1"/></svg>
+          </button>
+        </div>
+      </div>
+
+      <!-- Slots premium (deshabilitado) -->
+      <div class="multiplier-card disabled">
+        <div class="factor-display x05">×0.5</div>
+        <div class="multiplier-info">
+          <div class="multiplier-header-row">
+            <div class="multiplier-name">Slots de bajo retorno · penalización</div>
+            <span class="multiplier-tag permanent">permanente</span>
+          </div>
+          <div class="multiplier-conditions">
+            <span>aplica si:</span>
+            <span class="condition-pill code">event.rtp &lt; 92</span>
+          </div>
+        </div>
+        <div class="counter-mini">
+          <div class="counter-value">23,847</div>
+          <div class="counter-label">aplicaciones (total)</div>
+        </div>
+        <div class="schedule-indicator">
+          <span class="expired">deshabilitado · hace 2 semanas</span>
+          <span class="schedule-time">por F. López</span>
+        </div>
+        <div class="multiplier-controls">
+          <button class="switch"></button>
+          <button class="action-btn">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="1"/><circle cx="12" cy="5" r="1"/><circle cx="12" cy="19" r="1"/></svg>
+          </button>
+        </div>
+      </div>
+
+      <!-- Año nuevo 2026 expirado -->
+      <div class="multiplier-card disabled">
+        <div class="factor-display x3">×3</div>
+        <div class="multiplier-info">
+          <div class="multiplier-header-row">
+            <div class="multiplier-name">Año nuevo 2026</div>
+            <span class="multiplier-tag event">evento</span>
+          </div>
+          <div class="multiplier-conditions">
+            <span>aplica si:</span>
+            <span class="condition-pill">31 dic 2025 → 2 ene 2026</span>
+          </div>
+        </div>
+        <div class="counter-mini">
+          <div class="counter-value">142,184</div>
+          <div class="counter-label">aplicaciones (total)</div>
+        </div>
+        <div class="schedule-indicator">
+          <span class="expired">expirado · hace 4 meses</span>
+          <span class="schedule-time">2 ene 2026 23:59 hs</span>
+        </div>
+        <div class="multiplier-controls">
+          <button class="switch"></button>
+          <button class="action-btn">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="1"/><circle cx="12" cy="5" r="1"/><circle cx="12" cy="19" r="1"/></svg>
+          </button>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- ===== TOPE GLOBAL Y FÓRMULA ===== -->
+    <p class="section-label-h" style="margin-top: 28px;">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--purple)" stroke-width="2.5"><polyline points="13 17 18 12 13 7"/><polyline points="6 17 11 12 6 7"/></svg>
+      cómo se combinan los multiplicadores
+    </p>
+
+    <div class="combination-card">
+      <div class="combination-icon">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="13 17 18 12 13 7"/><polyline points="6 17 11 12 6 7"/></svg>
+      </div>
+      <div class="combination-info">
+        <div class="combination-title">fórmula de cálculo</div>
+        <div class="combination-formula">
+          XP final = XP base <span class="formula-x">×</span> producto de multiplicadores aplicables
+        </div>
+      </div>
+      <div class="combination-cap">
+        <strong style="color: var(--text-secondary);">tope global</strong> ×10 · multiplicadores que excedan se capean automáticamente
+      </div>
+    </div>
+
+  </div>
+</div>
+
+</div>
+
+</body>
+</html>

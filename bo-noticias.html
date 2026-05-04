@@ -1,0 +1,1319 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BO Operador · Noticias y novedades</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Urbanist:ital,wght@0,300;0,400;0,500;0,600;1,300&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg-primary: #0E1116;
+  --bg-secondary: #161B22;
+  --bg-tertiary: #1C2128;
+  --bg-elevated: #21262D;
+  --bg-hover: #262C36;
+  
+  --accent: #0AF784;
+  --accent-hover: #08D971;
+  --accent-glow: rgba(10, 247, 132, 0.15);
+  --accent-subtle: rgba(10, 247, 132, 0.08);
+  
+  --text-primary: #FFFFFF;
+  --text-secondary: #B8BEC9;
+  --text-tertiary: #7D8590;
+  --text-disabled: #484F58;
+  
+  --border-subtle: rgba(255, 255, 255, 0.06);
+  --border-default: rgba(255, 255, 255, 0.10);
+  --border-strong: rgba(255, 255, 255, 0.16);
+  
+  --success: #0AF784;
+  --warning: #F0B72F;
+  --danger: #F85149;
+  --info: #58A6FF;
+  --purple: #A78BFA;
+  --pink: #FF6B9D;
+  --orange: #FF8C42;
+  --gold: #FFD700;
+  
+  --mono: 'JetBrains Mono', monospace;
+}
+
+body {
+  font-family: 'Urbanist', system-ui, sans-serif;
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+button { font-family: inherit; cursor: pointer; }
+input, select, textarea { font-family: inherit; }
+
+.app {
+  display: grid;
+  grid-template-columns: 240px 1fr;
+  min-height: 100vh;
+}
+
+/* === SIDEBAR === */
+.sidebar {
+  background: var(--bg-secondary);
+  border-right: 1px solid var(--border-subtle);
+  padding: 16px 0;
+  position: sticky; top: 0;
+  height: 100vh;
+  overflow-y: auto;
+}
+
+.sidebar-brand {
+  padding: 0 20px 20px;
+  border-bottom: 1px solid var(--border-subtle);
+  margin-bottom: 16px;
+  display: flex; align-items: center; gap: 10px;
+}
+
+.brand-logo {
+  width: 28px; height: 28px;
+  border-radius: 8px;
+  background: linear-gradient(135deg, var(--accent), #00D9FF);
+  display: flex; align-items: center; justify-content: center;
+  font-weight: 600; color: var(--bg-primary); font-size: 13px;
+}
+
+.brand-name { font-size: 15px; font-weight: 600; }
+
+.operator-selector {
+  margin: 0 12px 16px;
+  padding: 10px 12px;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-default);
+  border-radius: 8px;
+  display: flex; align-items: center; gap: 10px;
+  cursor: pointer;
+}
+
+.operator-avatar {
+  width: 24px; height: 24px;
+  border-radius: 6px;
+  background: linear-gradient(135deg, #4D9FFF, #2563EB);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 11px; font-weight: 600; color: white;
+}
+
+.operator-info { flex: 1; min-width: 0; }
+.operator-name { font-size: 13px; font-weight: 500; }
+.operator-tier { font-size: 10px; color: var(--text-tertiary); }
+
+.sidebar-section { margin-bottom: 8px; padding: 0 12px; }
+.section-label {
+  font-size: 10px; font-weight: 600;
+  text-transform: uppercase; letter-spacing: 0.08em;
+  color: var(--text-tertiary); padding: 8px 12px;
+}
+
+.nav-item {
+  display: flex; align-items: center; gap: 10px;
+  padding: 7px 12px; border-radius: 6px;
+  font-size: 13px; color: var(--text-secondary);
+  cursor: pointer; margin-bottom: 1px; text-decoration: none;
+}
+
+.nav-item:hover { background: var(--bg-tertiary); color: var(--text-primary); }
+.nav-item.active {
+  background: var(--accent-subtle); color: var(--accent);
+  font-weight: 500; position: relative;
+}
+.nav-item.active::before {
+  content: ''; position: absolute; left: -12px; top: 50%;
+  transform: translateY(-50%); width: 3px; height: 18px;
+  background: var(--accent); border-radius: 0 2px 2px 0;
+}
+
+.nav-icon { width: 16px; height: 16px; display: flex; align-items: center; }
+
+/* === MAIN === */
+.main { display: flex; flex-direction: column; min-width: 0; }
+
+.topbar {
+  height: 56px;
+  border-bottom: 1px solid var(--border-subtle);
+  padding: 0 28px;
+  display: flex; align-items: center; justify-content: space-between;
+  background: var(--bg-primary);
+  position: sticky; top: 0; z-index: 10;
+}
+
+.breadcrumb { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--text-secondary); }
+.breadcrumb-current { color: var(--text-primary); font-weight: 500; }
+.breadcrumb a { color: var(--text-secondary); text-decoration: none; cursor: pointer; }
+
+.topbar-actions { display: flex; align-items: center; gap: 12px; }
+
+.icon-btn {
+  width: 32px; height: 32px;
+  border-radius: 8px;
+  border: 1px solid var(--border-default);
+  background: var(--bg-tertiary);
+  color: var(--text-secondary);
+  display: flex; align-items: center; justify-content: center;
+}
+
+.icon-btn:hover { background: var(--bg-elevated); color: var(--text-primary); }
+
+.user-pill {
+  display: flex; align-items: center; gap: 8px;
+  padding: 4px 12px 4px 4px; border-radius: 999px;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-default); cursor: pointer;
+}
+
+.user-avatar {
+  width: 24px; height: 24px; border-radius: 50%;
+  background: linear-gradient(135deg, #F0B72F, #E0901F);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 10px; font-weight: 600; color: var(--bg-primary);
+}
+
+.user-name { font-size: 12px; font-weight: 500; }
+.user-role { font-size: 10px; color: var(--text-tertiary); }
+
+/* === CONTENT === */
+.content { padding: 28px 28px 60px; max-width: 1400px; }
+
+.page-header {
+  margin-bottom: 24px;
+  display: flex; justify-content: space-between;
+  align-items: flex-start; gap: 24px;
+}
+
+.page-title {
+  font-size: 24px; font-weight: 600;
+  margin-bottom: 6px; letter-spacing: -0.01em;
+}
+
+.page-subtitle {
+  font-size: 13px; color: var(--text-tertiary);
+  font-weight: 300; font-style: italic;
+}
+
+.page-actions { display: flex; gap: 8px; align-items: center; }
+
+.btn {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 8px 14px; border-radius: 8px;
+  font-size: 13px; font-weight: 500;
+  border: 1px solid transparent;
+  font-family: inherit; cursor: pointer;
+}
+
+.btn-primary {
+  background: var(--accent); color: var(--bg-primary);
+  border-color: var(--accent);
+  box-shadow: 0 0 16px var(--accent-glow);
+}
+.btn-primary:hover { background: var(--accent-hover); }
+
+.btn-secondary {
+  background: var(--bg-tertiary); color: var(--text-primary);
+  border-color: var(--border-default);
+}
+.btn-secondary:hover { background: var(--bg-elevated); border-color: var(--border-strong); }
+
+.btn-ghost { background: transparent; color: var(--text-secondary); }
+.btn-ghost:hover { background: var(--bg-tertiary); color: var(--text-primary); }
+
+.btn-sm { padding: 6px 10px; font-size: 12px; }
+
+/* === STATS BAR === */
+.stats-bar {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.stat-card {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-subtle);
+  border-radius: 10px;
+  padding: 14px 16px;
+}
+
+.stat-label {
+  font-size: 11px;
+  color: var(--text-tertiary);
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin-bottom: 6px;
+}
+
+.stat-value {
+  font-size: 22px;
+  font-weight: 600;
+  margin-bottom: 4px;
+  letter-spacing: -0.01em;
+}
+
+.stat-trend {
+  font-size: 11px;
+  display: flex; align-items: center;
+  gap: 4px;
+}
+
+.stat-trend.up { color: var(--success); }
+.stat-trend.neutral { color: var(--text-tertiary); }
+
+/* === TOOLBAR === */
+.toolbar {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.search-input {
+  flex: 1;
+  position: relative;
+}
+
+.search-input input {
+  width: 100%;
+  padding: 9px 12px 9px 36px;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-default);
+  border-radius: 8px;
+  color: var(--text-primary);
+  font-size: 13px;
+}
+
+.search-input input:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-subtle);
+}
+
+.search-input svg {
+  position: absolute;
+  left: 12px; top: 50%;
+  transform: translateY(-50%);
+  color: var(--text-tertiary);
+  pointer-events: none;
+}
+
+.filter-chip {
+  padding: 8px 12px;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-default);
+  border-radius: 8px;
+  color: var(--text-secondary);
+  font-size: 12px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+}
+
+.filter-chip:hover { background: var(--bg-tertiary); color: var(--text-primary); }
+.filter-chip.active {
+  background: var(--accent-subtle);
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.filter-chip .count {
+  background: var(--bg-elevated);
+  padding: 1px 6px;
+  border-radius: 999px;
+  font-size: 10px;
+  color: var(--text-tertiary);
+}
+
+.filter-chip.active .count {
+  background: var(--accent);
+  color: var(--bg-primary);
+}
+
+/* === SECTION HEADERS === */
+.section-label-h {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-tertiary);
+  margin: 0 0 14px;
+  padding-top: 8px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.section-label-h .desc {
+  font-size: 11px;
+  font-weight: 300;
+  font-style: italic;
+  text-transform: none;
+  letter-spacing: 0;
+  color: var(--text-tertiary);
+  margin-left: 4px;
+}
+
+.section-spacer { margin-top: 28px; }
+
+/* === POSTS LIST === */
+.posts-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.post-card {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-subtle);
+  border-radius: 12px;
+  overflow: hidden;
+  cursor: pointer;
+  transition: all 150ms ease;
+  display: grid;
+  grid-template-columns: 200px 1fr auto;
+  gap: 0;
+}
+
+.post-card:hover {
+  border-color: var(--border-strong);
+  background: var(--bg-tertiary);
+}
+
+.post-card.draft { opacity: 0.65; }
+.post-card.draft:hover { opacity: 1; }
+
+.post-card.pinned {
+  border-color: rgba(255, 215, 0, 0.30);
+  background: linear-gradient(180deg, rgba(255, 215, 0, 0.02), var(--bg-secondary));
+}
+
+/* === POST IMAGE === */
+.post-image {
+  aspect-ratio: 16 / 10;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 56px;
+  border-right: 1px solid var(--border-subtle);
+  overflow: hidden;
+}
+
+.post-image::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, rgba(0,0,0,0.05), rgba(0,0,0,0.4));
+  pointer-events: none;
+}
+
+.post-image.tournament { background: linear-gradient(135deg, #FFD700 0%, #FFA500 100%); }
+.post-image.system { background: linear-gradient(135deg, #58A6FF 0%, #2563EB 100%); }
+.post-image.vip { background: linear-gradient(135deg, #A78BFA 0%, #6D28D9 100%); }
+.post-image.news { background: linear-gradient(135deg, #FF8C42 0%, #DC5A0F 100%); }
+.post-image.maintenance { background: linear-gradient(135deg, #F85149 0%, #C7303A 100%); }
+.post-image.draft-bg {
+  background: var(--bg-tertiary);
+  font-size: 32px;
+  color: var(--text-tertiary);
+}
+
+.post-image-emoji { position: relative; z-index: 1; }
+
+.pin-indicator {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  background: var(--gold);
+  color: var(--bg-primary);
+  padding: 3px 8px;
+  border-radius: 6px;
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+.post-status-badge {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  padding: 3px 9px;
+  border-radius: 6px;
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  z-index: 2;
+  backdrop-filter: blur(8px);
+}
+
+.post-status-badge.published {
+  background: rgba(10, 247, 132, 0.20);
+  color: var(--success);
+  border: 1px solid rgba(10, 247, 132, 0.40);
+}
+
+.post-status-badge.scheduled {
+  background: rgba(88, 166, 255, 0.20);
+  color: var(--info);
+  border: 1px solid rgba(88, 166, 255, 0.40);
+}
+
+.post-status-badge.draft {
+  background: rgba(125, 133, 144, 0.20);
+  color: var(--text-tertiary);
+  border: 1px solid var(--border-default);
+}
+
+.post-status-badge.archived {
+  background: rgba(125, 133, 144, 0.10);
+  color: var(--text-disabled);
+  border: 1px solid var(--border-default);
+}
+
+/* === POST BODY === */
+.post-body {
+  padding: 16px 20px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  min-width: 0;
+}
+
+.post-meta-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 6px;
+  flex-wrap: wrap;
+}
+
+.post-category-pill {
+  font-size: 10px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.post-category-pill.tournament {
+  background: rgba(255, 215, 0, 0.10);
+  color: var(--gold);
+}
+.post-category-pill.system {
+  background: rgba(88, 166, 255, 0.10);
+  color: var(--info);
+}
+.post-category-pill.vip {
+  background: rgba(167, 139, 250, 0.10);
+  color: var(--purple);
+}
+.post-category-pill.news {
+  background: rgba(255, 140, 66, 0.10);
+  color: var(--orange);
+}
+.post-category-pill.maintenance {
+  background: rgba(248, 81, 73, 0.10);
+  color: var(--danger);
+}
+
+.post-meta-time {
+  font-size: 11px;
+  color: var(--text-tertiary);
+}
+
+.post-meta-author {
+  font-size: 11px;
+  color: var(--text-tertiary);
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.post-meta-author .author-name {
+  color: var(--text-secondary);
+  font-weight: 500;
+}
+
+.post-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 6px;
+  line-height: 1.3;
+  display: -webkit-box;
+  -webkit-line-clamp: 1;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.post-excerpt {
+  font-size: 12px;
+  color: var(--text-tertiary);
+  font-weight: 300;
+  font-style: italic;
+  line-height: 1.4;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  margin-bottom: 10px;
+}
+
+.post-tags {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin-bottom: 10px;
+}
+
+.post-tag {
+  font-size: 10px;
+  padding: 2px 7px;
+  border-radius: 5px;
+  background: var(--bg-elevated);
+  color: var(--text-tertiary);
+  font-family: var(--mono);
+}
+
+.post-tag::before { content: '#'; opacity: 0.6; }
+
+.post-cta-info {
+  font-size: 11px;
+  color: var(--text-tertiary);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-style: italic;
+  font-weight: 300;
+}
+
+.post-cta-info .cta-text {
+  color: var(--text-secondary);
+  font-weight: 500;
+  font-style: normal;
+  background: var(--bg-elevated);
+  padding: 1px 6px;
+  border-radius: 4px;
+  font-size: 10px;
+  font-family: var(--mono);
+}
+
+/* === POST METRICS === */
+.post-metrics {
+  padding: 16px 20px;
+  border-left: 1px solid var(--border-subtle);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 12px;
+  min-width: 180px;
+}
+
+.post-metric-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.post-metric {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.post-metric-label {
+  font-size: 9px;
+  color: var(--text-tertiary);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  font-weight: 600;
+}
+
+.post-metric-value {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text-primary);
+  font-feature-settings: 'tnum';
+}
+
+.post-metric-value.accent { color: var(--success); }
+.post-metric-value.muted { color: var(--text-tertiary); font-size: 12px; }
+
+.post-controls {
+  display: flex;
+  gap: 4px;
+  justify-content: flex-end;
+}
+
+.action-btn {
+  width: 32px; height: 32px;
+  border-radius: 6px;
+  background: transparent;
+  border: 1px solid transparent;
+  color: var(--text-tertiary);
+  display: flex; align-items: center; justify-content: center;
+}
+
+.action-btn:hover {
+  background: var(--bg-elevated);
+  color: var(--text-primary);
+  border-color: var(--border-default);
+}
+
+.action-btn.pin-btn {
+  color: var(--gold);
+}
+
+.action-btn.pin-btn.active {
+  background: rgba(255, 215, 0, 0.10);
+  border-color: rgba(255, 215, 0, 0.30);
+}
+
+/* === ALERT === */
+.alert {
+  padding: 12px 16px;
+  border-radius: 10px;
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  font-size: 12px;
+  margin-bottom: 16px;
+}
+
+.alert.info {
+  background: rgba(88, 166, 255, 0.08);
+  border: 1px solid rgba(88, 166, 255, 0.25);
+}
+.alert.info svg { color: var(--info); flex-shrink: 0; }
+.alert .alert-text { color: var(--text-secondary); flex: 1; }
+.alert strong { color: var(--text-primary); }
+
+/* === SCROLLBAR === */
+::-webkit-scrollbar { width: 8px; height: 8px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border-default); border-radius: 4px; }
+::-webkit-scrollbar-thumb:hover { background: var(--border-strong); }
+
+@media (max-width: 1100px) {
+  .stats-bar { grid-template-columns: repeat(2, 1fr); }
+  .post-card { grid-template-columns: 160px 1fr; }
+  .post-metrics { grid-column: 1 / -1; border-left: none; border-top: 1px solid var(--border-subtle); flex-direction: row; }
+}
+
+@media (max-width: 768px) {
+  .app { grid-template-columns: 1fr; }
+  .sidebar { display: none; }
+  .post-card { grid-template-columns: 1fr; }
+  .post-image { aspect-ratio: 16 / 9; border-right: none; border-bottom: 1px solid var(--border-subtle); }
+  .stats-bar { grid-template-columns: 1fr; }
+  .toolbar { flex-wrap: wrap; }
+}
+</style>
+</head>
+<body>
+
+<div class="app">
+
+<aside class="sidebar">
+  <div class="sidebar-brand">
+    <div class="brand-logo">N</div>
+    <div class="brand-name">niveles</div>
+  </div>
+  <div class="operator-selector">
+    <div class="operator-avatar">CA</div>
+    <div class="operator-info">
+      <div class="operator-name">Casino Astral</div>
+      <div class="operator-tier">plan growth · es-AR</div>
+    </div>
+    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="color: var(--text-tertiary);"><polyline points="6 9 12 15 18 9"/></svg>
+  </div>
+
+  <div class="sidebar-section">
+    <a class="nav-item" href="#">
+      <span class="nav-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg></span>
+      Dashboard
+    </a>
+  </div>
+
+  <div class="sidebar-section">
+    <p class="section-label">Comunicación</p>
+    <a class="nav-item" href="#">
+      <span class="nav-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg></span>
+      Notificaciones
+    </a>
+    <a class="nav-item active" href="#">
+      <span class="nav-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg></span>
+      Noticias y novedades
+    </a>
+  </div>
+</aside>
+
+<div class="main">
+
+  <div class="topbar">
+    <div class="breadcrumb">
+      <a>Comunicación</a>
+      <span style="color: var(--text-tertiary);">/</span>
+      <span class="breadcrumb-current">Noticias y novedades</span>
+    </div>
+    
+    <div class="topbar-actions">
+      <button class="icon-btn"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg></button>
+      <button class="icon-btn"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 1 1 5.83 1c0 2-3 3-3 3M12 17h.01"/></svg></button>
+      <div class="user-pill">
+        <div class="user-avatar">FL</div>
+        <div>
+          <div class="user-name">Fabricio L.</div>
+          <div class="user-role">admin</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="content">
+
+    <div class="page-header">
+      <div>
+        <h1 class="page-title">Noticias y novedades</h1>
+        <p class="page-subtitle">contenido persistente que tus jugadores ven en la sección "novedades" del widget</p>
+      </div>
+      <div class="page-actions">
+        <button class="btn btn-secondary">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+          archivados
+        </button>
+        <button class="btn btn-primary">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          nueva publicación
+        </button>
+      </div>
+    </div>
+
+    <!-- ===== STATS BAR ===== -->
+    <div class="stats-bar">
+      <div class="stat-card">
+        <div class="stat-label">publicaciones activas</div>
+        <div class="stat-value">14</div>
+        <div class="stat-trend neutral">
+          11 publicadas · 2 programadas · 1 borrador
+        </div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">vistas (últimos 7d)</div>
+        <div class="stat-value">42,180</div>
+        <div class="stat-trend up">
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="6 15 12 9 18 15"/></svg>
+          +18.4% vs semana previa
+        </div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">click-through promedio</div>
+        <div class="stat-value">12.7%</div>
+        <div class="stat-trend up">
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="6 15 12 9 18 15"/></svg>
+          +2.1pts
+        </div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">post más visto</div>
+        <div class="stat-value" style="color: var(--gold);">Torneo Mayo</div>
+        <div class="stat-trend neutral">
+          18,420 vistas · 23.4% CTR
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== ALERT === -->
+    <div class="alert info">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+      <span class="alert-text">los posts <strong>anclados</strong> aparecen siempre arriba en el widget · usá el pin con criterio: <strong>máximo 2 simultáneos</strong> para no saturar la sección novedades</span>
+    </div>
+
+    <!-- ===== TOOLBAR ===== -->
+    <div class="toolbar">
+      <div class="search-input">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
+        <input type="text" placeholder="buscar por título, contenido o autor...">
+      </div>
+
+      <button class="filter-chip active">
+        todos <span class="count">14</span>
+      </button>
+      <button class="filter-chip">
+        publicados <span class="count">11</span>
+      </button>
+      <button class="filter-chip">
+        programados <span class="count">2</span>
+      </button>
+      <button class="filter-chip">
+        borradores <span class="count">1</span>
+      </button>
+
+      <div style="flex: 1;"></div>
+
+      <button class="filter-chip">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 3H2l8 9.5v7l4 2v-9z"/></svg>
+        ordenar: más recientes
+      </button>
+    </div>
+
+    <!-- ===== POSTS LIST ===== -->
+    <div class="posts-list">
+
+      <!-- Post 1: Torneo Mayo (PINNED + tournament) -->
+      <div class="post-card pinned">
+        <div class="post-image tournament">
+          <span class="pin-indicator">
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="17" x2="12" y2="22"/><path d="M5 17h14V5l-7-3-7 3v12z"/></svg>
+            anclado
+          </span>
+          <span class="post-status-badge published">publicado</span>
+          <span class="post-image-emoji">🏆</span>
+        </div>
+        <div class="post-body">
+          <div class="post-meta-row">
+            <span class="post-category-pill tournament">
+              <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="8" r="6"/></svg>
+              torneo
+            </span>
+            <span class="post-meta-time">publicado hace 3 días · 2 may 2026</span>
+            <span class="post-meta-author">por <span class="author-name">Fabricio L.</span></span>
+          </div>
+          <div class="post-title">Grand Slam Mayo 2026 · $50,000 USD en premios</div>
+          <div class="post-excerpt">
+            El torneo más grande del año arranca el sábado 11 de mayo. Inscripción gratuita para todos los jugadores con nivel 5 o superior. Premios garantizados al top 100 · streaming en vivo · ¡no te lo podés perder!
+          </div>
+          <div class="post-tags">
+            <span class="post-tag">torneo</span>
+            <span class="post-tag">mayo</span>
+            <span class="post-tag">premios</span>
+            <span class="post-tag">poker</span>
+          </div>
+          <div class="post-cta-info">
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+            CTA: <span class="cta-text">inscribirme ahora →</span> · acción: ir a torneo #grand-slam-mayo
+          </div>
+        </div>
+        <div class="post-metrics">
+          <div class="post-metric-grid">
+            <div class="post-metric">
+              <div class="post-metric-label">vistas</div>
+              <div class="post-metric-value">18,420</div>
+            </div>
+            <div class="post-metric">
+              <div class="post-metric-label">click rate</div>
+              <div class="post-metric-value accent">23.4%</div>
+            </div>
+          </div>
+          <div class="post-controls">
+            <button class="action-btn pin-btn active" title="anclado">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor" stroke="none"><line x1="12" y1="17" x2="12" y2="22" stroke="currentColor" stroke-width="2"/><path d="M5 17h14V5l-7-3-7 3v12z" stroke="currentColor" stroke-width="2"/></svg>
+            </button>
+            <button class="action-btn" title="editar">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+            </button>
+            <button class="action-btn">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="1"/><circle cx="12" cy="5" r="1"/><circle cx="12" cy="19" r="1"/></svg>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Post 2: Cambios VIP (PINNED + vip) -->
+      <div class="post-card pinned">
+        <div class="post-image vip">
+          <span class="pin-indicator">
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="17" x2="12" y2="22"/><path d="M5 17h14V5l-7-3-7 3v12z"/></svg>
+            anclado
+          </span>
+          <span class="post-status-badge published">publicado</span>
+          <span class="post-image-emoji">👑</span>
+        </div>
+        <div class="post-body">
+          <div class="post-meta-row">
+            <span class="post-category-pill vip">
+              <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="12 2 15 8 22 9 17 14 18 21 12 17 6 21 7 14 2 9 9 8"/></svg>
+              VIP
+            </span>
+            <span class="post-meta-time">publicado hace 1 semana · 28 abr 2026</span>
+            <span class="post-meta-author">por <span class="author-name">María G.</span></span>
+          </div>
+          <div class="post-title">Nuevos beneficios VIP a partir de mayo</div>
+          <div class="post-excerpt">
+            Mejoramos el programa VIP. Cashback gold ahora 10% (antes 7%), nuevos regalos mensuales para tier diamond, y soporte 24/7 con concierge dedicado. Si sos VIP, mirá los detalles dentro.
+          </div>
+          <div class="post-tags">
+            <span class="post-tag">vip</span>
+            <span class="post-tag">cashback</span>
+            <span class="post-tag">beneficios</span>
+          </div>
+          <div class="post-cta-info">
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+            CTA: <span class="cta-text">ver mis beneficios →</span> · acción: abrir tab VIP
+          </div>
+        </div>
+        <div class="post-metrics">
+          <div class="post-metric-grid">
+            <div class="post-metric">
+              <div class="post-metric-label">vistas</div>
+              <div class="post-metric-value">8,247</div>
+            </div>
+            <div class="post-metric">
+              <div class="post-metric-label">click rate</div>
+              <div class="post-metric-value accent">18.9%</div>
+            </div>
+          </div>
+          <div class="post-controls">
+            <button class="action-btn pin-btn active" title="anclado">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><line x1="12" y1="17" x2="12" y2="22" stroke="currentColor" stroke-width="2"/><path d="M5 17h14V5l-7-3-7 3v12z" stroke="currentColor" stroke-width="2"/></svg>
+            </button>
+            <button class="action-btn">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+            </button>
+            <button class="action-btn">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="1"/><circle cx="12" cy="5" r="1"/><circle cx="12" cy="19" r="1"/></svg>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Post 3: Nuevos slots (news) -->
+      <div class="post-card">
+        <div class="post-image news">
+          <span class="post-status-badge published">publicado</span>
+          <span class="post-image-emoji">🎰</span>
+        </div>
+        <div class="post-body">
+          <div class="post-meta-row">
+            <span class="post-category-pill news">
+              <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+              novedades
+            </span>
+            <span class="post-meta-time">publicado hace 2 días · 3 may 2026</span>
+            <span class="post-meta-author">por <span class="author-name">Carlos M.</span></span>
+          </div>
+          <div class="post-title">5 nuevos slots premium llegaron a Casino Astral</div>
+          <div class="post-excerpt">
+            Esta semana sumamos 5 títulos exclusivos de Pragmatic Play y NetEnt. RTP promedio 96.8%. Probálos durante mayo y duplicamos tu XP en cada giro.
+          </div>
+          <div class="post-tags">
+            <span class="post-tag">slots</span>
+            <span class="post-tag">pragmatic</span>
+            <span class="post-tag">netent</span>
+          </div>
+          <div class="post-cta-info">
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+            CTA: <span class="cta-text">jugar nuevos →</span>
+          </div>
+        </div>
+        <div class="post-metrics">
+          <div class="post-metric-grid">
+            <div class="post-metric">
+              <div class="post-metric-label">vistas</div>
+              <div class="post-metric-value">6,184</div>
+            </div>
+            <div class="post-metric">
+              <div class="post-metric-label">click rate</div>
+              <div class="post-metric-value accent">14.2%</div>
+            </div>
+          </div>
+          <div class="post-controls">
+            <button class="action-btn pin-btn" title="anclar">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="17" x2="12" y2="22"/><path d="M5 17h14V5l-7-3-7 3v12z"/></svg>
+            </button>
+            <button class="action-btn">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+            </button>
+            <button class="action-btn">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="1"/><circle cx="12" cy="5" r="1"/><circle cx="12" cy="19" r="1"/></svg>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Post 4: Mantenimiento (PROGRAMADO + maintenance) -->
+      <div class="post-card">
+        <div class="post-image maintenance">
+          <span class="post-status-badge scheduled">programado</span>
+          <span class="post-image-emoji">🛠️</span>
+        </div>
+        <div class="post-body">
+          <div class="post-meta-row">
+            <span class="post-category-pill maintenance">
+              <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>
+              mantenimiento
+            </span>
+            <span class="post-meta-time" style="color: var(--info);">se publica el 28 may a las 09:00</span>
+            <span class="post-meta-author">por <span class="author-name">Carlos M.</span></span>
+          </div>
+          <div class="post-title">Mantenimiento programado · 31 mayo, 23:00 a 00:00</div>
+          <div class="post-excerpt">
+            El sábado 31 de mayo de 23:00 a 00:00 vamos a tener una ventana de mantenimiento técnico. Durante esa hora algunas funciones podrían estar limitadas. Disculpas por las molestias.
+          </div>
+          <div class="post-tags">
+            <span class="post-tag">mantenimiento</span>
+            <span class="post-tag">aviso</span>
+          </div>
+        </div>
+        <div class="post-metrics">
+          <div class="post-metric-grid">
+            <div class="post-metric">
+              <div class="post-metric-label">vistas</div>
+              <div class="post-metric-value muted">—</div>
+            </div>
+            <div class="post-metric">
+              <div class="post-metric-label">CTR</div>
+              <div class="post-metric-value muted">—</div>
+            </div>
+          </div>
+          <div class="post-controls">
+            <button class="action-btn pin-btn" title="anclar">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="17" x2="12" y2="22"/><path d="M5 17h14V5l-7-3-7 3v12z"/></svg>
+            </button>
+            <button class="action-btn">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+            </button>
+            <button class="action-btn">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="1"/><circle cx="12" cy="5" r="1"/><circle cx="12" cy="19" r="1"/></svg>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Post 5: Sistema actualizado (system) -->
+      <div class="post-card">
+        <div class="post-image system">
+          <span class="post-status-badge published">publicado</span>
+          <span class="post-image-emoji">⚡</span>
+        </div>
+        <div class="post-body">
+          <div class="post-meta-row">
+            <span class="post-category-pill system">
+              <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10"/></svg>
+              sistema
+            </span>
+            <span class="post-meta-time">publicado hace 4 días · 1 may 2026</span>
+            <span class="post-meta-author">por <span class="author-name">Soporte Astral</span></span>
+          </div>
+          <div class="post-title">Mejoras de performance · login 40% más rápido</div>
+          <div class="post-excerpt">
+            Trabajamos toda la semana en optimizar la velocidad. Ahora el login tarda menos de 2 segundos y los slots cargan instantáneamente. Si todavía notás lentitud, escribinos a soporte.
+          </div>
+          <div class="post-tags">
+            <span class="post-tag">performance</span>
+            <span class="post-tag">mejoras</span>
+            <span class="post-tag">soporte</span>
+          </div>
+        </div>
+        <div class="post-metrics">
+          <div class="post-metric-grid">
+            <div class="post-metric">
+              <div class="post-metric-label">vistas</div>
+              <div class="post-metric-value">3,892</div>
+            </div>
+            <div class="post-metric">
+              <div class="post-metric-label">CTR</div>
+              <div class="post-metric-value">4.8%</div>
+            </div>
+          </div>
+          <div class="post-controls">
+            <button class="action-btn pin-btn" title="anclar">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="17" x2="12" y2="22"/><path d="M5 17h14V5l-7-3-7 3v12z"/></svg>
+            </button>
+            <button class="action-btn">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+            </button>
+            <button class="action-btn">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="1"/><circle cx="12" cy="5" r="1"/><circle cx="12" cy="19" r="1"/></svg>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Post 6: Aniversario (PROGRAMADO) -->
+      <div class="post-card">
+        <div class="post-image tournament">
+          <span class="post-status-badge scheduled">programado</span>
+          <span class="post-image-emoji">🎂</span>
+        </div>
+        <div class="post-body">
+          <div class="post-meta-row">
+            <span class="post-category-pill news">
+              <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+              novedades
+            </span>
+            <span class="post-meta-time" style="color: var(--info);">se publica el 14 may a las 10:00</span>
+            <span class="post-meta-author">por <span class="author-name">Fabricio L.</span></span>
+          </div>
+          <div class="post-title">¡Casino Astral cumple 10 años! Festejá con nosotros</div>
+          <div class="post-excerpt">
+            10 años de comunidad, 10 años de juego responsable. Para celebrarlo, del 15 al 17 de mayo todos los eventos otorgan ×10 XP y regalamos 10,000 monedas a los primeros 1,000 jugadores que se conecten ese día.
+          </div>
+          <div class="post-tags">
+            <span class="post-tag">aniversario</span>
+            <span class="post-tag">10años</span>
+            <span class="post-tag">premio</span>
+            <span class="post-tag">x10xp</span>
+          </div>
+          <div class="post-cta-info">
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+            CTA: <span class="cta-text">activar mi regalo →</span>
+          </div>
+        </div>
+        <div class="post-metrics">
+          <div class="post-metric-grid">
+            <div class="post-metric">
+              <div class="post-metric-label">vistas</div>
+              <div class="post-metric-value muted">—</div>
+            </div>
+            <div class="post-metric">
+              <div class="post-metric-label">CTR</div>
+              <div class="post-metric-value muted">—</div>
+            </div>
+          </div>
+          <div class="post-controls">
+            <button class="action-btn pin-btn" title="anclar">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="17" x2="12" y2="22"/><path d="M5 17h14V5l-7-3-7 3v12z"/></svg>
+            </button>
+            <button class="action-btn">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+            </button>
+            <button class="action-btn">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="1"/><circle cx="12" cy="5" r="1"/><circle cx="12" cy="19" r="1"/></svg>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Post 7: BORRADOR -->
+      <div class="post-card draft">
+        <div class="post-image draft-bg">
+          <span class="post-status-badge draft">borrador</span>
+          <span class="post-image-emoji">📝</span>
+        </div>
+        <div class="post-body">
+          <div class="post-meta-row">
+            <span class="post-category-pill news">
+              <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/></svg>
+              novedades
+            </span>
+            <span class="post-meta-time">creado hace 2 días · 2 may 2026</span>
+            <span class="post-meta-author">por <span class="author-name">Fabricio L.</span></span>
+          </div>
+          <div class="post-title">Lanzamiento de live casino · sin terminar</div>
+          <div class="post-excerpt">
+            Borrador pendiente de imagen destacada y revisión de copy · falta agregar fecha exacta de lanzamiento y detalles de los proveedores integrados.
+          </div>
+          <div class="post-tags">
+            <span class="post-tag">live</span>
+            <span class="post-tag">casino</span>
+          </div>
+        </div>
+        <div class="post-metrics">
+          <div class="post-metric-grid">
+            <div class="post-metric">
+              <div class="post-metric-label">estado</div>
+              <div class="post-metric-value muted" style="font-size: 11px; font-style: italic;">sin publicar</div>
+            </div>
+            <div class="post-metric">
+              <div class="post-metric-label">última edición</div>
+              <div class="post-metric-value muted" style="font-size: 11px; font-style: italic;">ayer 17:42</div>
+            </div>
+          </div>
+          <div class="post-controls">
+            <button class="action-btn pin-btn" title="anclar (deshabilitado · necesita publicar primero)" style="opacity: 0.4; cursor: not-allowed;">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="17" x2="12" y2="22"/><path d="M5 17h14V5l-7-3-7 3v12z"/></svg>
+            </button>
+            <button class="action-btn">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+            </button>
+            <button class="action-btn">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="1"/><circle cx="12" cy="5" r="1"/><circle cx="12" cy="19" r="1"/></svg>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Post 8: VIP suscriptions limit (older) -->
+      <div class="post-card">
+        <div class="post-image vip">
+          <span class="post-status-badge published">publicado</span>
+          <span class="post-image-emoji">💎</span>
+        </div>
+        <div class="post-body">
+          <div class="post-meta-row">
+            <span class="post-category-pill vip">
+              <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="12 2 15 8 22 9 17 14 18 21 12 17 6 21 7 14 2 9 9 8"/></svg>
+              VIP
+            </span>
+            <span class="post-meta-time">publicado hace 3 semanas · 14 abr 2026</span>
+            <span class="post-meta-author">por <span class="author-name">María G.</span></span>
+          </div>
+          <div class="post-title">Programa VIP renovado · más beneficios para nuestros mejores</div>
+          <div class="post-excerpt">
+            Anunciamos el nuevo programa VIP con 5 tiers y beneficios exclusivos por nivel. Los actuales VIPs migran automáticamente sin perder progreso.
+          </div>
+          <div class="post-tags">
+            <span class="post-tag">vip</span>
+            <span class="post-tag">programa</span>
+          </div>
+          <div class="post-cta-info">
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+            CTA: <span class="cta-text">conocer tiers →</span>
+          </div>
+        </div>
+        <div class="post-metrics">
+          <div class="post-metric-grid">
+            <div class="post-metric">
+              <div class="post-metric-label">vistas</div>
+              <div class="post-metric-value">5,437</div>
+            </div>
+            <div class="post-metric">
+              <div class="post-metric-label">CTR</div>
+              <div class="post-metric-value accent">11.8%</div>
+            </div>
+          </div>
+          <div class="post-controls">
+            <button class="action-btn pin-btn" title="anclar">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="17" x2="12" y2="22"/><path d="M5 17h14V5l-7-3-7 3v12z"/></svg>
+            </button>
+            <button class="action-btn">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+            </button>
+            <button class="action-btn">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="1"/><circle cx="12" cy="5" r="1"/><circle cx="12" cy="19" r="1"/></svg>
+            </button>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+  </div>
+</div>
+
+</div>
+
+</body>
+</html>

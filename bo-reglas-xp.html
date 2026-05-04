@@ -1,0 +1,1571 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BO Operador · Reglas de XP</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Urbanist:ital,wght@0,300;0,400;0,500;0,600;1,300&display=swap" rel="stylesheet">
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg-primary: #0E1116;
+  --bg-secondary: #161B22;
+  --bg-tertiary: #1C2128;
+  --bg-elevated: #21262D;
+  --bg-hover: #262C36;
+  
+  --accent: #0AF784;
+  --accent-hover: #08D971;
+  --accent-glow: rgba(10, 247, 132, 0.15);
+  --accent-subtle: rgba(10, 247, 132, 0.08);
+  
+  --text-primary: #FFFFFF;
+  --text-secondary: #B8BEC9;
+  --text-tertiary: #7D8590;
+  --text-disabled: #484F58;
+  
+  --border-subtle: rgba(255, 255, 255, 0.06);
+  --border-default: rgba(255, 255, 255, 0.10);
+  --border-strong: rgba(255, 255, 255, 0.16);
+  
+  --success: #0AF784;
+  --warning: #F0B72F;
+  --danger: #F85149;
+  --info: #58A6FF;
+  --purple: #A78BFA;
+}
+
+body {
+  font-family: 'Urbanist', system-ui, sans-serif;
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  font-size: 14px;
+  line-height: 1.5;
+  font-weight: 400;
+}
+
+button { font-family: inherit; cursor: pointer; }
+
+.app {
+  display: grid;
+  grid-template-columns: 240px 1fr;
+  min-height: 100vh;
+}
+
+/* === SIDEBAR (compacto, igual que dashboard) === */
+.sidebar {
+  background: var(--bg-secondary);
+  border-right: 1px solid var(--border-subtle);
+  padding: 16px 0;
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  overflow-y: auto;
+}
+
+.sidebar-brand {
+  padding: 0 20px 20px;
+  border-bottom: 1px solid var(--border-subtle);
+  margin-bottom: 16px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.brand-logo {
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  background: linear-gradient(135deg, var(--accent), #00D9FF);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  color: var(--bg-primary);
+  font-size: 13px;
+}
+
+.brand-name {
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.operator-selector {
+  margin: 0 12px 16px;
+  padding: 10px 12px;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-default);
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+}
+
+.operator-avatar {
+  width: 24px;
+  height: 24px;
+  border-radius: 6px;
+  background: linear-gradient(135deg, #4D9FFF, #2563EB);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  font-weight: 600;
+  color: white;
+}
+
+.operator-info { flex: 1; min-width: 0; }
+.operator-name { font-size: 13px; font-weight: 500; }
+.operator-tier { font-size: 10px; color: var(--text-tertiary); }
+
+.sidebar-section { margin-bottom: 8px; padding: 0 12px; }
+.section-label {
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-tertiary);
+  padding: 8px 12px;
+}
+
+.nav-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 7px 12px;
+  border-radius: 6px;
+  font-size: 13px;
+  color: var(--text-secondary);
+  cursor: pointer;
+  margin-bottom: 1px;
+  text-decoration: none;
+}
+
+.nav-item:hover { background: var(--bg-tertiary); color: var(--text-primary); }
+.nav-item.active {
+  background: var(--accent-subtle);
+  color: var(--accent);
+  font-weight: 500;
+  position: relative;
+}
+.nav-item.active::before {
+  content: '';
+  position: absolute;
+  left: -12px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 3px;
+  height: 18px;
+  background: var(--accent);
+  border-radius: 0 2px 2px 0;
+}
+
+.nav-icon { width: 16px; height: 16px; display: flex; align-items: center; }
+.nav-badge {
+  margin-left: auto;
+  font-size: 10px;
+  padding: 2px 6px;
+  border-radius: 999px;
+  background: var(--bg-elevated);
+  color: var(--text-tertiary);
+  font-weight: 500;
+}
+.nav-badge.alert {
+  background: rgba(248, 81, 73, 0.15);
+  color: var(--danger);
+}
+
+/* === MAIN === */
+.main {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.topbar {
+  height: 56px;
+  border-bottom: 1px solid var(--border-subtle);
+  padding: 0 28px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: var(--bg-primary);
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.breadcrumb {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: var(--text-secondary);
+}
+
+.breadcrumb-current { color: var(--text-primary); font-weight: 500; }
+
+.breadcrumb a {
+  color: var(--text-secondary);
+  text-decoration: none;
+  cursor: pointer;
+}
+.breadcrumb a:hover { color: var(--text-primary); }
+
+.topbar-actions { display: flex; align-items: center; gap: 12px; }
+
+.icon-btn {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  border: 1px solid var(--border-default);
+  background: var(--bg-tertiary);
+  color: var(--text-secondary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+
+.icon-btn:hover { background: var(--bg-elevated); color: var(--text-primary); }
+
+.user-pill {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 12px 4px 4px;
+  border-radius: 999px;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-default);
+  cursor: pointer;
+}
+
+.user-avatar {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #F0B72F, #E0901F);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--bg-primary);
+}
+
+.user-name { font-size: 12px; font-weight: 500; }
+.user-role { font-size: 10px; color: var(--text-tertiary); }
+
+/* === CONTENT === */
+.content {
+  padding: 28px 28px 64px;
+  max-width: 1400px;
+}
+
+/* === PAGE HEADER === */
+.page-header {
+  margin-bottom: 24px;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 24px;
+}
+
+.page-title {
+  font-size: 24px;
+  font-weight: 600;
+  margin-bottom: 6px;
+  letter-spacing: -0.01em;
+}
+
+.page-subtitle {
+  font-size: 13px;
+  color: var(--text-tertiary);
+  font-weight: 300;
+  font-style: italic;
+}
+
+/* === BUTTONS === */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 14px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 500;
+  border: 1px solid transparent;
+  font-family: inherit;
+  cursor: pointer;
+  transition: all 150ms ease;
+}
+
+.btn-primary {
+  background: var(--accent);
+  color: var(--bg-primary);
+  border-color: var(--accent);
+  box-shadow: 0 0 16px var(--accent-glow);
+}
+.btn-primary:hover {
+  background: var(--accent-hover);
+  box-shadow: 0 0 24px rgba(10, 247, 132, 0.25);
+}
+
+.btn-secondary {
+  background: var(--bg-tertiary);
+  color: var(--text-primary);
+  border-color: var(--border-default);
+}
+.btn-secondary:hover {
+  background: var(--bg-elevated);
+  border-color: var(--border-strong);
+}
+
+.btn-ghost {
+  background: transparent;
+  color: var(--text-secondary);
+}
+.btn-ghost:hover { background: var(--bg-tertiary); color: var(--text-primary); }
+
+.btn-sm { padding: 6px 10px; font-size: 12px; }
+
+/* === TOOLBAR (filters + search) === */
+.toolbar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 16px;
+  padding: 12px;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-subtle);
+  border-radius: 10px;
+}
+
+.search-input {
+  flex: 1;
+  position: relative;
+}
+
+.search-input input {
+  width: 100%;
+  padding: 8px 12px 8px 34px;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-default);
+  border-radius: 8px;
+  color: var(--text-primary);
+  font-family: inherit;
+  font-size: 13px;
+}
+
+.search-input input::placeholder { color: var(--text-tertiary); }
+.search-input input:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-subtle);
+}
+
+.search-icon {
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--text-tertiary);
+}
+
+.filter-group {
+  display: flex;
+  gap: 6px;
+}
+
+.filter-pill {
+  padding: 6px 12px;
+  font-size: 12px;
+  font-weight: 500;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-default);
+  color: var(--text-secondary);
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.filter-pill.active {
+  background: var(--accent-subtle);
+  border-color: var(--border-accent, var(--accent));
+  color: var(--accent);
+}
+
+.filter-pill:hover:not(.active) {
+  background: var(--bg-elevated);
+  color: var(--text-primary);
+}
+
+/* === TABLE === */
+.table-card {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-subtle);
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.table thead th {
+  text-align: left;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-tertiary);
+  padding: 12px 16px;
+  background: var(--bg-tertiary);
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.table tbody td {
+  padding: 14px 16px;
+  font-size: 13px;
+  color: var(--text-secondary);
+  border-bottom: 1px solid var(--border-subtle);
+  vertical-align: middle;
+}
+
+.table tbody tr:last-child td { border-bottom: none; }
+.table tbody tr:hover { background: var(--bg-tertiary); }
+
+.rule-name {
+  font-weight: 500;
+  color: var(--text-primary);
+}
+
+.rule-desc {
+  font-size: 11px;
+  color: var(--text-tertiary);
+  font-weight: 300;
+  font-style: italic;
+  margin-top: 2px;
+}
+
+/* === STATUS BADGES === */
+.status {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 10px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 500;
+}
+
+.status-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+}
+
+.status-active {
+  background: rgba(10, 247, 132, 0.10);
+  color: var(--success);
+}
+.status-active .status-dot {
+  background: var(--success);
+  box-shadow: 0 0 6px rgba(10, 247, 132, 0.6);
+}
+
+.status-paused {
+  background: rgba(240, 183, 47, 0.10);
+  color: var(--warning);
+}
+.status-paused .status-dot { background: var(--warning); }
+
+.status-draft {
+  background: rgba(125, 133, 144, 0.15);
+  color: var(--text-tertiary);
+}
+.status-draft .status-dot { background: var(--text-tertiary); }
+
+/* === CATEGORY TAGS === */
+.cat-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 8px;
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 500;
+}
+.cat-sports { background: rgba(88, 166, 255, 0.10); color: var(--info); }
+.cat-slots { background: rgba(167, 139, 250, 0.10); color: var(--purple); }
+.cat-poker { background: rgba(240, 183, 47, 0.10); color: var(--warning); }
+.cat-deposit { background: rgba(10, 247, 132, 0.10); color: var(--success); }
+.cat-social { background: rgba(248, 81, 73, 0.10); color: var(--danger); }
+
+/* === ROW ACTIONS === */
+.row-actions {
+  display: flex;
+  gap: 4px;
+  justify-content: flex-end;
+}
+
+.action-btn {
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  background: transparent;
+  border: 1px solid transparent;
+  color: var(--text-tertiary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: inherit;
+}
+
+.action-btn:hover {
+  background: var(--bg-elevated);
+  border-color: var(--border-default);
+  color: var(--text-primary);
+}
+
+/* === PAGINATION === */
+.pagination {
+  padding: 12px 16px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-top: 1px solid var(--border-subtle);
+  background: var(--bg-tertiary);
+  font-size: 12px;
+  color: var(--text-tertiary);
+}
+
+/* === EDITOR === */
+.editor-layout {
+  display: grid;
+  grid-template-columns: 1fr 360px;
+  gap: 20px;
+  align-items: flex-start;
+}
+
+.editor-main { min-width: 0; }
+
+/* === BLOCK (Zapier-style) === */
+.block {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-subtle);
+  border-radius: 12px;
+  margin-bottom: 0;
+  overflow: hidden;
+  transition: border-color 150ms ease;
+}
+
+.block:hover { border-color: var(--border-default); }
+.block.active { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent-subtle); }
+
+.block-head {
+  padding: 14px 18px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.block-num {
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  font-weight: 600;
+  flex-shrink: 0;
+}
+
+.block-num.trigger { background: rgba(88, 166, 255, 0.15); color: var(--info); }
+.block-num.condition { background: rgba(167, 139, 250, 0.15); color: var(--purple); }
+.block-num.action { background: var(--accent-subtle); color: var(--accent); }
+.block-num.multiplier { background: rgba(240, 183, 47, 0.15); color: var(--warning); }
+
+.block-meta { flex: 1; min-width: 0; }
+.block-kind {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-tertiary);
+  margin-bottom: 2px;
+}
+.block-title {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text-primary);
+}
+
+.block-body {
+  padding: 18px;
+}
+
+/* === CONNECTOR (línea entre bloques) === */
+.connector {
+  display: flex;
+  justify-content: center;
+  height: 24px;
+  position: relative;
+}
+
+.connector::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 50%;
+  width: 2px;
+  background: var(--border-default);
+  transform: translateX(-50%);
+}
+
+.connector-icon {
+  position: relative;
+  z-index: 1;
+  background: var(--bg-primary);
+  padding: 4px;
+  color: var(--text-tertiary);
+  display: flex;
+  align-items: center;
+}
+
+/* === FORM === */
+.form-row { margin-bottom: 14px; }
+.form-row:last-child { margin-bottom: 0; }
+
+.form-label {
+  display: block;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text-secondary);
+  margin-bottom: 6px;
+}
+
+.form-help {
+  font-size: 11px;
+  color: var(--text-tertiary);
+  font-weight: 300;
+  font-style: italic;
+  margin-top: 4px;
+}
+
+.form-input,
+.form-select {
+  width: 100%;
+  padding: 9px 12px;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-default);
+  border-radius: 8px;
+  color: var(--text-primary);
+  font-family: inherit;
+  font-size: 13px;
+}
+
+.form-input:focus,
+.form-select:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-subtle);
+}
+
+.form-input::placeholder { color: var(--text-tertiary); }
+
+.form-row-inline {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+/* === CONDITION ROW === */
+.condition-row {
+  display: grid;
+  grid-template-columns: 1.5fr 1fr 1.5fr auto;
+  gap: 8px;
+  margin-bottom: 8px;
+  align-items: center;
+}
+
+.condition-row:last-child { margin-bottom: 0; }
+
+.add-condition {
+  margin-top: 12px;
+  padding: 10px 14px;
+  width: 100%;
+  background: transparent;
+  border: 1px dashed var(--border-default);
+  border-radius: 8px;
+  color: var(--text-tertiary);
+  font-family: inherit;
+  font-size: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  transition: all 150ms ease;
+}
+
+.add-condition:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+  background: var(--accent-subtle);
+}
+
+/* === MULTIPLIER LIST === */
+.multiplier-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-default);
+  border-radius: 8px;
+  margin-bottom: 8px;
+}
+
+.multiplier-row:last-child { margin-bottom: 0; }
+
+.multiplier-info { flex: 1; min-width: 0; }
+
+.multiplier-name {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-primary);
+  margin-bottom: 2px;
+}
+
+.multiplier-desc {
+  font-size: 11px;
+  color: var(--text-tertiary);
+}
+
+.multiplier-value {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--warning);
+  padding: 4px 10px;
+  background: rgba(240, 183, 47, 0.10);
+  border-radius: 999px;
+}
+
+/* === SWITCH === */
+.switch {
+  position: relative;
+  width: 36px;
+  height: 20px;
+  background: var(--bg-elevated);
+  border-radius: 999px;
+  cursor: pointer;
+  transition: background 150ms ease;
+  flex-shrink: 0;
+  border: none;
+  padding: 0;
+}
+
+.switch::after {
+  content: '';
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--text-secondary);
+  transition: all 150ms ease;
+}
+
+.switch.on { background: var(--accent); }
+.switch.on::after { left: 18px; background: var(--bg-primary); }
+
+/* === SIDEBAR (right panel) === */
+.editor-side {
+  position: sticky;
+  top: 76px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.side-card {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-subtle);
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.side-card-head {
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--border-subtle);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.side-card-title {
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-tertiary);
+}
+
+.side-card-body { padding: 14px 16px; }
+
+/* === PREVIEW === */
+.preview-text {
+  font-size: 13px;
+  color: var(--text-primary);
+  line-height: 1.7;
+}
+
+.preview-keyword {
+  font-weight: 600;
+  color: var(--accent);
+}
+
+.preview-value {
+  font-weight: 500;
+  color: var(--info);
+}
+
+.preview-condition {
+  font-weight: 500;
+  color: var(--purple);
+}
+
+.preview-mult {
+  font-weight: 500;
+  color: var(--warning);
+}
+
+/* === META FIELDS === */
+.meta-field {
+  margin-bottom: 12px;
+}
+.meta-field:last-child { margin-bottom: 0; }
+
+.meta-label {
+  font-size: 11px;
+  color: var(--text-tertiary);
+  margin-bottom: 4px;
+  font-weight: 500;
+}
+
+.meta-value {
+  font-size: 13px;
+  color: var(--text-primary);
+}
+
+/* === BOTTOM ACTIONS === */
+.bottom-bar {
+  position: sticky;
+  bottom: 0;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-subtle);
+  border-radius: 10px;
+  padding: 14px 18px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 20px;
+  backdrop-filter: blur(8px);
+}
+
+.save-state {
+  font-size: 12px;
+  color: var(--text-tertiary);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-style: italic;
+  font-weight: 300;
+}
+
+.save-state .dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--success);
+}
+
+.bottom-actions {
+  display: flex;
+  gap: 8px;
+}
+
+/* === VIEW TOGGLE === */
+.view-section { display: none; }
+.view-section.active { display: block; }
+
+/* === SCROLLBAR === */
+::-webkit-scrollbar { width: 8px; height: 8px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border-default); border-radius: 4px; }
+::-webkit-scrollbar-thumb:hover { background: var(--border-strong); }
+
+/* === RESPONSIVE === */
+@media (max-width: 1100px) {
+  .editor-layout { grid-template-columns: 1fr; }
+  .editor-side { position: static; }
+}
+
+@media (max-width: 768px) {
+  .app { grid-template-columns: 1fr; }
+  .sidebar { display: none; }
+}
+</style>
+</head>
+<body>
+
+<div class="app">
+
+<!-- ========== SIDEBAR ========== -->
+<aside class="sidebar">
+  <div class="sidebar-brand">
+    <div class="brand-logo">N</div>
+    <div class="brand-name">niveles</div>
+  </div>
+
+  <div class="operator-selector">
+    <div class="operator-avatar">CA</div>
+    <div class="operator-info">
+      <div class="operator-name">Casino Astral</div>
+      <div class="operator-tier">plan growth · es-AR</div>
+    </div>
+    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="color: var(--text-tertiary);">
+      <polyline points="6 9 12 15 18 9"/>
+    </svg>
+  </div>
+
+  <div class="sidebar-section">
+    <a class="nav-item" href="#">
+      <span class="nav-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg></span>
+      Dashboard
+    </a>
+  </div>
+
+  <div class="sidebar-section">
+    <p class="section-label">Configuración</p>
+    <a class="nav-item" href="#">
+      <span class="nav-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2 L4 7 v10 l8 5 8-5 V7 z"/></svg></span>
+      Niveles
+    </a>
+    <a class="nav-item active" href="#">
+      <span class="nav-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg></span>
+      Reglas de XP
+      <span class="nav-badge">12</span>
+    </a>
+    <a class="nav-item" href="#">
+      <span class="nav-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M16 8h-6a2 2 0 1 0 0 4h4a2 2 0 1 1 0 4H8M12 6v2m0 8v2"/></svg></span>
+      Monedas
+    </a>
+    <a class="nav-item" href="#">
+      <span class="nav-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3h18v18H3zM3 9h18M9 21V9"/></svg></span>
+      Multiplicadores
+    </a>
+  </div>
+
+  <div class="sidebar-section">
+    <p class="section-label">Engagement</p>
+    <a class="nav-item" href="#">
+      <span class="nav-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 12l2 2 4-4M21 12c0 5-4 9-9 9s-9-4-9-9 4-9 9-9c2 0 4 1 5 2"/></svg></span>
+      Misiones
+      <span class="nav-badge">8</span>
+    </a>
+    <a class="nav-item" href="#">
+      <span class="nav-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="6"/><path d="M9 13l-2 8 5-3 5 3-2-8"/></svg></span>
+      Logros
+    </a>
+    <a class="nav-item" href="#">
+      <span class="nav-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12l5-9h8l5 9-9 9z"/></svg></span>
+      Cofres
+    </a>
+  </div>
+
+  <div class="sidebar-section">
+    <p class="section-label">Setup</p>
+    <a class="nav-item" href="#">
+      <span class="nav-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8z"/></svg></span>
+      Equipo
+    </a>
+    <a class="nav-item" href="#">
+      <span class="nav-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="16" r="1"/><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></span>
+      API keys
+    </a>
+  </div>
+</aside>
+
+<!-- ========== MAIN ========== -->
+<div class="main">
+
+  <div class="topbar">
+    <div class="breadcrumb">
+      <a onclick="showList()">Reglas de XP</a>
+      <span style="color: var(--text-tertiary);" id="bcSep" hidden>/</span>
+      <span class="breadcrumb-current" id="bcCurrent" hidden>Apuesta deportiva ganadora</span>
+    </div>
+    
+    <div class="topbar-actions">
+      <button class="icon-btn"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg></button>
+      <button class="icon-btn"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 1 1 5.83 1c0 2-3 3-3 3M12 17h.01"/></svg></button>
+      <div class="user-pill">
+        <div class="user-avatar">FL</div>
+        <div>
+          <div class="user-name">Fabricio L.</div>
+          <div class="user-role">admin</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===========================================
+       VISTA 1: LISTA DE REGLAS
+       =========================================== -->
+  <div class="view-section active" id="viewList">
+    <div class="content">
+
+      <div class="page-header">
+        <div>
+          <h1 class="page-title">Reglas de XP</h1>
+          <p class="page-subtitle">configurá qué eventos otorgan XP y cuánto</p>
+        </div>
+        <div style="display: flex; gap: 8px;">
+          <button class="btn btn-secondary">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
+            Importar
+          </button>
+          <button class="btn btn-primary" onclick="showEditor()">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            Crear regla
+          </button>
+        </div>
+      </div>
+
+      <!-- Toolbar -->
+      <div class="toolbar">
+        <div class="search-input">
+          <span class="search-icon">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
+          </span>
+          <input type="text" placeholder="buscar regla por nombre o evento...">
+        </div>
+        <div class="filter-group">
+          <button class="filter-pill active">todas · 12</button>
+          <button class="filter-pill">activas · 9</button>
+          <button class="filter-pill">pausadas · 2</button>
+          <button class="filter-pill">borradores · 1</button>
+        </div>
+      </div>
+
+      <!-- Tabla -->
+      <div class="table-card">
+        <table class="table">
+          <thead>
+            <tr>
+              <th style="width: 30px;"></th>
+              <th>regla</th>
+              <th>categoría</th>
+              <th>XP</th>
+              <th>estado</th>
+              <th>actualizada</th>
+              <th style="text-align: right;">acciones</th>
+            </tr>
+          </thead>
+          <tbody>
+
+            <tr>
+              <td><button class="switch on"></button></td>
+              <td>
+                <div class="rule-name">Apuesta deportiva ganadora</div>
+                <div class="rule-desc">cuando bet_placed con resultado win y categoría sports</div>
+              </td>
+              <td><span class="cat-tag cat-sports">deportes</span></td>
+              <td><span style="font-weight: 600;">+50</span> <span style="color: var(--text-tertiary); font-size: 11px;">por $10</span></td>
+              <td><span class="status status-active"><span class="status-dot"></span>activa</span></td>
+              <td>hace 12 min</td>
+              <td>
+                <div class="row-actions">
+                  <button class="action-btn" title="duplicar"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></button>
+                  <button class="action-btn" onclick="showEditor()" title="editar"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button>
+                  <button class="action-btn" title="más"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="1"/><circle cx="12" cy="5" r="1"/><circle cx="12" cy="19" r="1"/></svg></button>
+                </div>
+              </td>
+            </tr>
+
+            <tr>
+              <td><button class="switch on"></button></td>
+              <td>
+                <div class="rule-name">Apuesta en slots</div>
+                <div class="rule-desc">cuando bet_placed con categoría slots</div>
+              </td>
+              <td><span class="cat-tag cat-slots">slots</span></td>
+              <td><span style="font-weight: 600;">+10</span> <span style="color: var(--text-tertiary); font-size: 11px;">por $1</span></td>
+              <td><span class="status status-active"><span class="status-dot"></span>activa</span></td>
+              <td>hace 3 horas</td>
+              <td>
+                <div class="row-actions">
+                  <button class="action-btn"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></button>
+                  <button class="action-btn"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button>
+                  <button class="action-btn"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="1"/><circle cx="12" cy="5" r="1"/><circle cx="12" cy="19" r="1"/></svg></button>
+                </div>
+              </td>
+            </tr>
+
+            <tr>
+              <td><button class="switch on"></button></td>
+              <td>
+                <div class="rule-name">Primer depósito del mes</div>
+                <div class="rule-desc">cuando deposit y is_first_of_month true</div>
+              </td>
+              <td><span class="cat-tag cat-deposit">depósito</span></td>
+              <td><span style="font-weight: 600;">+500</span> <span style="color: var(--text-tertiary); font-size: 11px;">único</span></td>
+              <td><span class="status status-active"><span class="status-dot"></span>activa</span></td>
+              <td>ayer</td>
+              <td>
+                <div class="row-actions">
+                  <button class="action-btn"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></button>
+                  <button class="action-btn"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button>
+                  <button class="action-btn"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="1"/><circle cx="12" cy="5" r="1"/><circle cx="12" cy="19" r="1"/></svg></button>
+                </div>
+              </td>
+            </tr>
+
+            <tr>
+              <td><button class="switch on"></button></td>
+              <td>
+                <div class="rule-name">Mano de poker ganada</div>
+                <div class="rule-desc">cuando game_played con result win y game poker</div>
+              </td>
+              <td><span class="cat-tag cat-poker">poker</span></td>
+              <td><span style="font-weight: 600;">+25</span></td>
+              <td><span class="status status-active"><span class="status-dot"></span>activa</span></td>
+              <td>hace 2 días</td>
+              <td>
+                <div class="row-actions">
+                  <button class="action-btn"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></button>
+                  <button class="action-btn"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button>
+                  <button class="action-btn"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="1"/><circle cx="12" cy="5" r="1"/><circle cx="12" cy="19" r="1"/></svg></button>
+                </div>
+              </td>
+            </tr>
+
+            <tr>
+              <td><button class="switch"></button></td>
+              <td>
+                <div class="rule-name">Promo finde Champions League</div>
+                <div class="rule-desc">cuando bet_placed con event_type champions y day in [sat,sun]</div>
+              </td>
+              <td><span class="cat-tag cat-sports">deportes</span></td>
+              <td><span style="font-weight: 600;">+100</span> <span style="color: var(--text-tertiary); font-size: 11px;">por $10</span></td>
+              <td><span class="status status-paused"><span class="status-dot"></span>pausada</span></td>
+              <td>hace 5 días</td>
+              <td>
+                <div class="row-actions">
+                  <button class="action-btn"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></button>
+                  <button class="action-btn"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button>
+                  <button class="action-btn"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="1"/><circle cx="12" cy="5" r="1"/><circle cx="12" cy="19" r="1"/></svg></button>
+                </div>
+              </td>
+            </tr>
+
+            <tr>
+              <td><button class="switch"></button></td>
+              <td>
+                <div class="rule-name">Compartir post en feed</div>
+                <div class="rule-desc">cuando feed_post con shared true</div>
+              </td>
+              <td><span class="cat-tag cat-social">social</span></td>
+              <td><span style="font-weight: 600;">+5</span></td>
+              <td><span class="status status-draft"><span class="status-dot"></span>borrador</span></td>
+              <td>hoy 09:42</td>
+              <td>
+                <div class="row-actions">
+                  <button class="action-btn"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></button>
+                  <button class="action-btn"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button>
+                  <button class="action-btn"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="1"/><circle cx="12" cy="5" r="1"/><circle cx="12" cy="19" r="1"/></svg></button>
+                </div>
+              </td>
+            </tr>
+
+          </tbody>
+        </table>
+        <div class="pagination">
+          <span>mostrando 6 de 12 reglas</span>
+          <div style="display: flex; gap: 4px;">
+            <button class="btn btn-ghost btn-sm">‹</button>
+            <button class="btn btn-secondary btn-sm">1</button>
+            <button class="btn btn-ghost btn-sm">2</button>
+            <button class="btn btn-ghost btn-sm">›</button>
+          </div>
+        </div>
+      </div>
+
+      <p style="font-size: 12px; color: var(--text-tertiary); text-align: center; margin-top: 20px; font-weight: 300; font-style: italic;">
+        las reglas se aplican en orden de creación · si dos coinciden con un mismo evento, ganan XP de las dos
+      </p>
+    </div>
+  </div>
+
+  <!-- ===========================================
+       VISTA 2: EDITOR DE REGLA INDIVIDUAL
+       =========================================== -->
+  <div class="view-section" id="viewEditor">
+    <div class="content">
+
+      <div class="page-header">
+        <div>
+          <h1 class="page-title">Apuesta deportiva ganadora</h1>
+          <p class="page-subtitle">cuando un jugador acierta una apuesta deportiva</p>
+        </div>
+        <div style="display: flex; gap: 8px; align-items: center;">
+          <span class="status status-active"><span class="status-dot"></span>activa</span>
+          <button class="btn btn-ghost btn-sm">duplicar</button>
+          <button class="btn btn-secondary btn-sm">archivar</button>
+        </div>
+      </div>
+
+      <div class="editor-layout">
+
+        <!-- Editor main column -->
+        <div class="editor-main">
+
+          <!-- ========== BLOQUE 1: TRIGGER ========== -->
+          <div class="block">
+            <div class="block-head">
+              <div class="block-num trigger">1</div>
+              <div class="block-meta">
+                <div class="block-kind">cuando · trigger</div>
+                <div class="block-title">¿qué evento dispara esta regla?</div>
+              </div>
+            </div>
+            <div class="block-body">
+              <div class="form-row">
+                <label class="form-label">tipo de evento</label>
+                <select class="form-select">
+                  <option>bet_placed · apuesta realizada</option>
+                  <option>game_played · partida jugada</option>
+                  <option>deposit · depósito</option>
+                  <option>login · inicio de sesión</option>
+                  <option>custom · evento personalizado</option>
+                </select>
+                <p class="form-help">el operador envía este evento desde su sistema cuando ocurre</p>
+              </div>
+              <div class="form-row">
+                <label class="form-label">categoría del evento</label>
+                <select class="form-select">
+                  <option>sports · deportes</option>
+                  <option>slots</option>
+                  <option>poker</option>
+                  <option>casino</option>
+                  <option>bingo</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          <div class="connector">
+            <div class="connector-icon">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+            </div>
+          </div>
+
+          <!-- ========== BLOQUE 2: CONDICIONES ========== -->
+          <div class="block">
+            <div class="block-head">
+              <div class="block-num condition">2</div>
+              <div class="block-meta">
+                <div class="block-kind">si · condiciones</div>
+                <div class="block-title">¿qué condiciones tiene que cumplir?</div>
+              </div>
+            </div>
+            <div class="block-body">
+
+              <div style="display: grid; grid-template-columns: 70px 1fr; gap: 12px; align-items: center; margin-bottom: 12px;">
+                <span style="font-size: 11px; color: var(--text-tertiary); font-weight: 500;">si TODAS</span>
+                <p style="font-size: 11px; color: var(--text-tertiary); font-weight: 300; font-style: italic;">se cumplen estas condiciones, la regla se aplica</p>
+              </div>
+
+              <div class="condition-row">
+                <select class="form-select">
+                  <option>resultado</option>
+                  <option>monto</option>
+                  <option>jugador.vip_tier</option>
+                  <option>jugador.nivel</option>
+                  <option>día_de_la_semana</option>
+                </select>
+                <select class="form-select">
+                  <option>es igual a</option>
+                  <option>es distinto a</option>
+                  <option>contiene</option>
+                  <option>mayor que</option>
+                </select>
+                <select class="form-select">
+                  <option>win · ganada</option>
+                  <option>loss · perdida</option>
+                  <option>void · anulada</option>
+                </select>
+                <button class="action-btn"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg></button>
+              </div>
+
+              <div class="condition-row">
+                <select class="form-select">
+                  <option>monto</option>
+                </select>
+                <select class="form-select">
+                  <option>mayor o igual a</option>
+                </select>
+                <input type="text" class="form-input" value="$5">
+                <button class="action-btn"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg></button>
+              </div>
+
+              <button class="add-condition">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                agregar condición
+              </button>
+            </div>
+          </div>
+
+          <div class="connector">
+            <div class="connector-icon">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+            </div>
+          </div>
+
+          <!-- ========== BLOQUE 3: ACCIÓN ========== -->
+          <div class="block active">
+            <div class="block-head">
+              <div class="block-num action">3</div>
+              <div class="block-meta">
+                <div class="block-kind">entonces · acción</div>
+                <div class="block-title">¿qué XP otorgar?</div>
+              </div>
+            </div>
+            <div class="block-body">
+
+              <div class="form-row-inline">
+                <div class="form-row">
+                  <label class="form-label">XP base</label>
+                  <input type="number" class="form-input" value="50">
+                  <p class="form-help">cantidad fija si no hay cálculo por monto</p>
+                </div>
+                <div class="form-row">
+                  <label class="form-label">o calculá por monto</label>
+                  <div style="display: flex; gap: 8px; align-items: center;">
+                    <input type="number" class="form-input" value="50" style="flex: 1;">
+                    <span style="font-size: 12px; color: var(--text-tertiary);">XP por cada</span>
+                    <input type="text" class="form-input" value="$10" style="flex: 1;">
+                  </div>
+                </div>
+              </div>
+
+              <div class="form-row" style="margin-top: 14px;">
+                <label class="form-label">XP máxima por evento (opcional)</label>
+                <input type="number" class="form-input" value="2000" placeholder="dejar vacío para sin tope">
+                <p class="form-help">tope para evitar que un evento gigante reviente la curva</p>
+              </div>
+
+              <div class="form-row">
+                <label class="form-label">¿también dar monedas?</label>
+                <div style="display: flex; gap: 12px; align-items: center;">
+                  <button class="switch on"></button>
+                  <span style="font-size: 12px; color: var(--text-secondary);">sí, también acreditá</span>
+                  <input type="number" class="form-input" value="10" style="width: 80px;">
+                  <select class="form-select" style="width: 140px;">
+                    <option>monedas oro</option>
+                    <option>monedas plata</option>
+                  </select>
+                </div>
+              </div>
+
+            </div>
+          </div>
+
+          <div class="connector">
+            <div class="connector-icon">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+            </div>
+          </div>
+
+          <!-- ========== BLOQUE 4: MULTIPLICADORES ========== -->
+          <div class="block">
+            <div class="block-head">
+              <div class="block-num multiplier">4</div>
+              <div class="block-meta">
+                <div class="block-kind">multiplicadores aplicables</div>
+                <div class="block-title">¿qué multiplicadores se pueden sumar a esta regla?</div>
+              </div>
+            </div>
+            <div class="block-body">
+
+              <p style="font-size: 12px; color: var(--text-tertiary); margin-bottom: 14px; font-weight: 300; font-style: italic;">
+                seleccioná los multiplicadores existentes que aplican a esta regla · podés crear nuevos en el módulo Multiplicadores
+              </p>
+
+              <div class="multiplier-row">
+                <button class="switch on"></button>
+                <div class="multiplier-info">
+                  <div class="multiplier-name">VIP gold</div>
+                  <div class="multiplier-desc">jugadores con tier VIP gold ganan más XP</div>
+                </div>
+                <span class="multiplier-value">×1.5</span>
+              </div>
+
+              <div class="multiplier-row">
+                <button class="switch on"></button>
+                <div class="multiplier-info">
+                  <div class="multiplier-name">VIP diamond</div>
+                  <div class="multiplier-desc">jugadores con tier VIP diamond ganan más XP</div>
+                </div>
+                <span class="multiplier-value">×2.0</span>
+              </div>
+
+              <div class="multiplier-row">
+                <button class="switch"></button>
+                <div class="multiplier-info">
+                  <div class="multiplier-name">Doble XP fin de semana</div>
+                  <div class="multiplier-desc">temporal · termina dom 23:59</div>
+                </div>
+                <span class="multiplier-value">×2.0</span>
+              </div>
+
+              <button class="add-condition">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                agregar multiplicador
+              </button>
+
+            </div>
+          </div>
+
+          <!-- Bottom bar (sticky) -->
+          <div class="bottom-bar">
+            <div class="save-state">
+              <span class="dot"></span>
+              guardado automáticamente · hace 12 seg
+            </div>
+            <div class="bottom-actions">
+              <button class="btn btn-ghost">descartar cambios</button>
+              <button class="btn btn-secondary">probar regla</button>
+              <button class="btn btn-primary">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+                guardar y publicar
+              </button>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Editor sidebar -->
+        <div class="editor-side">
+
+          <!-- Preview en lenguaje natural -->
+          <div class="side-card">
+            <div class="side-card-head">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color: var(--accent);"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2zM22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
+              <span class="side-card-title">vista previa</span>
+            </div>
+            <div class="side-card-body">
+              <div class="preview-text">
+                <span class="preview-keyword">Cuando</span> un jugador hace una <span class="preview-value">apuesta deportiva</span>
+                <span class="preview-keyword">y</span> <span class="preview-condition">resultado = ganada</span>
+                <span class="preview-keyword">y</span> <span class="preview-condition">monto ≥ $5</span>,
+                <span class="preview-keyword">entonces</span> ganá <span class="preview-value">+50 XP por cada $10</span> apostados
+                (máx <span class="preview-value">2000 XP</span>) <span class="preview-keyword">y</span> <span class="preview-value">10 monedas oro</span>.
+                <br><br>
+                <span class="preview-keyword">Multiplicadores activos:</span>
+                <span class="preview-mult">VIP gold ×1.5</span>, <span class="preview-mult">VIP diamond ×2.0</span>.
+              </div>
+            </div>
+          </div>
+
+          <!-- Stats de la regla -->
+          <div class="side-card">
+            <div class="side-card-head">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color: var(--info);"><path d="M3 3v18h18M7 14l4-4 4 4 5-5"/></svg>
+              <span class="side-card-title">últimos 7 días</span>
+            </div>
+            <div class="side-card-body">
+              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px;">
+                <div>
+                  <div style="font-size: 11px; color: var(--text-tertiary); margin-bottom: 4px;">veces aplicada</div>
+                  <div style="font-size: 20px; font-weight: 600;">14,238</div>
+                </div>
+                <div>
+                  <div style="font-size: 11px; color: var(--text-tertiary); margin-bottom: 4px;">XP otorgada</div>
+                  <div style="font-size: 20px; font-weight: 600; color: var(--accent);">847k</div>
+                </div>
+                <div>
+                  <div style="font-size: 11px; color: var(--text-tertiary); margin-bottom: 4px;">jugadores únicos</div>
+                  <div style="font-size: 20px; font-weight: 600;">2,418</div>
+                </div>
+                <div>
+                  <div style="font-size: 11px; color: var(--text-tertiary); margin-bottom: 4px;">XP promedio</div>
+                  <div style="font-size: 20px; font-weight: 600;">59</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Metadata -->
+          <div class="side-card">
+            <div class="side-card-head">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color: var(--text-tertiary);"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 2"/></svg>
+              <span class="side-card-title">metadatos</span>
+            </div>
+            <div class="side-card-body">
+              <div class="meta-field">
+                <div class="meta-label">creada</div>
+                <div class="meta-value">12 ene 2026 · por María L.</div>
+              </div>
+              <div class="meta-field">
+                <div class="meta-label">última edición</div>
+                <div class="meta-value">hace 12 minutos · por María L.</div>
+              </div>
+              <div class="meta-field">
+                <div class="meta-label">ID interno</div>
+                <div class="meta-value" style="font-family: 'SF Mono', Monaco, monospace; font-size: 11px;">rule_8a1f...3e92</div>
+              </div>
+              <div class="meta-field">
+                <div class="meta-label">historial de versiones</div>
+                <a href="#" style="font-size: 12px; color: var(--accent); text-decoration: none;">ver 8 versiones →</a>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+</div>
+</div>
+
+<script>
+function showEditor() {
+  document.getElementById('viewList').classList.remove('active');
+  document.getElementById('viewEditor').classList.add('active');
+  document.getElementById('bcSep').hidden = false;
+  document.getElementById('bcCurrent').hidden = false;
+  window.scrollTo(0, 0);
+}
+function showList() {
+  document.getElementById('viewEditor').classList.remove('active');
+  document.getElementById('viewList').classList.add('active');
+  document.getElementById('bcSep').hidden = true;
+  document.getElementById('bcCurrent').hidden = true;
+  window.scrollTo(0, 0);
+}
+</script>
+
+</body>
+</html>

@@ -1,0 +1,1088 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BO Operador · Equipo y Roles</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Urbanist:ital,wght@0,300;0,400;0,500;0,600;1,300&display=swap" rel="stylesheet">
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg-primary: #0E1116;
+  --bg-secondary: #161B22;
+  --bg-tertiary: #1C2128;
+  --bg-elevated: #21262D;
+  --bg-hover: #262C36;
+  
+  --accent: #0AF784;
+  --accent-hover: #08D971;
+  --accent-glow: rgba(10, 247, 132, 0.15);
+  --accent-subtle: rgba(10, 247, 132, 0.08);
+  
+  --text-primary: #FFFFFF;
+  --text-secondary: #B8BEC9;
+  --text-tertiary: #7D8590;
+  --text-disabled: #484F58;
+  
+  --border-subtle: rgba(255, 255, 255, 0.06);
+  --border-default: rgba(255, 255, 255, 0.10);
+  --border-strong: rgba(255, 255, 255, 0.16);
+  
+  --success: #0AF784;
+  --warning: #F0B72F;
+  --danger: #F85149;
+  --info: #58A6FF;
+  --purple: #A78BFA;
+}
+
+body {
+  font-family: 'Urbanist', system-ui, sans-serif;
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  font-size: 14px;
+  line-height: 1.5;
+  font-weight: 400;
+}
+
+button { font-family: inherit; cursor: pointer; }
+
+.app {
+  display: grid;
+  grid-template-columns: 240px 1fr;
+  min-height: 100vh;
+}
+
+/* === SIDEBAR === */
+.sidebar {
+  background: var(--bg-secondary);
+  border-right: 1px solid var(--border-subtle);
+  padding: 16px 0;
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  overflow-y: auto;
+}
+
+.sidebar-brand {
+  padding: 0 20px 20px;
+  border-bottom: 1px solid var(--border-subtle);
+  margin-bottom: 16px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.brand-logo {
+  width: 28px; height: 28px;
+  border-radius: 8px;
+  background: linear-gradient(135deg, var(--accent), #00D9FF);
+  display: flex; align-items: center; justify-content: center;
+  font-weight: 600; color: var(--bg-primary); font-size: 13px;
+}
+
+.brand-name { font-size: 15px; font-weight: 600; }
+
+.operator-selector {
+  margin: 0 12px 16px;
+  padding: 10px 12px;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-default);
+  border-radius: 8px;
+  display: flex; align-items: center; gap: 10px;
+  cursor: pointer;
+}
+
+.operator-avatar {
+  width: 24px; height: 24px;
+  border-radius: 6px;
+  background: linear-gradient(135deg, #4D9FFF, #2563EB);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 11px; font-weight: 600; color: white;
+}
+
+.operator-info { flex: 1; min-width: 0; }
+.operator-name { font-size: 13px; font-weight: 500; }
+.operator-tier { font-size: 10px; color: var(--text-tertiary); }
+
+.sidebar-section { margin-bottom: 8px; padding: 0 12px; }
+.section-label {
+  font-size: 10px; font-weight: 600;
+  text-transform: uppercase; letter-spacing: 0.08em;
+  color: var(--text-tertiary); padding: 8px 12px;
+}
+
+.nav-item {
+  display: flex; align-items: center; gap: 10px;
+  padding: 7px 12px; border-radius: 6px;
+  font-size: 13px; color: var(--text-secondary);
+  cursor: pointer; margin-bottom: 1px; text-decoration: none;
+}
+
+.nav-item:hover { background: var(--bg-tertiary); color: var(--text-primary); }
+.nav-item.active {
+  background: var(--accent-subtle); color: var(--accent);
+  font-weight: 500; position: relative;
+}
+.nav-item.active::before {
+  content: ''; position: absolute; left: -12px; top: 50%;
+  transform: translateY(-50%); width: 3px; height: 18px;
+  background: var(--accent); border-radius: 0 2px 2px 0;
+}
+
+.nav-icon { width: 16px; height: 16px; display: flex; align-items: center; }
+.nav-badge {
+  margin-left: auto; font-size: 10px; padding: 2px 6px;
+  border-radius: 999px; background: var(--bg-elevated);
+  color: var(--text-tertiary); font-weight: 500;
+}
+
+/* === MAIN === */
+.main { display: flex; flex-direction: column; min-width: 0; }
+
+.topbar {
+  height: 56px;
+  border-bottom: 1px solid var(--border-subtle);
+  padding: 0 28px;
+  display: flex; align-items: center; justify-content: space-between;
+  background: var(--bg-primary);
+  position: sticky; top: 0; z-index: 10;
+}
+
+.breadcrumb { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--text-secondary); }
+.breadcrumb-current { color: var(--text-primary); font-weight: 500; }
+.breadcrumb a { color: var(--text-secondary); text-decoration: none; cursor: pointer; }
+
+.topbar-actions { display: flex; align-items: center; gap: 12px; }
+
+.icon-btn {
+  width: 32px; height: 32px;
+  border-radius: 8px;
+  border: 1px solid var(--border-default);
+  background: var(--bg-tertiary);
+  color: var(--text-secondary);
+  display: flex; align-items: center; justify-content: center;
+}
+
+.icon-btn:hover { background: var(--bg-elevated); color: var(--text-primary); }
+
+.user-pill {
+  display: flex; align-items: center; gap: 8px;
+  padding: 4px 12px 4px 4px; border-radius: 999px;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-default); cursor: pointer;
+}
+
+.user-avatar {
+  width: 24px; height: 24px; border-radius: 50%;
+  background: linear-gradient(135deg, #F0B72F, #E0901F);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 10px; font-weight: 600; color: var(--bg-primary);
+}
+
+.user-name { font-size: 12px; font-weight: 500; }
+.user-role { font-size: 10px; color: var(--text-tertiary); }
+
+/* === CONTENT === */
+.content { padding: 28px 28px 64px; max-width: 1300px; }
+
+.page-header {
+  margin-bottom: 24px;
+  display: flex; justify-content: space-between;
+  align-items: flex-start; gap: 24px;
+}
+
+.page-title {
+  font-size: 24px; font-weight: 600;
+  margin-bottom: 6px; letter-spacing: -0.01em;
+}
+
+.page-subtitle {
+  font-size: 13px; color: var(--text-tertiary);
+  font-weight: 300; font-style: italic;
+}
+
+.btn {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 8px 14px; border-radius: 8px;
+  font-size: 13px; font-weight: 500;
+  border: 1px solid transparent;
+  font-family: inherit; cursor: pointer;
+  transition: all 150ms ease;
+}
+
+.btn-primary {
+  background: var(--accent); color: var(--bg-primary);
+  border-color: var(--accent);
+  box-shadow: 0 0 16px var(--accent-glow);
+}
+.btn-primary:hover {
+  background: var(--accent-hover);
+  box-shadow: 0 0 24px rgba(10, 247, 132, 0.25);
+}
+
+.btn-secondary {
+  background: var(--bg-tertiary); color: var(--text-primary);
+  border-color: var(--border-default);
+}
+.btn-secondary:hover { background: var(--bg-elevated); border-color: var(--border-strong); }
+
+.btn-ghost { background: transparent; color: var(--text-secondary); }
+.btn-ghost:hover { background: var(--bg-tertiary); color: var(--text-primary); }
+
+.btn-sm { padding: 6px 10px; font-size: 12px; }
+
+/* === TABS === */
+.page-tabs {
+  display: flex;
+  gap: 0;
+  border-bottom: 1px solid var(--border-subtle);
+  margin-bottom: 24px;
+}
+
+.page-tab {
+  padding: 10px 18px;
+  font-size: 13px;
+  color: var(--text-tertiary);
+  background: transparent;
+  border: none;
+  border-bottom: 2px solid transparent;
+  cursor: pointer;
+  font-family: inherit;
+  font-weight: 500;
+}
+
+.page-tab:hover { color: var(--text-primary); }
+.page-tab.active {
+  color: var(--accent);
+  border-bottom-color: var(--accent);
+}
+
+/* === STATS ROW === */
+.stats-row {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+  margin-bottom: 24px;
+}
+
+.stat-card {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-subtle);
+  border-radius: 10px;
+  padding: 16px;
+}
+
+.stat-label {
+  font-size: 11px;
+  color: var(--text-tertiary);
+  font-weight: 500;
+  margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.stat-value {
+  font-size: 24px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  margin-bottom: 4px;
+}
+
+.stat-sub {
+  font-size: 11px;
+  color: var(--text-tertiary);
+  font-weight: 300;
+  font-style: italic;
+}
+
+/* === TOOLBAR === */
+.toolbar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 16px;
+  padding: 12px;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-subtle);
+  border-radius: 10px;
+}
+
+.search-input { flex: 1; position: relative; }
+
+.search-input input {
+  width: 100%;
+  padding: 8px 12px 8px 34px;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-default);
+  border-radius: 8px;
+  color: var(--text-primary);
+  font-family: inherit;
+  font-size: 13px;
+}
+
+.search-input input::placeholder { color: var(--text-tertiary); }
+.search-input input:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-subtle);
+}
+
+.search-icon {
+  position: absolute;
+  left: 12px; top: 50%;
+  transform: translateY(-50%);
+  color: var(--text-tertiary);
+}
+
+.filter-group { display: flex; gap: 6px; }
+
+.filter-pill {
+  padding: 6px 12px;
+  font-size: 12px;
+  font-weight: 500;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-default);
+  color: var(--text-secondary);
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.filter-pill.active {
+  background: var(--accent-subtle);
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.filter-pill:hover:not(.active) {
+  background: var(--bg-elevated);
+  color: var(--text-primary);
+}
+
+/* === TABLE === */
+.table-card {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-subtle);
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.table thead th {
+  text-align: left;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-tertiary);
+  padding: 12px 16px;
+  background: var(--bg-tertiary);
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.table tbody td {
+  padding: 14px 16px;
+  font-size: 13px;
+  color: var(--text-secondary);
+  border-bottom: 1px solid var(--border-subtle);
+  vertical-align: middle;
+}
+
+.table tbody tr:last-child td { border-bottom: none; }
+.table tbody tr:hover { background: var(--bg-tertiary); }
+
+/* === MEMBER CELL === */
+.member-cell {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.member-avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--bg-primary);
+  flex-shrink: 0;
+}
+
+.member-info { min-width: 0; }
+.member-name {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-primary);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.you-tag {
+  font-size: 9px;
+  padding: 1px 5px;
+  border-radius: 4px;
+  background: var(--accent-subtle);
+  color: var(--accent);
+  font-weight: 500;
+  letter-spacing: 0.04em;
+}
+
+.member-email {
+  font-size: 11px;
+  color: var(--text-tertiary);
+}
+
+/* === ROLE BADGE === */
+.role-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 500;
+}
+
+.role-admin {
+  background: rgba(248, 81, 73, 0.10);
+  color: var(--danger);
+}
+.role-editor {
+  background: rgba(88, 166, 255, 0.10);
+  color: var(--info);
+}
+.role-moderator {
+  background: rgba(167, 139, 250, 0.10);
+  color: var(--purple);
+}
+.role-viewer {
+  background: rgba(125, 133, 144, 0.15);
+  color: var(--text-tertiary);
+}
+
+/* === STATUS === */
+.member-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  font-weight: 500;
+}
+
+.status-dot {
+  width: 6px; height: 6px;
+  border-radius: 50%;
+}
+
+.status-active { color: var(--success); }
+.status-active .status-dot {
+  background: var(--success);
+  box-shadow: 0 0 6px rgba(10, 247, 132, 0.6);
+}
+
+.status-pending { color: var(--warning); }
+.status-pending .status-dot { background: var(--warning); }
+
+.status-suspended { color: var(--text-tertiary); }
+.status-suspended .status-dot { background: var(--text-tertiary); }
+
+/* === ROW ACTIONS === */
+.row-actions {
+  display: flex;
+  gap: 4px;
+  justify-content: flex-end;
+}
+
+.action-btn {
+  width: 28px; height: 28px;
+  border-radius: 6px;
+  background: transparent;
+  border: 1px solid transparent;
+  color: var(--text-tertiary);
+  display: flex; align-items: center; justify-content: center;
+}
+
+.action-btn:hover {
+  background: var(--bg-elevated);
+  border-color: var(--border-default);
+  color: var(--text-primary);
+}
+
+/* === ROLES SECTION === */
+.roles-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 14px;
+  margin-top: 24px;
+}
+
+.role-card {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-subtle);
+  border-radius: 10px;
+  padding: 18px;
+}
+
+.role-card-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.role-icon {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.role-icon.admin { background: rgba(248, 81, 73, 0.10); color: var(--danger); }
+.role-icon.editor { background: rgba(88, 166, 255, 0.10); color: var(--info); }
+.role-icon.moderator { background: rgba(167, 139, 250, 0.10); color: var(--purple); }
+.role-icon.viewer { background: rgba(125, 133, 144, 0.15); color: var(--text-tertiary); }
+
+.role-card-title {
+  font-size: 14px;
+  font-weight: 500;
+  margin-bottom: 2px;
+}
+
+.role-card-count {
+  font-size: 11px;
+  color: var(--text-tertiary);
+  font-weight: 300;
+  font-style: italic;
+}
+
+.role-permissions-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 10px;
+  padding-top: 14px;
+  border-top: 1px solid var(--border-subtle);
+}
+
+.permission-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+
+.permission-item.allowed { color: var(--text-secondary); }
+.permission-item.denied { color: var(--text-disabled); text-decoration: line-through; }
+
+.permission-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.permission-icon.allowed { color: var(--success); }
+.permission-icon.denied { color: var(--text-disabled); }
+
+/* === SECTION HEADER === */
+.section-header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin-bottom: 14px;
+  margin-top: 32px;
+}
+
+.section-header h2 {
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.section-header p {
+  font-size: 12px;
+  color: var(--text-tertiary);
+  font-weight: 300;
+  font-style: italic;
+}
+
+/* === SCROLLBAR === */
+::-webkit-scrollbar { width: 8px; height: 8px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border-default); border-radius: 4px; }
+::-webkit-scrollbar-thumb:hover { background: var(--border-strong); }
+
+/* === RESPONSIVE === */
+@media (max-width: 1100px) {
+  .roles-grid { grid-template-columns: 1fr; }
+  .stats-row { grid-template-columns: repeat(2, 1fr); }
+}
+
+@media (max-width: 768px) {
+  .app { grid-template-columns: 1fr; }
+  .sidebar { display: none; }
+  .stats-row { grid-template-columns: 1fr; }
+}
+</style>
+</head>
+<body>
+
+<div class="app">
+
+<aside class="sidebar">
+  <div class="sidebar-brand">
+    <div class="brand-logo">N</div>
+    <div class="brand-name">niveles</div>
+  </div>
+  <div class="operator-selector">
+    <div class="operator-avatar">CA</div>
+    <div class="operator-info">
+      <div class="operator-name">Casino Astral</div>
+      <div class="operator-tier">plan growth · es-AR</div>
+    </div>
+    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="color: var(--text-tertiary);"><polyline points="6 9 12 15 18 9"/></svg>
+  </div>
+
+  <div class="sidebar-section">
+    <a class="nav-item" href="#">
+      <span class="nav-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg></span>
+      Dashboard
+    </a>
+  </div>
+
+  <div class="sidebar-section">
+    <p class="section-label">Configuración</p>
+    <a class="nav-item" href="#">
+      <span class="nav-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2 L4 7 v10 l8 5 8-5 V7 z"/></svg></span>
+      Niveles
+    </a>
+    <a class="nav-item" href="#">
+      <span class="nav-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"/></svg></span>
+      Reglas de XP
+      <span class="nav-badge">12</span>
+    </a>
+  </div>
+
+  <div class="sidebar-section">
+    <p class="section-label">Setup</p>
+    <a class="nav-item" href="#">
+      <span class="nav-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19 12c0 1-1 2-1 3"/></svg></span>
+      Branding
+    </a>
+    <a class="nav-item active" href="#">
+      <span class="nav-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8z"/></svg></span>
+      Equipo
+      <span class="nav-badge">5</span>
+    </a>
+    <a class="nav-item" href="#">
+      <span class="nav-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="16" r="1"/><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></span>
+      API keys
+    </a>
+    <a class="nav-item" href="#">
+      <span class="nav-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="5" width="20" height="14" rx="2"/></svg></span>
+      Billing
+    </a>
+  </div>
+</aside>
+
+<div class="main">
+
+  <div class="topbar">
+    <div class="breadcrumb">
+      <a>Setup</a>
+      <span style="color: var(--text-tertiary);">/</span>
+      <span class="breadcrumb-current">Equipo</span>
+    </div>
+    
+    <div class="topbar-actions">
+      <button class="icon-btn"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg></button>
+      <button class="icon-btn"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 1 1 5.83 1c0 2-3 3-3 3M12 17h.01"/></svg></button>
+      <div class="user-pill">
+        <div class="user-avatar">FL</div>
+        <div>
+          <div class="user-name">Fabricio L.</div>
+          <div class="user-role">admin</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="content">
+
+    <div class="page-header">
+      <div>
+        <h1 class="page-title">Equipo</h1>
+        <p class="page-subtitle">gestioná quién tiene acceso al backoffice y qué puede hacer</p>
+      </div>
+      <button class="btn btn-primary">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        Invitar miembro
+      </button>
+    </div>
+
+    <!-- ===== STATS ===== -->
+    <div class="stats-row">
+      <div class="stat-card">
+        <div class="stat-label">total miembros</div>
+        <div class="stat-value">5</div>
+        <div class="stat-sub">de 10 disponibles · plan growth</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">admins</div>
+        <div class="stat-value" style="color: var(--danger);">2</div>
+        <div class="stat-sub">acceso completo</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">activos hoy</div>
+        <div class="stat-value">4</div>
+        <div class="stat-sub">conectados en últimas 24h</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">invitaciones pendientes</div>
+        <div class="stat-value" style="color: var(--warning);">1</div>
+        <div class="stat-sub">expira en 5 días</div>
+      </div>
+    </div>
+
+    <!-- ===== PAGE TABS ===== -->
+    <div class="page-tabs">
+      <button class="page-tab active">Miembros</button>
+      <button class="page-tab">Roles y permisos</button>
+      <button class="page-tab">Historial de acceso</button>
+    </div>
+
+    <!-- ===== TOOLBAR ===== -->
+    <div class="toolbar">
+      <div class="search-input">
+        <span class="search-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg></span>
+        <input type="text" placeholder="buscar por nombre, email o rol...">
+      </div>
+      <div class="filter-group">
+        <button class="filter-pill active">todos · 5</button>
+        <button class="filter-pill">activos · 4</button>
+        <button class="filter-pill">pendientes · 1</button>
+      </div>
+    </div>
+
+    <!-- ===== TABLA DE MIEMBROS ===== -->
+    <div class="table-card">
+      <table class="table">
+        <thead>
+          <tr>
+            <th>miembro</th>
+            <th>rol</th>
+            <th>estado</th>
+            <th>último acceso</th>
+            <th>se unió</th>
+            <th style="text-align: right;"></th>
+          </tr>
+        </thead>
+        <tbody>
+
+          <!-- TÚ (admin) -->
+          <tr>
+            <td>
+              <div class="member-cell">
+                <div class="member-avatar" style="background: linear-gradient(135deg, #F0B72F, #E0901F);">FL</div>
+                <div class="member-info">
+                  <div class="member-name">
+                    Fabricio Lasagna
+                    <span class="you-tag">vos</span>
+                  </div>
+                  <div class="member-email">fabricionl99@icloud.com</div>
+                </div>
+              </div>
+            </td>
+            <td><span class="role-badge role-admin">★ admin</span></td>
+            <td><span class="member-status status-active"><span class="status-dot"></span>activo</span></td>
+            <td>ahora</td>
+            <td>3 ene 2026</td>
+            <td>
+              <div class="row-actions">
+                <button class="action-btn" disabled style="opacity: 0.4;"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="1"/><circle cx="12" cy="5" r="1"/><circle cx="12" cy="19" r="1"/></svg></button>
+              </div>
+            </td>
+          </tr>
+
+          <!-- Otra admin -->
+          <tr>
+            <td>
+              <div class="member-cell">
+                <div class="member-avatar" style="background: linear-gradient(135deg, #F85149, #B91C1C);">CR</div>
+                <div class="member-info">
+                  <div class="member-name">Carlos Rodríguez</div>
+                  <div class="member-email">carlos@casinoastral.com</div>
+                </div>
+              </div>
+            </td>
+            <td><span class="role-badge role-admin">★ admin</span></td>
+            <td><span class="member-status status-active"><span class="status-dot"></span>activo</span></td>
+            <td>hace 12 min</td>
+            <td>5 ene 2026</td>
+            <td>
+              <div class="row-actions">
+                <button class="action-btn"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="1"/><circle cx="12" cy="5" r="1"/><circle cx="12" cy="19" r="1"/></svg></button>
+              </div>
+            </td>
+          </tr>
+
+          <!-- Editor -->
+          <tr>
+            <td>
+              <div class="member-cell">
+                <div class="member-avatar" style="background: linear-gradient(135deg, #58A6FF, #2563EB);">ML</div>
+                <div class="member-info">
+                  <div class="member-name">María López</div>
+                  <div class="member-email">maria@casinoastral.com</div>
+                </div>
+              </div>
+            </td>
+            <td><span class="role-badge role-editor">✎ editor</span></td>
+            <td><span class="member-status status-active"><span class="status-dot"></span>activo</span></td>
+            <td>hace 3 horas</td>
+            <td>12 ene 2026</td>
+            <td>
+              <div class="row-actions">
+                <button class="action-btn"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="1"/><circle cx="12" cy="5" r="1"/><circle cx="12" cy="19" r="1"/></svg></button>
+              </div>
+            </td>
+          </tr>
+
+          <!-- Moderator -->
+          <tr>
+            <td>
+              <div class="member-cell">
+                <div class="member-avatar" style="background: linear-gradient(135deg, #A78BFA, #6D28D9);">PG</div>
+                <div class="member-info">
+                  <div class="member-name">Pedro García</div>
+                  <div class="member-email">pedro@casinoastral.com</div>
+                </div>
+              </div>
+            </td>
+            <td><span class="role-badge role-moderator">⚖ moderator</span></td>
+            <td><span class="member-status status-active"><span class="status-dot"></span>activo</span></td>
+            <td>hace 1 hora</td>
+            <td>20 ene 2026</td>
+            <td>
+              <div class="row-actions">
+                <button class="action-btn"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="1"/><circle cx="12" cy="5" r="1"/><circle cx="12" cy="19" r="1"/></svg></button>
+              </div>
+            </td>
+          </tr>
+
+          <!-- Viewer (pendiente) -->
+          <tr>
+            <td>
+              <div class="member-cell">
+                <div class="member-avatar" style="background: linear-gradient(135deg, #7D8590, #484F58);">??</div>
+                <div class="member-info">
+                  <div class="member-name" style="color: var(--text-tertiary);">Ana Martínez</div>
+                  <div class="member-email">ana@inversora.com</div>
+                </div>
+              </div>
+            </td>
+            <td><span class="role-badge role-viewer">👁 viewer</span></td>
+            <td><span class="member-status status-pending"><span class="status-dot"></span>invitación pendiente</span></td>
+            <td>—</td>
+            <td>invitada hace 2 días</td>
+            <td>
+              <div class="row-actions">
+                <button class="action-btn" title="reenviar invitación"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12a9 9 0 1 1-9-9c2.5 0 4.7 1 6.4 2.6"/><polyline points="21 3 21 9 15 9"/></svg></button>
+                <button class="action-btn"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="1"/><circle cx="12" cy="5" r="1"/><circle cx="12" cy="19" r="1"/></svg></button>
+              </div>
+            </td>
+          </tr>
+
+        </tbody>
+      </table>
+    </div>
+
+    <!-- ===== ROLES Y PERMISOS ===== -->
+    <div class="section-header">
+      <div>
+        <h2>Roles y permisos</h2>
+        <p>cada rol tiene un set predefinido de permisos · 4 roles disponibles</p>
+      </div>
+      <button class="btn btn-secondary btn-sm">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
+        Exportar matriz
+      </button>
+    </div>
+
+    <div class="roles-grid">
+
+      <!-- ROLE: ADMIN -->
+      <div class="role-card">
+        <div class="role-card-head">
+          <div class="role-icon admin">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2 L4 7 v10 l8 5 8-5 V7 z"/><path d="M9 12l2 2 4-4"/></svg>
+          </div>
+          <div>
+            <div class="role-card-title">Admin</div>
+            <div class="role-card-count">2 miembros con este rol</div>
+          </div>
+        </div>
+        <p style="font-size: 12px; color: var(--text-secondary); margin-bottom: 4px;">Acceso completo al backoffice. Puede gestionar el equipo, las API keys y la facturación. Recomendado solo para 1-2 personas.</p>
+        
+        <div class="role-permissions-list">
+          <div class="permission-item allowed">
+            <span class="permission-icon allowed"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg></span>
+            Configurar todos los módulos
+          </div>
+          <div class="permission-item allowed">
+            <span class="permission-icon allowed"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg></span>
+            Gestionar equipo y roles
+          </div>
+          <div class="permission-item allowed">
+            <span class="permission-icon allowed"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg></span>
+            Manejar API keys
+          </div>
+          <div class="permission-item allowed">
+            <span class="permission-icon allowed"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg></span>
+            Ver y gestionar billing
+          </div>
+          <div class="permission-item allowed">
+            <span class="permission-icon allowed"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg></span>
+            Eliminar el operador
+          </div>
+        </div>
+      </div>
+
+      <!-- ROLE: EDITOR -->
+      <div class="role-card">
+        <div class="role-card-head">
+          <div class="role-icon editor">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+          </div>
+          <div>
+            <div class="role-card-title">Editor</div>
+            <div class="role-card-count">1 miembro con este rol</div>
+          </div>
+        </div>
+        <p style="font-size: 12px; color: var(--text-secondary); margin-bottom: 4px;">Puede configurar todos los módulos del producto: niveles, reglas, misiones, tienda, torneos, noticias. NO puede tocar API keys ni el equipo.</p>
+        
+        <div class="role-permissions-list">
+          <div class="permission-item allowed">
+            <span class="permission-icon allowed"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg></span>
+            Configurar módulos del producto
+          </div>
+          <div class="permission-item allowed">
+            <span class="permission-icon allowed"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg></span>
+            Crear noticias y promos
+          </div>
+          <div class="permission-item allowed">
+            <span class="permission-icon allowed"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg></span>
+            Ver analytics y reportes
+          </div>
+          <div class="permission-item denied">
+            <span class="permission-icon denied"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></span>
+            Gestionar equipo
+          </div>
+          <div class="permission-item denied">
+            <span class="permission-icon denied"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></span>
+            Manejar API keys o billing
+          </div>
+        </div>
+      </div>
+
+      <!-- ROLE: MODERATOR -->
+      <div class="role-card">
+        <div class="role-card-head">
+          <div class="role-icon moderator">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11V5a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h11M16 18l2 2 4-4"/></svg>
+          </div>
+          <div>
+            <div class="role-card-title">Moderator</div>
+            <div class="role-card-count">1 miembro con este rol</div>
+          </div>
+        </div>
+        <p style="font-size: 12px; color: var(--text-secondary); margin-bottom: 4px;">Acceso exclusivo al módulo de moderación del feed. Aprueba o rechaza posts, banea usuarios. NO puede tocar configuración del producto.</p>
+        
+        <div class="role-permissions-list">
+          <div class="permission-item allowed">
+            <span class="permission-icon allowed"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg></span>
+            Aprobar/rechazar posts del feed
+          </div>
+          <div class="permission-item allowed">
+            <span class="permission-icon allowed"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg></span>
+            Banear o suspender jugadores
+          </div>
+          <div class="permission-item allowed">
+            <span class="permission-icon allowed"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg></span>
+            Ver historial de moderación
+          </div>
+          <div class="permission-item denied">
+            <span class="permission-icon denied"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></span>
+            Configurar módulos del producto
+          </div>
+          <div class="permission-item denied">
+            <span class="permission-icon denied"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></span>
+            Gestionar equipo o API keys
+          </div>
+        </div>
+      </div>
+
+      <!-- ROLE: VIEWER -->
+      <div class="role-card">
+        <div class="role-card-head">
+          <div class="role-icon viewer">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+          </div>
+          <div>
+            <div class="role-card-title">Viewer</div>
+            <div class="role-card-count">1 miembro con este rol</div>
+          </div>
+        </div>
+        <p style="font-size: 12px; color: var(--text-secondary); margin-bottom: 4px;">Solo lectura. Puede ver dashboards, métricas y reportes. NO puede modificar nada. Pensado para stakeholders, inversores o auditores.</p>
+        
+        <div class="role-permissions-list">
+          <div class="permission-item allowed">
+            <span class="permission-icon allowed"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg></span>
+            Ver dashboard y métricas
+          </div>
+          <div class="permission-item allowed">
+            <span class="permission-icon allowed"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg></span>
+            Ver reportes y exportar datos
+          </div>
+          <div class="permission-item allowed">
+            <span class="permission-icon allowed"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg></span>
+            Ver configuración (sin editar)
+          </div>
+          <div class="permission-item denied">
+            <span class="permission-icon denied"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></span>
+            Modificar cualquier configuración
+          </div>
+          <div class="permission-item denied">
+            <span class="permission-icon denied"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></span>
+            Crear, editar o borrar contenido
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <p style="font-size: 11px; color: var(--text-tertiary); margin-top: 24px; text-align: center; font-weight: 300; font-style: italic;">
+      todas las acciones del equipo quedan registradas en el audit log · accesible desde el dashboard
+    </p>
+
+  </div>
+</div>
+
+</div>
+
+</body>
+</html>

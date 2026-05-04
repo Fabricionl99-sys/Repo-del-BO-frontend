@@ -1,0 +1,1931 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BO Operador · Branding</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Urbanist:ital,wght@0,300;0,400;0,500;0,600;1,300&family=Inter:wght@400;500;600&family=Manrope:wght@400;500;600&family=Roboto:wght@400;500;600&family=Open+Sans:wght@400;600&family=Lato:wght@400;700&family=Playfair+Display:wght@400;700&family=Montserrat:wght@400;600&family=Poppins:wght@400;500;600&family=Bebas+Neue&family=Orbitron:wght@500;700&display=swap" rel="stylesheet">
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg-primary: #0E1116;
+  --bg-secondary: #161B22;
+  --bg-tertiary: #1C2128;
+  --bg-elevated: #21262D;
+  --bg-hover: #262C36;
+  
+  --accent: #0AF784;
+  --accent-hover: #08D971;
+  --accent-glow: rgba(10, 247, 132, 0.15);
+  --accent-subtle: rgba(10, 247, 132, 0.08);
+  
+  --text-primary: #FFFFFF;
+  --text-secondary: #B8BEC9;
+  --text-tertiary: #7D8590;
+  --text-disabled: #484F58;
+  
+  --border-subtle: rgba(255, 255, 255, 0.06);
+  --border-default: rgba(255, 255, 255, 0.10);
+  --border-strong: rgba(255, 255, 255, 0.16);
+  
+  --success: #0AF784;
+  --warning: #F0B72F;
+  --danger: #F85149;
+  --info: #58A6FF;
+  --purple: #A78BFA;
+}
+
+body {
+  font-family: 'Urbanist', system-ui, sans-serif;
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  font-size: 14px;
+  line-height: 1.5;
+  font-weight: 400;
+}
+
+button { font-family: inherit; cursor: pointer; }
+
+.app {
+  display: grid;
+  grid-template-columns: 240px 1fr;
+  min-height: 100vh;
+}
+
+/* === SIDEBAR === */
+.sidebar {
+  background: var(--bg-secondary);
+  border-right: 1px solid var(--border-subtle);
+  padding: 16px 0;
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  overflow-y: auto;
+}
+
+.sidebar-brand {
+  padding: 0 20px 20px;
+  border-bottom: 1px solid var(--border-subtle);
+  margin-bottom: 16px;
+  display: flex; align-items: center; gap: 10px;
+}
+
+.brand-logo {
+  width: 28px; height: 28px;
+  border-radius: 8px;
+  background: linear-gradient(135deg, var(--accent), #00D9FF);
+  display: flex; align-items: center; justify-content: center;
+  font-weight: 600; color: var(--bg-primary); font-size: 13px;
+}
+
+.brand-name { font-size: 15px; font-weight: 600; }
+
+.operator-selector {
+  margin: 0 12px 16px;
+  padding: 10px 12px;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-default);
+  border-radius: 8px;
+  display: flex; align-items: center; gap: 10px;
+  cursor: pointer;
+}
+
+.operator-avatar {
+  width: 24px; height: 24px;
+  border-radius: 6px;
+  background: linear-gradient(135deg, #4D9FFF, #2563EB);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 11px; font-weight: 600; color: white;
+}
+
+.operator-info { flex: 1; min-width: 0; }
+.operator-name { font-size: 13px; font-weight: 500; }
+.operator-tier { font-size: 10px; color: var(--text-tertiary); }
+
+.sidebar-section { margin-bottom: 8px; padding: 0 12px; }
+.section-label {
+  font-size: 10px; font-weight: 600;
+  text-transform: uppercase; letter-spacing: 0.08em;
+  color: var(--text-tertiary); padding: 8px 12px;
+}
+
+.nav-item {
+  display: flex; align-items: center; gap: 10px;
+  padding: 7px 12px; border-radius: 6px;
+  font-size: 13px; color: var(--text-secondary);
+  cursor: pointer; margin-bottom: 1px; text-decoration: none;
+}
+
+.nav-item:hover { background: var(--bg-tertiary); color: var(--text-primary); }
+.nav-item.active {
+  background: var(--accent-subtle); color: var(--accent);
+  font-weight: 500; position: relative;
+}
+.nav-item.active::before {
+  content: ''; position: absolute; left: -12px; top: 50%;
+  transform: translateY(-50%); width: 3px; height: 18px;
+  background: var(--accent); border-radius: 0 2px 2px 0;
+}
+
+.nav-icon { width: 16px; height: 16px; display: flex; align-items: center; }
+
+/* === MAIN === */
+.main { display: flex; flex-direction: column; min-width: 0; }
+
+.topbar {
+  height: 56px;
+  border-bottom: 1px solid var(--border-subtle);
+  padding: 0 28px;
+  display: flex; align-items: center; justify-content: space-between;
+  background: var(--bg-primary);
+  position: sticky; top: 0; z-index: 10;
+}
+
+.breadcrumb { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--text-secondary); }
+.breadcrumb-current { color: var(--text-primary); font-weight: 500; }
+.breadcrumb a { color: var(--text-secondary); text-decoration: none; cursor: pointer; }
+
+.topbar-actions { display: flex; align-items: center; gap: 12px; }
+
+.icon-btn {
+  width: 32px; height: 32px;
+  border-radius: 8px;
+  border: 1px solid var(--border-default);
+  background: var(--bg-tertiary);
+  color: var(--text-secondary);
+  display: flex; align-items: center; justify-content: center;
+}
+
+.icon-btn:hover { background: var(--bg-elevated); color: var(--text-primary); }
+
+.user-pill {
+  display: flex; align-items: center; gap: 8px;
+  padding: 4px 12px 4px 4px; border-radius: 999px;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-default); cursor: pointer;
+}
+
+.user-avatar {
+  width: 24px; height: 24px; border-radius: 50%;
+  background: linear-gradient(135deg, #F0B72F, #E0901F);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 10px; font-weight: 600; color: var(--bg-primary);
+}
+
+.user-name { font-size: 12px; font-weight: 500; }
+.user-role { font-size: 10px; color: var(--text-tertiary); }
+
+/* === CONTENT === */
+.content { padding: 28px 28px 80px; max-width: 1500px; }
+
+.page-header {
+  margin-bottom: 24px;
+  display: flex; justify-content: space-between;
+  align-items: flex-start; gap: 24px;
+}
+
+.page-title {
+  font-size: 24px; font-weight: 600;
+  margin-bottom: 6px; letter-spacing: -0.01em;
+}
+
+.page-subtitle {
+  font-size: 13px; color: var(--text-tertiary);
+  font-weight: 300; font-style: italic;
+}
+
+.btn {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 8px 14px; border-radius: 8px;
+  font-size: 13px; font-weight: 500;
+  border: 1px solid transparent;
+  font-family: inherit; cursor: pointer;
+  transition: all 150ms ease;
+}
+
+.btn-primary {
+  background: var(--accent); color: var(--bg-primary);
+  border-color: var(--accent);
+  box-shadow: 0 0 16px var(--accent-glow);
+}
+.btn-primary:hover {
+  background: var(--accent-hover);
+  box-shadow: 0 0 24px rgba(10, 247, 132, 0.25);
+}
+
+.btn-secondary {
+  background: var(--bg-tertiary); color: var(--text-primary);
+  border-color: var(--border-default);
+}
+.btn-secondary:hover { background: var(--bg-elevated); border-color: var(--border-strong); }
+
+.btn-ghost { background: transparent; color: var(--text-secondary); }
+.btn-ghost:hover { background: var(--bg-tertiary); color: var(--text-primary); }
+
+.btn-sm { padding: 6px 10px; font-size: 12px; }
+
+/* === TABS === */
+.page-tabs {
+  display: flex;
+  gap: 0;
+  border-bottom: 1px solid var(--border-subtle);
+  margin-bottom: 24px;
+}
+
+.page-tab {
+  padding: 10px 18px;
+  font-size: 13px;
+  color: var(--text-tertiary);
+  background: transparent;
+  border: none;
+  border-bottom: 2px solid transparent;
+  cursor: pointer;
+  font-family: inherit;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.page-tab:hover { color: var(--text-primary); }
+.page-tab.active {
+  color: var(--accent);
+  border-bottom-color: var(--accent);
+}
+
+/* === LAYOUT === */
+.branding-layout {
+  display: grid;
+  grid-template-columns: 1fr 420px;
+  gap: 20px;
+  align-items: flex-start;
+}
+
+.branding-main { min-width: 0; display: flex; flex-direction: column; gap: 16px; }
+
+.branding-side {
+  position: sticky;
+  top: 76px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.section-card {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-subtle);
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.section-head {
+  padding: 14px 18px;
+  border-bottom: 1px solid var(--border-subtle);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.section-title { font-size: 14px; font-weight: 500; }
+.section-help {
+  font-size: 11px;
+  color: var(--text-tertiary);
+  font-weight: 300;
+  font-style: italic;
+}
+
+.section-body { padding: 18px; }
+
+/* === PALETAS === */
+.palettes-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 10px;
+}
+
+.palette-card {
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-default);
+  border-radius: 10px;
+  padding: 12px;
+  cursor: pointer;
+  font-family: inherit;
+  color: inherit;
+  text-align: left;
+  transition: all 150ms ease;
+}
+
+.palette-card:hover {
+  border-color: var(--border-strong);
+  background: var(--bg-elevated);
+}
+
+.palette-card.active {
+  border-color: var(--accent);
+  background: var(--accent-subtle);
+  box-shadow: 0 0 0 1px var(--accent);
+}
+
+.palette-preview {
+  display: flex;
+  height: 36px;
+  border-radius: 6px;
+  overflow: hidden;
+  margin-bottom: 8px;
+}
+
+.palette-color { flex: 1; }
+
+.palette-name {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text-primary);
+  margin-bottom: 2px;
+}
+
+.palette-desc {
+  font-size: 10px;
+  color: var(--text-tertiary);
+  font-weight: 300;
+  font-style: italic;
+}
+
+/* === SLOTS DE COLORES === */
+.color-slots {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.color-slot {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-default);
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.color-slot:hover {
+  background: var(--bg-elevated);
+  border-color: var(--border-strong);
+}
+
+.color-swatch {
+  width: 36px;
+  height: 36px;
+  border-radius: 6px;
+  border: 1px solid var(--border-strong);
+  flex-shrink: 0;
+}
+
+.color-info { flex: 1; min-width: 0; }
+.color-label {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text-primary);
+  margin-bottom: 2px;
+}
+
+.color-hex {
+  font-size: 10px;
+  color: var(--text-tertiary);
+  font-family: 'SF Mono', Monaco, monospace;
+}
+
+/* === COLOR PICKER (mock dropdown) === */
+.picker-dropdown {
+  position: absolute;
+  z-index: 100;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-strong);
+  border-radius: 10px;
+  padding: 14px;
+  width: 320px;
+  box-shadow: 0 16px 32px rgba(0, 0, 0, 0.4);
+  display: none;
+}
+
+.picker-dropdown.visible { display: block; }
+
+.picker-family {
+  margin-bottom: 12px;
+}
+
+.picker-family:last-child { margin-bottom: 0; }
+
+.picker-family-label {
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-tertiary);
+  margin-bottom: 6px;
+}
+
+.picker-colors {
+  display: grid;
+  grid-template-columns: repeat(8, 1fr);
+  gap: 4px;
+}
+
+.picker-color {
+  aspect-ratio: 1;
+  border-radius: 4px;
+  cursor: pointer;
+  border: 1px solid var(--border-strong);
+  position: relative;
+}
+
+.picker-color.selected::after {
+  content: '';
+  position: absolute;
+  inset: 2px;
+  border: 2px solid white;
+  border-radius: 3px;
+  pointer-events: none;
+}
+
+/* === CONTRAST WARNING === */
+.contrast-warning {
+  margin-top: 12px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  font-size: 11px;
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+}
+
+.contrast-warning.warning {
+  background: rgba(240, 183, 47, 0.08);
+  border: 1px solid rgba(240, 183, 47, 0.20);
+  color: var(--warning);
+}
+
+.contrast-warning.success {
+  background: rgba(10, 247, 132, 0.08);
+  border: 1px solid rgba(10, 247, 132, 0.20);
+  color: var(--success);
+}
+
+.contrast-warning-text { flex: 1; color: var(--text-secondary); }
+
+/* === FONTS === */
+.fonts-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+}
+
+.font-card {
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-default);
+  border-radius: 10px;
+  padding: 14px;
+  cursor: pointer;
+  text-align: left;
+  font-family: inherit;
+  color: inherit;
+  transition: all 150ms ease;
+}
+
+.font-card:hover {
+  border-color: var(--border-strong);
+  background: var(--bg-elevated);
+}
+
+.font-card.active {
+  border-color: var(--accent);
+  background: var(--accent-subtle);
+  box-shadow: 0 0 0 1px var(--accent);
+}
+
+.font-preview {
+  font-size: 22px;
+  font-weight: 500;
+  color: var(--text-primary);
+  margin-bottom: 6px;
+  line-height: 1.2;
+}
+
+.font-name {
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--text-secondary);
+  font-family: 'Urbanist', sans-serif !important;
+  margin-bottom: 2px;
+}
+
+.font-category {
+  font-size: 10px;
+  color: var(--text-tertiary);
+  font-family: 'Urbanist', sans-serif !important;
+  font-weight: 300;
+  font-style: italic;
+}
+
+/* === SLIDER === */
+.slider-row {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 14px;
+  align-items: center;
+  margin-bottom: 14px;
+}
+
+.slider-row:last-child { margin-bottom: 0; }
+
+.slider-info { display: flex; flex-direction: column; gap: 4px; }
+
+.slider-label {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text-primary);
+  display: flex;
+  justify-content: space-between;
+}
+
+.slider-label .value {
+  color: var(--accent);
+  font-weight: 600;
+  font-family: 'SF Mono', Monaco, monospace;
+}
+
+.slider-help {
+  font-size: 10px;
+  color: var(--text-tertiary);
+  font-style: italic;
+  font-weight: 300;
+}
+
+.slider-input {
+  width: 100%;
+  -webkit-appearance: none;
+  appearance: none;
+  height: 4px;
+  background: var(--bg-tertiary);
+  border-radius: 2px;
+  outline: none;
+}
+
+.slider-input::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 16px;
+  height: 16px;
+  background: var(--accent);
+  border-radius: 50%;
+  cursor: pointer;
+  box-shadow: 0 0 8px var(--accent-glow);
+}
+
+.slider-input::-moz-range-thumb {
+  width: 16px;
+  height: 16px;
+  background: var(--accent);
+  border-radius: 50%;
+  cursor: pointer;
+  border: none;
+}
+
+/* === DENSITY === */
+.density-options {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+
+.density-option {
+  padding: 12px 10px;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-default);
+  border-radius: 8px;
+  cursor: pointer;
+  font-family: inherit;
+  color: inherit;
+  text-align: center;
+  transition: all 150ms ease;
+}
+
+.density-option:hover {
+  background: var(--bg-elevated);
+  border-color: var(--border-strong);
+}
+
+.density-option.active {
+  border-color: var(--accent);
+  background: var(--accent-subtle);
+  color: var(--accent);
+}
+
+.density-preview {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin-bottom: 8px;
+  align-items: center;
+}
+
+.density-preview-row {
+  width: 28px;
+  background: var(--text-tertiary);
+  border-radius: 1px;
+  opacity: 0.6;
+}
+
+.density-option.active .density-preview-row {
+  background: var(--accent);
+  opacity: 1;
+}
+
+.density-name { font-size: 12px; font-weight: 500; }
+.density-desc { font-size: 9px; color: var(--text-tertiary); margin-top: 2px; font-weight: 300; font-style: italic; }
+.density-option.active .density-desc { color: var(--accent); opacity: 0.8; }
+
+/* === IMAGES === */
+.image-slots {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+}
+
+.image-slot {
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-default);
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.image-slot-preview {
+  aspect-ratio: 16/9;
+  background: var(--bg-elevated);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.image-slot-preview.has-image {
+  background-image: linear-gradient(135deg, #0AF784 0%, #00D9FF 100%);
+}
+
+.image-slot-preview.has-image::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, rgba(0,0,0,0.2), rgba(0,0,0,0.1));
+}
+
+.image-placeholder-text {
+  position: relative;
+  z-index: 1;
+  text-align: center;
+  color: var(--text-tertiary);
+}
+
+.image-slot-body {
+  padding: 12px;
+}
+
+.image-slot-name {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text-primary);
+  margin-bottom: 2px;
+}
+
+.image-slot-spec {
+  font-size: 10px;
+  color: var(--text-tertiary);
+  font-weight: 300;
+  font-style: italic;
+  margin-bottom: 10px;
+}
+
+.image-slot-actions {
+  display: flex;
+  gap: 6px;
+}
+
+.image-btn {
+  flex: 1;
+  padding: 6px 8px;
+  font-size: 11px;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-default);
+  border-radius: 6px;
+  color: var(--text-secondary);
+  cursor: pointer;
+  font-family: inherit;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+}
+
+.image-btn:hover {
+  background: var(--bg-hover);
+  color: var(--text-primary);
+  border-color: var(--border-strong);
+}
+
+.image-btn.primary {
+  background: var(--accent-subtle);
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.image-btn.primary:hover {
+  background: rgba(10, 247, 132, 0.15);
+}
+
+/* === STORAGE BAR === */
+.storage-bar-card {
+  background: var(--bg-tertiary);
+  border-radius: 10px;
+  padding: 14px 16px;
+  margin-bottom: 14px;
+}
+
+.storage-bar-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.storage-label {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text-primary);
+}
+
+.storage-value {
+  font-size: 12px;
+  color: var(--text-secondary);
+  font-family: 'SF Mono', Monaco, monospace;
+}
+
+.storage-value .accent { color: var(--accent); font-weight: 600; }
+
+.storage-progress {
+  height: 6px;
+  background: var(--bg-elevated);
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.storage-progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--accent), var(--accent-hover));
+  border-radius: 3px;
+}
+
+/* === FUTURE IMAGES PLACEHOLDER === */
+.future-images {
+  margin-top: 16px;
+  padding: 14px;
+  background: rgba(125, 133, 144, 0.05);
+  border: 1px dashed var(--border-default);
+  border-radius: 10px;
+  text-align: center;
+}
+
+.future-images-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  background: var(--bg-tertiary);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-tertiary);
+  margin-bottom: 8px;
+}
+
+.future-images-title {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text-secondary);
+  margin-bottom: 4px;
+}
+
+.future-images-desc {
+  font-size: 11px;
+  color: var(--text-tertiary);
+  font-weight: 300;
+  font-style: italic;
+}
+
+/* === PREVIEW WIDGET === */
+.preview-card {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-subtle);
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.preview-head {
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--border-subtle);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.preview-title {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-tertiary);
+}
+
+.preview-actions { display: flex; gap: 4px; }
+
+.preview-icon-btn {
+  width: 24px; height: 24px;
+  border-radius: 6px;
+  background: transparent;
+  border: 1px solid var(--border-default);
+  color: var(--text-tertiary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: inherit;
+}
+
+.preview-icon-btn:hover {
+  background: var(--bg-elevated);
+  color: var(--text-primary);
+}
+
+.preview-body {
+  padding: 16px;
+  background: var(--bg-tertiary);
+}
+
+/* === MOCK WIDGET (preview live) === */
+.mock-widget {
+  background: #0E1116;
+  border-radius: 12px;
+  padding: 16px;
+  font-family: 'Urbanist', sans-serif;
+  color: white;
+  border: 1px solid rgba(255,255,255,0.06);
+}
+
+.mock-widget-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+.mock-widget-logo {
+  width: 32px; height: 32px;
+  border-radius: 8px;
+  background: linear-gradient(135deg, #0AF784, #00D9FF);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  font-weight: 600;
+  color: #0E1116;
+}
+
+.mock-widget-info { flex: 1; }
+.mock-widget-name { font-size: 14px; font-weight: 600; }
+.mock-widget-level { font-size: 11px; color: #B8BEC9; }
+
+.mock-widget-progress-card {
+  background: #161B22;
+  border-radius: 10px;
+  padding: 14px;
+  margin-bottom: 12px;
+}
+
+.mock-widget-progress-row {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 8px;
+  font-size: 12px;
+  color: #B8BEC9;
+}
+
+.mock-widget-progress-bar {
+  height: 8px;
+  background: #1C2128;
+  border-radius: 4px;
+  overflow: hidden;
+  margin-bottom: 6px;
+}
+
+.mock-widget-progress-fill {
+  height: 100%;
+  width: 68%;
+  background: linear-gradient(90deg, #0AF784, #08D971);
+  border-radius: 4px;
+  box-shadow: 0 0 8px rgba(10, 247, 132, 0.4);
+}
+
+.mock-widget-progress-meta {
+  font-size: 10px;
+  color: #7D8590;
+  text-align: right;
+}
+
+.mock-widget-cta {
+  width: 100%;
+  padding: 10px;
+  background: #0AF784;
+  border: none;
+  border-radius: 8px;
+  color: #0E1116;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.mock-widget-stats {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.mock-stat {
+  background: #161B22;
+  padding: 8px 10px;
+  border-radius: 8px;
+}
+
+.mock-stat-label { font-size: 9px; color: #7D8590; margin-bottom: 2px; }
+.mock-stat-value { font-size: 14px; font-weight: 600; }
+.mock-stat-value.accent { color: #0AF784; }
+
+/* === RESET BUTTON === */
+.reset-row {
+  margin-top: 14px;
+  padding-top: 14px;
+  border-top: 1px solid var(--border-subtle);
+}
+
+/* === BOTTOM BAR === */
+.bottom-bar {
+  position: sticky;
+  bottom: 0;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-subtle);
+  border-radius: 10px;
+  padding: 14px 18px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 4px;
+  backdrop-filter: blur(8px);
+  z-index: 5;
+}
+
+.save-state {
+  font-size: 12px;
+  color: var(--text-tertiary);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-style: italic;
+  font-weight: 300;
+}
+
+.save-state .dot {
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: var(--warning);
+}
+
+.bottom-actions { display: flex; gap: 8px; }
+
+/* === TOGGLE === */
+.switch-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  background: var(--bg-tertiary);
+  border-radius: 8px;
+  margin-bottom: 8px;
+}
+
+.switch-row:last-child { margin-bottom: 0; }
+
+.switch-info { flex: 1; }
+.switch-name {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-primary);
+  margin-bottom: 2px;
+}
+.switch-desc {
+  font-size: 11px;
+  color: var(--text-tertiary);
+  font-weight: 300;
+  font-style: italic;
+}
+
+.switch {
+  position: relative;
+  width: 36px; height: 20px;
+  background: var(--bg-elevated);
+  border-radius: 999px;
+  cursor: pointer;
+  border: none;
+  padding: 0;
+  flex-shrink: 0;
+}
+
+.switch::after {
+  content: '';
+  position: absolute;
+  top: 2px; left: 2px;
+  width: 16px; height: 16px;
+  border-radius: 50%;
+  background: var(--text-secondary);
+  transition: all 150ms ease;
+}
+
+.switch.on { background: var(--accent); }
+.switch.on::after { left: 18px; background: var(--bg-primary); }
+
+/* === VIEW TOGGLE === */
+.view-section { display: none; }
+.view-section.active { display: block; }
+
+/* === SCROLLBAR === */
+::-webkit-scrollbar { width: 8px; height: 8px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border-default); border-radius: 4px; }
+::-webkit-scrollbar-thumb:hover { background: var(--border-strong); }
+
+/* === RESPONSIVE === */
+@media (max-width: 1100px) {
+  .branding-layout { grid-template-columns: 1fr; }
+  .branding-side { position: static; }
+  .palettes-grid { grid-template-columns: repeat(2, 1fr); }
+  .fonts-grid { grid-template-columns: repeat(2, 1fr); }
+  .color-slots { grid-template-columns: 1fr; }
+  .image-slots { grid-template-columns: 1fr; }
+}
+
+@media (max-width: 768px) {
+  .app { grid-template-columns: 1fr; }
+  .sidebar { display: none; }
+  .palettes-grid { grid-template-columns: 1fr; }
+  .fonts-grid { grid-template-columns: 1fr; }
+}
+</style>
+</head>
+<body>
+
+<div class="app">
+
+<aside class="sidebar">
+  <div class="sidebar-brand">
+    <div class="brand-logo">N</div>
+    <div class="brand-name">niveles</div>
+  </div>
+  <div class="operator-selector">
+    <div class="operator-avatar">CA</div>
+    <div class="operator-info">
+      <div class="operator-name">Casino Astral</div>
+      <div class="operator-tier">plan growth · es-AR</div>
+    </div>
+    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="color: var(--text-tertiary);"><polyline points="6 9 12 15 18 9"/></svg>
+  </div>
+
+  <div class="sidebar-section">
+    <a class="nav-item" href="#">
+      <span class="nav-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg></span>
+      Dashboard
+    </a>
+  </div>
+
+  <div class="sidebar-section">
+    <p class="section-label">Configuración</p>
+    <a class="nav-item" href="#">
+      <span class="nav-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2 L4 7 v10 l8 5 8-5 V7 z"/></svg></span>
+      Niveles
+    </a>
+    <a class="nav-item" href="#">
+      <span class="nav-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"/></svg></span>
+      Reglas de XP
+    </a>
+  </div>
+
+  <div class="sidebar-section">
+    <p class="section-label">Setup</p>
+    <a class="nav-item active" href="#">
+      <span class="nav-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19 12c0 1-1 2-1 3l2 2-2 2-2-2c-1 0-2 1-3 1l-1 2-2-2c-1 0-2-1-3-1l-2 2-2-2 2-2c0-1-1-2-1-3l-2-1 2-2c0-1 1-2 1-3l-2-2 2-2 2 2c1 0 2-1 3-1l1-2 2 2c1 0 2 1 3 1l2-2 2 2-2 2"/></svg></span>
+      Branding
+    </a>
+    <a class="nav-item" href="#">
+      <span class="nav-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2M9 11a4 4 0 1 0 0-8"/></svg></span>
+      Equipo
+    </a>
+  </div>
+</aside>
+
+<div class="main">
+
+  <div class="topbar">
+    <div class="breadcrumb">
+      <a>Setup</a>
+      <span style="color: var(--text-tertiary);">/</span>
+      <span class="breadcrumb-current">Branding</span>
+    </div>
+    
+    <div class="topbar-actions">
+      <button class="icon-btn"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg></button>
+      <button class="icon-btn"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 1 1 5.83 1c0 2-3 3-3 3M12 17h.01"/></svg></button>
+      <div class="user-pill">
+        <div class="user-avatar">FL</div>
+        <div>
+          <div class="user-name">Fabricio L.</div>
+          <div class="user-role">admin</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="content">
+
+    <div class="page-header">
+      <div>
+        <h1 class="page-title">Branding</h1>
+        <p class="page-subtitle">personalizá la apariencia del widget que ven tus jugadores</p>
+      </div>
+      <div style="display: flex; gap: 8px;">
+        <button class="btn btn-secondary">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
+          Exportar tema
+        </button>
+      </div>
+    </div>
+
+    <div class="page-tabs">
+      <button class="page-tab active" onclick="showTab('colors')">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="13.5" cy="6.5" r="2.5"/><circle cx="17.5" cy="10.5" r="2.5"/><circle cx="8.5" cy="7.5" r="2.5"/><circle cx="6.5" cy="12.5" r="2.5"/><path d="M12 22a10 10 0 1 1 10-10c0 5-2 9-7 9a3 3 0 0 1-3-3 4 4 0 0 0-1-3"/></svg>
+        Tema y colores
+      </button>
+      <button class="page-tab" onclick="showTab('fonts')">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="4 7 4 4 20 4 20 7"/><line x1="9" y1="20" x2="15" y2="20"/><line x1="12" y1="4" x2="12" y2="20"/></svg>
+        Tipografía
+      </button>
+      <button class="page-tab" onclick="showTab('images')">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+        Imágenes
+      </button>
+      <button class="page-tab" onclick="showTab('advanced')">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 21v-7M4 10V3M12 21v-9M12 8V3M20 21v-5M20 12V3M1 14h6M9 8h6M17 16h6"/></svg>
+        Avanzado
+      </button>
+    </div>
+
+    <div class="branding-layout">
+
+      <!-- ========== MAIN COLUMN ========== -->
+      <div class="branding-main">
+
+        <!-- ===== TAB 1: COLORES ===== -->
+        <div class="view-section active" id="tab-colors">
+
+          <!-- Paletas base -->
+          <div class="section-card">
+            <div class="section-head">
+              <h2 class="section-title">paletas base</h2>
+              <span class="section-help">elegí un punto de partida · podés tunear cualquier color después</span>
+            </div>
+            <div class="section-body">
+              <div class="palettes-grid">
+
+                <button class="palette-card active">
+                  <div class="palette-preview">
+                    <div class="palette-color" style="background: #0E1116;"></div>
+                    <div class="palette-color" style="background: #161B22;"></div>
+                    <div class="palette-color" style="background: #0AF784;"></div>
+                    <div class="palette-color" style="background: #FFFFFF;"></div>
+                  </div>
+                  <div class="palette-name">Cripto-futurista</div>
+                  <div class="palette-desc">oscuro, neón verde · default</div>
+                </button>
+
+                <button class="palette-card">
+                  <div class="palette-preview">
+                    <div class="palette-color" style="background: #1A0F0A;"></div>
+                    <div class="palette-color" style="background: #2A1810;"></div>
+                    <div class="palette-color" style="background: #D4AF37;"></div>
+                    <div class="palette-color" style="background: #FFF8E7;"></div>
+                  </div>
+                  <div class="palette-name">Casino clásico</div>
+                  <div class="palette-desc">burgundy + dorado elegante</div>
+                </button>
+
+                <button class="palette-card">
+                  <div class="palette-preview">
+                    <div class="palette-color" style="background: #0A0014;"></div>
+                    <div class="palette-color" style="background: #1A0A2E;"></div>
+                    <div class="palette-color" style="background: #FF006E;"></div>
+                    <div class="palette-color" style="background: #00F5D4;"></div>
+                  </div>
+                  <div class="palette-name">Neón retro</div>
+                  <div class="palette-desc">magenta + cyan vibrante</div>
+                </button>
+
+                <button class="palette-card">
+                  <div class="palette-preview">
+                    <div class="palette-color" style="background: #FAFAF7;"></div>
+                    <div class="palette-color" style="background: #F0EFEB;"></div>
+                    <div class="palette-color" style="background: #1A1A1A;"></div>
+                    <div class="palette-color" style="background: #B8860B;"></div>
+                  </div>
+                  <div class="palette-name">Minimalista</div>
+                  <div class="palette-desc">claro, premium, sobrio</div>
+                </button>
+
+                <button class="palette-card">
+                  <div class="palette-preview">
+                    <div class="palette-color" style="background: #0D0E2C;"></div>
+                    <div class="palette-color" style="background: #1A1B4D;"></div>
+                    <div class="palette-color" style="background: #FF6B35;"></div>
+                    <div class="palette-color" style="background: #06FFA5;"></div>
+                  </div>
+                  <div class="palette-name">Gaming</div>
+                  <div class="palette-desc">violeta + naranja juvenil</div>
+                </button>
+
+              </div>
+            </div>
+          </div>
+
+          <!-- Slots de colores -->
+          <div class="section-card">
+            <div class="section-head">
+              <h2 class="section-title">colores específicos</h2>
+              <span class="section-help">click en cualquier color para tunear · 30 colores curados disponibles</span>
+            </div>
+            <div class="section-body">
+              <div class="color-slots">
+
+                <button class="color-slot">
+                  <div class="color-swatch" style="background: #0E1116;"></div>
+                  <div class="color-info">
+                    <div class="color-label">fondo principal</div>
+                    <div class="color-hex">#0E1116</div>
+                  </div>
+                </button>
+
+                <button class="color-slot">
+                  <div class="color-swatch" style="background: #161B22;"></div>
+                  <div class="color-info">
+                    <div class="color-label">fondo secundario</div>
+                    <div class="color-hex">#161B22</div>
+                  </div>
+                </button>
+
+                <button class="color-slot" style="position: relative;">
+                  <div class="color-swatch" style="background: #0AF784;"></div>
+                  <div class="color-info">
+                    <div class="color-label">acento (CTAs)</div>
+                    <div class="color-hex">#0AF784</div>
+                  </div>
+                  
+                  <!-- Picker dropdown ejemplo -->
+                  <div class="picker-dropdown visible" style="top: 100%; left: 0; margin-top: 6px;">
+                    <div class="picker-family">
+                      <div class="picker-family-label">verdes</div>
+                      <div class="picker-colors">
+                        <div class="picker-color selected" style="background: #0AF784;"></div>
+                        <div class="picker-color" style="background: #06FFA5;"></div>
+                        <div class="picker-color" style="background: #7BA05B;"></div>
+                        <div class="picker-color" style="background: #00F5D4;"></div>
+                      </div>
+                    </div>
+                    <div class="picker-family">
+                      <div class="picker-family-label">azules / acentos fríos</div>
+                      <div class="picker-colors">
+                        <div class="picker-color" style="background: #58A6FF;"></div>
+                        <div class="picker-color" style="background: #A78BFA;"></div>
+                        <div class="picker-color" style="background: #FF006E;"></div>
+                      </div>
+                    </div>
+                    <div class="picker-family">
+                      <div class="picker-family-label">cálidos</div>
+                      <div class="picker-colors">
+                        <div class="picker-color" style="background: #D4AF37;"></div>
+                        <div class="picker-color" style="background: #FF6B35;"></div>
+                        <div class="picker-color" style="background: #F0B72F;"></div>
+                      </div>
+                    </div>
+                    <div class="contrast-warning success">
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="flex-shrink: 0;"><polyline points="20 6 9 17 4 12"/></svg>
+                      <span class="contrast-warning-text">contraste 8.4:1 · cumple WCAG AAA</span>
+                    </div>
+                  </div>
+                </button>
+
+                <button class="color-slot">
+                  <div class="color-swatch" style="background: #FFFFFF;"></div>
+                  <div class="color-info">
+                    <div class="color-label">texto principal</div>
+                    <div class="color-hex">#FFFFFF</div>
+                  </div>
+                </button>
+
+                <button class="color-slot">
+                  <div class="color-swatch" style="background: #B8BEC9;"></div>
+                  <div class="color-info">
+                    <div class="color-label">texto secundario</div>
+                    <div class="color-hex">#B8BEC9</div>
+                  </div>
+                </button>
+
+                <button class="color-slot">
+                  <div class="color-swatch" style="background: #0AF784;"></div>
+                  <div class="color-info">
+                    <div class="color-label">éxito (verdes)</div>
+                    <div class="color-hex">#0AF784</div>
+                  </div>
+                </button>
+
+                <button class="color-slot">
+                  <div class="color-swatch" style="background: #F0B72F;"></div>
+                  <div class="color-info">
+                    <div class="color-label">advertencia</div>
+                    <div class="color-hex">#F0B72F</div>
+                  </div>
+                </button>
+
+                <button class="color-slot">
+                  <div class="color-swatch" style="background: #F85149;"></div>
+                  <div class="color-info">
+                    <div class="color-label">error / peligro</div>
+                    <div class="color-hex">#F85149</div>
+                  </div>
+                </button>
+
+              </div>
+
+              <div class="reset-row">
+                <button class="btn btn-ghost btn-sm">
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+                  resetear a paleta base
+                </button>
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- ===== TAB 2: TIPOGRAFÍA ===== -->
+        <div class="view-section" id="tab-fonts">
+
+          <div class="section-card">
+            <div class="section-head">
+              <h2 class="section-title">familia tipográfica</h2>
+              <span class="section-help">15 fuentes Google Fonts curadas · todas optimizadas para web</span>
+            </div>
+            <div class="section-body">
+              <div class="fonts-grid">
+
+                <button class="font-card active">
+                  <div class="font-preview" style="font-family: 'Urbanist', sans-serif;">Aa Bb 123</div>
+                  <div class="font-name">Urbanist</div>
+                  <div class="font-category">moderna · default</div>
+                </button>
+
+                <button class="font-card">
+                  <div class="font-preview" style="font-family: 'Inter', sans-serif;">Aa Bb 123</div>
+                  <div class="font-name">Inter</div>
+                  <div class="font-category">moderna · neutra</div>
+                </button>
+
+                <button class="font-card">
+                  <div class="font-preview" style="font-family: 'Manrope', sans-serif;">Aa Bb 123</div>
+                  <div class="font-name">Manrope</div>
+                  <div class="font-category">moderna · geométrica</div>
+                </button>
+
+                <button class="font-card">
+                  <div class="font-preview" style="font-family: 'Plus Jakarta Sans', sans-serif;">Aa Bb 123</div>
+                  <div class="font-name">Plus Jakarta Sans</div>
+                  <div class="font-category">moderna · profesional</div>
+                </button>
+
+                <button class="font-card">
+                  <div class="font-preview" style="font-family: 'Roboto', sans-serif;">Aa Bb 123</div>
+                  <div class="font-name">Roboto</div>
+                  <div class="font-category">clásica · Google</div>
+                </button>
+
+                <button class="font-card">
+                  <div class="font-preview" style="font-family: 'Open Sans', sans-serif;">Aa Bb 123</div>
+                  <div class="font-name">Open Sans</div>
+                  <div class="font-category">clásica · legible</div>
+                </button>
+
+                <button class="font-card">
+                  <div class="font-preview" style="font-family: 'Lato', sans-serif;">Aa Bb 123</div>
+                  <div class="font-name">Lato</div>
+                  <div class="font-category">clásica · cálida</div>
+                </button>
+
+                <button class="font-card">
+                  <div class="font-preview" style="font-family: 'Source Sans Pro', sans-serif;">Aa Bb 123</div>
+                  <div class="font-name">Source Sans Pro</div>
+                  <div class="font-category">clásica · Adobe</div>
+                </button>
+
+                <button class="font-card">
+                  <div class="font-preview" style="font-family: 'Playfair Display', serif;">Aa Bb 123</div>
+                  <div class="font-name">Playfair Display</div>
+                  <div class="font-category">premium · serif elegante</div>
+                </button>
+
+                <button class="font-card">
+                  <div class="font-preview" style="font-family: 'Montserrat', sans-serif;">Aa Bb 123</div>
+                  <div class="font-name">Montserrat</div>
+                  <div class="font-category">premium · geométrica</div>
+                </button>
+
+                <button class="font-card">
+                  <div class="font-preview" style="font-family: 'Poppins', sans-serif;">Aa Bb 123</div>
+                  <div class="font-name">Poppins</div>
+                  <div class="font-category">premium · moderna</div>
+                </button>
+
+                <button class="font-card">
+                  <div class="font-preview" style="font-family: 'Bebas Neue', sans-serif; letter-spacing: 1px;">Aa Bb 123</div>
+                  <div class="font-name">Bebas Neue</div>
+                  <div class="font-category">display · bold</div>
+                </button>
+
+                <button class="font-card">
+                  <div class="font-preview" style="font-family: 'Russo One', sans-serif;">Aa Bb 123</div>
+                  <div class="font-name">Russo One</div>
+                  <div class="font-category">display · gaming</div>
+                </button>
+
+                <button class="font-card">
+                  <div class="font-preview" style="font-family: 'Orbitron', sans-serif;">Aa Bb 123</div>
+                  <div class="font-name">Orbitron</div>
+                  <div class="font-category">display · sci-fi</div>
+                </button>
+
+                <button class="font-card">
+                  <div class="font-preview" style="font-family: 'Outfit', sans-serif;">Aa Bb 123</div>
+                  <div class="font-name">Outfit</div>
+                  <div class="font-category">premium · variable font</div>
+                </button>
+
+              </div>
+            </div>
+          </div>
+
+          <div class="section-card">
+            <div class="section-head">
+              <h2 class="section-title">tamaño y densidad</h2>
+              <span class="section-help">ajustá el tamaño base y la cantidad de aire en la interfaz</span>
+            </div>
+            <div class="section-body">
+
+              <div class="slider-row">
+                <div class="slider-info">
+                  <div class="slider-label">
+                    <span>tamaño base de fuente</span>
+                    <span class="value">14px</span>
+                  </div>
+                  <input type="range" min="12" max="18" value="14" class="slider-input">
+                  <div class="slider-help">los demás tamaños se calculan proporcionalmente · default 14px</div>
+                </div>
+              </div>
+
+              <div style="margin-top: 18px;">
+                <div class="slider-label" style="margin-bottom: 8px;">
+                  <span>densidad de la interfaz</span>
+                </div>
+                <div class="density-options">
+                  <button class="density-option">
+                    <div class="density-preview">
+                      <div class="density-preview-row" style="height: 2px;"></div>
+                      <div class="density-preview-row" style="height: 2px;"></div>
+                      <div class="density-preview-row" style="height: 2px;"></div>
+                    </div>
+                    <div class="density-name">compacto</div>
+                    <div class="density-desc">menos aire</div>
+                  </button>
+                  <button class="density-option active">
+                    <div class="density-preview">
+                      <div class="density-preview-row" style="height: 3px;"></div>
+                      <div class="density-preview-row" style="height: 3px;"></div>
+                      <div class="density-preview-row" style="height: 3px;"></div>
+                    </div>
+                    <div class="density-name">normal</div>
+                    <div class="density-desc">balance · default</div>
+                  </button>
+                  <button class="density-option">
+                    <div class="density-preview">
+                      <div class="density-preview-row" style="height: 4px;"></div>
+                      <div class="density-preview-row" style="height: 4px;"></div>
+                      <div class="density-preview-row" style="height: 4px;"></div>
+                    </div>
+                    <div class="density-name">cómodo</div>
+                    <div class="density-desc">más espaciado</div>
+                  </button>
+                </div>
+              </div>
+
+            </div>
+          </div>
+
+        </div>
+
+        <!-- ===== TAB 3: IMÁGENES ===== -->
+        <div class="view-section" id="tab-images">
+
+          <div class="section-card">
+            <div class="section-head">
+              <h2 class="section-title">storage de imágenes</h2>
+              <span class="section-help">subí tus imágenes al CDN · servidas desde edge global</span>
+            </div>
+            <div class="section-body">
+
+              <div class="storage-bar-card">
+                <div class="storage-bar-row">
+                  <span class="storage-label">almacenamiento usado</span>
+                  <span class="storage-value"><span class="accent">1.2 GB</span> / 2.0 GB · plan growth</span>
+                </div>
+                <div class="storage-progress">
+                  <div class="storage-progress-fill" style="width: 60%;"></div>
+                </div>
+                <div style="margin-top: 8px; font-size: 11px; color: var(--text-tertiary); font-style: italic; font-weight: 300;">
+                  imágenes optimizadas automáticamente (webp + thumbnails) · más espacio: <a href="#" style="color: var(--accent); text-decoration: none;">upgradeá tu plan</a>
+                </div>
+              </div>
+
+              <div class="image-slots">
+
+                <!-- Logo principal -->
+                <div class="image-slot">
+                  <div class="image-slot-preview has-image">
+                    <div class="image-placeholder-text">
+                      <div style="position: relative; z-index: 1; color: white; font-size: 28px; font-weight: 700;">N</div>
+                    </div>
+                  </div>
+                  <div class="image-slot-body">
+                    <div class="image-slot-name">logo principal</div>
+                    <div class="image-slot-spec">cuadrado · 512×512 · png/svg recomendado</div>
+                    <div class="image-slot-actions">
+                      <button class="image-btn primary">
+                        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M17 8l-5-5-5 5M12 3v12"/></svg>
+                        cambiar
+                      </button>
+                      <button class="image-btn">
+                        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Logo horizontal -->
+                <div class="image-slot">
+                  <div class="image-slot-preview">
+                    <div class="image-placeholder-text">
+                      <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="margin: 0 auto 6px;"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+                      <div style="font-size: 11px;">subí logo horizontal</div>
+                    </div>
+                  </div>
+                  <div class="image-slot-body">
+                    <div class="image-slot-name">logo horizontal</div>
+                    <div class="image-slot-spec">4:1 · 1024×256 · png/svg</div>
+                    <div class="image-slot-actions">
+                      <button class="image-btn primary">
+                        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M17 8l-5-5-5 5M12 3v12"/></svg>
+                        subir
+                      </button>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Favicon -->
+                <div class="image-slot">
+                  <div class="image-slot-preview has-image">
+                    <div class="image-placeholder-text">
+                      <div style="position: relative; z-index: 1; color: white; font-size: 18px; font-weight: 700;">N</div>
+                    </div>
+                  </div>
+                  <div class="image-slot-body">
+                    <div class="image-slot-name">favicon</div>
+                    <div class="image-slot-spec">cuadrado · 128×128 · png/ico</div>
+                    <div class="image-slot-actions">
+                      <button class="image-btn primary">
+                        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M17 8l-5-5-5 5M12 3v12"/></svg>
+                        cambiar
+                      </button>
+                      <button class="image-btn">
+                        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Banner default -->
+                <div class="image-slot">
+                  <div class="image-slot-preview">
+                    <div class="image-placeholder-text">
+                      <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="margin: 0 auto 6px;"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+                      <div style="font-size: 11px;">subí banner por default</div>
+                    </div>
+                  </div>
+                  <div class="image-slot-body">
+                    <div class="image-slot-name">banner default</div>
+                    <div class="image-slot-spec">16:6 · 1200×450 · usado en torneos sin imagen</div>
+                    <div class="image-slot-actions">
+                      <button class="image-btn primary">
+                        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M17 8l-5-5-5 5M12 3v12"/></svg>
+                        subir
+                      </button>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Avatar default -->
+                <div class="image-slot">
+                  <div class="image-slot-preview has-image" style="background: linear-gradient(135deg, #A78BFA 0%, #6D28D9 100%);">
+                    <div class="image-placeholder-text">
+                      <div style="position: relative; z-index: 1; color: white;">
+                        <svg width="32" height="32" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="8" r="4"/><path d="M4 22c0-4.4 3.6-8 8-8s8 3.6 8 8"/></svg>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="image-slot-body">
+                    <div class="image-slot-name">avatar default</div>
+                    <div class="image-slot-spec">cuadrado · 256×256 · jugadores sin foto</div>
+                    <div class="image-slot-actions">
+                      <button class="image-btn primary">
+                        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M17 8l-5-5-5 5M12 3v12"/></svg>
+                        cambiar
+                      </button>
+                      <button class="image-btn">
+                        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+
+              </div>
+
+              <div class="future-images">
+                <div class="future-images-icon">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
+                </div>
+                <div class="future-images-title">imágenes adicionales</div>
+                <div class="future-images-desc">cuando habilités cofres, misiones, logros o promos en otros módulos, vas a poder subir las imágenes específicas desde acá</div>
+              </div>
+
+            </div>
+          </div>
+
+        </div>
+
+        <!-- ===== TAB 4: AVANZADO ===== -->
+        <div class="view-section" id="tab-advanced">
+
+          <div class="section-card">
+            <div class="section-head">
+              <h2 class="section-title">esquinas y bordes</h2>
+              <span class="section-help">ajustá la suavidad de las esquinas en todo el widget</span>
+            </div>
+            <div class="section-body">
+
+              <div class="slider-row">
+                <div class="slider-info">
+                  <div class="slider-label">
+                    <span>border radius</span>
+                    <span class="value">8px</span>
+                  </div>
+                  <input type="range" min="0" max="24" value="8" class="slider-input">
+                  <div class="slider-help">0 = cuadrado · 24 = muy redondeado · default 8px</div>
+                </div>
+              </div>
+
+              <div style="margin-top: 16px; display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px;">
+                <button class="density-option">
+                  <div style="width: 28px; height: 28px; background: var(--accent); border-radius: 0; margin: 0 auto 6px;"></div>
+                  <div class="density-name">cuadrado</div>
+                </button>
+                <button class="density-option active">
+                  <div style="width: 28px; height: 28px; background: var(--accent); border-radius: 4px; margin: 0 auto 6px;"></div>
+                  <div class="density-name">suave</div>
+                </button>
+                <button class="density-option">
+                  <div style="width: 28px; height: 28px; background: var(--accent); border-radius: 8px; margin: 0 auto 6px;"></div>
+                  <div class="density-name">redondeado</div>
+                </button>
+                <button class="density-option">
+                  <div style="width: 28px; height: 28px; background: var(--accent); border-radius: 14px; margin: 0 auto 6px;"></div>
+                  <div class="density-name">muy redondeado</div>
+                </button>
+              </div>
+
+            </div>
+          </div>
+
+          <div class="section-card">
+            <div class="section-head">
+              <h2 class="section-title">opciones</h2>
+              <span class="section-help">comportamientos adicionales del widget</span>
+            </div>
+            <div class="section-body">
+
+              <div class="switch-row">
+                <div class="switch-info">
+                  <div class="switch-name">modo compacto en mobile</div>
+                  <div class="switch-desc">colapsar elementos secundarios cuando el ancho de pantalla es menor a 480px</div>
+                </div>
+                <button class="switch on"></button>
+              </div>
+
+              <div class="switch-row">
+                <div class="switch-info">
+                  <div class="switch-name">animaciones</div>
+                  <div class="switch-desc">transiciones suaves entre estados · desactivá para mejor performance en dispositivos viejos</div>
+                </div>
+                <button class="switch on"></button>
+              </div>
+
+              <div class="switch-row">
+                <div class="switch-info">
+                  <div class="switch-name">glow en elementos destacados</div>
+                  <div class="switch-desc">sombras luminosas en CTAs y badges · solo en paletas oscuras</div>
+                </div>
+                <button class="switch on"></button>
+              </div>
+
+              <div class="switch-row">
+                <div class="switch-info">
+                  <div class="switch-name">mostrar logo del operador</div>
+                  <div class="switch-desc">tu logo aparece arriba a la izquierda del widget</div>
+                </div>
+                <button class="switch on"></button>
+              </div>
+
+            </div>
+          </div>
+
+          <div class="section-card">
+            <div class="section-head">
+              <h2 class="section-title">resetear configuración</h2>
+              <span class="section-help">volver a los valores por defecto del sistema</span>
+            </div>
+            <div class="section-body">
+              <button class="btn btn-secondary">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+                resetear todo a defaults de niveles
+              </button>
+              <p style="font-size: 11px; color: var(--text-tertiary); margin-top: 10px; font-weight: 300; font-style: italic;">
+                esto vuelve colores, fuentes, esquinas y opciones a los valores originales de la plataforma · las imágenes que subiste no se borran
+              </p>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- ===== BOTTOM BAR ===== -->
+        <div class="bottom-bar">
+          <div class="save-state">
+            <span class="dot"></span>
+            tenés cambios sin publicar
+          </div>
+          <div class="bottom-actions">
+            <button class="btn btn-ghost">descartar cambios</button>
+            <button class="btn btn-secondary">guardar borrador</button>
+            <button class="btn btn-primary">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+              publicar branding
+            </button>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- ========== SIDEBAR DERECHA: PREVIEW LIVE ========== -->
+      <div class="branding-side">
+
+        <div class="preview-card">
+          <div class="preview-head">
+            <span class="preview-title">vista previa · widget jugador</span>
+            <div class="preview-actions">
+              <button class="preview-icon-btn" title="comparar antes/después">
+                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 3l4 4-4 4M20 7H4M8 21l-4-4 4-4M4 17h16"/></svg>
+              </button>
+              <button class="preview-icon-btn" title="ver en pantalla completa">
+                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 3H5a2 2 0 0 0-2 2v3M21 8V5a2 2 0 0 0-2-2h-3M3 16v3a2 2 0 0 0 2 2h3M16 21h3a2 2 0 0 0 2-2v-3"/></svg>
+              </button>
+            </div>
+          </div>
+
+          <div class="preview-body">
+            <div class="mock-widget">
+
+              <div class="mock-widget-header">
+                <div class="mock-widget-logo">N</div>
+                <div class="mock-widget-info">
+                  <div class="mock-widget-name">Casino Astral</div>
+                  <div class="mock-widget-level">nivel 24 · VIP plata</div>
+                </div>
+              </div>
+
+              <div class="mock-widget-progress-card">
+                <div class="mock-widget-progress-row">
+                  <span>progreso al nivel 25</span>
+                  <span style="color: #FFFFFF; font-weight: 600;">68%</span>
+                </div>
+                <div class="mock-widget-progress-bar">
+                  <div class="mock-widget-progress-fill"></div>
+                </div>
+                <div class="mock-widget-progress-meta">2,400 / 3,500 XP</div>
+              </div>
+
+              <div class="mock-widget-stats">
+                <div class="mock-stat">
+                  <div class="mock-stat-label">XP TOTAL</div>
+                  <div class="mock-stat-value accent">42,300</div>
+                </div>
+                <div class="mock-stat">
+                  <div class="mock-stat-label">MONEDAS</div>
+                  <div class="mock-stat-value">1,250</div>
+                </div>
+              </div>
+
+              <button class="mock-widget-cta">canjear recompensas</button>
+
+            </div>
+
+            <p style="font-size: 10px; color: var(--text-tertiary); text-align: center; margin-top: 12px; font-weight: 300; font-style: italic;">
+              los cambios se ven aplicados en tiempo real · el cambio publicado afecta a todos tus jugadores
+            </p>
+          </div>
+        </div>
+
+        <!-- Info sobre el cambio -->
+        <div class="preview-card">
+          <div class="preview-head">
+            <span class="preview-title">impacto del cambio</span>
+          </div>
+          <div style="padding: 14px 16px;">
+            <div style="display: flex; justify-content: space-between; padding: 6px 0; font-size: 12px; border-bottom: 1px solid var(--border-subtle);">
+              <span style="color: var(--text-tertiary);">jugadores afectados</span>
+              <span style="color: var(--text-primary); font-weight: 500;">12,847</span>
+            </div>
+            <div style="display: flex; justify-content: space-between; padding: 6px 0; font-size: 12px; border-bottom: 1px solid var(--border-subtle);">
+              <span style="color: var(--text-tertiary);">cache CDN se invalida en</span>
+              <span style="color: var(--text-primary); font-weight: 500;">~5 segundos</span>
+            </div>
+            <div style="display: flex; justify-content: space-between; padding: 6px 0; font-size: 12px;">
+              <span style="color: var(--text-tertiary);">jugadores activos ahora</span>
+              <span style="color: var(--accent); font-weight: 500;">847</span>
+            </div>
+            <p style="font-size: 11px; color: var(--text-tertiary); margin-top: 12px; font-weight: 300; font-style: italic; line-height: 1.5;">
+              al publicar, el branding se aplica casi instantáneamente para todos los jugadores activos · sin necesidad de refresh
+            </p>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+
+  </div>
+</div>
+
+</div>
+
+<script>
+function showTab(name) {
+  document.querySelectorAll('.view-section').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.page-tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('tab-' + name).classList.add('active');
+  event.currentTarget.classList.add('active');
+  window.scrollTo(0, 0);
+}
+</script>
+
+</body>
+</html>

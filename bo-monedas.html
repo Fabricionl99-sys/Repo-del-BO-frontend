@@ -1,0 +1,1398 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BO Operador · Monedas</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Urbanist:ital,wght@0,300;0,400;0,500;0,600;1,300&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg-primary: #0E1116;
+  --bg-secondary: #161B22;
+  --bg-tertiary: #1C2128;
+  --bg-elevated: #21262D;
+  --bg-hover: #262C36;
+  
+  --accent: #0AF784;
+  --accent-hover: #08D971;
+  --accent-glow: rgba(10, 247, 132, 0.15);
+  --accent-subtle: rgba(10, 247, 132, 0.08);
+  
+  --text-primary: #FFFFFF;
+  --text-secondary: #B8BEC9;
+  --text-tertiary: #7D8590;
+  --text-disabled: #484F58;
+  
+  --border-subtle: rgba(255, 255, 255, 0.06);
+  --border-default: rgba(255, 255, 255, 0.10);
+  --border-strong: rgba(255, 255, 255, 0.16);
+  
+  --success: #0AF784;
+  --warning: #F0B72F;
+  --danger: #F85149;
+  --info: #58A6FF;
+  --purple: #A78BFA;
+  --gold: #FFD700;
+  --silver: #C0C0C0;
+  --bronze: #CD7F32;
+  --pink: #FF6B9D;
+  
+  --mono: 'JetBrains Mono', 'SF Mono', monospace;
+}
+
+body {
+  font-family: 'Urbanist', system-ui, sans-serif;
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+button { font-family: inherit; cursor: pointer; }
+input, select, textarea { font-family: inherit; }
+
+.app {
+  display: grid;
+  grid-template-columns: 240px 1fr;
+  min-height: 100vh;
+}
+
+/* === SIDEBAR === */
+.sidebar {
+  background: var(--bg-secondary);
+  border-right: 1px solid var(--border-subtle);
+  padding: 16px 0;
+  position: sticky; top: 0;
+  height: 100vh;
+  overflow-y: auto;
+}
+
+.sidebar-brand {
+  padding: 0 20px 20px;
+  border-bottom: 1px solid var(--border-subtle);
+  margin-bottom: 16px;
+  display: flex; align-items: center; gap: 10px;
+}
+
+.brand-logo {
+  width: 28px; height: 28px;
+  border-radius: 8px;
+  background: linear-gradient(135deg, var(--accent), #00D9FF);
+  display: flex; align-items: center; justify-content: center;
+  font-weight: 600; color: var(--bg-primary); font-size: 13px;
+}
+
+.brand-name { font-size: 15px; font-weight: 600; }
+
+.operator-selector {
+  margin: 0 12px 16px;
+  padding: 10px 12px;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-default);
+  border-radius: 8px;
+  display: flex; align-items: center; gap: 10px;
+  cursor: pointer;
+}
+
+.operator-avatar {
+  width: 24px; height: 24px;
+  border-radius: 6px;
+  background: linear-gradient(135deg, #4D9FFF, #2563EB);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 11px; font-weight: 600; color: white;
+}
+
+.operator-info { flex: 1; min-width: 0; }
+.operator-name { font-size: 13px; font-weight: 500; }
+.operator-tier { font-size: 10px; color: var(--text-tertiary); }
+
+.sidebar-section { margin-bottom: 8px; padding: 0 12px; }
+.section-label {
+  font-size: 10px; font-weight: 600;
+  text-transform: uppercase; letter-spacing: 0.08em;
+  color: var(--text-tertiary); padding: 8px 12px;
+}
+
+.nav-item {
+  display: flex; align-items: center; gap: 10px;
+  padding: 7px 12px; border-radius: 6px;
+  font-size: 13px; color: var(--text-secondary);
+  cursor: pointer; margin-bottom: 1px; text-decoration: none;
+}
+
+.nav-item:hover { background: var(--bg-tertiary); color: var(--text-primary); }
+.nav-item.active {
+  background: var(--accent-subtle); color: var(--accent);
+  font-weight: 500; position: relative;
+}
+.nav-item.active::before {
+  content: ''; position: absolute; left: -12px; top: 50%;
+  transform: translateY(-50%); width: 3px; height: 18px;
+  background: var(--accent); border-radius: 0 2px 2px 0;
+}
+
+.nav-icon { width: 16px; height: 16px; display: flex; align-items: center; }
+
+/* === MAIN === */
+.main { display: flex; flex-direction: column; min-width: 0; }
+
+.topbar {
+  height: 56px;
+  border-bottom: 1px solid var(--border-subtle);
+  padding: 0 28px;
+  display: flex; align-items: center; justify-content: space-between;
+  background: var(--bg-primary);
+  position: sticky; top: 0; z-index: 10;
+}
+
+.breadcrumb { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--text-secondary); }
+.breadcrumb-current { color: var(--text-primary); font-weight: 500; }
+.breadcrumb a { color: var(--text-secondary); text-decoration: none; cursor: pointer; }
+
+.topbar-actions { display: flex; align-items: center; gap: 12px; }
+
+.icon-btn {
+  width: 32px; height: 32px;
+  border-radius: 8px;
+  border: 1px solid var(--border-default);
+  background: var(--bg-tertiary);
+  color: var(--text-secondary);
+  display: flex; align-items: center; justify-content: center;
+}
+
+.icon-btn:hover { background: var(--bg-elevated); color: var(--text-primary); }
+
+.user-pill {
+  display: flex; align-items: center; gap: 8px;
+  padding: 4px 12px 4px 4px; border-radius: 999px;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-default); cursor: pointer;
+}
+
+.user-avatar {
+  width: 24px; height: 24px; border-radius: 50%;
+  background: linear-gradient(135deg, #F0B72F, #E0901F);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 10px; font-weight: 600; color: var(--bg-primary);
+}
+
+.user-name { font-size: 12px; font-weight: 500; }
+.user-role { font-size: 10px; color: var(--text-tertiary); }
+
+/* === CONTENT === */
+.content { padding: 28px 28px 60px; max-width: 1500px; }
+
+.page-header {
+  margin-bottom: 24px;
+  display: flex; justify-content: space-between;
+  align-items: flex-start; gap: 24px;
+}
+
+.page-title {
+  font-size: 24px; font-weight: 600;
+  margin-bottom: 6px; letter-spacing: -0.01em;
+}
+
+.page-subtitle {
+  font-size: 13px; color: var(--text-tertiary);
+  font-weight: 300; font-style: italic;
+}
+
+.page-actions { display: flex; gap: 8px; align-items: center; }
+
+.btn {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 8px 14px; border-radius: 8px;
+  font-size: 13px; font-weight: 500;
+  border: 1px solid transparent;
+  font-family: inherit; cursor: pointer;
+}
+
+.btn-primary {
+  background: var(--accent); color: var(--bg-primary);
+  border-color: var(--accent);
+  box-shadow: 0 0 16px var(--accent-glow);
+}
+.btn-primary:hover { background: var(--accent-hover); }
+
+.btn-secondary {
+  background: var(--bg-tertiary); color: var(--text-primary);
+  border-color: var(--border-default);
+}
+.btn-secondary:hover { background: var(--bg-elevated); border-color: var(--border-strong); }
+
+.btn-ghost { background: transparent; color: var(--text-secondary); }
+.btn-ghost:hover { background: var(--bg-tertiary); color: var(--text-primary); }
+
+.btn-sm { padding: 6px 10px; font-size: 12px; }
+
+/* === STATS BAR === */
+.stats-bar {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.stat-card {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-subtle);
+  border-radius: 10px;
+  padding: 14px 16px;
+}
+
+.stat-label {
+  font-size: 11px;
+  color: var(--text-tertiary);
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin-bottom: 6px;
+}
+
+.stat-value {
+  font-size: 22px;
+  font-weight: 600;
+  margin-bottom: 4px;
+  letter-spacing: -0.01em;
+}
+
+.stat-trend {
+  font-size: 11px;
+  display: flex; align-items: center;
+  gap: 4px;
+}
+
+.stat-trend.up { color: var(--success); }
+.stat-trend.down { color: var(--danger); }
+.stat-trend.neutral { color: var(--text-tertiary); }
+
+/* === SECTION HEADERS === */
+.section-label-h {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-tertiary);
+  margin: 0 0 12px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.section-label-h.with-cta {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+/* === COIN CARDS GRID === */
+.coins-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 14px;
+  margin-bottom: 28px;
+}
+
+.coin-card {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-subtle);
+  border-radius: 14px;
+  padding: 0;
+  overflow: hidden;
+  cursor: pointer;
+  transition: all 150ms ease;
+  position: relative;
+}
+
+.coin-card:hover {
+  border-color: var(--border-strong);
+  transform: translateY(-2px);
+}
+
+.coin-card.gold { --coin-color: var(--gold); }
+.coin-card.gems { --coin-color: var(--info); }
+.coin-card.tickets { --coin-color: var(--pink); }
+.coin-card.draft { --coin-color: var(--text-tertiary); }
+
+.coin-header {
+  padding: 18px 20px;
+  background: linear-gradient(135deg, var(--coin-color, var(--accent)), transparent);
+  position: relative;
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.coin-header::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: var(--bg-tertiary);
+  opacity: 0.85;
+  pointer-events: none;
+}
+
+.coin-header-content {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.coin-icon-big {
+  width: 56px; height: 56px;
+  border-radius: 14px;
+  background: var(--coin-color);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 30px;
+  flex-shrink: 0;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+}
+
+.coin-icon-big.gold { background: linear-gradient(135deg, #FFD700, #FFA500); }
+.coin-icon-big.gems { background: linear-gradient(135deg, #58A6FF, #2563EB); }
+.coin-icon-big.tickets { background: linear-gradient(135deg, #FF6B9D, #DC2670); }
+.coin-icon-big.draft { background: var(--bg-elevated); border: 1px dashed var(--border-default); }
+
+.coin-name-block { flex: 1; min-width: 0; }
+
+.coin-name {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 3px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.coin-symbol {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--text-tertiary);
+  background: var(--bg-elevated);
+  padding: 1px 6px;
+  border-radius: 4px;
+  font-weight: 500;
+}
+
+.coin-status-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.coin-status-pill.active {
+  background: rgba(10, 247, 132, 0.10);
+  color: var(--success);
+}
+
+.coin-status-pill.draft {
+  background: rgba(125, 133, 144, 0.15);
+  color: var(--text-tertiary);
+}
+
+.coin-status-pill .dot {
+  width: 5px; height: 5px;
+  border-radius: 50%;
+  background: currentColor;
+  box-shadow: 0 0 6px currentColor;
+}
+
+.coin-equiv {
+  font-size: 11px;
+  color: var(--text-tertiary);
+  font-weight: 300;
+  font-style: italic;
+  margin-top: 2px;
+}
+
+.coin-equiv .accent { color: var(--text-secondary); font-weight: 500; font-style: normal; }
+
+.coin-body {
+  padding: 16px 20px;
+}
+
+.coin-stats-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.coin-mini-stat {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.coin-mini-label {
+  font-size: 10px;
+  color: var(--text-tertiary);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  font-weight: 600;
+}
+
+.coin-mini-value {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text-primary);
+  font-feature-settings: 'tnum';
+}
+
+.coin-mini-value.up { color: var(--success); }
+.coin-mini-value.down { color: var(--danger); }
+
+.coin-flow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px;
+  background: var(--bg-tertiary);
+  border-radius: 8px;
+  margin-bottom: 12px;
+  font-size: 11px;
+}
+
+.flow-block {
+  flex: 1;
+  text-align: center;
+}
+
+.flow-label {
+  font-size: 9px;
+  color: var(--text-tertiary);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  font-weight: 600;
+  margin-bottom: 2px;
+}
+
+.flow-value {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-primary);
+  font-feature-settings: 'tnum';
+}
+
+.flow-value.in { color: var(--success); }
+.flow-value.out { color: var(--info); }
+
+.flow-arrow {
+  color: var(--text-tertiary);
+  flex-shrink: 0;
+}
+
+.coin-config-summary {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.config-row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 11px;
+  padding: 4px 0;
+}
+
+.config-row .label { color: var(--text-tertiary); }
+.config-row .value { color: var(--text-secondary); font-weight: 500; }
+
+.config-row .value.warn { color: var(--warning); }
+
+.coin-actions-row {
+  display: flex;
+  gap: 6px;
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid var(--border-subtle);
+}
+
+.coin-action-btn {
+  flex: 1;
+  padding: 7px 10px;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-default);
+  border-radius: 6px;
+  color: var(--text-secondary);
+  font-size: 11px;
+  font-family: inherit;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+}
+
+.coin-action-btn:hover {
+  background: var(--bg-elevated);
+  color: var(--text-primary);
+  border-color: var(--border-strong);
+}
+
+.coin-action-btn.primary {
+  background: var(--accent-subtle);
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+/* === ADD COIN CARD === */
+.add-coin-card {
+  background: transparent;
+  border: 1px dashed var(--border-default);
+  border-radius: 14px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-family: inherit;
+  color: var(--text-tertiary);
+  transition: all 150ms ease;
+  min-height: 100%;
+  padding: 32px 16px;
+}
+
+.add-coin-card:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+  background: var(--accent-subtle);
+}
+
+.add-icon-circle {
+  width: 56px; height: 56px;
+  border-radius: 50%;
+  background: var(--bg-tertiary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 14px;
+}
+
+.add-coin-card:hover .add-icon-circle {
+  background: var(--accent);
+  color: var(--bg-primary);
+}
+
+.add-coin-text {
+  font-size: 13px;
+  font-weight: 500;
+  margin-bottom: 2px;
+}
+
+.add-coin-help {
+  font-size: 11px;
+  font-weight: 300;
+  font-style: italic;
+}
+
+/* === CONVERSIONS TABLE === */
+.conversions-card {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-subtle);
+  border-radius: 10px;
+  margin-bottom: 28px;
+  overflow: hidden;
+}
+
+.conversions-head {
+  padding: 14px 18px;
+  border-bottom: 1px solid var(--border-subtle);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.conversions-title {
+  font-size: 14px;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.conversions-help {
+  font-size: 11px;
+  color: var(--text-tertiary);
+  font-weight: 300;
+  font-style: italic;
+}
+
+.conversion-row {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr auto auto;
+  gap: 14px;
+  align-items: center;
+  padding: 14px 18px;
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.conversion-row:last-child { border-bottom: none; }
+
+.conversion-row:hover { background: var(--bg-tertiary); }
+
+.from-side, .to-side {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+.conversion-coin-icon {
+  width: 32px; height: 32px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  flex-shrink: 0;
+}
+
+.conversion-coin-icon.gold { background: linear-gradient(135deg, #FFD700, #FFA500); }
+.conversion-coin-icon.gems { background: linear-gradient(135deg, #58A6FF, #2563EB); }
+.conversion-coin-icon.tickets { background: linear-gradient(135deg, #FF6B9D, #DC2670); }
+
+.conversion-amount {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.conversion-qty {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-primary);
+  font-feature-settings: 'tnum';
+}
+
+.conversion-name {
+  font-size: 11px;
+  color: var(--text-tertiary);
+}
+
+.conversion-arrow {
+  color: var(--accent);
+  display: flex;
+  align-items: center;
+}
+
+.conversion-info {
+  font-size: 10px;
+  color: var(--text-tertiary);
+  font-style: italic;
+  font-weight: 300;
+}
+
+.conversion-info .fee { color: var(--warning); font-weight: 500; font-style: normal; }
+
+.conversion-controls {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+
+.switch {
+  position: relative;
+  width: 32px; height: 18px;
+  background: var(--bg-elevated);
+  border-radius: 999px;
+  cursor: pointer;
+  border: none;
+  padding: 0;
+  flex-shrink: 0;
+}
+
+.switch::after {
+  content: '';
+  position: absolute;
+  top: 2px; left: 2px;
+  width: 14px; height: 14px;
+  border-radius: 50%;
+  background: var(--text-secondary);
+  transition: all 150ms ease;
+}
+
+.switch.on { background: var(--accent); }
+.switch.on::after { left: 16px; background: var(--bg-primary); }
+
+.action-btn {
+  width: 28px; height: 28px;
+  border-radius: 6px;
+  background: transparent;
+  border: 1px solid transparent;
+  color: var(--text-tertiary);
+  display: flex; align-items: center; justify-content: center;
+}
+
+.action-btn:hover {
+  background: var(--bg-elevated);
+  color: var(--text-primary);
+  border-color: var(--border-default);
+}
+
+.add-conversion-btn {
+  margin: 12px 18px 16px;
+  padding: 10px 14px;
+  width: calc(100% - 36px);
+  background: transparent;
+  border: 1px dashed var(--border-default);
+  border-radius: 8px;
+  color: var(--text-tertiary);
+  font-family: inherit;
+  font-size: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+
+.add-conversion-btn:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+  background: var(--accent-subtle);
+}
+
+/* === SUPPLY CARD === */
+.supply-card {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-subtle);
+  border-radius: 10px;
+  padding: 18px 20px;
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 20px;
+}
+
+.supply-block {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.supply-label {
+  font-size: 11px;
+  color: var(--text-tertiary);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.supply-value {
+  font-size: 26px;
+  font-weight: 600;
+  color: var(--text-primary);
+  letter-spacing: -0.01em;
+  font-feature-settings: 'tnum';
+}
+
+.supply-block.in .supply-value { color: var(--success); }
+.supply-block.out .supply-value { color: var(--info); }
+
+.supply-bar {
+  height: 4px;
+  background: var(--bg-elevated);
+  border-radius: 2px;
+  overflow: hidden;
+  margin-top: 4px;
+}
+
+.supply-bar-fill {
+  height: 100%;
+}
+
+.supply-bar-fill.balance { background: var(--accent); }
+.supply-bar-fill.in { background: var(--success); }
+.supply-bar-fill.out { background: var(--info); }
+
+.supply-meta {
+  font-size: 11px;
+  color: var(--text-tertiary);
+  font-style: italic;
+  font-weight: 300;
+}
+
+/* === SCROLLBAR === */
+::-webkit-scrollbar { width: 8px; height: 8px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border-default); border-radius: 4px; }
+::-webkit-scrollbar-thumb:hover { background: var(--border-strong); }
+
+@media (max-width: 1100px) {
+  .coins-grid { grid-template-columns: repeat(2, 1fr); }
+  .stats-bar { grid-template-columns: repeat(2, 1fr); }
+  .supply-card { grid-template-columns: 1fr; }
+}
+
+@media (max-width: 768px) {
+  .app { grid-template-columns: 1fr; }
+  .sidebar { display: none; }
+  .coins-grid { grid-template-columns: 1fr; }
+  .stats-bar { grid-template-columns: 1fr; }
+  .conversion-row { grid-template-columns: 1fr; gap: 8px; }
+}
+</style>
+</head>
+<body>
+
+<div class="app">
+
+<aside class="sidebar">
+  <div class="sidebar-brand">
+    <div class="brand-logo">N</div>
+    <div class="brand-name">niveles</div>
+  </div>
+  <div class="operator-selector">
+    <div class="operator-avatar">CA</div>
+    <div class="operator-info">
+      <div class="operator-name">Casino Astral</div>
+      <div class="operator-tier">plan growth · es-AR</div>
+    </div>
+    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="color: var(--text-tertiary);"><polyline points="6 9 12 15 18 9"/></svg>
+  </div>
+
+  <div class="sidebar-section">
+    <a class="nav-item" href="#">
+      <span class="nav-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg></span>
+      Dashboard
+    </a>
+  </div>
+
+  <div class="sidebar-section">
+    <p class="section-label">Comercial</p>
+    <a class="nav-item" href="#">
+      <span class="nav-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.7 13.4a2 2 0 0 0 2 1.6h9.7a2 2 0 0 0 2-1.6L23 6H6"/></svg></span>
+      Tienda virtual
+    </a>
+    <a class="nav-item active" href="#">
+      <span class="nav-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M16 8h-6a2 2 0 1 0 0 4h4a2 2 0 1 1 0 4H8M12 6v2m0 8v2"/></svg></span>
+      Monedas
+    </a>
+  </div>
+</aside>
+
+<div class="main">
+
+  <div class="topbar">
+    <div class="breadcrumb">
+      <a>Comercial</a>
+      <span style="color: var(--text-tertiary);">/</span>
+      <span class="breadcrumb-current">Monedas</span>
+    </div>
+    
+    <div class="topbar-actions">
+      <button class="icon-btn"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg></button>
+      <button class="icon-btn"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 1 1 5.83 1c0 2-3 3-3 3M12 17h.01"/></svg></button>
+      <div class="user-pill">
+        <div class="user-avatar">FL</div>
+        <div>
+          <div class="user-name">Fabricio L.</div>
+          <div class="user-role">admin</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="content">
+
+    <div class="page-header">
+      <div>
+        <h1 class="page-title">Monedas</h1>
+        <p class="page-subtitle">configurá los tipos de monedas virtuales y sus reglas de circulación</p>
+      </div>
+      <div class="page-actions">
+        <button class="btn btn-secondary">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 1v22M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+          ajustar manualmente
+        </button>
+        <button class="btn btn-primary">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          nueva moneda
+        </button>
+      </div>
+    </div>
+
+    <!-- ===== STATS BAR ===== -->
+    <div class="stats-bar">
+      <div class="stat-card">
+        <div class="stat-label">monedas activas</div>
+        <div class="stat-value">3</div>
+        <div class="stat-trend neutral">+ 1 borrador</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">total emitido (7d)</div>
+        <div class="stat-value">+4.7M</div>
+        <div class="stat-trend up">
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="6 15 12 9 18 15"/></svg>
+          +14.2% vs semana previa
+        </div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">total gastado (7d)</div>
+        <div class="stat-value">-2.3M</div>
+        <div class="stat-trend up">
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="6 15 12 9 18 15"/></svg>
+          +8.9% engagement en tienda
+        </div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">balance neto del sistema</div>
+        <div class="stat-value" style="color: var(--accent);">+2.4M</div>
+        <div class="stat-trend neutral">circulación saludable</div>
+      </div>
+    </div>
+
+    <!-- ===== SECCIÓN: TIPOS DE MONEDAS ===== -->
+    <p class="section-label-h">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><path d="M12 6v12M9 9h6M9 15h6"/></svg>
+      tipos de monedas configuradas
+    </p>
+
+    <div class="coins-grid">
+
+      <!-- Moneda Oro (principal) -->
+      <div class="coin-card gold">
+        <div class="coin-header">
+          <div class="coin-header-content">
+            <div class="coin-icon-big gold">🪙</div>
+            <div class="coin-name-block">
+              <div class="coin-name">
+                Monedas oro
+                <span class="coin-symbol">GLD</span>
+              </div>
+              <span class="coin-status-pill active">
+                <span class="dot"></span>
+                principal
+              </span>
+              <div class="coin-equiv">1000 oro ≈ <span class="accent">$1.00 USD</span></div>
+            </div>
+          </div>
+        </div>
+        <div class="coin-body">
+
+          <div class="coin-stats-row">
+            <div class="coin-mini-stat">
+              <div class="coin-mini-label">en circulación</div>
+              <div class="coin-mini-value">12.4M</div>
+            </div>
+            <div class="coin-mini-stat">
+              <div class="coin-mini-label">poseedores</div>
+              <div class="coin-mini-value">8,742</div>
+            </div>
+          </div>
+
+          <div class="coin-flow">
+            <div class="flow-block">
+              <div class="flow-label">entrada / 7d</div>
+              <div class="flow-value in">+3.2M</div>
+            </div>
+            <svg class="flow-arrow" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+            <div class="flow-block">
+              <div class="flow-label">salida / 7d</div>
+              <div class="flow-value out">-1.8M</div>
+            </div>
+          </div>
+
+          <div class="coin-config-summary">
+            <div class="config-row">
+              <span class="label">balance máximo por jugador</span>
+              <span class="value">100,000</span>
+            </div>
+            <div class="config-row">
+              <span class="label">expiración</span>
+              <span class="value">sin expiración</span>
+            </div>
+            <div class="config-row">
+              <span class="label">decimales</span>
+              <span class="value">0 (entero)</span>
+            </div>
+          </div>
+
+          <div class="coin-actions-row">
+            <button class="coin-action-btn primary">
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+              editar
+            </button>
+            <button class="coin-action-btn">
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18"/><polyline points="7 14 12 9 17 14"/></svg>
+              métricas
+            </button>
+            <button class="coin-action-btn">
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="1"/><circle cx="12" cy="5" r="1"/><circle cx="12" cy="19" r="1"/></svg>
+            </button>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- Moneda Gemas (premium) -->
+      <div class="coin-card gems">
+        <div class="coin-header">
+          <div class="coin-header-content">
+            <div class="coin-icon-big gems">💎</div>
+            <div class="coin-name-block">
+              <div class="coin-name">
+                Gemas
+                <span class="coin-symbol">GEM</span>
+              </div>
+              <span class="coin-status-pill active">
+                <span class="dot"></span>
+                premium
+              </span>
+              <div class="coin-equiv">10 gemas ≈ <span class="accent">$1.00 USD</span></div>
+            </div>
+          </div>
+        </div>
+        <div class="coin-body">
+
+          <div class="coin-stats-row">
+            <div class="coin-mini-stat">
+              <div class="coin-mini-label">en circulación</div>
+              <div class="coin-mini-value">847k</div>
+            </div>
+            <div class="coin-mini-stat">
+              <div class="coin-mini-label">poseedores</div>
+              <div class="coin-mini-value">2,341</div>
+            </div>
+          </div>
+
+          <div class="coin-flow">
+            <div class="flow-block">
+              <div class="flow-label">entrada / 7d</div>
+              <div class="flow-value in">+142k</div>
+            </div>
+            <svg class="flow-arrow" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+            <div class="flow-block">
+              <div class="flow-label">salida / 7d</div>
+              <div class="flow-value out">-89k</div>
+            </div>
+          </div>
+
+          <div class="coin-config-summary">
+            <div class="config-row">
+              <span class="label">balance máximo por jugador</span>
+              <span class="value">10,000</span>
+            </div>
+            <div class="config-row">
+              <span class="label">expiración</span>
+              <span class="value warn">365 días desde adquisición</span>
+            </div>
+            <div class="config-row">
+              <span class="label">decimales</span>
+              <span class="value">0 (entero)</span>
+            </div>
+          </div>
+
+          <div class="coin-actions-row">
+            <button class="coin-action-btn primary">
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+              editar
+            </button>
+            <button class="coin-action-btn">
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18"/><polyline points="7 14 12 9 17 14"/></svg>
+              métricas
+            </button>
+            <button class="coin-action-btn">
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="1"/><circle cx="12" cy="5" r="1"/><circle cx="12" cy="19" r="1"/></svg>
+            </button>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- Moneda Tickets (eventos) -->
+      <div class="coin-card tickets">
+        <div class="coin-header">
+          <div class="coin-header-content">
+            <div class="coin-icon-big tickets">🎟️</div>
+            <div class="coin-name-block">
+              <div class="coin-name">
+                Tickets de torneo
+                <span class="coin-symbol">TKT</span>
+              </div>
+              <span class="coin-status-pill active">
+                <span class="dot"></span>
+                eventos
+              </span>
+              <div class="coin-equiv">no convertible a USD</div>
+            </div>
+          </div>
+        </div>
+        <div class="coin-body">
+
+          <div class="coin-stats-row">
+            <div class="coin-mini-stat">
+              <div class="coin-mini-label">en circulación</div>
+              <div class="coin-mini-value">3,487</div>
+            </div>
+            <div class="coin-mini-stat">
+              <div class="coin-mini-label">poseedores</div>
+              <div class="coin-mini-value">1,247</div>
+            </div>
+          </div>
+
+          <div class="coin-flow">
+            <div class="flow-block">
+              <div class="flow-label">entrada / 7d</div>
+              <div class="flow-value in">+1,420</div>
+            </div>
+            <svg class="flow-arrow" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+            <div class="flow-block">
+              <div class="flow-label">salida / 7d</div>
+              <div class="flow-value out">-892</div>
+            </div>
+          </div>
+
+          <div class="coin-config-summary">
+            <div class="config-row">
+              <span class="label">balance máximo por jugador</span>
+              <span class="value">50</span>
+            </div>
+            <div class="config-row">
+              <span class="label">expiración</span>
+              <span class="value warn">30 días desde adquisición</span>
+            </div>
+            <div class="config-row">
+              <span class="label">uso restringido</span>
+              <span class="value">solo entrada a torneos</span>
+            </div>
+          </div>
+
+          <div class="coin-actions-row">
+            <button class="coin-action-btn primary">
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+              editar
+            </button>
+            <button class="coin-action-btn">
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18"/><polyline points="7 14 12 9 17 14"/></svg>
+              métricas
+            </button>
+            <button class="coin-action-btn">
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="1"/><circle cx="12" cy="5" r="1"/><circle cx="12" cy="19" r="1"/></svg>
+            </button>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- Moneda en borrador -->
+      <div class="coin-card draft">
+        <div class="coin-header">
+          <div class="coin-header-content">
+            <div class="coin-icon-big draft">⭐</div>
+            <div class="coin-name-block">
+              <div class="coin-name">
+                Estrellas VIP
+                <span class="coin-symbol">VIP</span>
+              </div>
+              <span class="coin-status-pill draft">
+                borrador
+              </span>
+              <div class="coin-equiv">configuración pendiente</div>
+            </div>
+          </div>
+        </div>
+        <div class="coin-body">
+          <p style="font-size: 12px; color: var(--text-tertiary); font-style: italic; font-weight: 300; padding: 16px 0; text-align: center;">
+            esta moneda no está activada · creada hace 3 días por <span style="color: var(--text-secondary); font-style: normal;">Fabricio L.</span>
+          </p>
+
+          <div class="coin-config-summary">
+            <div class="config-row">
+              <span class="label">propósito propuesto</span>
+              <span class="value">recompensas exclusivas para tier diamond</span>
+            </div>
+          </div>
+
+          <div class="coin-actions-row">
+            <button class="coin-action-btn primary">
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+              completar y activar
+            </button>
+            <button class="coin-action-btn">
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/></svg>
+              descartar
+            </button>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- Add coin -->
+      <button class="add-coin-card">
+        <div class="add-icon-circle">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        </div>
+        <div class="add-coin-text">crear nueva moneda</div>
+        <div class="add-coin-help">o usar plantilla</div>
+      </button>
+
+    </div>
+
+    <!-- ===== SECCIÓN: SUPPLY GLOBAL ===== -->
+    <p class="section-label-h">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--info)" stroke-width="2.5"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+      supply global · monedas oro
+    </p>
+
+    <div class="supply-card" style="margin-bottom: 28px;">
+      <div class="supply-block">
+        <div class="supply-label">en circulación</div>
+        <div class="supply-value">12.4M</div>
+        <div class="supply-bar"><div class="supply-bar-fill balance" style="width: 100%;"></div></div>
+        <div class="supply-meta">balance total entre todos los jugadores</div>
+      </div>
+      <div class="supply-block in">
+        <div class="supply-label">emitido total</div>
+        <div class="supply-value">+18.7M</div>
+        <div class="supply-bar"><div class="supply-bar-fill in" style="width: 100%;"></div></div>
+        <div class="supply-meta">desde el inicio · todas las fuentes</div>
+      </div>
+      <div class="supply-block out">
+        <div class="supply-label">gastado total</div>
+        <div class="supply-value">-6.3M</div>
+        <div class="supply-bar"><div class="supply-bar-fill out" style="width: 34%;"></div></div>
+        <div class="supply-meta">canjes en tienda · entradas a torneos · etc.</div>
+      </div>
+    </div>
+
+    <!-- ===== SECCIÓN: CONVERSIONES ===== -->
+    <p class="section-label-h">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--purple)" stroke-width="2.5"><path d="M17 1l4 4-4 4"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><path d="M7 23l-4-4 4-4"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg>
+      tasas de conversión entre monedas
+    </p>
+
+    <div class="conversions-card">
+      <div class="conversions-head">
+        <div class="conversions-title">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 1l4 4-4 4"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/></svg>
+          conversiones disponibles
+        </div>
+        <span class="conversions-help">los jugadores pueden convertir monedas entre sí · tasas configurables</span>
+      </div>
+
+      <div class="conversion-row">
+        <div class="from-side">
+          <div class="conversion-coin-icon gold">🪙</div>
+          <div class="conversion-amount">
+            <div class="conversion-qty">1,000</div>
+            <div class="conversion-name">monedas oro</div>
+          </div>
+        </div>
+        <div class="conversion-arrow">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+        </div>
+        <div class="to-side">
+          <div class="conversion-coin-icon gems">💎</div>
+          <div class="conversion-amount">
+            <div class="conversion-qty">8</div>
+            <div class="conversion-name">gemas</div>
+          </div>
+        </div>
+        <div class="conversion-info">
+          <span class="fee">fee 20%</span> · 247 conversiones / 7d
+        </div>
+        <div class="conversion-controls">
+          <button class="switch on"></button>
+          <button class="action-btn">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+          </button>
+          <button class="action-btn">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="1"/><circle cx="12" cy="5" r="1"/><circle cx="12" cy="19" r="1"/></svg>
+          </button>
+        </div>
+      </div>
+
+      <div class="conversion-row">
+        <div class="from-side">
+          <div class="conversion-coin-icon gems">💎</div>
+          <div class="conversion-amount">
+            <div class="conversion-qty">10</div>
+            <div class="conversion-name">gemas</div>
+          </div>
+        </div>
+        <div class="conversion-arrow">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+        </div>
+        <div class="to-side">
+          <div class="conversion-coin-icon gold">🪙</div>
+          <div class="conversion-amount">
+            <div class="conversion-qty">1,500</div>
+            <div class="conversion-name">monedas oro</div>
+          </div>
+        </div>
+        <div class="conversion-info">
+          sin fee · 89 conversiones / 7d
+        </div>
+        <div class="conversion-controls">
+          <button class="switch on"></button>
+          <button class="action-btn">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+          </button>
+          <button class="action-btn">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="1"/><circle cx="12" cy="5" r="1"/><circle cx="12" cy="19" r="1"/></svg>
+          </button>
+        </div>
+      </div>
+
+      <div class="conversion-row">
+        <div class="from-side">
+          <div class="conversion-coin-icon gems">💎</div>
+          <div class="conversion-amount">
+            <div class="conversion-qty">5</div>
+            <div class="conversion-name">gemas</div>
+          </div>
+        </div>
+        <div class="conversion-arrow">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+        </div>
+        <div class="to-side">
+          <div class="conversion-coin-icon tickets">🎟️</div>
+          <div class="conversion-amount">
+            <div class="conversion-qty">1</div>
+            <div class="conversion-name">ticket de torneo</div>
+          </div>
+        </div>
+        <div class="conversion-info">
+          sin fee · 312 conversiones / 7d
+        </div>
+        <div class="conversion-controls">
+          <button class="switch on"></button>
+          <button class="action-btn">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+          </button>
+          <button class="action-btn">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="1"/><circle cx="12" cy="5" r="1"/><circle cx="12" cy="19" r="1"/></svg>
+          </button>
+        </div>
+      </div>
+
+      <button class="add-conversion-btn">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        agregar tasa de conversión
+      </button>
+
+    </div>
+
+  </div>
+</div>
+
+</div>
+
+</body>
+</html>

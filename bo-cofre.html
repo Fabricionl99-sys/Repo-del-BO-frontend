@@ -1,0 +1,1567 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BO Operador · Configurar Cofre</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Urbanist:ital,wght@0,300;0,400;0,500;0,600;1,300&display=swap" rel="stylesheet">
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg-primary: #0E1116;
+  --bg-secondary: #161B22;
+  --bg-tertiary: #1C2128;
+  --bg-elevated: #21262D;
+  --bg-hover: #262C36;
+  
+  --accent: #0AF784;
+  --accent-hover: #08D971;
+  --accent-glow: rgba(10, 247, 132, 0.15);
+  --accent-subtle: rgba(10, 247, 132, 0.08);
+  
+  --text-primary: #FFFFFF;
+  --text-secondary: #B8BEC9;
+  --text-tertiary: #7D8590;
+  --text-disabled: #484F58;
+  
+  --border-subtle: rgba(255, 255, 255, 0.06);
+  --border-default: rgba(255, 255, 255, 0.10);
+  --border-strong: rgba(255, 255, 255, 0.16);
+  
+  --success: #0AF784;
+  --warning: #F0B72F;
+  --danger: #F85149;
+  --info: #58A6FF;
+  --purple: #A78BFA;
+  --gold: #FFD700;
+  --silver: #C0C0C0;
+  --bronze: #CD7F32;
+  --legendary: #FF8C42;
+  --epic: #A78BFA;
+  --rare: #58A6FF;
+  --common: #7D8590;
+}
+
+body {
+  font-family: 'Urbanist', system-ui, sans-serif;
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  font-size: 14px;
+  line-height: 1.5;
+  font-weight: 400;
+}
+
+button { font-family: inherit; cursor: pointer; }
+
+.app {
+  display: grid;
+  grid-template-columns: 240px 1fr;
+  min-height: 100vh;
+}
+
+/* === SIDEBAR === */
+.sidebar {
+  background: var(--bg-secondary);
+  border-right: 1px solid var(--border-subtle);
+  padding: 16px 0;
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  overflow-y: auto;
+}
+
+.sidebar-brand {
+  padding: 0 20px 20px;
+  border-bottom: 1px solid var(--border-subtle);
+  margin-bottom: 16px;
+  display: flex; align-items: center; gap: 10px;
+}
+
+.brand-logo {
+  width: 28px; height: 28px;
+  border-radius: 8px;
+  background: linear-gradient(135deg, var(--accent), #00D9FF);
+  display: flex; align-items: center; justify-content: center;
+  font-weight: 600; color: var(--bg-primary); font-size: 13px;
+}
+
+.brand-name { font-size: 15px; font-weight: 600; }
+
+.operator-selector {
+  margin: 0 12px 16px;
+  padding: 10px 12px;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-default);
+  border-radius: 8px;
+  display: flex; align-items: center; gap: 10px;
+  cursor: pointer;
+}
+
+.operator-avatar {
+  width: 24px; height: 24px;
+  border-radius: 6px;
+  background: linear-gradient(135deg, #4D9FFF, #2563EB);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 11px; font-weight: 600; color: white;
+}
+
+.operator-info { flex: 1; min-width: 0; }
+.operator-name { font-size: 13px; font-weight: 500; }
+.operator-tier { font-size: 10px; color: var(--text-tertiary); }
+
+.sidebar-section { margin-bottom: 8px; padding: 0 12px; }
+.section-label {
+  font-size: 10px; font-weight: 600;
+  text-transform: uppercase; letter-spacing: 0.08em;
+  color: var(--text-tertiary); padding: 8px 12px;
+}
+
+.nav-item {
+  display: flex; align-items: center; gap: 10px;
+  padding: 7px 12px; border-radius: 6px;
+  font-size: 13px; color: var(--text-secondary);
+  cursor: pointer; margin-bottom: 1px; text-decoration: none;
+}
+
+.nav-item:hover { background: var(--bg-tertiary); color: var(--text-primary); }
+.nav-item.active {
+  background: var(--accent-subtle); color: var(--accent);
+  font-weight: 500; position: relative;
+}
+.nav-item.active::before {
+  content: ''; position: absolute; left: -12px; top: 50%;
+  transform: translateY(-50%); width: 3px; height: 18px;
+  background: var(--accent); border-radius: 0 2px 2px 0;
+}
+
+.nav-icon { width: 16px; height: 16px; display: flex; align-items: center; }
+
+/* === MAIN === */
+.main { display: flex; flex-direction: column; min-width: 0; }
+
+.topbar {
+  height: 56px;
+  border-bottom: 1px solid var(--border-subtle);
+  padding: 0 28px;
+  display: flex; align-items: center; justify-content: space-between;
+  background: var(--bg-primary);
+  position: sticky; top: 0; z-index: 10;
+}
+
+.breadcrumb { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--text-secondary); }
+.breadcrumb-current { color: var(--text-primary); font-weight: 500; }
+.breadcrumb a { color: var(--text-secondary); text-decoration: none; cursor: pointer; }
+
+.topbar-actions { display: flex; align-items: center; gap: 12px; }
+
+.icon-btn {
+  width: 32px; height: 32px;
+  border-radius: 8px;
+  border: 1px solid var(--border-default);
+  background: var(--bg-tertiary);
+  color: var(--text-secondary);
+  display: flex; align-items: center; justify-content: center;
+}
+
+.icon-btn:hover { background: var(--bg-elevated); color: var(--text-primary); }
+
+.user-pill {
+  display: flex; align-items: center; gap: 8px;
+  padding: 4px 12px 4px 4px; border-radius: 999px;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-default); cursor: pointer;
+}
+
+.user-avatar {
+  width: 24px; height: 24px; border-radius: 50%;
+  background: linear-gradient(135deg, #F0B72F, #E0901F);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 10px; font-weight: 600; color: var(--bg-primary);
+}
+
+.user-name { font-size: 12px; font-weight: 500; }
+.user-role { font-size: 10px; color: var(--text-tertiary); }
+
+/* === CONTENT === */
+.content { padding: 28px 28px 80px; max-width: 1500px; }
+
+.page-header {
+  margin-bottom: 24px;
+  display: flex; justify-content: space-between;
+  align-items: flex-start; gap: 24px;
+}
+
+.page-title {
+  font-size: 24px; font-weight: 600;
+  margin-bottom: 6px; letter-spacing: -0.01em;
+}
+
+.page-subtitle {
+  font-size: 13px; color: var(--text-tertiary);
+  font-weight: 300; font-style: italic;
+}
+
+.btn {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 8px 14px; border-radius: 8px;
+  font-size: 13px; font-weight: 500;
+  border: 1px solid transparent;
+  font-family: inherit; cursor: pointer;
+  transition: all 150ms ease;
+}
+
+.btn-primary {
+  background: var(--accent); color: var(--bg-primary);
+  border-color: var(--accent);
+  box-shadow: 0 0 16px var(--accent-glow);
+}
+.btn-primary:hover {
+  background: var(--accent-hover);
+  box-shadow: 0 0 24px rgba(10, 247, 132, 0.25);
+}
+
+.btn-secondary {
+  background: var(--bg-tertiary); color: var(--text-primary);
+  border-color: var(--border-default);
+}
+.btn-secondary:hover { background: var(--bg-elevated); border-color: var(--border-strong); }
+
+.btn-ghost { background: transparent; color: var(--text-secondary); }
+.btn-ghost:hover { background: var(--bg-tertiary); color: var(--text-primary); }
+
+.btn-sm { padding: 6px 10px; font-size: 12px; }
+
+/* === LAYOUT === */
+.config-layout {
+  display: grid;
+  grid-template-columns: 1fr 400px;
+  gap: 20px;
+  align-items: flex-start;
+}
+
+.config-main { min-width: 0; display: flex; flex-direction: column; gap: 16px; }
+
+.config-side {
+  position: sticky;
+  top: 76px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+/* === SECTION CARD === */
+.section-card {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-subtle);
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.section-head {
+  padding: 14px 18px;
+  border-bottom: 1px solid var(--border-subtle);
+  display: flex; align-items: center; gap: 10px;
+}
+
+.section-num {
+  width: 24px; height: 24px;
+  border-radius: 6px;
+  background: var(--accent-subtle);
+  color: var(--accent);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 11px; font-weight: 600;
+  flex-shrink: 0;
+}
+
+.section-title { font-size: 14px; font-weight: 500; flex: 1; }
+.section-help {
+  font-size: 11px; color: var(--text-tertiary);
+  font-weight: 300; font-style: italic;
+}
+
+.section-body { padding: 18px; }
+
+/* === FORM === */
+.form-row { margin-bottom: 14px; }
+.form-row:last-child { margin-bottom: 0; }
+
+.form-row-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.form-label {
+  display: block;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text-secondary);
+  margin-bottom: 6px;
+}
+
+.form-help {
+  font-size: 11px;
+  color: var(--text-tertiary);
+  font-weight: 300;
+  font-style: italic;
+  margin-top: 4px;
+}
+
+.form-input,
+.form-select,
+.form-textarea {
+  width: 100%;
+  padding: 9px 12px;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-default);
+  border-radius: 8px;
+  color: var(--text-primary);
+  font-family: inherit;
+  font-size: 13px;
+}
+
+.form-textarea { resize: vertical; min-height: 70px; }
+
+.form-input:focus,
+.form-select:focus,
+.form-textarea:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-subtle);
+}
+
+.form-input::placeholder,
+.form-textarea::placeholder { color: var(--text-tertiary); }
+
+/* === RARITY SELECTOR === */
+.rarity-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
+}
+
+.rarity-card {
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-default);
+  border-radius: 10px;
+  padding: 12px;
+  cursor: pointer;
+  font-family: inherit;
+  color: inherit;
+  text-align: center;
+  transition: all 150ms ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.rarity-card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, var(--rarity-color, var(--text-tertiary)), transparent);
+  opacity: 0.08;
+  pointer-events: none;
+}
+
+.rarity-card:hover {
+  border-color: var(--rarity-color, var(--border-strong));
+}
+
+.rarity-card.active {
+  border-color: var(--rarity-color, var(--accent));
+  background: var(--bg-elevated);
+}
+
+.rarity-card.active::before { opacity: 0.15; }
+
+.rarity-card.common { --rarity-color: var(--common); }
+.rarity-card.rare { --rarity-color: var(--rare); }
+.rarity-card.epic { --rarity-color: var(--epic); }
+.rarity-card.legendary { --rarity-color: var(--legendary); }
+
+.rarity-icon {
+  width: 40px; height: 40px;
+  margin: 0 auto 8px;
+  border-radius: 50%;
+  background: var(--rarity-color, var(--text-tertiary));
+  opacity: 0.2;
+  display: flex; align-items: center; justify-content: center;
+  position: relative;
+}
+
+.rarity-card.active .rarity-icon { opacity: 1; }
+
+.rarity-name {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--rarity-color, var(--text-primary));
+  margin-bottom: 2px;
+}
+
+.rarity-desc {
+  font-size: 10px;
+  color: var(--text-tertiary);
+  font-weight: 300;
+  font-style: italic;
+}
+
+/* === IMAGE PICKER === */
+.chest-image-uploader {
+  aspect-ratio: 1;
+  max-width: 240px;
+  border-radius: 16px;
+  background: linear-gradient(135deg, #FF8C42 0%, #DC5A0F 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  overflow: hidden;
+  margin: 0 auto 14px;
+  border: 1px dashed rgba(255, 255, 255, 0.3);
+  cursor: pointer;
+}
+
+.chest-image-uploader::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, rgba(255,140,66,0.15), rgba(0,0,0,0.4));
+}
+
+.chest-image-content {
+  position: relative;
+  z-index: 1;
+  text-align: center;
+  color: white;
+}
+
+.chest-emoji {
+  font-size: 64px;
+  margin-bottom: 4px;
+  text-shadow: 0 4px 16px rgba(0,0,0,0.5);
+}
+
+.chest-uploader-label {
+  font-size: 11px;
+  opacity: 0.9;
+  font-weight: 300;
+  font-style: italic;
+}
+
+.image-actions-row {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+}
+
+/* === LOOT TABLE === */
+.loot-card {
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-default);
+  border-radius: 10px;
+  padding: 14px;
+  margin-bottom: 10px;
+  display: grid;
+  grid-template-columns: auto 1fr 130px 90px auto;
+  gap: 12px;
+  align-items: center;
+}
+
+.loot-card:last-child { margin-bottom: 0; }
+
+.loot-card.expanded {
+  grid-template-columns: 1fr;
+  gap: 0;
+}
+
+.loot-rarity-bar {
+  width: 4px;
+  height: 36px;
+  border-radius: 2px;
+  background: var(--rarity-color, var(--text-tertiary));
+  flex-shrink: 0;
+}
+
+.loot-rarity-bar.common { background: var(--common); }
+.loot-rarity-bar.rare { background: var(--rare); }
+.loot-rarity-bar.epic { background: var(--epic); }
+.loot-rarity-bar.legendary { background: var(--legendary); }
+
+.loot-info { display: flex; align-items: center; gap: 10px; min-width: 0; }
+
+.loot-icon-thumb {
+  width: 36px; height: 36px;
+  border-radius: 8px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 18px;
+  flex-shrink: 0;
+}
+
+.loot-icon-thumb.coins { background: rgba(255, 215, 0, 0.10); }
+.loot-icon-thumb.xp { background: rgba(10, 247, 132, 0.10); }
+.loot-icon-thumb.multiplier { background: rgba(167, 139, 250, 0.10); }
+.loot-icon-thumb.item { background: rgba(255, 140, 66, 0.10); }
+
+.loot-details { min-width: 0; }
+.loot-name {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-primary);
+  margin-bottom: 2px;
+}
+
+.loot-desc {
+  font-size: 11px;
+  color: var(--text-tertiary);
+  font-weight: 300;
+  font-style: italic;
+}
+
+.loot-probability-input {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-default);
+  border-radius: 6px;
+  padding: 4px 8px;
+}
+
+.loot-probability-input input {
+  background: transparent;
+  border: none;
+  color: var(--text-primary);
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  width: 50px;
+  text-align: right;
+  outline: none;
+}
+
+.loot-probability-input .pct-symbol {
+  color: var(--text-tertiary);
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.loot-rarity-tag {
+  font-size: 10px;
+  font-weight: 500;
+  padding: 3px 8px;
+  border-radius: 999px;
+  text-align: center;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.loot-rarity-tag.common {
+  background: rgba(125, 133, 144, 0.15);
+  color: var(--common);
+}
+.loot-rarity-tag.rare {
+  background: rgba(88, 166, 255, 0.15);
+  color: var(--rare);
+}
+.loot-rarity-tag.epic {
+  background: rgba(167, 139, 250, 0.15);
+  color: var(--epic);
+}
+.loot-rarity-tag.legendary {
+  background: rgba(255, 140, 66, 0.15);
+  color: var(--legendary);
+}
+
+.action-btn {
+  width: 28px; height: 28px;
+  border-radius: 6px;
+  background: transparent;
+  border: 1px solid transparent;
+  color: var(--text-tertiary);
+  display: flex; align-items: center; justify-content: center;
+  font-family: inherit;
+}
+
+.action-btn:hover {
+  background: var(--bg-elevated);
+  color: var(--text-primary);
+  border-color: var(--border-default);
+}
+
+.add-loot-btn {
+  margin-top: 12px;
+  padding: 12px 14px;
+  width: 100%;
+  background: transparent;
+  border: 1px dashed var(--border-default);
+  border-radius: 10px;
+  color: var(--text-tertiary);
+  font-family: inherit;
+  font-size: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  transition: all 150ms ease;
+}
+
+.add-loot-btn:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+  background: var(--accent-subtle);
+}
+
+/* === PROBABILITY BAR (visualización) === */
+.probability-bar-card {
+  background: var(--bg-tertiary);
+  border-radius: 10px;
+  padding: 14px;
+  margin-bottom: 14px;
+}
+
+.probability-bar-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: 8px;
+  font-size: 12px;
+}
+
+.probability-total {
+  font-weight: 600;
+  font-size: 14px;
+  color: var(--accent);
+}
+
+.probability-total.warning { color: var(--warning); }
+.probability-total.danger { color: var(--danger); }
+
+.probability-bar {
+  height: 10px;
+  background: var(--bg-elevated);
+  border-radius: 5px;
+  overflow: hidden;
+  display: flex;
+  margin-bottom: 8px;
+}
+
+.probability-segment {
+  height: 100%;
+  transition: width 150ms ease;
+}
+
+.probability-segment.common { background: var(--common); }
+.probability-segment.rare { background: var(--rare); }
+.probability-segment.epic { background: var(--epic); }
+.probability-segment.legendary { background: var(--legendary); }
+
+.probability-legend {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  font-size: 10px;
+  color: var(--text-tertiary);
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.legend-dot {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+}
+
+.legend-dot.common { background: var(--common); }
+.legend-dot.rare { background: var(--rare); }
+.legend-dot.epic { background: var(--epic); }
+.legend-dot.legendary { background: var(--legendary); }
+
+/* === TRIGGER OPTIONS === */
+.trigger-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+}
+
+.trigger-card {
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-default);
+  border-radius: 10px;
+  padding: 14px;
+  cursor: pointer;
+  text-align: left;
+  font-family: inherit;
+  color: inherit;
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  transition: all 150ms ease;
+}
+
+.trigger-card:hover {
+  background: var(--bg-elevated);
+  border-color: var(--border-strong);
+}
+
+.trigger-card.active {
+  border-color: var(--accent);
+  background: var(--accent-subtle);
+}
+
+.trigger-icon {
+  width: 32px; height: 32px;
+  border-radius: 8px;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+  background: var(--bg-elevated);
+  color: var(--text-tertiary);
+}
+
+.trigger-card.active .trigger-icon {
+  background: var(--accent);
+  color: var(--bg-primary);
+}
+
+.trigger-content { flex: 1; min-width: 0; }
+.trigger-title {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-primary);
+  margin-bottom: 2px;
+}
+
+.trigger-desc {
+  font-size: 11px;
+  color: var(--text-tertiary);
+  font-weight: 300;
+  font-style: italic;
+}
+
+/* === SWITCH === */
+.switch {
+  position: relative;
+  width: 36px; height: 20px;
+  background: var(--bg-elevated);
+  border-radius: 999px;
+  cursor: pointer;
+  border: none;
+  padding: 0;
+  flex-shrink: 0;
+}
+
+.switch::after {
+  content: '';
+  position: absolute;
+  top: 2px; left: 2px;
+  width: 16px; height: 16px;
+  border-radius: 50%;
+  background: var(--text-secondary);
+  transition: all 150ms ease;
+}
+
+.switch.on { background: var(--accent); }
+.switch.on::after { left: 18px; background: var(--bg-primary); }
+
+.restriction-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  background: var(--bg-tertiary);
+  border-radius: 8px;
+  margin-bottom: 8px;
+}
+
+.restriction-row:last-child { margin-bottom: 0; }
+
+.restriction-icon {
+  width: 32px; height: 32px;
+  border-radius: 8px;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+}
+
+.restriction-info { flex: 1; }
+.restriction-title {
+  font-size: 13px;
+  font-weight: 500;
+  margin-bottom: 2px;
+}
+
+.restriction-desc {
+  font-size: 11px;
+  color: var(--text-tertiary);
+  font-weight: 300;
+  font-style: italic;
+}
+
+/* === SIDEBAR PREVIEW === */
+.preview-card {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-subtle);
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.preview-head {
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.preview-title {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-tertiary);
+}
+
+.preview-body { padding: 16px; }
+
+.mock-chest-card {
+  background: var(--bg-tertiary);
+  border-radius: 12px;
+  overflow: hidden;
+  border: 1px solid var(--border-default);
+  text-align: center;
+  padding: 24px 16px;
+  position: relative;
+}
+
+.mock-chest-card.legendary {
+  border-color: rgba(255, 140, 66, 0.40);
+  background: linear-gradient(180deg, rgba(255, 140, 66, 0.08), var(--bg-tertiary));
+}
+
+.mock-chest-glow {
+  position: absolute;
+  top: -40px; left: 50%;
+  transform: translateX(-50%);
+  width: 200px; height: 100px;
+  background: radial-gradient(ellipse, rgba(255, 140, 66, 0.4), transparent 70%);
+  pointer-events: none;
+}
+
+.mock-chest-emoji {
+  position: relative;
+  font-size: 80px;
+  margin-bottom: 14px;
+  filter: drop-shadow(0 4px 16px rgba(255, 140, 66, 0.4));
+}
+
+.mock-chest-name {
+  font-size: 16px;
+  font-weight: 600;
+  margin-bottom: 4px;
+  color: var(--legendary);
+}
+
+.mock-chest-desc {
+  font-size: 11px;
+  color: var(--text-tertiary);
+  margin-bottom: 14px;
+  line-height: 1.4;
+}
+
+.mock-chest-cta {
+  width: 100%;
+  padding: 12px;
+  background: linear-gradient(135deg, var(--legendary), #DC5A0F);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+/* === EXPECTED VALUE === */
+.ev-card {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-subtle);
+  border-radius: 10px;
+  padding: 16px;
+}
+
+.ev-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--border-subtle);
+  font-size: 12px;
+}
+
+.ev-row:last-child { border-bottom: none; padding-bottom: 0; }
+.ev-row:first-child { padding-top: 0; }
+
+.ev-label { color: var(--text-tertiary); }
+.ev-value { color: var(--text-primary); font-weight: 500; }
+.ev-value.accent { color: var(--accent); font-weight: 600; }
+
+/* === ALERT === */
+.alert {
+  padding: 12px 16px;
+  border-radius: 10px;
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  font-size: 12px;
+  margin-bottom: 14px;
+}
+
+.alert.warning {
+  background: rgba(240, 183, 47, 0.08);
+  border: 1px solid rgba(240, 183, 47, 0.25);
+}
+
+.alert.warning svg { color: var(--warning); flex-shrink: 0; }
+.alert.warning .alert-text { color: var(--text-secondary); }
+.alert.warning strong { color: var(--text-primary); }
+
+.alert.danger {
+  background: rgba(248, 81, 73, 0.08);
+  border: 1px solid rgba(248, 81, 73, 0.25);
+}
+
+.alert.danger svg { color: var(--danger); flex-shrink: 0; }
+.alert.danger .alert-text { color: var(--text-secondary); }
+.alert.danger strong { color: var(--text-primary); }
+
+/* === BOTTOM BAR === */
+.bottom-bar {
+  position: sticky;
+  bottom: 0;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-subtle);
+  border-radius: 10px;
+  padding: 14px 18px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 4px;
+  backdrop-filter: blur(8px);
+  z-index: 5;
+}
+
+.save-state {
+  font-size: 12px;
+  color: var(--text-tertiary);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-style: italic;
+  font-weight: 300;
+}
+
+.save-state .dot {
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: var(--success);
+}
+
+.bottom-actions { display: flex; gap: 8px; }
+
+/* === SCROLLBAR === */
+::-webkit-scrollbar { width: 8px; height: 8px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border-default); border-radius: 4px; }
+::-webkit-scrollbar-thumb:hover { background: var(--border-strong); }
+
+/* === RESPONSIVE === */
+@media (max-width: 1100px) {
+  .config-layout { grid-template-columns: 1fr; }
+  .config-side { position: static; }
+  .form-row-grid { grid-template-columns: 1fr; }
+  .rarity-grid { grid-template-columns: repeat(2, 1fr); }
+  .trigger-grid { grid-template-columns: 1fr; }
+  .loot-card { grid-template-columns: auto 1fr auto; }
+  .loot-card .loot-rarity-tag, .loot-card .loot-probability-input { display: none; }
+}
+
+@media (max-width: 768px) {
+  .app { grid-template-columns: 1fr; }
+  .sidebar { display: none; }
+}
+</style>
+</head>
+<body>
+
+<div class="app">
+
+<aside class="sidebar">
+  <div class="sidebar-brand">
+    <div class="brand-logo">N</div>
+    <div class="brand-name">niveles</div>
+  </div>
+  <div class="operator-selector">
+    <div class="operator-avatar">CA</div>
+    <div class="operator-info">
+      <div class="operator-name">Casino Astral</div>
+      <div class="operator-tier">plan growth · es-AR</div>
+    </div>
+    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="color: var(--text-tertiary);"><polyline points="6 9 12 15 18 9"/></svg>
+  </div>
+
+  <div class="sidebar-section">
+    <a class="nav-item" href="#">
+      <span class="nav-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg></span>
+      Dashboard
+    </a>
+  </div>
+
+  <div class="sidebar-section">
+    <p class="section-label">Engagement</p>
+    <a class="nav-item" href="#">
+      <span class="nav-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 12l2 2 4-4"/></svg></span>
+      Misiones
+    </a>
+    <a class="nav-item" href="#">
+      <span class="nav-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="6"/><path d="M9 13l-2 8 5-3 5 3-2-8"/></svg></span>
+      Logros
+    </a>
+    <a class="nav-item active" href="#">
+      <span class="nav-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12l5-9h8l5 9-9 9z"/></svg></span>
+      Cofres
+    </a>
+  </div>
+</aside>
+
+<div class="main">
+
+  <div class="topbar">
+    <div class="breadcrumb">
+      <a>Engagement</a>
+      <span style="color: var(--text-tertiary);">/</span>
+      <a>Cofres</a>
+      <span style="color: var(--text-tertiary);">/</span>
+      <span class="breadcrumb-current">Crear cofre</span>
+    </div>
+    
+    <div class="topbar-actions">
+      <button class="icon-btn"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg></button>
+      <button class="icon-btn"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 1 1 5.83 1c0 2-3 3-3 3M12 17h.01"/></svg></button>
+      <div class="user-pill">
+        <div class="user-avatar">FL</div>
+        <div>
+          <div class="user-name">Fabricio L.</div>
+          <div class="user-role">admin</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="content">
+
+    <div class="page-header">
+      <div>
+        <h1 class="page-title">Crear cofre</h1>
+        <p class="page-subtitle">configurá un cofre con recompensas aleatorias y probabilidades</p>
+      </div>
+    </div>
+
+    <div class="config-layout">
+
+      <!-- =========== MAIN COLUMN =========== -->
+      <div class="config-main">
+
+        <!-- ===== SECCIÓN 1: INFORMACIÓN BÁSICA ===== -->
+        <div class="section-card">
+          <div class="section-head">
+            <div class="section-num">1</div>
+            <div class="section-title">Información básica</div>
+            <span class="section-help">nombre, descripción y rareza del cofre</span>
+          </div>
+          <div class="section-body">
+
+            <div class="form-row-grid" style="margin-bottom: 14px;">
+              <div>
+                <label class="form-label">nombre del cofre</label>
+                <input type="text" class="form-input" value="Cofre legendario semanal">
+                <p class="form-help">visible para los jugadores</p>
+              </div>
+              <div>
+                <label class="form-label">ID interno</label>
+                <input type="text" class="form-input" value="weekly_legendary" style="font-family: monospace; font-size: 12px;">
+                <p class="form-help">para referencia técnica · no visible al jugador</p>
+              </div>
+            </div>
+
+            <div class="form-row">
+              <label class="form-label">descripción</label>
+              <textarea class="form-textarea">Cofre semanal con grandes recompensas. Solo disponible los viernes para jugadores VIP plata o superior.</textarea>
+              <p class="form-help">aparece en el widget cuando el jugador ve el cofre · max 200 caracteres</p>
+            </div>
+
+            <div class="form-row">
+              <label class="form-label">rareza del cofre</label>
+              <div class="rarity-grid">
+                <button class="rarity-card common">
+                  <div class="rarity-icon">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="white" opacity="0.7"><path d="M3 12l5-9h8l5 9-9 9z"/></svg>
+                  </div>
+                  <div class="rarity-name">Común</div>
+                  <div class="rarity-desc">cofre básico</div>
+                </button>
+                <button class="rarity-card rare">
+                  <div class="rarity-icon">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="white" opacity="0.7"><path d="M3 12l5-9h8l5 9-9 9z"/></svg>
+                  </div>
+                  <div class="rarity-name">Raro</div>
+                  <div class="rarity-desc">recompensas mejores</div>
+                </button>
+                <button class="rarity-card epic">
+                  <div class="rarity-icon">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="white" opacity="0.7"><path d="M3 12l5-9h8l5 9-9 9z"/></svg>
+                  </div>
+                  <div class="rarity-name">Épico</div>
+                  <div class="rarity-desc">premios poderosos</div>
+                </button>
+                <button class="rarity-card legendary active">
+                  <div class="rarity-icon">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="white"><path d="M3 12l5-9h8l5 9-9 9z"/></svg>
+                  </div>
+                  <div class="rarity-name">Legendario</div>
+                  <div class="rarity-desc">tesoros únicos</div>
+                </button>
+              </div>
+            </div>
+
+            <div class="form-row" style="margin-top: 14px;">
+              <label class="form-label">imagen del cofre</label>
+              <div class="chest-image-uploader">
+                <div class="chest-image-content">
+                  <div class="chest-emoji">🎁</div>
+                  <div class="chest-uploader-label">click para cambiar imagen</div>
+                </div>
+              </div>
+              <div class="image-actions-row">
+                <button class="btn btn-secondary btn-sm">
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M17 8l-5-5-5 5M12 3v12"/></svg>
+                  subir imagen
+                </button>
+                <button class="btn btn-ghost btn-sm">
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15 15 0 0 1 4 10 15 15 0 0 1-4 10 15 15 0 0 1-4-10 15 15 0 0 1 4-10z"/></svg>
+                  generador
+                </button>
+                <button class="btn btn-ghost btn-sm">galería</button>
+              </div>
+              <p class="form-help" style="text-align: center; margin-top: 8px;">recomendado: cuadrado · 512×512 · png con transparencia</p>
+            </div>
+
+          </div>
+        </div>
+
+        <!-- ===== SECCIÓN 2: RECOMPENSAS (LOOT TABLE) ===== -->
+        <div class="section-card">
+          <div class="section-head">
+            <div class="section-num">2</div>
+            <div class="section-title">Recompensas posibles</div>
+            <span class="section-help">qué puede ganar el jugador al abrir el cofre</span>
+          </div>
+          <div class="section-body">
+
+            <!-- Probability bar visual -->
+            <div class="probability-bar-card">
+              <div class="probability-bar-row">
+                <span style="color: var(--text-secondary);">distribución de probabilidad</span>
+                <span class="probability-total">100% ✓</span>
+              </div>
+              <div class="probability-bar">
+                <div class="probability-segment common" style="width: 50%;"></div>
+                <div class="probability-segment rare" style="width: 30%;"></div>
+                <div class="probability-segment epic" style="width: 15%;"></div>
+                <div class="probability-segment legendary" style="width: 5%;"></div>
+              </div>
+              <div class="probability-legend">
+                <div class="legend-item">
+                  <span class="legend-dot common"></span>
+                  <span>Común 50%</span>
+                </div>
+                <div class="legend-item">
+                  <span class="legend-dot rare"></span>
+                  <span>Raro 30%</span>
+                </div>
+                <div class="legend-item">
+                  <span class="legend-dot epic"></span>
+                  <span>Épico 15%</span>
+                </div>
+                <div class="legend-item">
+                  <span class="legend-dot legendary"></span>
+                  <span>Legendario 5%</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="alert warning">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+              <span class="alert-text">las probabilidades deben sumar exactamente <strong>100%</strong> · el sistema no permite publicar cofres con suma distinta</span>
+            </div>
+
+            <!-- Loot rows -->
+            <div class="loot-card">
+              <div class="loot-rarity-bar common"></div>
+              <div class="loot-info">
+                <div class="loot-icon-thumb coins">🪙</div>
+                <div class="loot-details">
+                  <div class="loot-name">100 monedas oro</div>
+                  <div class="loot-desc">recompensa básica · más común</div>
+                </div>
+              </div>
+              <span class="loot-rarity-tag common">común</span>
+              <div class="loot-probability-input">
+                <input type="text" value="50">
+                <span class="pct-symbol">%</span>
+              </div>
+              <button class="action-btn"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg></button>
+            </div>
+
+            <div class="loot-card">
+              <div class="loot-rarity-bar rare"></div>
+              <div class="loot-info">
+                <div class="loot-icon-thumb coins">🪙</div>
+                <div class="loot-details">
+                  <div class="loot-name">500 monedas oro</div>
+                  <div class="loot-desc">recompensa generosa</div>
+                </div>
+              </div>
+              <span class="loot-rarity-tag rare">raro</span>
+              <div class="loot-probability-input">
+                <input type="text" value="30">
+                <span class="pct-symbol">%</span>
+              </div>
+              <button class="action-btn"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg></button>
+            </div>
+
+            <div class="loot-card">
+              <div class="loot-rarity-bar epic"></div>
+              <div class="loot-info">
+                <div class="loot-icon-thumb multiplier">⚡</div>
+                <div class="loot-details">
+                  <div class="loot-name">Multiplicador x2 XP por 24h</div>
+                  <div class="loot-desc">duplica XP en todos los eventos por un día</div>
+                </div>
+              </div>
+              <span class="loot-rarity-tag epic">épico</span>
+              <div class="loot-probability-input">
+                <input type="text" value="15">
+                <span class="pct-symbol">%</span>
+              </div>
+              <button class="action-btn"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg></button>
+            </div>
+
+            <div class="loot-card">
+              <div class="loot-rarity-bar legendary"></div>
+              <div class="loot-info">
+                <div class="loot-icon-thumb item">🎖️</div>
+                <div class="loot-details">
+                  <div class="loot-name">Skin exclusiva + 2000 monedas oro</div>
+                  <div class="loot-desc">premio jackpot · pop-up celebratorio</div>
+                </div>
+              </div>
+              <span class="loot-rarity-tag legendary">legendario</span>
+              <div class="loot-probability-input">
+                <input type="text" value="5">
+                <span class="pct-symbol">%</span>
+              </div>
+              <button class="action-btn"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg></button>
+            </div>
+
+            <button class="add-loot-btn">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+              agregar recompensa posible
+            </button>
+          </div>
+        </div>
+
+        <!-- ===== SECCIÓN 3: CÓMO SE OBTIENE ===== -->
+        <div class="section-card">
+          <div class="section-head">
+            <div class="section-num">3</div>
+            <div class="section-title">¿Cómo se obtiene?</div>
+            <span class="section-help">por qué motivos los jugadores ganan este cofre</span>
+          </div>
+          <div class="section-body">
+
+            <div class="trigger-grid">
+
+              <button class="trigger-card active">
+                <div class="trigger-icon">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2 L4 7 v10 l8 5 8-5 V7 z"/><path d="M9 12l2 2 4-4"/></svg>
+                </div>
+                <div class="trigger-content">
+                  <div class="trigger-title">Al subir de nivel</div>
+                  <div class="trigger-desc">drop al alcanzar niveles específicos</div>
+                </div>
+              </button>
+
+              <button class="trigger-card">
+                <div class="trigger-icon">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M16 8h-6a2 2 0 1 0 0 4h4a2 2 0 1 1 0 4H8M12 6v2m0 8v2"/></svg>
+                </div>
+                <div class="trigger-content">
+                  <div class="trigger-title">Compra con monedas</div>
+                  <div class="trigger-desc">en la tienda · costo configurable</div>
+                </div>
+              </button>
+
+              <button class="trigger-card">
+                <div class="trigger-icon">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 12l2 2 4-4M21 12c0 5-4 9-9 9s-9-4-9-9 4-9 9-9c2 0 4 1 5 2"/></svg>
+                </div>
+                <div class="trigger-content">
+                  <div class="trigger-title">Recompensa de misión</div>
+                  <div class="trigger-desc">al completar una misión específica</div>
+                </div>
+              </button>
+
+              <button class="trigger-card">
+                <div class="trigger-icon">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 4h10v3a5 5 0 0 1-10 0V4zM5 7h14M9 14h6v3l1 3H8l1-3v-3z"/></svg>
+                </div>
+                <div class="trigger-content">
+                  <div class="trigger-title">Premio de torneo</div>
+                  <div class="trigger-desc">para top N de un torneo</div>
+                </div>
+              </button>
+
+              <button class="trigger-card">
+                <div class="trigger-icon">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                </div>
+                <div class="trigger-content">
+                  <div class="trigger-title">Login diario</div>
+                  <div class="trigger-desc">después de N días seguidos conectado</div>
+                </div>
+              </button>
+
+              <button class="trigger-card">
+                <div class="trigger-icon">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+                </div>
+                <div class="trigger-content">
+                  <div class="trigger-title">Trigger custom</div>
+                  <div class="trigger-desc">conectado a una regla específica</div>
+                </div>
+              </button>
+
+            </div>
+
+            <div style="margin-top: 16px; padding: 14px; background: var(--bg-tertiary); border-radius: 10px;">
+              <div class="form-label" style="margin-bottom: 10px;">configuración del trigger seleccionado</div>
+              <div class="form-row-grid">
+                <div>
+                  <label class="form-label" style="font-size: 11px;">niveles que disparan el cofre</label>
+                  <input type="text" class="form-input" value="20, 30, 40, 50">
+                  <p class="form-help">separados por coma · cada nivel da 1 cofre</p>
+                </div>
+                <div>
+                  <label class="form-label" style="font-size: 11px;">cantidad por trigger</label>
+                  <input type="number" class="form-input" value="1">
+                  <p class="form-help">cuántos cofres se otorgan por evento</p>
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+        <!-- ===== SECCIÓN 4: RESTRICCIONES ===== -->
+        <div class="section-card">
+          <div class="section-head">
+            <div class="section-num">4</div>
+            <div class="section-title">Restricciones</div>
+            <span class="section-help">condiciones para abrir el cofre</span>
+          </div>
+          <div class="section-body">
+
+            <div class="restriction-row">
+              <div class="restriction-icon" style="background: rgba(255, 215, 0, 0.10); color: var(--gold);">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2 L4 7 v10 l8 5 8-5 V7 z"/></svg>
+              </div>
+              <div class="restriction-info">
+                <div class="restriction-title">solo VIP plata o superior</div>
+                <div class="restriction-desc">jugadores con tier VIP plata, oro o diamond</div>
+              </div>
+              <button class="switch on"></button>
+            </div>
+
+            <div class="restriction-row">
+              <div class="restriction-icon" style="background: rgba(88, 166, 255, 0.10); color: var(--info);">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+              </div>
+              <div class="restriction-info">
+                <div class="restriction-title">expira si no se abre</div>
+                <div class="restriction-desc">el cofre desaparece después de N días</div>
+              </div>
+              <input type="number" class="form-input" value="7" style="width: 70px; text-align: center;">
+            </div>
+
+            <div class="restriction-row">
+              <div class="restriction-icon" style="background: rgba(167, 139, 250, 0.10); color: var(--purple);">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3h18v18H3zM3 9h18M9 21V9"/></svg>
+              </div>
+              <div class="restriction-info">
+                <div class="restriction-title">acumulación máxima</div>
+                <div class="restriction-desc">cuántos cofres puede tener pendientes el jugador</div>
+              </div>
+              <input type="number" class="form-input" value="10" style="width: 70px; text-align: center;">
+            </div>
+
+            <div class="restriction-row">
+              <div class="restriction-icon" style="background: rgba(248, 81, 73, 0.10); color: var(--danger);">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg>
+              </div>
+              <div class="restriction-info">
+                <div class="restriction-title">no transferible</div>
+                <div class="restriction-desc">los jugadores no pueden regalar este cofre a otros</div>
+              </div>
+              <button class="switch on"></button>
+            </div>
+
+          </div>
+        </div>
+
+        <!-- ===== SECCIÓN 5: LIMITES Y CALENDARIO ===== -->
+        <div class="section-card">
+          <div class="section-head">
+            <div class="section-num">5</div>
+            <div class="section-title">Disponibilidad</div>
+            <span class="section-help">cuándo y cuánto está disponible este cofre</span>
+          </div>
+          <div class="section-body">
+
+            <div class="form-row-grid">
+              <div>
+                <label class="form-label">disponible desde</label>
+                <input type="datetime-local" class="form-input" value="2026-05-09T00:00">
+              </div>
+              <div>
+                <label class="form-label">disponible hasta</label>
+                <input type="datetime-local" class="form-input" value="2026-12-31T23:59">
+                <p class="form-help">dejá vacío para sin fin</p>
+              </div>
+            </div>
+
+            <div class="form-row" style="margin-top: 14px;">
+              <label class="form-label">días de la semana activos</label>
+              <div style="display: flex; gap: 6px; flex-wrap: wrap;">
+                <button class="btn btn-secondary btn-sm" style="background: var(--bg-tertiary);">Lun</button>
+                <button class="btn btn-secondary btn-sm" style="background: var(--bg-tertiary);">Mar</button>
+                <button class="btn btn-secondary btn-sm" style="background: var(--bg-tertiary);">Mié</button>
+                <button class="btn btn-secondary btn-sm" style="background: var(--bg-tertiary);">Jue</button>
+                <button class="btn btn-primary btn-sm">Vie</button>
+                <button class="btn btn-secondary btn-sm" style="background: var(--bg-tertiary);">Sáb</button>
+                <button class="btn btn-secondary btn-sm" style="background: var(--bg-tertiary);">Dom</button>
+              </div>
+              <p class="form-help">solo se otorga en los días marcados · útil para "cofre del finde"</p>
+            </div>
+
+          </div>
+        </div>
+
+        <!-- ===== BOTTOM BAR ===== -->
+        <div class="bottom-bar">
+          <div class="save-state">
+            <span class="dot"></span>
+            guardado automáticamente · hace 5 seg
+          </div>
+          <div class="bottom-actions">
+            <button class="btn btn-ghost">descartar</button>
+            <button class="btn btn-secondary">guardar borrador</button>
+            <button class="btn btn-primary">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+              activar cofre
+            </button>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- =========== SIDEBAR DERECHA =========== -->
+      <div class="config-side">
+
+        <!-- Vista previa del jugador -->
+        <div class="preview-card">
+          <div class="preview-head">
+            <span class="preview-title">vista previa · widget jugador</span>
+          </div>
+          <div class="preview-body">
+            <div class="mock-chest-card legendary">
+              <div class="mock-chest-glow"></div>
+              <div class="mock-chest-emoji">🎁</div>
+              <div class="mock-chest-name">Cofre legendario semanal</div>
+              <div class="mock-chest-desc">Cofre semanal con grandes recompensas. Solo viernes para VIP plata+.</div>
+              <button class="mock-chest-cta">abrir cofre</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Valor esperado (Expected Value) -->
+        <div class="ev-card">
+          <div class="preview-title" style="margin-bottom: 12px;">valor esperado</div>
+          
+          <div class="ev-row">
+            <span class="ev-label">EV por apertura</span>
+            <span class="ev-value accent">~ 280 monedas + bonus</span>
+          </div>
+          <div class="ev-row">
+            <span class="ev-label">drop rate legendario</span>
+            <span class="ev-value">5% (1 cada 20)</span>
+          </div>
+          <div class="ev-row">
+            <span class="ev-label">elegibles estimados</span>
+            <span class="ev-value">~ 4,200 jugadores</span>
+          </div>
+          <div class="ev-row">
+            <span class="ev-label">distribución estimada/sem</span>
+            <span class="ev-value">~ 2,840 cofres</span>
+          </div>
+          <div class="ev-row">
+            <span class="ev-label">costo total estimado/sem</span>
+            <span class="ev-value">~ 795k monedas</span>
+          </div>
+          
+          <p style="font-size: 10px; color: var(--text-tertiary); margin-top: 12px; font-weight: 300; font-style: italic; line-height: 1.5;">
+            estimaciones basadas en datos de los últimos 30 días · valores reales pueden variar
+          </p>
+        </div>
+
+        <!-- Recomendaciones -->
+        <div class="ev-card">
+          <div class="preview-title" style="margin-bottom: 12px;">recomendaciones</div>
+          
+          <div style="display: flex; align-items: flex-start; gap: 8px; padding: 6px 0;">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--success)" stroke-width="2.5" style="flex-shrink: 0; margin-top: 2px;"><polyline points="20 6 9 17 4 12"/></svg>
+            <span style="font-size: 12px; color: var(--text-secondary); line-height: 1.5;">distribución 50/30/15/5 está balanceada según industria</span>
+          </div>
+          
+          <div style="display: flex; align-items: flex-start; gap: 8px; padding: 6px 0; border-top: 1px solid var(--border-subtle);">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--warning)" stroke-width="2" style="flex-shrink: 0; margin-top: 2px;"><circle cx="12" cy="12" r="10"/><path d="M12 8v4M12 16h.01"/></svg>
+            <span style="font-size: 12px; color: var(--text-secondary); line-height: 1.5;">cofre legendario semanal puede generar ansiedad · considerá agregar uno común diario para balance</span>
+          </div>
+          
+          <div style="display: flex; align-items: flex-start; gap: 8px; padding: 6px 0; border-top: 1px solid var(--border-subtle);">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--info)" stroke-width="2" style="flex-shrink: 0; margin-top: 2px;"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+            <span style="font-size: 12px; color: var(--text-secondary); line-height: 1.5;">drop legendario 5% es competitivo · niveles altos tipo 1% pueden frustrar</span>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+
+  </div>
+</div>
+
+</div>
+
+</body>
+</html>

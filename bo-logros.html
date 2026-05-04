@@ -1,0 +1,1333 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BO Operador · Logros</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Urbanist:ital,wght@0,300;0,400;0,500;0,600;1,300&display=swap" rel="stylesheet">
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg-primary: #0E1116;
+  --bg-secondary: #161B22;
+  --bg-tertiary: #1C2128;
+  --bg-elevated: #21262D;
+  --bg-hover: #262C36;
+  
+  --accent: #0AF784;
+  --accent-hover: #08D971;
+  --accent-glow: rgba(10, 247, 132, 0.15);
+  --accent-subtle: rgba(10, 247, 132, 0.08);
+  
+  --text-primary: #FFFFFF;
+  --text-secondary: #B8BEC9;
+  --text-tertiary: #7D8590;
+  --text-disabled: #484F58;
+  
+  --border-subtle: rgba(255, 255, 255, 0.06);
+  --border-default: rgba(255, 255, 255, 0.10);
+  --border-strong: rgba(255, 255, 255, 0.16);
+  
+  --success: #0AF784;
+  --warning: #F0B72F;
+  --danger: #F85149;
+  --info: #58A6FF;
+  --purple: #A78BFA;
+  
+  --bronze: #CD7F32;
+  --silver: #C0C0C0;
+  --gold: #FFD700;
+  --platinum: #E5E4E2;
+  --diamond: #B9F2FF;
+}
+
+body {
+  font-family: 'Urbanist', system-ui, sans-serif;
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+button { font-family: inherit; cursor: pointer; }
+input, select, textarea { font-family: inherit; }
+
+.app {
+  display: grid;
+  grid-template-columns: 240px 1fr;
+  min-height: 100vh;
+}
+
+/* === SIDEBAR === */
+.sidebar {
+  background: var(--bg-secondary);
+  border-right: 1px solid var(--border-subtle);
+  padding: 16px 0;
+  position: sticky; top: 0;
+  height: 100vh;
+  overflow-y: auto;
+}
+
+.sidebar-brand {
+  padding: 0 20px 20px;
+  border-bottom: 1px solid var(--border-subtle);
+  margin-bottom: 16px;
+  display: flex; align-items: center; gap: 10px;
+}
+
+.brand-logo {
+  width: 28px; height: 28px;
+  border-radius: 8px;
+  background: linear-gradient(135deg, var(--accent), #00D9FF);
+  display: flex; align-items: center; justify-content: center;
+  font-weight: 600; color: var(--bg-primary); font-size: 13px;
+}
+
+.brand-name { font-size: 15px; font-weight: 600; }
+
+.operator-selector {
+  margin: 0 12px 16px;
+  padding: 10px 12px;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-default);
+  border-radius: 8px;
+  display: flex; align-items: center; gap: 10px;
+  cursor: pointer;
+}
+
+.operator-avatar {
+  width: 24px; height: 24px;
+  border-radius: 6px;
+  background: linear-gradient(135deg, #4D9FFF, #2563EB);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 11px; font-weight: 600; color: white;
+}
+
+.operator-info { flex: 1; min-width: 0; }
+.operator-name { font-size: 13px; font-weight: 500; }
+.operator-tier { font-size: 10px; color: var(--text-tertiary); }
+
+.sidebar-section { margin-bottom: 8px; padding: 0 12px; }
+.section-label {
+  font-size: 10px; font-weight: 600;
+  text-transform: uppercase; letter-spacing: 0.08em;
+  color: var(--text-tertiary); padding: 8px 12px;
+}
+
+.nav-item {
+  display: flex; align-items: center; gap: 10px;
+  padding: 7px 12px; border-radius: 6px;
+  font-size: 13px; color: var(--text-secondary);
+  cursor: pointer; margin-bottom: 1px; text-decoration: none;
+}
+
+.nav-item:hover { background: var(--bg-tertiary); color: var(--text-primary); }
+.nav-item.active {
+  background: var(--accent-subtle); color: var(--accent);
+  font-weight: 500; position: relative;
+}
+.nav-item.active::before {
+  content: ''; position: absolute; left: -12px; top: 50%;
+  transform: translateY(-50%); width: 3px; height: 18px;
+  background: var(--accent); border-radius: 0 2px 2px 0;
+}
+
+.nav-icon { width: 16px; height: 16px; display: flex; align-items: center; }
+
+/* === MAIN === */
+.main { display: flex; flex-direction: column; min-width: 0; }
+
+.topbar {
+  height: 56px;
+  border-bottom: 1px solid var(--border-subtle);
+  padding: 0 28px;
+  display: flex; align-items: center; justify-content: space-between;
+  background: var(--bg-primary);
+  position: sticky; top: 0; z-index: 10;
+}
+
+.breadcrumb { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--text-secondary); }
+.breadcrumb-current { color: var(--text-primary); font-weight: 500; }
+.breadcrumb a { color: var(--text-secondary); text-decoration: none; cursor: pointer; }
+
+.topbar-actions { display: flex; align-items: center; gap: 12px; }
+
+.icon-btn {
+  width: 32px; height: 32px;
+  border-radius: 8px;
+  border: 1px solid var(--border-default);
+  background: var(--bg-tertiary);
+  color: var(--text-secondary);
+  display: flex; align-items: center; justify-content: center;
+}
+
+.icon-btn:hover { background: var(--bg-elevated); color: var(--text-primary); }
+
+.user-pill {
+  display: flex; align-items: center; gap: 8px;
+  padding: 4px 12px 4px 4px; border-radius: 999px;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-default); cursor: pointer;
+}
+
+.user-avatar {
+  width: 24px; height: 24px; border-radius: 50%;
+  background: linear-gradient(135deg, #F0B72F, #E0901F);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 10px; font-weight: 600; color: var(--bg-primary);
+}
+
+.user-name { font-size: 12px; font-weight: 500; }
+.user-role { font-size: 10px; color: var(--text-tertiary); }
+
+/* === CONTENT === */
+.content { padding: 28px 28px 60px; max-width: 1500px; }
+
+.page-header {
+  margin-bottom: 24px;
+  display: flex; justify-content: space-between;
+  align-items: flex-start; gap: 24px;
+}
+
+.page-title {
+  font-size: 24px; font-weight: 600;
+  margin-bottom: 6px; letter-spacing: -0.01em;
+}
+
+.page-subtitle {
+  font-size: 13px; color: var(--text-tertiary);
+  font-weight: 300; font-style: italic;
+}
+
+.page-actions { display: flex; gap: 8px; align-items: center; }
+
+.btn {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 8px 14px; border-radius: 8px;
+  font-size: 13px; font-weight: 500;
+  border: 1px solid transparent;
+  font-family: inherit; cursor: pointer;
+}
+
+.btn-primary {
+  background: var(--accent); color: var(--bg-primary);
+  border-color: var(--accent);
+  box-shadow: 0 0 16px var(--accent-glow);
+}
+.btn-primary:hover { background: var(--accent-hover); }
+
+.btn-secondary {
+  background: var(--bg-tertiary); color: var(--text-primary);
+  border-color: var(--border-default);
+}
+.btn-secondary:hover { background: var(--bg-elevated); border-color: var(--border-strong); }
+
+.btn-ghost { background: transparent; color: var(--text-secondary); }
+.btn-ghost:hover { background: var(--bg-tertiary); color: var(--text-primary); }
+
+.btn-sm { padding: 6px 10px; font-size: 12px; }
+
+/* === STATS BAR === */
+.stats-bar {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.stat-card {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-subtle);
+  border-radius: 10px;
+  padding: 14px 16px;
+}
+
+.stat-label {
+  font-size: 11px;
+  color: var(--text-tertiary);
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin-bottom: 6px;
+}
+
+.stat-value {
+  font-size: 22px;
+  font-weight: 600;
+  margin-bottom: 4px;
+  letter-spacing: -0.01em;
+}
+
+.stat-trend {
+  font-size: 11px;
+  display: flex; align-items: center;
+  gap: 4px;
+}
+
+.stat-trend.up { color: var(--success); }
+.stat-trend.neutral { color: var(--text-tertiary); }
+
+/* === TOOLBAR === */
+.toolbar {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.search-input {
+  flex: 1;
+  position: relative;
+}
+
+.search-input input {
+  width: 100%;
+  padding: 9px 12px 9px 36px;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-default);
+  border-radius: 8px;
+  color: var(--text-primary);
+  font-size: 13px;
+}
+
+.search-input input:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-subtle);
+}
+
+.search-input svg {
+  position: absolute;
+  left: 12px; top: 50%;
+  transform: translateY(-50%);
+  color: var(--text-tertiary);
+  pointer-events: none;
+}
+
+.filter-chip {
+  padding: 8px 12px;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-default);
+  border-radius: 8px;
+  color: var(--text-secondary);
+  font-size: 12px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+}
+
+.filter-chip:hover { background: var(--bg-tertiary); color: var(--text-primary); }
+.filter-chip.active {
+  background: var(--accent-subtle);
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.filter-chip .count {
+  background: var(--bg-elevated);
+  padding: 1px 6px;
+  border-radius: 999px;
+  font-size: 10px;
+  color: var(--text-tertiary);
+}
+
+.filter-chip.active .count {
+  background: var(--accent);
+  color: var(--bg-primary);
+}
+
+/* === SECTION HEADERS === */
+.section-label-h {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-tertiary);
+  margin: 0 0 14px;
+  padding-top: 8px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.section-label-h .count-pill {
+  background: var(--bg-tertiary);
+  color: var(--text-secondary);
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+}
+
+.section-spacer { margin-top: 28px; }
+
+/* === ACHIEVEMENTS GRID === */
+.achievements-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 14px;
+}
+
+.achievement-card {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-subtle);
+  border-radius: 12px;
+  overflow: hidden;
+  cursor: pointer;
+  transition: all 150ms ease;
+  position: relative;
+}
+
+.achievement-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+}
+
+.achievement-card.bronze:hover { border-color: var(--bronze); }
+.achievement-card.silver:hover { border-color: var(--silver); }
+.achievement-card.gold:hover { border-color: var(--gold); }
+.achievement-card.platinum:hover { border-color: var(--platinum); }
+.achievement-card.diamond:hover { border-color: var(--diamond); }
+
+.achievement-card.draft { opacity: 0.65; }
+.achievement-card.draft:hover { opacity: 1; }
+
+/* === MEDAL DISPLAY === */
+.medal-area {
+  aspect-ratio: 1.6;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-bottom: 1px solid var(--border-subtle);
+  overflow: hidden;
+}
+
+.medal-area::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse at center top, var(--medal-glow), transparent 70%);
+  pointer-events: none;
+}
+
+.achievement-card.bronze .medal-area { background: linear-gradient(135deg, #2a1810 0%, #1a0f08 100%); --medal-glow: rgba(205, 127, 50, 0.25); }
+.achievement-card.silver .medal-area { background: linear-gradient(135deg, #1a1d24 0%, #14161c 100%); --medal-glow: rgba(192, 192, 192, 0.20); }
+.achievement-card.gold .medal-area { background: linear-gradient(135deg, #2a230a 0%, #1a1505 100%); --medal-glow: rgba(255, 215, 0, 0.30); }
+.achievement-card.platinum .medal-area { background: linear-gradient(135deg, #1f1f1f 0%, #141414 100%); --medal-glow: rgba(229, 228, 226, 0.25); }
+.achievement-card.diamond .medal-area { background: linear-gradient(135deg, #08222a 0%, #051519 100%); --medal-glow: rgba(185, 242, 255, 0.30); }
+.achievement-card.draft .medal-area { background: var(--bg-tertiary); --medal-glow: transparent; }
+
+.medal {
+  position: relative;
+  width: 90px;
+  height: 90px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 38px;
+  border: 3px solid;
+  z-index: 1;
+}
+
+.medal.bronze {
+  background: linear-gradient(135deg, #CD7F32 0%, #8B4513 100%);
+  border-color: #8B4513;
+  box-shadow: 0 0 20px rgba(205, 127, 50, 0.4), inset 0 -4px 8px rgba(0, 0, 0, 0.3);
+}
+
+.medal.silver {
+  background: linear-gradient(135deg, #E5E5E5 0%, #989898 100%);
+  border-color: #808080;
+  box-shadow: 0 0 20px rgba(192, 192, 192, 0.4), inset 0 -4px 8px rgba(0, 0, 0, 0.3);
+}
+
+.medal.gold {
+  background: linear-gradient(135deg, #FFD700 0%, #B8860B 100%);
+  border-color: #B8860B;
+  box-shadow: 0 0 28px rgba(255, 215, 0, 0.5), inset 0 -4px 8px rgba(0, 0, 0, 0.3);
+}
+
+.medal.platinum {
+  background: linear-gradient(135deg, #FFFFFF 0%, #B8B8B8 100%);
+  border-color: #999999;
+  box-shadow: 0 0 28px rgba(229, 228, 226, 0.5), inset 0 -4px 8px rgba(0, 0, 0, 0.2);
+}
+
+.medal.diamond {
+  background: linear-gradient(135deg, #B9F2FF 0%, #4FC3D7 100%);
+  border-color: #2196A8;
+  box-shadow: 0 0 32px rgba(185, 242, 255, 0.5), inset 0 -4px 8px rgba(0, 0, 0, 0.2);
+}
+
+.medal.draft {
+  background: var(--bg-elevated);
+  border-color: var(--border-default);
+  border-style: dashed;
+  color: var(--text-tertiary);
+  box-shadow: none;
+}
+
+.tier-ribbon {
+  position: absolute;
+  bottom: 8px;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 3px 12px;
+  border-radius: 999px;
+  font-size: 9px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  z-index: 2;
+  backdrop-filter: blur(4px);
+}
+
+.tier-ribbon.bronze { background: rgba(205, 127, 50, 0.20); color: #E0A050; border: 1px solid rgba(205, 127, 50, 0.40); }
+.tier-ribbon.silver { background: rgba(192, 192, 192, 0.20); color: #D8D8D8; border: 1px solid rgba(192, 192, 192, 0.40); }
+.tier-ribbon.gold { background: rgba(255, 215, 0, 0.20); color: #FFD700; border: 1px solid rgba(255, 215, 0, 0.40); }
+.tier-ribbon.platinum { background: rgba(229, 228, 226, 0.20); color: #F0F0F0; border: 1px solid rgba(229, 228, 226, 0.40); }
+.tier-ribbon.diamond { background: rgba(185, 242, 255, 0.20); color: #B9F2FF; border: 1px solid rgba(185, 242, 255, 0.40); }
+.tier-ribbon.draft { background: rgba(125, 133, 144, 0.20); color: var(--text-tertiary); border: 1px solid var(--border-default); }
+
+.status-corner {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  padding: 3px 8px;
+  border-radius: 6px;
+  font-size: 9px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  z-index: 2;
+  backdrop-filter: blur(8px);
+}
+
+.status-corner.active {
+  background: rgba(10, 247, 132, 0.15);
+  color: var(--success);
+  border: 1px solid rgba(10, 247, 132, 0.30);
+}
+
+.status-corner.draft {
+  background: rgba(125, 133, 144, 0.20);
+  color: var(--text-tertiary);
+  border: 1px solid var(--border-default);
+}
+
+.status-corner.hidden {
+  background: rgba(167, 139, 250, 0.20);
+  color: var(--purple);
+  border: 1px solid rgba(167, 139, 250, 0.30);
+}
+
+/* === ACHIEVEMENT BODY === */
+.achievement-body {
+  padding: 14px;
+}
+
+.achievement-name {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 4px;
+  display: -webkit-box;
+  -webkit-line-clamp: 1;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.achievement-desc {
+  font-size: 11px;
+  color: var(--text-tertiary);
+  font-weight: 300;
+  font-style: italic;
+  margin-bottom: 12px;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  min-height: 30px;
+}
+
+.achievement-condition {
+  background: var(--bg-tertiary);
+  border-radius: 6px;
+  padding: 8px 10px;
+  margin-bottom: 10px;
+  font-size: 11px;
+  color: var(--text-secondary);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.achievement-condition svg { color: var(--text-tertiary); flex-shrink: 0; }
+
+.achievement-condition .number {
+  color: var(--accent);
+  font-weight: 600;
+  font-feature-settings: 'tnum';
+}
+
+.achievement-stats {
+  display: flex;
+  justify-content: space-between;
+  padding-top: 10px;
+  border-top: 1px solid var(--border-subtle);
+}
+
+.achievement-stat {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.achievement-stat-label {
+  font-size: 9px;
+  color: var(--text-tertiary);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  font-weight: 600;
+}
+
+.achievement-stat-value {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-primary);
+  font-feature-settings: 'tnum';
+}
+
+.achievement-stat-value.accent { color: var(--accent); }
+.achievement-stat-value.warning { color: var(--warning); }
+
+.achievement-stat-value.percent {
+  font-size: 11px;
+  color: var(--text-tertiary);
+  font-weight: 400;
+}
+
+/* === ADD CARD === */
+.add-achievement-card {
+  background: transparent;
+  border: 1px dashed var(--border-default);
+  border-radius: 12px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-family: inherit;
+  color: var(--text-tertiary);
+  transition: all 150ms ease;
+  min-height: 100%;
+  padding: 28px 16px;
+}
+
+.add-achievement-card:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+  background: var(--accent-subtle);
+}
+
+.add-icon-circle {
+  width: 50px; height: 50px;
+  border-radius: 50%;
+  background: var(--bg-tertiary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 12px;
+}
+
+.add-achievement-card:hover .add-icon-circle {
+  background: var(--accent);
+  color: var(--bg-primary);
+}
+
+.add-text {
+  font-size: 13px;
+  font-weight: 500;
+  margin-bottom: 2px;
+}
+
+.add-help {
+  font-size: 11px;
+  font-weight: 300;
+  font-style: italic;
+}
+
+/* === ALERT === */
+.alert {
+  padding: 12px 16px;
+  border-radius: 10px;
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  font-size: 12px;
+  margin-bottom: 16px;
+}
+
+.alert.info {
+  background: rgba(88, 166, 255, 0.08);
+  border: 1px solid rgba(88, 166, 255, 0.25);
+}
+.alert.info svg { color: var(--info); flex-shrink: 0; }
+.alert .alert-text { color: var(--text-secondary); flex: 1; }
+.alert strong { color: var(--text-primary); }
+
+/* === SCROLLBAR === */
+::-webkit-scrollbar { width: 8px; height: 8px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border-default); border-radius: 4px; }
+::-webkit-scrollbar-thumb:hover { background: var(--border-strong); }
+
+@media (max-width: 1300px) { .achievements-grid { grid-template-columns: repeat(3, 1fr); } }
+@media (max-width: 1100px) { .stats-bar { grid-template-columns: repeat(2, 1fr); } }
+@media (max-width: 900px) { .achievements-grid { grid-template-columns: repeat(2, 1fr); } }
+@media (max-width: 768px) {
+  .app { grid-template-columns: 1fr; }
+  .sidebar { display: none; }
+  .achievements-grid { grid-template-columns: 1fr; }
+  .stats-bar { grid-template-columns: 1fr; }
+  .toolbar { flex-wrap: wrap; }
+}
+</style>
+</head>
+<body>
+
+<div class="app">
+
+<aside class="sidebar">
+  <div class="sidebar-brand">
+    <div class="brand-logo">N</div>
+    <div class="brand-name">niveles</div>
+  </div>
+  <div class="operator-selector">
+    <div class="operator-avatar">CA</div>
+    <div class="operator-info">
+      <div class="operator-name">Casino Astral</div>
+      <div class="operator-tier">plan growth · es-AR</div>
+    </div>
+    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="color: var(--text-tertiary);"><polyline points="6 9 12 15 18 9"/></svg>
+  </div>
+
+  <div class="sidebar-section">
+    <a class="nav-item" href="#">
+      <span class="nav-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg></span>
+      Dashboard
+    </a>
+  </div>
+
+  <div class="sidebar-section">
+    <p class="section-label">Engagement</p>
+    <a class="nav-item" href="#">
+      <span class="nav-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 12l2 2 4-4"/></svg></span>
+      Misiones
+    </a>
+    <a class="nav-item active" href="#">
+      <span class="nav-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="6"/><path d="M9 13l-2 8 5-3 5 3-2-8"/></svg></span>
+      Logros
+    </a>
+    <a class="nav-item" href="#">
+      <span class="nav-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12l5-9h8l5 9-9 9z"/></svg></span>
+      Cofres
+    </a>
+  </div>
+</aside>
+
+<div class="main">
+
+  <div class="topbar">
+    <div class="breadcrumb">
+      <a>Engagement</a>
+      <span style="color: var(--text-tertiary);">/</span>
+      <span class="breadcrumb-current">Logros</span>
+    </div>
+    
+    <div class="topbar-actions">
+      <button class="icon-btn"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg></button>
+      <button class="icon-btn"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 1 1 5.83 1c0 2-3 3-3 3M12 17h.01"/></svg></button>
+      <div class="user-pill">
+        <div class="user-avatar">FL</div>
+        <div>
+          <div class="user-name">Fabricio L.</div>
+          <div class="user-role">admin</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="content">
+
+    <div class="page-header">
+      <div>
+        <h1 class="page-title">Logros</h1>
+        <p class="page-subtitle">medallas permanentes · los jugadores las exhiben en su perfil para siempre</p>
+      </div>
+      <div class="page-actions">
+        <button class="btn btn-secondary">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+          plantillas
+        </button>
+        <button class="btn btn-primary">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          nuevo logro
+        </button>
+      </div>
+    </div>
+
+    <!-- ===== STATS BAR ===== -->
+    <div class="stats-bar">
+      <div class="stat-card">
+        <div class="stat-label">logros configurados</div>
+        <div class="stat-value">28</div>
+        <div class="stat-trend neutral">
+          24 activos · 3 ocultos · 1 borrador
+        </div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">desbloqueados (7d)</div>
+        <div class="stat-value">3,247</div>
+        <div class="stat-trend up">
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="6 15 12 9 18 15"/></svg>
+          +21.4% vs semana previa
+        </div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">completion rate global</div>
+        <div class="stat-value">42.8%</div>
+        <div class="stat-trend neutral">
+          % jugadores con al menos 1 logro
+        </div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">logro más raro</div>
+        <div class="stat-value" style="color: var(--diamond);">High Roller</div>
+        <div class="stat-trend neutral">
+          solo 0.3% lo desbloqueó
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== ALERT === -->
+    <div class="alert info">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+      <span class="alert-text">los logros son <strong>permanentes</strong> · una vez desbloqueados, quedan en el perfil del jugador para siempre · los <strong>ocultos</strong> aparecen como "???" hasta desbloquearse · ideal para sorpresas</span>
+    </div>
+
+    <!-- ===== TOOLBAR ===== -->
+    <div class="toolbar">
+      <div class="search-input">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
+        <input type="text" placeholder="buscar logro por nombre o descripción...">
+      </div>
+
+      <button class="filter-chip active">
+        todos <span class="count">28</span>
+      </button>
+      <button class="filter-chip">
+        bronce <span class="count">8</span>
+      </button>
+      <button class="filter-chip">
+        plata <span class="count">7</span>
+      </button>
+      <button class="filter-chip">
+        oro <span class="count">6</span>
+      </button>
+      <button class="filter-chip">
+        platino <span class="count">4</span>
+      </button>
+      <button class="filter-chip">
+        diamante <span class="count">3</span>
+      </button>
+    </div>
+
+    <!-- ============================================ -->
+    <!-- BRONCE                                        -->
+    <!-- ============================================ -->
+    <p class="section-label-h">
+      bronce
+      <span class="count-pill">fáciles · onboarding</span>
+    </p>
+
+    <div class="achievements-grid">
+
+      <!-- Primera apuesta -->
+      <div class="achievement-card bronze">
+        <div class="medal-area">
+          <span class="status-corner active">activo</span>
+          <div class="medal bronze">🎲</div>
+          <span class="tier-ribbon bronze">bronce</span>
+        </div>
+        <div class="achievement-body">
+          <div class="achievement-name">Primera apuesta</div>
+          <div class="achievement-desc">tu primer paso en Casino Astral · bienvenida oficial</div>
+          <div class="achievement-condition">
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+            <span>al hacer <span class="number">1</span> apuesta</span>
+          </div>
+          <div class="achievement-stats">
+            <div class="achievement-stat">
+              <div class="achievement-stat-label">desbloqueado</div>
+              <div class="achievement-stat-value accent">98.2%</div>
+            </div>
+            <div class="achievement-stat">
+              <div class="achievement-stat-label">recompensa</div>
+              <div class="achievement-stat-value">+50 oro</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Bienvenida -->
+      <div class="achievement-card bronze">
+        <div class="medal-area">
+          <span class="status-corner active">activo</span>
+          <div class="medal bronze">👋</div>
+          <span class="tier-ribbon bronze">bronce</span>
+        </div>
+        <div class="achievement-body">
+          <div class="achievement-name">Bienvenida al club</div>
+          <div class="achievement-desc">completaste el registro · bienvenido a la familia Astral</div>
+          <div class="achievement-condition">
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+            <span>al verificar email</span>
+          </div>
+          <div class="achievement-stats">
+            <div class="achievement-stat">
+              <div class="achievement-stat-label">desbloqueado</div>
+              <div class="achievement-stat-value accent">100%</div>
+            </div>
+            <div class="achievement-stat">
+              <div class="achievement-stat-label">recompensa</div>
+              <div class="achievement-stat-value">+100 oro</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Madrugador -->
+      <div class="achievement-card bronze">
+        <div class="medal-area">
+          <span class="status-corner active">activo</span>
+          <div class="medal bronze">🌅</div>
+          <span class="tier-ribbon bronze">bronce</span>
+        </div>
+        <div class="achievement-body">
+          <div class="achievement-name">Madrugador</div>
+          <div class="achievement-desc">apuesta hecha entre 5 y 8 de la mañana · sos de los pocos</div>
+          <div class="achievement-condition">
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+            <span>apuesta entre <span class="number">05:00 - 08:00</span></span>
+          </div>
+          <div class="achievement-stats">
+            <div class="achievement-stat">
+              <div class="achievement-stat-label">desbloqueado</div>
+              <div class="achievement-stat-value">12.4%</div>
+            </div>
+            <div class="achievement-stat">
+              <div class="achievement-stat-label">recompensa</div>
+              <div class="achievement-stat-value">+200 oro</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Add new -->
+      <button class="add-achievement-card">
+        <div class="add-icon-circle">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        </div>
+        <div class="add-text">agregar logro bronce</div>
+        <div class="add-help">o usar plantilla</div>
+      </button>
+
+    </div>
+
+    <!-- ============================================ -->
+    <!-- PLATA                                         -->
+    <!-- ============================================ -->
+    <p class="section-label-h section-spacer">
+      plata
+      <span class="count-pill">intermedios · engagement</span>
+    </p>
+
+    <div class="achievements-grid">
+
+      <!-- 100 apuestas -->
+      <div class="achievement-card silver">
+        <div class="medal-area">
+          <span class="status-corner active">activo</span>
+          <div class="medal silver">🎯</div>
+          <span class="tier-ribbon silver">plata</span>
+        </div>
+        <div class="achievement-body">
+          <div class="achievement-name">Centenario</div>
+          <div class="achievement-desc">100 apuestas realizadas · ya sos parte del paisaje</div>
+          <div class="achievement-condition">
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+            <span>al acumular <span class="number">100</span> apuestas</span>
+          </div>
+          <div class="achievement-stats">
+            <div class="achievement-stat">
+              <div class="achievement-stat-label">desbloqueado</div>
+              <div class="achievement-stat-value accent">38.7%</div>
+            </div>
+            <div class="achievement-stat">
+              <div class="achievement-stat-label">recompensa</div>
+              <div class="achievement-stat-value">+500 oro · 5 gemas</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Veterano -->
+      <div class="achievement-card silver">
+        <div class="medal-area">
+          <span class="status-corner active">activo</span>
+          <div class="medal silver">📅</div>
+          <span class="tier-ribbon silver">plata</span>
+        </div>
+        <div class="achievement-body">
+          <div class="achievement-name">Veterano</div>
+          <div class="achievement-desc">30 días seguidos jugando · disciplina real</div>
+          <div class="achievement-condition">
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/></svg>
+            <span>login en <span class="number">30</span> días consecutivos</span>
+          </div>
+          <div class="achievement-stats">
+            <div class="achievement-stat">
+              <div class="achievement-stat-label">desbloqueado</div>
+              <div class="achievement-stat-value">8.4%</div>
+            </div>
+            <div class="achievement-stat">
+              <div class="achievement-stat-label">recompensa</div>
+              <div class="achievement-stat-value">+1000 oro · cofre raro</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Curioso -->
+      <div class="achievement-card silver">
+        <div class="medal-area">
+          <span class="status-corner active">activo</span>
+          <div class="medal silver">🔍</div>
+          <span class="tier-ribbon silver">plata</span>
+        </div>
+        <div class="achievement-body">
+          <div class="achievement-name">Curioso</div>
+          <div class="achievement-desc">probaste 10 juegos diferentes · sabés de qué se trata</div>
+          <div class="achievement-condition">
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/></svg>
+            <span>jugar <span class="number">10</span> juegos distintos</span>
+          </div>
+          <div class="achievement-stats">
+            <div class="achievement-stat">
+              <div class="achievement-stat-label">desbloqueado</div>
+              <div class="achievement-stat-value">22.1%</div>
+            </div>
+            <div class="achievement-stat">
+              <div class="achievement-stat-label">recompensa</div>
+              <div class="achievement-stat-value">+800 oro</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Coleccionista -->
+      <div class="achievement-card silver">
+        <div class="medal-area">
+          <span class="status-corner active">activo</span>
+          <div class="medal silver">🏆</div>
+          <span class="tier-ribbon silver">plata</span>
+        </div>
+        <div class="achievement-body">
+          <div class="achievement-name">Coleccionista</div>
+          <div class="achievement-desc">desbloqueaste 10 logros · empezás a llenar la vitrina</div>
+          <div class="achievement-condition">
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="6"/><path d="M9 13l-2 8 5-3 5 3-2-8"/></svg>
+            <span>desbloquear <span class="number">10</span> logros</span>
+          </div>
+          <div class="achievement-stats">
+            <div class="achievement-stat">
+              <div class="achievement-stat-label">desbloqueado</div>
+              <div class="achievement-stat-value">14.8%</div>
+            </div>
+            <div class="achievement-stat">
+              <div class="achievement-stat-label">recompensa</div>
+              <div class="achievement-stat-value">+1500 oro</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- ============================================ -->
+    <!-- ORO                                           -->
+    <!-- ============================================ -->
+    <p class="section-label-h section-spacer">
+      oro
+      <span class="count-pill">avanzados · maestría</span>
+    </p>
+
+    <div class="achievements-grid">
+
+      <!-- Maratonista -->
+      <div class="achievement-card gold">
+        <div class="medal-area">
+          <span class="status-corner active">activo</span>
+          <div class="medal gold">⏱️</div>
+          <span class="tier-ribbon gold">oro</span>
+        </div>
+        <div class="achievement-body">
+          <div class="achievement-name">Maratonista</div>
+          <div class="achievement-desc">sesión de 6+ horas continuas · resistencia épica</div>
+          <div class="achievement-condition">
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+            <span>sesión continua de <span class="number">6h</span></span>
+          </div>
+          <div class="achievement-stats">
+            <div class="achievement-stat">
+              <div class="achievement-stat-label">desbloqueado</div>
+              <div class="achievement-stat-value warning">3.2%</div>
+            </div>
+            <div class="achievement-stat">
+              <div class="achievement-stat-label">recompensa</div>
+              <div class="achievement-stat-value">+3000 oro · 20 gemas</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Estratega -->
+      <div class="achievement-card gold">
+        <div class="medal-area">
+          <span class="status-corner active">activo</span>
+          <div class="medal gold">♟️</div>
+          <span class="tier-ribbon gold">oro</span>
+        </div>
+        <div class="achievement-body">
+          <div class="achievement-name">Estratega</div>
+          <div class="achievement-desc">5 manos consecutivas ganadas en blackjack · mente fría</div>
+          <div class="achievement-condition">
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+            <span><span class="number">5</span> manos seguidas en blackjack</span>
+          </div>
+          <div class="achievement-stats">
+            <div class="achievement-stat">
+              <div class="achievement-stat-label">desbloqueado</div>
+              <div class="achievement-stat-value warning">4.7%</div>
+            </div>
+            <div class="achievement-stat">
+              <div class="achievement-stat-label">recompensa</div>
+              <div class="achievement-stat-value">+2500 oro · cofre épico</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Big Spender -->
+      <div class="achievement-card gold">
+        <div class="medal-area">
+          <span class="status-corner active">activo</span>
+          <div class="medal gold">💸</div>
+          <span class="tier-ribbon gold">oro</span>
+        </div>
+        <div class="achievement-body">
+          <div class="achievement-name">Big Spender</div>
+          <div class="achievement-desc">canjeaste 50,000 monedas en la tienda · cliente VIP</div>
+          <div class="achievement-condition">
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.7 13.4a2 2 0 0 0 2 1.6h9.7a2 2 0 0 0 2-1.6L23 6H6"/></svg>
+            <span>gastar <span class="number">50k</span> monedas en tienda</span>
+          </div>
+          <div class="achievement-stats">
+            <div class="achievement-stat">
+              <div class="achievement-stat-label">desbloqueado</div>
+              <div class="achievement-stat-value warning">2.8%</div>
+            </div>
+            <div class="achievement-stat">
+              <div class="achievement-stat-label">recompensa</div>
+              <div class="achievement-stat-value">+5000 oro · skin VIP</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- ============================================ -->
+    <!-- PLATINO                                       -->
+    <!-- ============================================ -->
+    <p class="section-label-h section-spacer">
+      platino
+      <span class="count-pill">elite · pocos llegan</span>
+    </p>
+
+    <div class="achievements-grid">
+
+      <!-- Leyenda -->
+      <div class="achievement-card platinum">
+        <div class="medal-area">
+          <span class="status-corner active">activo</span>
+          <div class="medal platinum">⚜️</div>
+          <span class="tier-ribbon platinum">platino</span>
+        </div>
+        <div class="achievement-body">
+          <div class="achievement-name">Leyenda</div>
+          <div class="achievement-desc">100 días consecutivos jugando · estás en otro nivel</div>
+          <div class="achievement-condition">
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/></svg>
+            <span>login <span class="number">100</span> días seguidos</span>
+          </div>
+          <div class="achievement-stats">
+            <div class="achievement-stat">
+              <div class="achievement-stat-label">desbloqueado</div>
+              <div class="achievement-stat-value warning">0.8%</div>
+            </div>
+            <div class="achievement-stat">
+              <div class="achievement-stat-label">recompensa</div>
+              <div class="achievement-stat-value">+10k oro · cofre legendario</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Filántropo (oculto) -->
+      <div class="achievement-card platinum">
+        <div class="medal-area">
+          <span class="status-corner hidden">oculto · ???</span>
+          <div class="medal platinum">🎁</div>
+          <span class="tier-ribbon platinum">platino</span>
+        </div>
+        <div class="achievement-body">
+          <div class="achievement-name">Filántropo</div>
+          <div class="achievement-desc">enviaste 10 regalos a amigos · generoso por naturaleza</div>
+          <div class="achievement-condition">
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12l5-9h8l5 9-9 9z"/></svg>
+            <span>enviar <span class="number">10</span> regalos · oculto</span>
+          </div>
+          <div class="achievement-stats">
+            <div class="achievement-stat">
+              <div class="achievement-stat-label">desbloqueado</div>
+              <div class="achievement-stat-value warning">1.2%</div>
+            </div>
+            <div class="achievement-stat">
+              <div class="achievement-stat-label">recompensa</div>
+              <div class="achievement-stat-value">+8000 oro · marco dorado</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- ============================================ -->
+    <!-- DIAMANTE                                      -->
+    <!-- ============================================ -->
+    <p class="section-label-h section-spacer">
+      diamante
+      <span class="count-pill">míticos · únicos en el operador</span>
+    </p>
+
+    <div class="achievements-grid">
+
+      <!-- High Roller -->
+      <div class="achievement-card diamond">
+        <div class="medal-area">
+          <span class="status-corner active">activo</span>
+          <div class="medal diamond">💎</div>
+          <span class="tier-ribbon diamond">diamante</span>
+        </div>
+        <div class="achievement-body">
+          <div class="achievement-name">High Roller</div>
+          <div class="achievement-desc">apuesta única de $10,000 USD · estás en el club</div>
+          <div class="achievement-condition">
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+            <span>1 apuesta de <span class="number">$10k</span> USD</span>
+          </div>
+          <div class="achievement-stats">
+            <div class="achievement-stat">
+              <div class="achievement-stat-label">desbloqueado</div>
+              <div class="achievement-stat-value warning">0.3%</div>
+            </div>
+            <div class="achievement-stat">
+              <div class="achievement-stat-label">recompensa</div>
+              <div class="achievement-stat-value">+50k oro · concierge VIP</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Inmortal (oculto) -->
+      <div class="achievement-card diamond">
+        <div class="medal-area">
+          <span class="status-corner hidden">oculto · ???</span>
+          <div class="medal diamond">⚡</div>
+          <span class="tier-ribbon diamond">diamante</span>
+        </div>
+        <div class="achievement-body">
+          <div class="achievement-name">Inmortal</div>
+          <div class="achievement-desc">365 días consecutivos · un año perfecto</div>
+          <div class="achievement-condition">
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/></svg>
+            <span>login <span class="number">365</span> días · oculto</span>
+          </div>
+          <div class="achievement-stats">
+            <div class="achievement-stat">
+              <div class="achievement-stat-label">desbloqueado</div>
+              <div class="achievement-stat-value warning">0.05%</div>
+            </div>
+            <div class="achievement-stat">
+              <div class="achievement-stat-label">recompensa</div>
+              <div class="achievement-stat-value">+100k oro · viaje real</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Coleccionista total (borrador) -->
+      <div class="achievement-card draft">
+        <div class="medal-area">
+          <span class="status-corner draft">borrador</span>
+          <div class="medal draft">?</div>
+          <span class="tier-ribbon draft">borrador</span>
+        </div>
+        <div class="achievement-body">
+          <div class="achievement-name">Coleccionista total</div>
+          <div class="achievement-desc">configuración pendiente · aún no publicado</div>
+          <div class="achievement-condition">
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/></svg>
+            <span>condición sin definir</span>
+          </div>
+          <div class="achievement-stats">
+            <div class="achievement-stat">
+              <div class="achievement-stat-label">creado</div>
+              <div class="achievement-stat-value percent">hace 2 días</div>
+            </div>
+            <div class="achievement-stat">
+              <div class="achievement-stat-label">por</div>
+              <div class="achievement-stat-value percent">F. López</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+  </div>
+</div>
+
+</div>
+
+</body>
+</html>

@@ -1,0 +1,1604 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BO Operador · Analytics</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Urbanist:ital,wght@0,300;0,400;0,500;0,600;1,300&display=swap" rel="stylesheet">
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg-primary: #0E1116;
+  --bg-secondary: #161B22;
+  --bg-tertiary: #1C2128;
+  --bg-elevated: #21262D;
+  --bg-hover: #262C36;
+  
+  --accent: #0AF784;
+  --accent-hover: #08D971;
+  --accent-glow: rgba(10, 247, 132, 0.15);
+  --accent-subtle: rgba(10, 247, 132, 0.08);
+  
+  --text-primary: #FFFFFF;
+  --text-secondary: #B8BEC9;
+  --text-tertiary: #7D8590;
+  --text-disabled: #484F58;
+  
+  --border-subtle: rgba(255, 255, 255, 0.06);
+  --border-default: rgba(255, 255, 255, 0.10);
+  --border-strong: rgba(255, 255, 255, 0.16);
+  
+  --success: #0AF784;
+  --warning: #F0B72F;
+  --danger: #F85149;
+  --info: #58A6FF;
+  --purple: #A78BFA;
+  --pink: #F471B5;
+  --orange: #FF8C42;
+}
+
+body {
+  font-family: 'Urbanist', system-ui, sans-serif;
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  font-size: 14px;
+  line-height: 1.5;
+  font-weight: 400;
+}
+
+button { font-family: inherit; cursor: pointer; }
+
+.app {
+  display: grid;
+  grid-template-columns: 240px 1fr;
+  min-height: 100vh;
+}
+
+/* === SIDEBAR === */
+.sidebar {
+  background: var(--bg-secondary);
+  border-right: 1px solid var(--border-subtle);
+  padding: 16px 0;
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  overflow-y: auto;
+}
+
+.sidebar-brand {
+  padding: 0 20px 20px;
+  border-bottom: 1px solid var(--border-subtle);
+  margin-bottom: 16px;
+  display: flex; align-items: center; gap: 10px;
+}
+
+.brand-logo {
+  width: 28px; height: 28px;
+  border-radius: 8px;
+  background: linear-gradient(135deg, var(--accent), #00D9FF);
+  display: flex; align-items: center; justify-content: center;
+  font-weight: 600; color: var(--bg-primary); font-size: 13px;
+}
+
+.brand-name { font-size: 15px; font-weight: 600; }
+
+.operator-selector {
+  margin: 0 12px 16px;
+  padding: 10px 12px;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-default);
+  border-radius: 8px;
+  display: flex; align-items: center; gap: 10px;
+  cursor: pointer;
+}
+
+.operator-avatar {
+  width: 24px; height: 24px;
+  border-radius: 6px;
+  background: linear-gradient(135deg, #4D9FFF, #2563EB);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 11px; font-weight: 600; color: white;
+}
+
+.operator-info { flex: 1; min-width: 0; }
+.operator-name { font-size: 13px; font-weight: 500; }
+.operator-tier { font-size: 10px; color: var(--text-tertiary); }
+
+.sidebar-section { margin-bottom: 8px; padding: 0 12px; }
+.section-label {
+  font-size: 10px; font-weight: 600;
+  text-transform: uppercase; letter-spacing: 0.08em;
+  color: var(--text-tertiary); padding: 8px 12px;
+}
+
+.nav-item {
+  display: flex; align-items: center; gap: 10px;
+  padding: 7px 12px; border-radius: 6px;
+  font-size: 13px; color: var(--text-secondary);
+  cursor: pointer; margin-bottom: 1px; text-decoration: none;
+}
+
+.nav-item:hover { background: var(--bg-tertiary); color: var(--text-primary); }
+.nav-item.active {
+  background: var(--accent-subtle); color: var(--accent);
+  font-weight: 500; position: relative;
+}
+.nav-item.active::before {
+  content: ''; position: absolute; left: -12px; top: 50%;
+  transform: translateY(-50%); width: 3px; height: 18px;
+  background: var(--accent); border-radius: 0 2px 2px 0;
+}
+
+.nav-icon { width: 16px; height: 16px; display: flex; align-items: center; }
+.nav-badge {
+  margin-left: auto; font-size: 10px; padding: 2px 6px;
+  border-radius: 999px; background: var(--bg-elevated);
+  color: var(--text-tertiary); font-weight: 500;
+}
+
+/* === MAIN === */
+.main { display: flex; flex-direction: column; min-width: 0; }
+
+.topbar {
+  height: 56px;
+  border-bottom: 1px solid var(--border-subtle);
+  padding: 0 28px;
+  display: flex; align-items: center; justify-content: space-between;
+  background: var(--bg-primary);
+  position: sticky; top: 0; z-index: 10;
+}
+
+.breadcrumb { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--text-secondary); }
+.breadcrumb-current { color: var(--text-primary); font-weight: 500; }
+.breadcrumb a { color: var(--text-secondary); text-decoration: none; cursor: pointer; }
+
+.topbar-actions { display: flex; align-items: center; gap: 12px; }
+
+.icon-btn {
+  width: 32px; height: 32px;
+  border-radius: 8px;
+  border: 1px solid var(--border-default);
+  background: var(--bg-tertiary);
+  color: var(--text-secondary);
+  display: flex; align-items: center; justify-content: center;
+}
+
+.icon-btn:hover { background: var(--bg-elevated); color: var(--text-primary); }
+
+.user-pill {
+  display: flex; align-items: center; gap: 8px;
+  padding: 4px 12px 4px 4px; border-radius: 999px;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-default); cursor: pointer;
+}
+
+.user-avatar {
+  width: 24px; height: 24px; border-radius: 50%;
+  background: linear-gradient(135deg, #F0B72F, #E0901F);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 10px; font-weight: 600; color: var(--bg-primary);
+}
+
+.user-name { font-size: 12px; font-weight: 500; }
+.user-role { font-size: 10px; color: var(--text-tertiary); }
+
+/* === CONTENT === */
+.content { padding: 28px 28px 64px; max-width: 1500px; }
+
+.page-header {
+  margin-bottom: 24px;
+  display: flex; justify-content: space-between;
+  align-items: flex-start; gap: 24px;
+  flex-wrap: wrap;
+}
+
+.page-title {
+  font-size: 24px; font-weight: 600;
+  margin-bottom: 6px; letter-spacing: -0.01em;
+}
+
+.page-subtitle {
+  font-size: 13px; color: var(--text-tertiary);
+  font-weight: 300; font-style: italic;
+}
+
+.header-actions { display: flex; gap: 8px; align-items: center; }
+
+.btn {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 8px 14px; border-radius: 8px;
+  font-size: 13px; font-weight: 500;
+  border: 1px solid transparent;
+  font-family: inherit; cursor: pointer;
+}
+
+.btn-secondary {
+  background: var(--bg-tertiary); color: var(--text-primary);
+  border-color: var(--border-default);
+}
+.btn-secondary:hover { background: var(--bg-elevated); border-color: var(--border-strong); }
+
+.btn-primary {
+  background: var(--accent); color: var(--bg-primary);
+  border-color: var(--accent);
+  box-shadow: 0 0 16px var(--accent-glow);
+}
+
+.btn-sm { padding: 6px 10px; font-size: 12px; }
+
+/* === PERIOD SELECTOR === */
+.period-selector {
+  display: flex;
+  gap: 4px;
+  padding: 4px;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-default);
+  border-radius: 8px;
+}
+
+.period-option {
+  padding: 6px 12px;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text-secondary);
+  background: transparent;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-family: inherit;
+}
+
+.period-option.active {
+  background: var(--bg-elevated);
+  color: var(--text-primary);
+}
+
+/* === KPIS GRID === */
+.kpis-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 14px;
+  margin-bottom: 20px;
+}
+
+.kpi-card {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-subtle);
+  border-radius: 10px;
+  padding: 16px;
+  position: relative;
+  overflow: hidden;
+}
+
+.kpi-card.hero {
+  background: linear-gradient(135deg, var(--bg-secondary), rgba(10, 247, 132, 0.03));
+  border-color: rgba(10, 247, 132, 0.15);
+}
+
+.kpi-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 12px;
+}
+
+.kpi-label {
+  font-size: 11px;
+  color: var(--text-tertiary);
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.kpi-info-icon {
+  color: var(--text-tertiary);
+  cursor: help;
+}
+
+.kpi-value {
+  font-size: 28px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  margin-bottom: 4px;
+}
+
+.kpi-trend {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.kpi-delta {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+  font-weight: 500;
+}
+
+.delta-up { color: var(--success); }
+.delta-down { color: var(--danger); }
+.delta-neutral { color: var(--text-tertiary); }
+
+.kpi-spark {
+  height: 28px;
+  flex: 0 0 60px;
+}
+
+/* === LAYOUT === */
+.charts-layout {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 14px;
+  margin-bottom: 20px;
+}
+
+.charts-col-left {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  min-width: 0;
+}
+
+.charts-col-right {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  min-width: 0;
+}
+
+.section-card {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-subtle);
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.section-head {
+  padding: 14px 18px;
+  border-bottom: 1px solid var(--border-subtle);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.section-title {
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.section-help {
+  font-size: 11px;
+  color: var(--text-tertiary);
+  font-weight: 300;
+  font-style: italic;
+}
+
+.section-actions {
+  display: flex;
+  gap: 4px;
+  align-items: center;
+}
+
+.chip-toggle {
+  padding: 4px 10px;
+  font-size: 11px;
+  font-weight: 500;
+  background: transparent;
+  border: 1px solid var(--border-default);
+  border-radius: 6px;
+  color: var(--text-secondary);
+  cursor: pointer;
+  font-family: inherit;
+}
+
+.chip-toggle.active {
+  background: var(--accent-subtle);
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.section-body { padding: 18px; }
+
+/* === LINE CHART === */
+.line-chart-wrap {
+  display: flex;
+  flex-direction: column;
+}
+
+.line-chart-svg {
+  width: 100%;
+  height: 240px;
+}
+
+.chart-grid line {
+  stroke: var(--border-subtle);
+  stroke-width: 1;
+}
+
+.chart-axis {
+  fill: var(--text-tertiary);
+  font-size: 10px;
+  font-family: 'Urbanist', sans-serif;
+}
+
+.line-area-1 { fill: url(#grad-line-1); }
+.line-stroke-1 { fill: none; stroke: var(--accent); stroke-width: 2.5; }
+.line-area-2 { fill: url(#grad-line-2); }
+.line-stroke-2 { fill: none; stroke: var(--purple); stroke-width: 2; stroke-dasharray: 4 3; }
+
+.line-dot { fill: var(--bg-secondary); stroke-width: 2; }
+.line-dot-1 { stroke: var(--accent); }
+.line-dot-2 { stroke: var(--purple); }
+
+.chart-legend {
+  display: flex;
+  gap: 18px;
+  margin-top: 14px;
+  font-size: 11px;
+  color: var(--text-secondary);
+  flex-wrap: wrap;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.legend-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+}
+
+.legend-line {
+  width: 16px;
+  height: 2px;
+}
+
+/* === BAR CHART === */
+.bar-chart {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 8px;
+  height: 180px;
+  padding: 0 4px;
+}
+
+.bar-col {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+}
+
+.bar-stack {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  flex: 1;
+  gap: 1px;
+}
+
+.bar-segment {
+  width: 100%;
+  border-radius: 2px 2px 0 0;
+}
+
+.bar-segment.s1 { background: var(--accent); }
+.bar-segment.s2 { background: var(--info); }
+.bar-segment.s3 { background: var(--purple); }
+.bar-segment.s4 { background: var(--orange); }
+
+.bar-segment:not(:first-child) { border-radius: 0; }
+
+.bar-label {
+  font-size: 10px;
+  color: var(--text-tertiary);
+  font-weight: 500;
+}
+
+/* === FUNNEL === */
+.funnel {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 8px 0;
+}
+
+.funnel-step {
+  display: grid;
+  grid-template-columns: 100px 1fr 80px;
+  gap: 16px;
+  align-items: center;
+}
+
+.funnel-label {
+  font-size: 12px;
+  color: var(--text-secondary);
+  font-weight: 500;
+}
+
+.funnel-bar-wrap {
+  background: var(--bg-tertiary);
+  border-radius: 6px;
+  height: 32px;
+  position: relative;
+  overflow: hidden;
+}
+
+.funnel-bar {
+  height: 100%;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  padding: 0 12px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--bg-primary);
+}
+
+.funnel-bar.b1 { background: linear-gradient(90deg, var(--accent), var(--accent-hover)); }
+.funnel-bar.b2 { background: linear-gradient(90deg, #07D971, #06B85F); }
+.funnel-bar.b3 { background: linear-gradient(90deg, var(--info), #2563EB); color: white; }
+.funnel-bar.b4 { background: linear-gradient(90deg, var(--purple), #6D28D9); color: white; }
+.funnel-bar.b5 { background: linear-gradient(90deg, var(--pink), #DB2777); color: white; }
+
+.funnel-pct {
+  font-size: 12px;
+  font-weight: 600;
+  text-align: right;
+}
+
+.funnel-drop {
+  font-size: 10px;
+  color: var(--text-tertiary);
+  font-weight: 300;
+  font-style: italic;
+}
+
+/* === DONUT === */
+.donut-wrap {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  padding: 8px 0;
+}
+
+.donut-chart {
+  width: 140px;
+  height: 140px;
+  flex-shrink: 0;
+}
+
+.donut-legend {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.donut-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 12px;
+  padding: 6px 0;
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.donut-row:last-child { border-bottom: none; }
+
+.donut-row-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.donut-color {
+  width: 10px;
+  height: 10px;
+  border-radius: 2px;
+}
+
+.donut-label { color: var(--text-secondary); }
+.donut-value { color: var(--text-primary); font-weight: 600; }
+
+/* === TOP TABLE === */
+.top-list {
+  display: flex;
+  flex-direction: column;
+}
+
+.top-row {
+  display: grid;
+  grid-template-columns: 24px 1fr auto;
+  gap: 12px;
+  align-items: center;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--border-subtle);
+  font-size: 13px;
+}
+
+.top-row:last-child { border-bottom: none; }
+
+.top-rank {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-tertiary);
+  text-align: center;
+}
+
+.top-rank.gold { color: #FFD700; }
+.top-rank.silver { color: #C0C0C0; }
+.top-rank.bronze { color: #CD7F32; }
+
+.top-info { display: flex; align-items: center; gap: 10px; min-width: 0; }
+
+.top-avatar {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--bg-primary);
+  flex-shrink: 0;
+}
+
+.top-name {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-primary);
+  margin-bottom: 0;
+}
+
+.top-meta {
+  font-size: 10px;
+  color: var(--text-tertiary);
+  font-weight: 300;
+  font-style: italic;
+}
+
+.top-value {
+  font-size: 13px;
+  font-weight: 600;
+  text-align: right;
+}
+
+.top-value.success { color: var(--success); }
+
+/* === HEATMAP === */
+.heatmap-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.heatmap-row {
+  display: grid;
+  grid-template-columns: 32px repeat(24, 1fr);
+  gap: 2px;
+  align-items: center;
+}
+
+.heatmap-row-label {
+  font-size: 10px;
+  color: var(--text-tertiary);
+  font-weight: 500;
+  text-align: right;
+  padding-right: 6px;
+}
+
+.heatmap-cell {
+  aspect-ratio: 1;
+  border-radius: 2px;
+  background: var(--bg-tertiary);
+}
+
+.heatmap-cell.h1 { background: rgba(10, 247, 132, 0.15); }
+.heatmap-cell.h2 { background: rgba(10, 247, 132, 0.30); }
+.heatmap-cell.h3 { background: rgba(10, 247, 132, 0.50); }
+.heatmap-cell.h4 { background: rgba(10, 247, 132, 0.75); }
+.heatmap-cell.h5 { background: var(--accent); }
+
+.heatmap-axis {
+  display: grid;
+  grid-template-columns: 32px repeat(24, 1fr);
+  gap: 2px;
+  margin-top: 6px;
+}
+
+.heatmap-axis-label {
+  font-size: 9px;
+  color: var(--text-tertiary);
+  text-align: center;
+}
+
+/* === SCROLLBAR === */
+::-webkit-scrollbar { width: 8px; height: 8px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border-default); border-radius: 4px; }
+::-webkit-scrollbar-thumb:hover { background: var(--border-strong); }
+
+/* === RESPONSIVE === */
+@media (max-width: 1200px) {
+  .kpis-grid { grid-template-columns: repeat(2, 1fr); }
+  .charts-layout { grid-template-columns: 1fr; }
+}
+
+@media (max-width: 768px) {
+  .app { grid-template-columns: 1fr; }
+  .sidebar { display: none; }
+  .kpis-grid { grid-template-columns: 1fr; }
+  .funnel-step { grid-template-columns: 80px 1fr 60px; gap: 8px; }
+  .donut-wrap { flex-direction: column; align-items: flex-start; }
+}
+</style>
+</head>
+<body>
+
+<div class="app">
+
+<aside class="sidebar">
+  <div class="sidebar-brand">
+    <div class="brand-logo">N</div>
+    <div class="brand-name">niveles</div>
+  </div>
+  <div class="operator-selector">
+    <div class="operator-avatar">CA</div>
+    <div class="operator-info">
+      <div class="operator-name">Casino Astral</div>
+      <div class="operator-tier">plan growth · es-AR</div>
+    </div>
+    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="color: var(--text-tertiary);"><polyline points="6 9 12 15 18 9"/></svg>
+  </div>
+
+  <div class="sidebar-section">
+    <a class="nav-item" href="#">
+      <span class="nav-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg></span>
+      Dashboard
+    </a>
+  </div>
+
+  <div class="sidebar-section">
+    <p class="section-label">Analytics</p>
+    <a class="nav-item active" href="#">
+      <span class="nav-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18M7 14l4-4 4 4 5-5"/></svg></span>
+      Métricas
+    </a>
+    <a class="nav-item" href="#">
+      <span class="nav-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M16 13H8M16 17H8M10 9H8"/></svg></span>
+      Reportes
+    </a>
+  </div>
+
+  <div class="sidebar-section">
+    <p class="section-label">Setup</p>
+    <a class="nav-item" href="#">
+      <span class="nav-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2M9 11a4 4 0 1 0 0-8"/></svg></span>
+      Equipo
+    </a>
+  </div>
+</aside>
+
+<div class="main">
+
+  <div class="topbar">
+    <div class="breadcrumb">
+      <a>Analytics</a>
+      <span style="color: var(--text-tertiary);">/</span>
+      <span class="breadcrumb-current">Métricas</span>
+    </div>
+    
+    <div class="topbar-actions">
+      <button class="icon-btn"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg></button>
+      <button class="icon-btn"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 1 1 5.83 1c0 2-3 3-3 3M12 17h.01"/></svg></button>
+      <div class="user-pill">
+        <div class="user-avatar">FL</div>
+        <div>
+          <div class="user-name">Fabricio L.</div>
+          <div class="user-role">admin</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="content">
+
+    <div class="page-header">
+      <div>
+        <h1 class="page-title">Métricas</h1>
+        <p class="page-subtitle">salud de tu sistema de gamificación · datos en tiempo real</p>
+      </div>
+      <div class="header-actions">
+        <div class="period-selector">
+          <button class="period-option">hoy</button>
+          <button class="period-option">7 días</button>
+          <button class="period-option active">30 días</button>
+          <button class="period-option">90 días</button>
+          <button class="period-option">custom</button>
+        </div>
+        <button class="btn btn-secondary btn-sm">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
+          Exportar
+        </button>
+      </div>
+    </div>
+
+    <!-- ============ KPIs PRINCIPALES ============ -->
+    <div class="kpis-grid">
+
+      <div class="kpi-card hero">
+        <div class="kpi-head">
+          <span class="kpi-label">jugadores activos</span>
+          <span class="kpi-info-icon">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 1 1 5.83 1c0 2-3 3-3 3M12 17h.01"/></svg>
+          </span>
+        </div>
+        <div class="kpi-value">12,847</div>
+        <div class="kpi-trend">
+          <div class="kpi-delta delta-up">
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="17 11 12 6 7 11"/><polyline points="17 18 12 13 7 18"/></svg>
+            +18.4% vs mes anterior
+          </div>
+          <svg class="kpi-spark" viewBox="0 0 60 28" preserveAspectRatio="none">
+            <path d="M 0 22 L 8 18 L 16 20 L 24 14 L 32 16 L 40 10 L 48 8 L 60 4" fill="none" stroke="var(--accent)" stroke-width="1.5"/>
+          </svg>
+        </div>
+      </div>
+
+      <div class="kpi-card">
+        <div class="kpi-head">
+          <span class="kpi-label">eventos procesados</span>
+          <span class="kpi-info-icon">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 1 1 5.83 1c0 2-3 3-3 3M12 17h.01"/></svg>
+          </span>
+        </div>
+        <div class="kpi-value">38.2M</div>
+        <div class="kpi-trend">
+          <div class="kpi-delta delta-up">
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="17 11 12 6 7 11"/></svg>
+            +12.6%
+          </div>
+          <svg class="kpi-spark" viewBox="0 0 60 28" preserveAspectRatio="none">
+            <path d="M 0 18 L 12 22 L 24 14 L 36 16 L 48 8 L 60 6" fill="none" stroke="var(--info)" stroke-width="1.5"/>
+          </svg>
+        </div>
+      </div>
+
+      <div class="kpi-card">
+        <div class="kpi-head">
+          <span class="kpi-label">XP otorgada total</span>
+          <span class="kpi-info-icon">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 1 1 5.83 1c0 2-3 3-3 3M12 17h.01"/></svg>
+          </span>
+        </div>
+        <div class="kpi-value">8.4M</div>
+        <div class="kpi-trend">
+          <div class="kpi-delta delta-up">
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="17 11 12 6 7 11"/></svg>
+            +24.1%
+          </div>
+          <svg class="kpi-spark" viewBox="0 0 60 28" preserveAspectRatio="none">
+            <path d="M 0 24 L 12 20 L 24 16 L 36 12 L 48 8 L 60 4" fill="none" stroke="var(--purple)" stroke-width="1.5"/>
+          </svg>
+        </div>
+      </div>
+
+      <div class="kpi-card">
+        <div class="kpi-head">
+          <span class="kpi-label">retención día 7</span>
+          <span class="kpi-info-icon">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 1 1 5.83 1c0 2-3 3-3 3M12 17h.01"/></svg>
+          </span>
+        </div>
+        <div class="kpi-value">42.8%</div>
+        <div class="kpi-trend">
+          <div class="kpi-delta delta-down">
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="7 13 12 18 17 13"/></svg>
+            -2.4%
+          </div>
+          <svg class="kpi-spark" viewBox="0 0 60 28" preserveAspectRatio="none">
+            <path d="M 0 8 L 12 12 L 24 14 L 36 16 L 48 18 L 60 20" fill="none" stroke="var(--warning)" stroke-width="1.5"/>
+          </svg>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- ============ LAYOUT 2 COLS ============ -->
+    <div class="charts-layout">
+
+      <!-- ====== COL IZQUIERDA ====== -->
+      <div class="charts-col-left">
+
+        <!-- LINE CHART: actividad temporal -->
+        <div class="section-card">
+          <div class="section-head">
+            <div>
+              <h2 class="section-title">actividad de jugadores · últimos 30 días</h2>
+              <span class="section-help">comparativa con mes anterior</span>
+            </div>
+            <div class="section-actions">
+              <button class="chip-toggle active">DAU</button>
+              <button class="chip-toggle">eventos</button>
+              <button class="chip-toggle">XP</button>
+            </div>
+          </div>
+          <div class="section-body">
+            <div class="line-chart-wrap">
+              <svg class="line-chart-svg" viewBox="0 0 800 240" preserveAspectRatio="none">
+                <defs>
+                  <linearGradient id="grad-line-1" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stop-color="#0AF784" stop-opacity="0.25"/>
+                    <stop offset="100%" stop-color="#0AF784" stop-opacity="0"/>
+                  </linearGradient>
+                  <linearGradient id="grad-line-2" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stop-color="#A78BFA" stop-opacity="0.10"/>
+                    <stop offset="100%" stop-color="#A78BFA" stop-opacity="0"/>
+                  </linearGradient>
+                </defs>
+                
+                <!-- Grid -->
+                <g class="chart-grid">
+                  <line x1="40" y1="30" x2="780" y2="30"/>
+                  <line x1="40" y1="80" x2="780" y2="80"/>
+                  <line x1="40" y1="130" x2="780" y2="130"/>
+                  <line x1="40" y1="180" x2="780" y2="180"/>
+                  <line x1="40" y1="220" x2="780" y2="220"/>
+                </g>
+                
+                <!-- Y axis -->
+                <g class="chart-axis">
+                  <text x="32" y="34" text-anchor="end">15k</text>
+                  <text x="32" y="84" text-anchor="end">12k</text>
+                  <text x="32" y="134" text-anchor="end">9k</text>
+                  <text x="32" y="184" text-anchor="end">6k</text>
+                  <text x="32" y="224" text-anchor="end">3k</text>
+                </g>
+                
+                <!-- X axis -->
+                <g class="chart-axis">
+                  <text x="40" y="234" text-anchor="middle">1</text>
+                  <text x="200" y="234" text-anchor="middle">8</text>
+                  <text x="360" y="234" text-anchor="middle">15</text>
+                  <text x="520" y="234" text-anchor="middle">22</text>
+                  <text x="680" y="234" text-anchor="middle">29</text>
+                </g>
+                
+                <!-- Línea anterior (purple dashed) -->
+                <path class="line-area-2" d="M 40 160 Q 100 150, 160 152 T 280 145 T 400 130 T 520 125 T 640 115 L 780 110 L 780 224 L 40 224 Z"/>
+                <path class="line-stroke-2" d="M 40 160 Q 100 150, 160 152 T 280 145 T 400 130 T 520 125 T 640 115 L 780 110"/>
+                
+                <!-- Línea actual (verde) -->
+                <path class="line-area-1" d="M 40 140 Q 100 130, 160 125 T 280 110 T 400 95 T 520 80 T 640 60 L 780 40 L 780 224 L 40 224 Z"/>
+                <path class="line-stroke-1" d="M 40 140 Q 100 130, 160 125 T 280 110 T 400 95 T 520 80 T 640 60 L 780 40"/>
+                
+                <!-- Dots actuales -->
+                <circle class="line-dot line-dot-1" cx="40" cy="140" r="4"/>
+                <circle class="line-dot line-dot-1" cx="200" cy="118" r="4"/>
+                <circle class="line-dot line-dot-1" cx="360" cy="98" r="4"/>
+                <circle class="line-dot line-dot-1" cx="520" cy="78" r="4"/>
+                <circle class="line-dot line-dot-1" cx="680" cy="50" r="4"/>
+                <circle class="line-dot line-dot-1" cx="780" cy="40" r="5"/>
+              </svg>
+              
+              <div class="chart-legend">
+                <div class="legend-item">
+                  <span class="legend-line" style="background: var(--accent);"></span>
+                  <span>este mes (avg 11,200 DAU)</span>
+                </div>
+                <div class="legend-item">
+                  <span class="legend-line" style="background: var(--purple); border-top: 2px dashed var(--purple); height: 0;"></span>
+                  <span>mes anterior (avg 9,500 DAU)</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- BAR CHART: eventos por categoría -->
+        <div class="section-card">
+          <div class="section-head">
+            <div>
+              <h2 class="section-title">eventos por día y categoría</h2>
+              <span class="section-help">stacked · últimos 14 días</span>
+            </div>
+          </div>
+          <div class="section-body">
+            <div class="bar-chart">
+              
+              <div class="bar-col">
+                <div class="bar-stack">
+                  <div class="bar-segment s1" style="height: 40%;"></div>
+                  <div class="bar-segment s2" style="height: 25%;"></div>
+                  <div class="bar-segment s3" style="height: 15%;"></div>
+                  <div class="bar-segment s4" style="height: 8%;"></div>
+                </div>
+                <span class="bar-label">L</span>
+              </div>
+              <div class="bar-col">
+                <div class="bar-stack">
+                  <div class="bar-segment s1" style="height: 45%;"></div>
+                  <div class="bar-segment s2" style="height: 30%;"></div>
+                  <div class="bar-segment s3" style="height: 12%;"></div>
+                  <div class="bar-segment s4" style="height: 8%;"></div>
+                </div>
+                <span class="bar-label">M</span>
+              </div>
+              <div class="bar-col">
+                <div class="bar-stack">
+                  <div class="bar-segment s1" style="height: 38%;"></div>
+                  <div class="bar-segment s2" style="height: 28%;"></div>
+                  <div class="bar-segment s3" style="height: 18%;"></div>
+                  <div class="bar-segment s4" style="height: 6%;"></div>
+                </div>
+                <span class="bar-label">M</span>
+              </div>
+              <div class="bar-col">
+                <div class="bar-stack">
+                  <div class="bar-segment s1" style="height: 50%;"></div>
+                  <div class="bar-segment s2" style="height: 28%;"></div>
+                  <div class="bar-segment s3" style="height: 14%;"></div>
+                  <div class="bar-segment s4" style="height: 8%;"></div>
+                </div>
+                <span class="bar-label">J</span>
+              </div>
+              <div class="bar-col">
+                <div class="bar-stack">
+                  <div class="bar-segment s1" style="height: 65%;"></div>
+                  <div class="bar-segment s2" style="height: 18%;"></div>
+                  <div class="bar-segment s3" style="height: 12%;"></div>
+                  <div class="bar-segment s4" style="height: 5%;"></div>
+                </div>
+                <span class="bar-label">V</span>
+              </div>
+              <div class="bar-col">
+                <div class="bar-stack">
+                  <div class="bar-segment s1" style="height: 78%;"></div>
+                  <div class="bar-segment s2" style="height: 12%;"></div>
+                  <div class="bar-segment s3" style="height: 8%;"></div>
+                  <div class="bar-segment s4" style="height: 2%;"></div>
+                </div>
+                <span class="bar-label">S</span>
+              </div>
+              <div class="bar-col">
+                <div class="bar-stack">
+                  <div class="bar-segment s1" style="height: 70%;"></div>
+                  <div class="bar-segment s2" style="height: 14%;"></div>
+                  <div class="bar-segment s3" style="height: 12%;"></div>
+                  <div class="bar-segment s4" style="height: 4%;"></div>
+                </div>
+                <span class="bar-label">D</span>
+              </div>
+              <div class="bar-col">
+                <div class="bar-stack">
+                  <div class="bar-segment s1" style="height: 42%;"></div>
+                  <div class="bar-segment s2" style="height: 28%;"></div>
+                  <div class="bar-segment s3" style="height: 16%;"></div>
+                  <div class="bar-segment s4" style="height: 9%;"></div>
+                </div>
+                <span class="bar-label">L</span>
+              </div>
+              <div class="bar-col">
+                <div class="bar-stack">
+                  <div class="bar-segment s1" style="height: 48%;"></div>
+                  <div class="bar-segment s2" style="height: 32%;"></div>
+                  <div class="bar-segment s3" style="height: 14%;"></div>
+                  <div class="bar-segment s4" style="height: 7%;"></div>
+                </div>
+                <span class="bar-label">M</span>
+              </div>
+              <div class="bar-col">
+                <div class="bar-stack">
+                  <div class="bar-segment s1" style="height: 42%;"></div>
+                  <div class="bar-segment s2" style="height: 26%;"></div>
+                  <div class="bar-segment s3" style="height: 22%;"></div>
+                  <div class="bar-segment s4" style="height: 5%;"></div>
+                </div>
+                <span class="bar-label">M</span>
+              </div>
+              <div class="bar-col">
+                <div class="bar-stack">
+                  <div class="bar-segment s1" style="height: 56%;"></div>
+                  <div class="bar-segment s2" style="height: 30%;"></div>
+                  <div class="bar-segment s3" style="height: 12%;"></div>
+                  <div class="bar-segment s4" style="height: 4%;"></div>
+                </div>
+                <span class="bar-label">J</span>
+              </div>
+              <div class="bar-col">
+                <div class="bar-stack">
+                  <div class="bar-segment s1" style="height: 75%;"></div>
+                  <div class="bar-segment s2" style="height: 14%;"></div>
+                  <div class="bar-segment s3" style="height: 9%;"></div>
+                  <div class="bar-segment s4" style="height: 2%;"></div>
+                </div>
+                <span class="bar-label">V</span>
+              </div>
+              <div class="bar-col">
+                <div class="bar-stack">
+                  <div class="bar-segment s1" style="height: 88%;"></div>
+                  <div class="bar-segment s2" style="height: 8%;"></div>
+                  <div class="bar-segment s3" style="height: 4%;"></div>
+                </div>
+                <span class="bar-label">S</span>
+              </div>
+              <div class="bar-col">
+                <div class="bar-stack">
+                  <div class="bar-segment s1" style="height: 92%;"></div>
+                  <div class="bar-segment s2" style="height: 5%;"></div>
+                  <div class="bar-segment s3" style="height: 3%;"></div>
+                </div>
+                <span class="bar-label">D</span>
+              </div>
+            </div>
+            
+            <div class="chart-legend" style="margin-top: 20px;">
+              <div class="legend-item">
+                <span class="legend-dot" style="background: var(--accent);"></span>
+                <span>slots</span>
+              </div>
+              <div class="legend-item">
+                <span class="legend-dot" style="background: var(--info);"></span>
+                <span>deportes</span>
+              </div>
+              <div class="legend-item">
+                <span class="legend-dot" style="background: var(--purple);"></span>
+                <span>poker</span>
+              </div>
+              <div class="legend-item">
+                <span class="legend-dot" style="background: var(--orange);"></span>
+                <span>otros</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- FUNNEL: progresión de niveles -->
+        <div class="section-card">
+          <div class="section-head">
+            <div>
+              <h2 class="section-title">funnel · progresión de niveles</h2>
+              <span class="section-help">% de jugadores que llega a cada nivel</span>
+            </div>
+            <div class="section-actions">
+              <button class="chip-toggle active">cohort actual</button>
+              <button class="chip-toggle">históricos</button>
+            </div>
+          </div>
+          <div class="section-body">
+            <div class="funnel">
+              
+              <div class="funnel-step">
+                <span class="funnel-label">Nivel 1</span>
+                <div class="funnel-bar-wrap">
+                  <div class="funnel-bar b1" style="width: 100%;">12,847 jugadores</div>
+                </div>
+                <span class="funnel-pct">100%</span>
+              </div>
+              
+              <div class="funnel-step">
+                <span class="funnel-label">Nivel 5</span>
+                <div class="funnel-bar-wrap">
+                  <div class="funnel-bar b2" style="width: 78%;">10,021</div>
+                </div>
+                <span class="funnel-pct">78%</span>
+              </div>
+              
+              <div class="funnel-step">
+                <span class="funnel-label">Nivel 10</span>
+                <div class="funnel-bar-wrap">
+                  <div class="funnel-bar b3" style="width: 56%;">7,194</div>
+                </div>
+                <span class="funnel-pct">56%</span>
+              </div>
+              
+              <div class="funnel-step">
+                <span class="funnel-label">Nivel 20 · VIP bronze</span>
+                <div class="funnel-bar-wrap">
+                  <div class="funnel-bar b4" style="width: 34%;">4,368</div>
+                </div>
+                <span class="funnel-pct">34%</span>
+              </div>
+              
+              <div class="funnel-step">
+                <span class="funnel-label">Nivel 50 · VIP plata</span>
+                <div class="funnel-bar-wrap">
+                  <div class="funnel-bar b5" style="width: 12%;">1,541</div>
+                </div>
+                <span class="funnel-pct">12%</span>
+              </div>
+            </div>
+            
+            <div style="margin-top: 16px; padding: 12px; background: var(--bg-tertiary); border-radius: 8px;">
+              <p style="font-size: 12px; color: var(--text-secondary); line-height: 1.6;">
+                <span style="color: var(--success); font-weight: 600;">+ análisis:</span> el drop-off más grande es entre nivel 10 y 20 (22% pierde interés). considerá agregar misiones especiales o cofres extra entre esos niveles para aumentar engagement.
+              </p>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- ====== COL DERECHA ====== -->
+      <div class="charts-col-right">
+
+        <!-- DONUT: distribución por VIP tier -->
+        <div class="section-card">
+          <div class="section-head">
+            <div>
+              <h2 class="section-title">distribución VIP</h2>
+              <span class="section-help">12,847 jugadores</span>
+            </div>
+          </div>
+          <div class="section-body">
+            <div class="donut-wrap">
+              <svg class="donut-chart" viewBox="0 0 100 100">
+                <!-- Círculo base -->
+                <circle cx="50" cy="50" r="38" fill="none" stroke="var(--bg-tertiary)" stroke-width="14"/>
+                
+                <!-- Sin VIP (66%) -->
+                <circle cx="50" cy="50" r="38" fill="none" 
+                  stroke="var(--text-tertiary)" 
+                  stroke-width="14" 
+                  stroke-dasharray="157.5 238.7"
+                  stroke-dashoffset="0"
+                  transform="rotate(-90 50 50)"/>
+                
+                <!-- Bronze (22%) -->
+                <circle cx="50" cy="50" r="38" fill="none" 
+                  stroke="#CD7F32" 
+                  stroke-width="14" 
+                  stroke-dasharray="52.5 238.7"
+                  stroke-dashoffset="-157.5"
+                  transform="rotate(-90 50 50)"/>
+                
+                <!-- Silver (8%) -->
+                <circle cx="50" cy="50" r="38" fill="none" 
+                  stroke="#C0C0C0" 
+                  stroke-width="14" 
+                  stroke-dasharray="19.1 238.7"
+                  stroke-dashoffset="-210"
+                  transform="rotate(-90 50 50)"/>
+                
+                <!-- Gold (3%) -->
+                <circle cx="50" cy="50" r="38" fill="none" 
+                  stroke="#FFD700" 
+                  stroke-width="14" 
+                  stroke-dasharray="7.16 238.7"
+                  stroke-dashoffset="-229.1"
+                  transform="rotate(-90 50 50)"/>
+                
+                <!-- Diamond (1%) -->
+                <circle cx="50" cy="50" r="38" fill="none" 
+                  stroke="#00D9FF" 
+                  stroke-width="14" 
+                  stroke-dasharray="2.39 238.7"
+                  stroke-dashoffset="-236.3"
+                  transform="rotate(-90 50 50)"/>
+                
+                <!-- Texto centro -->
+                <text x="50" y="48" text-anchor="middle" fill="var(--text-primary)" font-family="Urbanist" font-size="14" font-weight="600">34%</text>
+                <text x="50" y="58" text-anchor="middle" fill="var(--text-tertiary)" font-family="Urbanist" font-size="6" font-style="italic">son VIP</text>
+              </svg>
+              
+              <div class="donut-legend">
+                <div class="donut-row">
+                  <div class="donut-row-left">
+                    <span class="donut-color" style="background: var(--text-tertiary);"></span>
+                    <span class="donut-label">sin VIP</span>
+                  </div>
+                  <span class="donut-value">66%</span>
+                </div>
+                <div class="donut-row">
+                  <div class="donut-row-left">
+                    <span class="donut-color" style="background: #CD7F32;"></span>
+                    <span class="donut-label">bronze</span>
+                  </div>
+                  <span class="donut-value">22%</span>
+                </div>
+                <div class="donut-row">
+                  <div class="donut-row-left">
+                    <span class="donut-color" style="background: #C0C0C0;"></span>
+                    <span class="donut-label">plata</span>
+                  </div>
+                  <span class="donut-value">8%</span>
+                </div>
+                <div class="donut-row">
+                  <div class="donut-row-left">
+                    <span class="donut-color" style="background: #FFD700;"></span>
+                    <span class="donut-label">oro</span>
+                  </div>
+                  <span class="donut-value">3%</span>
+                </div>
+                <div class="donut-row">
+                  <div class="donut-row-left">
+                    <span class="donut-color" style="background: #00D9FF;"></span>
+                    <span class="donut-label">diamond</span>
+                  </div>
+                  <span class="donut-value">1%</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- TOP REGLAS -->
+        <div class="section-card">
+          <div class="section-head">
+            <div>
+              <h2 class="section-title">top 5 reglas más usadas</h2>
+              <span class="section-help">por XP otorgada</span>
+            </div>
+          </div>
+          <div class="section-body">
+            <div class="top-list">
+              
+              <div class="top-row">
+                <span class="top-rank gold">1</span>
+                <div class="top-info">
+                  <div>
+                    <div class="top-name">Apuesta deportiva ganadora</div>
+                    <div class="top-meta">2.4M aplicaciones</div>
+                  </div>
+                </div>
+                <span class="top-value success">3.2M XP</span>
+              </div>
+              
+              <div class="top-row">
+                <span class="top-rank silver">2</span>
+                <div class="top-info">
+                  <div>
+                    <div class="top-name">Apuesta en slots</div>
+                    <div class="top-meta">8.1M aplicaciones</div>
+                  </div>
+                </div>
+                <span class="top-value success">2.1M XP</span>
+              </div>
+              
+              <div class="top-row">
+                <span class="top-rank bronze">3</span>
+                <div class="top-info">
+                  <div>
+                    <div class="top-name">Primer depósito del mes</div>
+                    <div class="top-meta">1.2k aplicaciones</div>
+                  </div>
+                </div>
+                <span class="top-value success">1.4M XP</span>
+              </div>
+              
+              <div class="top-row">
+                <span class="top-rank">4</span>
+                <div class="top-info">
+                  <div>
+                    <div class="top-name">Mano de poker ganada</div>
+                    <div class="top-meta">421k aplicaciones</div>
+                  </div>
+                </div>
+                <span class="top-value success">892k XP</span>
+              </div>
+              
+              <div class="top-row">
+                <span class="top-rank">5</span>
+                <div class="top-info">
+                  <div>
+                    <div class="top-name">Login diario</div>
+                    <div class="top-meta">385k aplicaciones</div>
+                  </div>
+                </div>
+                <span class="top-value success">441k XP</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- TOP JUGADORES -->
+        <div class="section-card">
+          <div class="section-head">
+            <div>
+              <h2 class="section-title">top 5 jugadores</h2>
+              <span class="section-help">por XP del mes</span>
+            </div>
+            <a href="#" style="font-size: 11px; color: var(--accent); text-decoration: none;">ver todos →</a>
+          </div>
+          <div class="section-body">
+            <div class="top-list">
+              
+              <div class="top-row">
+                <span class="top-rank gold">1</span>
+                <div class="top-info">
+                  <div class="top-avatar" style="background: linear-gradient(135deg, #FFD700, #C8941F);">AS</div>
+                  <div>
+                    <div class="top-name">Ana Soto</div>
+                    <div class="top-meta">VIP oro · nivel 47</div>
+                  </div>
+                </div>
+                <span class="top-value">142k XP</span>
+              </div>
+              
+              <div class="top-row">
+                <span class="top-rank silver">2</span>
+                <div class="top-info">
+                  <div class="top-avatar" style="background: linear-gradient(135deg, #58A6FF, #2563EB);">CG</div>
+                  <div>
+                    <div class="top-name">Carlos Gómez</div>
+                    <div class="top-meta">VIP plata · nivel 38</div>
+                  </div>
+                </div>
+                <span class="top-value">128k XP</span>
+              </div>
+              
+              <div class="top-row">
+                <span class="top-rank bronze">3</span>
+                <div class="top-info">
+                  <div class="top-avatar" style="background: linear-gradient(135deg, #A78BFA, #6D28D9);">MR</div>
+                  <div>
+                    <div class="top-name">María Rodríguez</div>
+                    <div class="top-meta">VIP plata · nivel 35</div>
+                  </div>
+                </div>
+                <span class="top-value">115k XP</span>
+              </div>
+              
+              <div class="top-row">
+                <span class="top-rank">4</span>
+                <div class="top-info">
+                  <div class="top-avatar" style="background: linear-gradient(135deg, #F471B5, #DB2777);">PG</div>
+                  <div>
+                    <div class="top-name">Pedro García</div>
+                    <div class="top-meta">VIP bronze · nivel 28</div>
+                  </div>
+                </div>
+                <span class="top-value">98k XP</span>
+              </div>
+              
+              <div class="top-row">
+                <span class="top-rank">5</span>
+                <div class="top-info">
+                  <div class="top-avatar" style="background: linear-gradient(135deg, #FF8C42, #DC5A0F);">JM</div>
+                  <div>
+                    <div class="top-name">Juan Martínez</div>
+                    <div class="top-meta">VIP bronze · nivel 26</div>
+                  </div>
+                </div>
+                <span class="top-value">87k XP</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ============ HEATMAP ABAJO ============ -->
+    <div class="section-card">
+      <div class="section-head">
+        <div>
+          <h2 class="section-title">heatmap de actividad · cuándo juegan tus usuarios</h2>
+          <span class="section-help">eventos por hora y día de la semana · últimos 30 días</span>
+        </div>
+        <div class="section-actions">
+          <span style="font-size: 11px; color: var(--text-tertiary);">menos</span>
+          <div style="display: flex; gap: 2px;">
+            <div class="heatmap-cell" style="width: 12px; height: 12px;"></div>
+            <div class="heatmap-cell h1" style="width: 12px; height: 12px;"></div>
+            <div class="heatmap-cell h2" style="width: 12px; height: 12px;"></div>
+            <div class="heatmap-cell h3" style="width: 12px; height: 12px;"></div>
+            <div class="heatmap-cell h4" style="width: 12px; height: 12px;"></div>
+            <div class="heatmap-cell h5" style="width: 12px; height: 12px;"></div>
+          </div>
+          <span style="font-size: 11px; color: var(--text-tertiary);">más</span>
+        </div>
+      </div>
+      <div class="section-body">
+        <div class="heatmap-wrap">
+          
+          <div class="heatmap-row">
+            <span class="heatmap-row-label">L</span>
+            <div class="heatmap-cell"></div><div class="heatmap-cell"></div><div class="heatmap-cell"></div><div class="heatmap-cell h1"></div>
+            <div class="heatmap-cell h1"></div><div class="heatmap-cell h2"></div><div class="heatmap-cell h2"></div><div class="heatmap-cell h3"></div>
+            <div class="heatmap-cell h3"></div><div class="heatmap-cell h2"></div><div class="heatmap-cell h2"></div><div class="heatmap-cell h2"></div>
+            <div class="heatmap-cell h3"></div><div class="heatmap-cell h3"></div><div class="heatmap-cell h2"></div><div class="heatmap-cell h2"></div>
+            <div class="heatmap-cell h3"></div><div class="heatmap-cell h4"></div><div class="heatmap-cell h4"></div><div class="heatmap-cell h5"></div>
+            <div class="heatmap-cell h5"></div><div class="heatmap-cell h4"></div><div class="heatmap-cell h3"></div><div class="heatmap-cell h2"></div>
+          </div>
+          
+          <div class="heatmap-row">
+            <span class="heatmap-row-label">M</span>
+            <div class="heatmap-cell"></div><div class="heatmap-cell"></div><div class="heatmap-cell"></div><div class="heatmap-cell h1"></div>
+            <div class="heatmap-cell h1"></div><div class="heatmap-cell h2"></div><div class="heatmap-cell h2"></div><div class="heatmap-cell h3"></div>
+            <div class="heatmap-cell h3"></div><div class="heatmap-cell h2"></div><div class="heatmap-cell h2"></div><div class="heatmap-cell h2"></div>
+            <div class="heatmap-cell h3"></div><div class="heatmap-cell h3"></div><div class="heatmap-cell h3"></div><div class="heatmap-cell h2"></div>
+            <div class="heatmap-cell h3"></div><div class="heatmap-cell h4"></div><div class="heatmap-cell h4"></div><div class="heatmap-cell h5"></div>
+            <div class="heatmap-cell h5"></div><div class="heatmap-cell h4"></div><div class="heatmap-cell h3"></div><div class="heatmap-cell h2"></div>
+          </div>
+          
+          <div class="heatmap-row">
+            <span class="heatmap-row-label">M</span>
+            <div class="heatmap-cell"></div><div class="heatmap-cell"></div><div class="heatmap-cell"></div><div class="heatmap-cell h1"></div>
+            <div class="heatmap-cell h1"></div><div class="heatmap-cell h2"></div><div class="heatmap-cell h2"></div><div class="heatmap-cell h3"></div>
+            <div class="heatmap-cell h3"></div><div class="heatmap-cell h2"></div><div class="heatmap-cell h2"></div><div class="heatmap-cell h2"></div>
+            <div class="heatmap-cell h3"></div><div class="heatmap-cell h3"></div><div class="heatmap-cell h2"></div><div class="heatmap-cell h2"></div>
+            <div class="heatmap-cell h3"></div><div class="heatmap-cell h4"></div><div class="heatmap-cell h4"></div><div class="heatmap-cell h5"></div>
+            <div class="heatmap-cell h5"></div><div class="heatmap-cell h4"></div><div class="heatmap-cell h3"></div><div class="heatmap-cell h2"></div>
+          </div>
+          
+          <div class="heatmap-row">
+            <span class="heatmap-row-label">J</span>
+            <div class="heatmap-cell"></div><div class="heatmap-cell"></div><div class="heatmap-cell"></div><div class="heatmap-cell h1"></div>
+            <div class="heatmap-cell h1"></div><div class="heatmap-cell h2"></div><div class="heatmap-cell h2"></div><div class="heatmap-cell h3"></div>
+            <div class="heatmap-cell h3"></div><div class="heatmap-cell h2"></div><div class="heatmap-cell h2"></div><div class="heatmap-cell h3"></div>
+            <div class="heatmap-cell h3"></div><div class="heatmap-cell h3"></div><div class="heatmap-cell h3"></div><div class="heatmap-cell h2"></div>
+            <div class="heatmap-cell h3"></div><div class="heatmap-cell h4"></div><div class="heatmap-cell h4"></div><div class="heatmap-cell h5"></div>
+            <div class="heatmap-cell h5"></div><div class="heatmap-cell h5"></div><div class="heatmap-cell h4"></div><div class="heatmap-cell h2"></div>
+          </div>
+          
+          <div class="heatmap-row">
+            <span class="heatmap-row-label">V</span>
+            <div class="heatmap-cell"></div><div class="heatmap-cell"></div><div class="heatmap-cell"></div><div class="heatmap-cell h1"></div>
+            <div class="heatmap-cell h1"></div><div class="heatmap-cell h2"></div><div class="heatmap-cell h2"></div><div class="heatmap-cell h3"></div>
+            <div class="heatmap-cell h3"></div><div class="heatmap-cell h2"></div><div class="heatmap-cell h2"></div><div class="heatmap-cell h3"></div>
+            <div class="heatmap-cell h3"></div><div class="heatmap-cell h3"></div><div class="heatmap-cell h4"></div><div class="heatmap-cell h4"></div>
+            <div class="heatmap-cell h5"></div><div class="heatmap-cell h5"></div><div class="heatmap-cell h5"></div><div class="heatmap-cell h5"></div>
+            <div class="heatmap-cell h5"></div><div class="heatmap-cell h5"></div><div class="heatmap-cell h4"></div><div class="heatmap-cell h3"></div>
+          </div>
+          
+          <div class="heatmap-row">
+            <span class="heatmap-row-label">S</span>
+            <div class="heatmap-cell h1"></div><div class="heatmap-cell h1"></div><div class="heatmap-cell"></div><div class="heatmap-cell"></div>
+            <div class="heatmap-cell h1"></div><div class="heatmap-cell h2"></div><div class="heatmap-cell h3"></div><div class="heatmap-cell h3"></div>
+            <div class="heatmap-cell h4"></div><div class="heatmap-cell h4"></div><div class="heatmap-cell h4"></div><div class="heatmap-cell h5"></div>
+            <div class="heatmap-cell h5"></div><div class="heatmap-cell h5"></div><div class="heatmap-cell h5"></div><div class="heatmap-cell h5"></div>
+            <div class="heatmap-cell h5"></div><div class="heatmap-cell h5"></div><div class="heatmap-cell h5"></div><div class="heatmap-cell h5"></div>
+            <div class="heatmap-cell h5"></div><div class="heatmap-cell h5"></div><div class="heatmap-cell h5"></div><div class="heatmap-cell h4"></div>
+          </div>
+          
+          <div class="heatmap-row">
+            <span class="heatmap-row-label">D</span>
+            <div class="heatmap-cell h1"></div><div class="heatmap-cell h1"></div><div class="heatmap-cell"></div><div class="heatmap-cell"></div>
+            <div class="heatmap-cell"></div><div class="heatmap-cell h1"></div><div class="heatmap-cell h2"></div><div class="heatmap-cell h3"></div>
+            <div class="heatmap-cell h3"></div><div class="heatmap-cell h4"></div><div class="heatmap-cell h4"></div><div class="heatmap-cell h5"></div>
+            <div class="heatmap-cell h5"></div><div class="heatmap-cell h5"></div><div class="heatmap-cell h5"></div><div class="heatmap-cell h5"></div>
+            <div class="heatmap-cell h5"></div><div class="heatmap-cell h5"></div><div class="heatmap-cell h5"></div><div class="heatmap-cell h5"></div>
+            <div class="heatmap-cell h4"></div><div class="heatmap-cell h4"></div><div class="heatmap-cell h3"></div><div class="heatmap-cell h2"></div>
+          </div>
+        </div>
+        
+        <div class="heatmap-axis">
+          <span></span>
+          <span class="heatmap-axis-label">0</span><span class="heatmap-axis-label"></span><span class="heatmap-axis-label"></span><span class="heatmap-axis-label"></span>
+          <span class="heatmap-axis-label">4</span><span class="heatmap-axis-label"></span><span class="heatmap-axis-label"></span><span class="heatmap-axis-label"></span>
+          <span class="heatmap-axis-label">8</span><span class="heatmap-axis-label"></span><span class="heatmap-axis-label"></span><span class="heatmap-axis-label"></span>
+          <span class="heatmap-axis-label">12</span><span class="heatmap-axis-label"></span><span class="heatmap-axis-label"></span><span class="heatmap-axis-label"></span>
+          <span class="heatmap-axis-label">16</span><span class="heatmap-axis-label"></span><span class="heatmap-axis-label"></span><span class="heatmap-axis-label"></span>
+          <span class="heatmap-axis-label">20</span><span class="heatmap-axis-label"></span><span class="heatmap-axis-label"></span><span class="heatmap-axis-label"></span>
+        </div>
+        
+        <div style="margin-top: 16px; padding: 12px; background: var(--bg-tertiary); border-radius: 8px;">
+          <p style="font-size: 12px; color: var(--text-secondary); line-height: 1.6;">
+            <span style="color: var(--info); font-weight: 600;">+ insight:</span> tu pico de actividad es viernes y sábado entre 16:00 y 22:00 hs. considerá programar torneos en esos horarios para maximizar participación.
+          </p>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+</div>
+
+</body>
+</html>
