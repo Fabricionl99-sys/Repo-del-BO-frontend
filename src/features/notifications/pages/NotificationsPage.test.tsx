@@ -1,0 +1,7 @@
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { cleanup, fireEvent, render, screen } from '@testing-library/react';
+import { MemoryRouter } from 'react-router-dom';
+import { describe, expect, it } from 'vitest';
+import NotificationsPage from './NotificationsPage';
+function wrap(route='/notificaciones'){cleanup();return render(<MemoryRouter initialEntries={[route]}><QueryClientProvider client={new QueryClient({defaultOptions:{queries:{retry:false}}})}><NotificationsPage/></QueryClientProvider></MemoryRouter>)}
+describe('Tier4 notificaciones',()=>{it('muestra canales y crea template',async()=>{wrap();expect(await screen.findByText('Push niveles')).toBeInTheDocument();expect(screen.getByText('Email')).toBeInTheDocument();expect(screen.getByText('SMS')).toBeInTheDocument();expect(screen.getByText('CRM externo')).toBeInTheDocument();expect(screen.getByText('¡Felicitaciones, subiste de nivel!')).toBeInTheDocument();fireEvent.click(screen.getByText('nuevo template'));expect(screen.getByText('Nuevo template')).toBeInTheDocument();fireEvent.click(screen.getByText('guardar template'));expect(await screen.findByText('Template QA broadcast',{}, {timeout:5000})).toBeInTheDocument();});it('empty forzado',()=>{wrap('/notificaciones?mockState=empty');expect(screen.getByText('No hay canales configurados')).toBeInTheDocument();expect(screen.getByText('No hay templates')).toBeInTheDocument()})});
