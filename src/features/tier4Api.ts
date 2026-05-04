@@ -1,0 +1,10 @@
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { apiClient } from '@/api/client';
+import { toast } from '@/stores/toastStore';
+import type { ChannelConfig, NewsItem, NotificationTemplate, Product } from '@/types/tier4';
+function useList<T>(key:string,path:string){return useQuery({queryKey:[key],queryFn:()=>apiClient.get(path).then(r=>r.data as T[])})}
+function useItem<T>(key:string,path:string,id:string|null){return useQuery({queryKey:[key,id],enabled:!!id,queryFn:()=>apiClient.get(`${path}/${id}`).then(r=>r.data as T)})}
+function useSave<T extends {id?:string}>(key:string,path:string,label:string){const qc=useQueryClient();return useMutation({mutationFn:(payload:Partial<T>)=>payload.id?apiClient.patch(`${path}/${payload.id}`,payload):apiClient.post(path,payload),onSuccess:()=>{toast.success(`${label} guardado`);qc.invalidateQueries({queryKey:[key]})}})}
+export const useProducts=()=>useList<Product>('products','/admin/products'); export const useProduct=(id:string|null)=>useItem<Product>('products','/admin/products',id); export const useSaveProduct=()=>useSave<Product>('products','/admin/products','producto'); export const useUploadProductImage=()=>useMutation({mutationFn:()=>apiClient.post('/admin/products/upload-url').then(r=>r.data as {uploadUrl:string;finalUrl:string})});
+export const useChannels=()=>useList<ChannelConfig>('notifications-channels','/admin/notifications/channels'); export const useTemplates=()=>useList<NotificationTemplate>('notifications-templates','/admin/notifications/templates'); export const useSaveTemplate=()=>useSave<NotificationTemplate>('notifications-templates','/admin/notifications/templates','template');
+export const useNews=()=>useList<NewsItem>('news','/admin/news'); export const useNewsItem=(id:string|null)=>useItem<NewsItem>('news','/admin/news',id); export const useSaveNews=()=>useSave<NewsItem>('news','/admin/news','noticia'); export const useTogglePin=()=>{const qc=useQueryClient();return useMutation({mutationFn:(id:string)=>apiClient.patch(`/admin/news/${id}/pin`),onSuccess:()=>{toast.success('pin actualizado');qc.invalidateQueries({queryKey:['news']})}})}

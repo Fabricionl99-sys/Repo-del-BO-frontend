@@ -100,3 +100,22 @@ handlers.push(
   http.post('*/admin/tournaments/:id/end', async ({ params }) => { await wait(); const item = tournaments.find((t) => t.id === params.id) ?? tournaments[0]; item.status = 'finished'; return HttpResponse.json(item); }),
   http.get('*/admin/tournaments/:id/leaderboard', async () => { await wait(); return HttpResponse.json([{ rank: 1, player: 'crypto_king_88', score: 128470 }, { rank: 2, player: 'MariaG_bet', score: 98200 }]); }),
 );
+
+import { channels, news, products, templates } from '@/mocks/data/tier4';
+crudHandlers('product', 'products', products);
+crudHandlers('template', 'notifications/templates', templates);
+crudHandlers('news', 'news', news);
+handlers.push(
+  http.post('*/admin/products/upload-url', async () => { await wait(); return HttpResponse.json({ uploadUrl: 'https://uploads.preview.niveles.io/mock-product', finalUrl: 'https://images.unsplash.com/photo-1511512578047-dfb367046420?w=500' }); }),
+  http.post('*/admin/products/import', async () => { await wait(); return HttpResponse.json({ imported: 3 }); }),
+  http.get('*/admin/products/:id/redemptions', async () => { await wait(); return HttpResponse.json([{ id: 'red_1', player: 'crypto_king_88', redeemedAt: new Date().toISOString() }]); }),
+  http.get('*/admin/notifications/channels', async () => { await wait(); return HttpResponse.json(channels); }),
+  http.get('*/admin/notifications/channels/:kind', async ({ params }) => { await wait(); return HttpResponse.json(channels.find((channel) => channel.kind === params.kind) ?? channels[0]); }),
+  http.patch('*/admin/notifications/channels/:kind', async ({ params, request }) => { await wait(); const channel = channels.find((item) => item.kind === params.kind) ?? channels[0]; Object.assign(channel, await request.json()); return HttpResponse.json(channel); }),
+  http.post('*/admin/notifications/channels/:kind/test', async () => { await wait(); return HttpResponse.json({ ok: true }); }),
+  http.post('*/admin/notifications/templates/:id/send', async () => { await wait(); return HttpResponse.json({ sent: 1284 }); }),
+  http.patch('*/admin/news/:id/pin', async ({ params }) => { await wait(); const item = news.find((entry) => entry.id === params.id) ?? news[0]; item.pinned = !item.pinned; return HttpResponse.json(item); }),
+  http.post('*/admin/news/:id/publish', async ({ params }) => { await wait(); const item = news.find((entry) => entry.id === params.id) ?? news[0]; item.status = 'published'; item.publishedAt = new Date().toISOString(); return HttpResponse.json(item); }),
+  http.post('*/admin/news/:id/unpublish', async ({ params }) => { await wait(); const item = news.find((entry) => entry.id === params.id) ?? news[0]; item.status = 'unpublished'; return HttpResponse.json(item); }),
+  http.post('*/admin/news/upload-banner', async () => { await wait(); return HttpResponse.json({ uploadUrl: 'https://uploads.preview.niveles.io/mock-news', finalUrl: 'https://images.unsplash.com/photo-1542751371-adc38448a05e?w=800' }); }),
+);

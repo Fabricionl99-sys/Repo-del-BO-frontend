@@ -24,6 +24,10 @@ const ChestEditorPage = lazy(() => import('@/features/chests/pages/ChestEditorPa
 const DailyRewardsPage = lazy(() => import('@/features/dailyRewards/pages/DailyRewardsPage'));
 const TournamentsPage = lazy(() => import('@/features/tournaments/pages/TournamentsPage'));
 const TournamentEditorPage = lazy(() => import('@/features/tournaments/pages/TournamentEditorPage'));
+const ShopPage = lazy(() => import('@/features/shop/pages/ShopPage'));
+const NotificationsPage = lazy(() => import('@/features/notifications/pages/NotificationsPage'));
+const NewsPage = lazy(() => import('@/features/news/pages/NewsPage'));
+const NewsEditorPage = lazy(() => import('@/features/news/pages/NewsEditorPage'));
 const ComingSoonPage = lazy(() => import('@/pages/ComingSoonPage'));
 
 const wrap = (element: React.ReactNode) => <Suspense fallback={<Loading />}>{element}</Suspense>;
@@ -41,10 +45,6 @@ const comingSoonRoutes = [
   { path: 'billing', title: 'Facturación', description: 'plan, consumo y facturas' },
   { path: 'profile', title: 'Mi perfil', description: 'datos personales y seguridad' },
   { path: 'recover-password', title: 'Recuperar contraseña' },
-  { path: 'tienda', title: 'Tienda virtual' },
-  { path: 'notificaciones', title: 'Notificaciones' },
-  { path: 'noticias', title: 'Noticias' },
-  { path: 'noticias/:id', title: 'Noticias' },
   { path: 'metricas', title: 'Métricas' },
   { path: 'moderacion', title: 'Moderación' },
 ];
@@ -90,6 +90,15 @@ export const router = createBrowserRouter([
       { path: 'torneos', element: wrap(<TournamentsPage />) },
       { path: 'torneos/nuevo', element: wrap(<TournamentEditorPage />) },
       { path: 'torneos/:id', element: wrap(<TournamentEditorPage />) },
+      { path: 'tienda', element: wrap(<ShopPage />) },
+      { path: 'tienda/nuevo', element: wrap(<ShopPage />) },
+      { path: 'tienda/:id', element: wrap(<ShopPage />) },
+      { path: 'notificaciones', element: wrap(<NotificationsPage />) },
+      { path: 'notificaciones/templates/nuevo', element: wrap(<NotificationsPage />) },
+      { path: 'notificaciones/templates/:id', element: wrap(<NotificationsPage />) },
+      { path: 'noticias', element: wrap(<NewsPage />) },
+      { path: 'noticias/nueva', element: wrap(<NewsEditorPage />) },
+      { path: 'noticias/:id', element: wrap(<NewsEditorPage />) },
       {
         path: 'branding',
         element: (

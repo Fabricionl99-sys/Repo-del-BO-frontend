@@ -19,6 +19,8 @@
     "@hookform/resolvers": "latest",
     "@tanstack/react-query": "latest",
     "@tanstack/react-query-devtools": "latest",
+    "@tiptap/react": "^3.22.5",
+    "@tiptap/starter-kit": "^3.22.5",
     "axios": "latest",
     "clsx": "latest",
     "date-fns": "latest",
