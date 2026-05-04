@@ -28,6 +28,9 @@ const ShopPage = lazy(() => import('@/features/shop/pages/ShopPage'));
 const NotificationsPage = lazy(() => import('@/features/notifications/pages/NotificationsPage'));
 const NewsPage = lazy(() => import('@/features/news/pages/NewsPage'));
 const NewsEditorPage = lazy(() => import('@/features/news/pages/NewsEditorPage'));
+const ModerationPage = lazy(() => import('@/features/moderation/pages/ModerationPage'));
+const MetricsPage = lazy(() => import('@/features/metrics/pages/MetricsPage'));
+const BrandingPage = lazy(() => import('@/features/branding/pages/BrandingPage'));
 const ComingSoonPage = lazy(() => import('@/pages/ComingSoonPage'));
 
 const wrap = (element: React.ReactNode) => <Suspense fallback={<Loading />}>{element}</Suspense>;
@@ -45,8 +48,6 @@ const comingSoonRoutes = [
   { path: 'billing', title: 'Facturación', description: 'plan, consumo y facturas' },
   { path: 'profile', title: 'Mi perfil', description: 'datos personales y seguridad' },
   { path: 'recover-password', title: 'Recuperar contraseña' },
-  { path: 'metricas', title: 'Métricas' },
-  { path: 'moderacion', title: 'Moderación' },
 ];
 
 export const router = createBrowserRouter([
@@ -99,13 +100,11 @@ export const router = createBrowserRouter([
       { path: 'noticias', element: wrap(<NewsPage />) },
       { path: 'noticias/nueva', element: wrap(<NewsEditorPage />) },
       { path: 'noticias/:id', element: wrap(<NewsEditorPage />) },
+      { path: 'moderacion', element: wrap(<ModerationPage />) },
+      { path: 'metricas', element: wrap(<MetricsPage />) },
       {
         path: 'branding',
-        element: (
-          <ProtectedRoute roles={['admin']}>
-            {wrap(<ComingSoonPage title="Branding" />)}
-          </ProtectedRoute>
-        ),
+        element: <ProtectedRoute roles={['admin']}>{wrap(<BrandingPage />)}</ProtectedRoute>,
       },
       ...comingSoonRoutes.map((route) => ({
         path: route.path,

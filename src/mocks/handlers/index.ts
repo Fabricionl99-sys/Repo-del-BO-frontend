@@ -119,3 +119,32 @@ handlers.push(
   http.post('*/admin/news/:id/unpublish', async ({ params }) => { await wait(); const item = news.find((entry) => entry.id === params.id) ?? news[0]; item.status = 'unpublished'; return HttpResponse.json(item); }),
   http.post('*/admin/news/upload-banner', async () => { await wait(); return HttpResponse.json({ uploadUrl: 'https://uploads.preview.niveles.io/mock-news', finalUrl: 'https://images.unsplash.com/photo-1542751371-adc38448a05e?w=800' }); }),
 );
+
+import { branding, funnel, heatmap, kpis, moderationQueue, moderationStats, palettePresets, topPlayers, topRules, vipDistribution } from '@/mocks/data/tier5';
+handlers.push(
+  http.get('*/admin/moderation/queue', async ({ request }) => { await wait(); const kind=new URL(request.url).searchParams.get('kind'); return HttpResponse.json(moderationQueue.filter((item)=>!kind||item.kind===kind)); }),
+  http.get('*/admin/moderation/queue/:id', async ({ params }) => { await wait(); return HttpResponse.json(moderationQueue.find((item)=>item.id===params.id)??moderationQueue[0]); }),
+  http.post('*/admin/moderation/queue/:id/approve', async ({ params }) => { await wait(); const i=moderationQueue.findIndex((item)=>item.id===params.id); if(i>=0) moderationQueue.splice(i,1); return HttpResponse.json({ok:true}); }),
+  http.post('*/admin/moderation/queue/:id/reject', async ({ params }) => { await wait(); const i=moderationQueue.findIndex((item)=>item.id===params.id); if(i>=0) moderationQueue.splice(i,1); return HttpResponse.json({ok:true}); }),
+  http.post('*/admin/moderation/queue/:id/warn', async () => { await wait(); return HttpResponse.json({ok:true}); }),
+  http.post('*/admin/moderation/users/:userId/ban', async () => { await wait(); return HttpResponse.json({ok:true}); }),
+  http.get('*/admin/moderation/stats', async () => { await wait(); return HttpResponse.json({...moderationStats,inQueue:moderationQueue.length}); }),
+  http.get('*/admin/moderation/auto-filters', async () => { await wait(); return HttpResponse.json({profanity:true,spam:true,externalLinks:true}); }),
+  http.patch('*/admin/moderation/auto-filters', async ({ request }) => { await wait(); return HttpResponse.json(await request.json()); }),
+  http.get('*/admin/moderation/audit-log', async () => { await wait(); return HttpResponse.json([{id:'audit_1',action:'approve',actor:'Fabricio',timestamp:new Date().toISOString()}]); }),
+  http.get('*/admin/metrics/kpis', async () => { await wait(); return HttpResponse.json(kpis); }),
+  http.get('*/admin/metrics/funnel', async () => { await wait(); return HttpResponse.json(funnel); }),
+  http.get('*/admin/metrics/vip-distribution', async () => { await wait(); return HttpResponse.json(vipDistribution); }),
+  http.get('*/admin/metrics/heatmap', async () => { await wait(); return HttpResponse.json(heatmap); }),
+  http.get('*/admin/metrics/top-rules', async () => { await wait(); return HttpResponse.json(topRules); }),
+  http.get('*/admin/metrics/top-players', async () => { await wait(); return HttpResponse.json(topPlayers); }),
+  http.post('*/admin/metrics/export-pdf', async () => { await wait(); return HttpResponse.json({downloadUrl:'https://reports.preview.niveles.io/mock.pdf'}); }),
+  http.get('*/admin/branding', async () => { await wait(); return HttpResponse.json(branding); }),
+  http.get('*/admin/branding/draft', async () => { await wait(); return HttpResponse.json(branding); }),
+  http.put('*/admin/branding/draft', async ({ request }) => { await wait(); Object.assign(branding, await request.json()); return HttpResponse.json(branding); }),
+  http.post('*/admin/branding/publish', async ({ request }) => { await wait(); Object.assign(branding, await request.json(), {publishedAt:new Date().toISOString()}); return HttpResponse.json(branding); }),
+  http.get('*/admin/branding/palettes', async () => { await wait(); return HttpResponse.json(palettePresets); }),
+  http.post('*/admin/branding/suggest-palette', async () => { await wait(); return HttpResponse.json(palettePresets[1].palette); }),
+  http.post('*/admin/branding/upload-image', async () => { await wait(); return HttpResponse.json({url:'https://dummyimage.com/128x128/0AF784/0E1116&text=N'}); }),
+  http.get('*/admin/branding/preview-token', async () => { await wait(); return HttpResponse.json({token:'preview_mock_token'}); }),
+);
