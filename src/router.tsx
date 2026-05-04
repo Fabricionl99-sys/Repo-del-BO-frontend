@@ -15,6 +15,15 @@ const LevelsCurvePage = lazy(() => import('@/features/levels/pages/LevelsCurvePa
 const MultipliersPage = lazy(() => import('@/features/multipliers/pages/MultipliersPage'));
 const MultiplierEditorPage = lazy(() => import('@/features/multipliers/pages/MultiplierEditorPage'));
 const CoinsPage = lazy(() => import('@/features/coins/pages/CoinsPage'));
+const MissionsPage = lazy(() => import('@/features/missions/pages/MissionsPage'));
+const MissionEditorPage = lazy(() => import('@/features/missions/pages/MissionEditorPage'));
+const AchievementsPage = lazy(() => import('@/features/achievements/pages/AchievementsPage'));
+const AchievementEditorPage = lazy(() => import('@/features/achievements/pages/AchievementEditorPage'));
+const ChestsPage = lazy(() => import('@/features/chests/pages/ChestsPage'));
+const ChestEditorPage = lazy(() => import('@/features/chests/pages/ChestEditorPage'));
+const DailyRewardsPage = lazy(() => import('@/features/dailyRewards/pages/DailyRewardsPage'));
+const TournamentsPage = lazy(() => import('@/features/tournaments/pages/TournamentsPage'));
+const TournamentEditorPage = lazy(() => import('@/features/tournaments/pages/TournamentEditorPage'));
 const ComingSoonPage = lazy(() => import('@/pages/ComingSoonPage'));
 
 const wrap = (element: React.ReactNode) => <Suspense fallback={<Loading />}>{element}</Suspense>;
@@ -32,12 +41,6 @@ const comingSoonRoutes = [
   { path: 'billing', title: 'Facturación', description: 'plan, consumo y facturas' },
   { path: 'profile', title: 'Mi perfil', description: 'datos personales y seguridad' },
   { path: 'recover-password', title: 'Recuperar contraseña' },
-  { path: 'misiones', title: 'Misiones' },
-  { path: 'logros', title: 'Logros' },
-  { path: 'cofres', title: 'Cofres' },
-  { path: 'recompensas-diarias', title: 'Recompensas diarias' },
-  { path: 'torneos', title: 'Torneos' },
-  { path: 'torneos/:id', title: 'Torneos' },
   { path: 'tienda', title: 'Tienda virtual' },
   { path: 'notificaciones', title: 'Notificaciones' },
   { path: 'noticias', title: 'Noticias' },
@@ -74,6 +77,19 @@ export const router = createBrowserRouter([
       { path: 'multiplicadores/nuevo', element: wrap(<MultiplierEditorPage />) },
       { path: 'multiplicadores/:id', element: wrap(<MultiplierEditorPage />) },
       { path: 'monedas', element: wrap(<CoinsPage />) },
+      { path: 'misiones', element: wrap(<MissionsPage />) },
+      { path: 'misiones/nueva', element: wrap(<MissionEditorPage />) },
+      { path: 'misiones/:id', element: wrap(<MissionEditorPage />) },
+      { path: 'logros', element: wrap(<AchievementsPage />) },
+      { path: 'logros/nuevo', element: wrap(<AchievementEditorPage />) },
+      { path: 'logros/:id', element: wrap(<AchievementEditorPage />) },
+      { path: 'cofres', element: wrap(<ChestsPage />) },
+      { path: 'cofres/nuevo', element: wrap(<ChestEditorPage />) },
+      { path: 'cofres/:id', element: wrap(<ChestEditorPage />) },
+      { path: 'recompensas-diarias', element: wrap(<DailyRewardsPage />) },
+      { path: 'torneos', element: wrap(<TournamentsPage />) },
+      { path: 'torneos/nuevo', element: wrap(<TournamentEditorPage />) },
+      { path: 'torneos/:id', element: wrap(<TournamentEditorPage />) },
       {
         path: 'branding',
         element: (

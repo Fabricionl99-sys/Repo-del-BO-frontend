@@ -1,0 +1,14 @@
+import { Plus, MoreVertical } from 'lucide-react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
+import { Button } from '@/components/ui/Button';
+import { EmptyState } from '@/components/ui/EmptyState';
+import { ErrorState } from '@/components/ui/ErrorState';
+import { IconButton } from '@/components/ui/IconButton';
+import { Loading } from '@/components/ui/Loading';
+import { PageHeader } from '@/components/ui/PageHeader';
+import { StatusPill } from '@/components/ui/StatusPill';
+import { Table, type Column } from '@/components/ui/Table';
+import { formatRelativeDate } from '@/lib/format';
+import { useMissions } from '@/features/tier3Api';
+import type { Mission } from '@/types/tier3';
+export default function MissionsPage(){const [params]=useSearchParams(); const mock=params.get('mockState'); const q=useMissions(); const nav=useNavigate(); const rows=mock==='empty'?[]:(q.data??[]); const cols:Column<Mission>[]=[{key:'name',header:'misión',render:m=><button onClick={()=>nav(`/misiones/${m.id}`)} className="text-left hover:text-accent"><b>{m.iconKey} {m.name}</b><div className="text-[11px] text-text-tertiary">{m.description}</div></button>},{key:'type',header:'tipo',render:m=><span className="rounded-full bg-bg-tertiary px-2 py-0.5 text-[11px]">{m.type}</span>},{key:'objective',header:'objetivo',render:m=><span>{m.objective.event} · {m.objective.targetValue}</span>},{key:'reward',header:'recompensa',render:m=><span>{m.rewards.map(r=>r.xpAmount?`+${r.xpAmount} XP`:r.coinsAmount?`+${r.coinsAmount} ${r.coinId}`:r.type).join(' · ')}</span>},{key:'progress',header:'progreso',render:m=><span>{m.progress.completed}/{m.progress.started}</span>},{key:'status',header:'estado',render:m=><StatusPill status={m.status==='active'?'active':m.status==='paused'?'paused':m.status==='draft'?'draft':'finished'} label={m.status}/>},{key:'updated',header:'actualizada',render:m=><span className="text-[12px] text-text-secondary">{formatRelativeDate(m.updatedAt)}</span>},{key:'actions',header:'',align:'right',render:()=> <IconButton icon={MoreVertical} title="acciones"/>}]; return <><PageHeader title="Misiones" subtitle="objetivos con recompensas para tus jugadores" actions={<Button variant="primary" icon={<Plus size={14}/>} onClick={()=>nav('/misiones/nueva')}>nueva misión</Button>}/>{(mock==='loading'||q.isLoading)&&<Loading label="Cargando misiones..."/>}{(mock==='error'||q.isError)&&<ErrorState onRetry={()=>q.refetch()}/>} {mock!=='loading'&&mock!=='error'&&!q.isLoading&&!q.isError&&<Table columns={cols} rows={rows} rowKey={m=>m.id} emptyState={<EmptyState title="No hay misiones" description="Creá una misión semanal, diaria o por evento." action={<Button variant="primary" onClick={()=>nav('/misiones/nueva')}>Crear misión</Button>}/>}/>}</>}

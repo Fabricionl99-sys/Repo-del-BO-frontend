@@ -73,3 +73,30 @@ handlers.push(
   http.post('*/admin/levels/curve/preview', async () => { await wait(); return HttpResponse.json({ affectedPlayers: 12847, levelChanges: [{ fromLevel: 24, toLevel: 23, playersCount: 412 }] }); }),
   http.get('*/admin/levels/curve/draft', async () => { await wait(); return HttpResponse.json(buildCurve()); }),
 );
+
+import { achievements, chests, cycles, missions, tournaments } from '@/mocks/data/tier3';
+
+function crudHandlers<T extends { id: string }>(key: string, path: string, data: T[]) {
+  handlers.push(
+    http.get(`*/admin/${path}`, async () => { await wait(); return HttpResponse.json(data); }),
+    http.get(`*/admin/${path}/:id`, async ({ params }) => { await wait(); return HttpResponse.json(data.find((item) => item.id === params.id) ?? data[0]); }),
+    http.post(`*/admin/${path}`, async ({ request }) => { await wait(); const body = await request.json() as Partial<T>; const item = { ...data[0], ...body, id: `${key}_${Date.now()}` } as T; data.unshift(item); return HttpResponse.json(item, { status: 201 }); }),
+    http.patch(`*/admin/${path}/:id`, async ({ params, request }) => { await wait(); const body = await request.json() as Partial<T>; const item = data.find((entry) => entry.id === params.id) ?? data[0]; Object.assign(item, body); return HttpResponse.json(item); }),
+    http.delete(`*/admin/${path}/:id`, async ({ params }) => { await wait(); const index = data.findIndex((entry) => entry.id === params.id); if (index >= 0) data.splice(index, 1); return new HttpResponse(null, { status: 204 }); }),
+  );
+}
+crudHandlers('mission', 'missions', missions);
+crudHandlers('achievement', 'achievements', achievements);
+crudHandlers('chest', 'chests', chests);
+crudHandlers('cycle', 'daily-rewards/cycles', cycles);
+crudHandlers('tournament', 'tournaments', tournaments);
+handlers.push(
+  http.post('*/admin/missions/:id/duplicate', async ({ params }) => { await wait(); const item = missions.find((m) => m.id === params.id) ?? missions[0]; const copy = { ...item, id: `mission_copy_${Date.now()}`, name: `${item.name} copia`, status: 'draft' as const }; missions.unshift(copy); return HttpResponse.json(copy, { status: 201 }); }),
+  http.get('*/admin/missions/:id/progress', async () => { await wait(); return HttpResponse.json({ started: 4821, completed: 1847, percent: 38.3 }); }),
+  http.post('*/admin/chests/:id/preview-opens', async () => { await wait(); return HttpResponse.json({ opens: 1000, distribution: [{ label: '100 oro', count: 502 }, { label: '500 oro', count: 301 }, { label: '1000 XP', count: 149 }, { label: 'jackpot', count: 48 }] }); }),
+  http.patch('*/admin/daily-rewards/cycles/:id/days/:dayN', async ({ params, request }) => { await wait(); const cycle = cycles.find((item) => item.id === params.id) ?? cycles[0]; const day = cycle.days.find((item) => item.dayNumber === Number(params.dayN)); if (day) Object.assign(day, await request.json()); return HttpResponse.json(day ?? cycle.days[0]); }),
+  http.post('*/admin/daily-rewards/cycles/:id/duplicate', async ({ params }) => { await wait(); const item = cycles.find((cycle) => cycle.id === params.id) ?? cycles[0]; const copy = { ...item, id: `cycle_copy_${Date.now()}`, name: `${item.name} copia` }; cycles.unshift(copy); return HttpResponse.json(copy, { status: 201 }); }),
+  http.post('*/admin/tournaments/:id/start', async ({ params }) => { await wait(); const item = tournaments.find((t) => t.id === params.id) ?? tournaments[0]; item.status = 'live'; return HttpResponse.json(item); }),
+  http.post('*/admin/tournaments/:id/end', async ({ params }) => { await wait(); const item = tournaments.find((t) => t.id === params.id) ?? tournaments[0]; item.status = 'finished'; return HttpResponse.json(item); }),
+  http.get('*/admin/tournaments/:id/leaderboard', async () => { await wait(); return HttpResponse.json([{ rank: 1, player: 'crypto_king_88', score: 128470 }, { rank: 2, player: 'MariaG_bet', score: 98200 }]); }),
+);
