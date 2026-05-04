@@ -17,3 +17,5 @@ Copiar `.env.example` a `.env.local` para usar MSW en local.
 - `npm run build`: type-check + build producción
 - `npm run lint`: ESLint
 - `npm run test:coverage`: Vitest con coverage
+
+<!-- deploy: force-netlify-main-tier3 -->
