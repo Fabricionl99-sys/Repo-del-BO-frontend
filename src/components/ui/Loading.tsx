@@ -1,0 +1,2 @@
+export function Loading({label='Cargando...'}:{label?:string}){return <div className="flex flex-col items-center justify-center gap-3 py-16"><div className="h-8 w-8 animate-spin rounded-full border-2 border-accent border-r-transparent"/><p className="text-[13px] text-text-tertiary">{label}</p></div>}
+export function FullPageLoader(){return <div className="fixed inset-0 flex items-center justify-center bg-bg-primary"><Loading label="Iniciando niveles..."/></div>}

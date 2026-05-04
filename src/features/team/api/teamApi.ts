@@ -1,0 +1,7 @@
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'; import { apiClient } from '@/api/client'; import { toast } from '@/stores/toastStore'; import type { Role } from '@/types/shared'; import type { TeamMember } from '@/mocks/data/team';
+export interface InviteMemberPayload{email:string;role:Role;message?:string}
+export function useTeamMembers(){return useQuery({queryKey:['team','members'],queryFn:()=>apiClient.get('/admin/team/members').then(r=>r.data as TeamMember[])})}
+export function useInviteMember(){const qc=useQueryClient();return useMutation({mutationFn:(payload:InviteMemberPayload)=>apiClient.post('/admin/team/members',payload),onSuccess:()=>{qc.invalidateQueries({queryKey:['team','members']});toast.success('Invitación enviada')},onError:()=>toast.error('No se pudo enviar la invitación')})}
+export function useResendInvite(){return useMutation({mutationFn:(id:string)=>apiClient.post(`/admin/team/invitations/${id}/resend`),onSuccess:()=>toast.success('Invitación reenviada')})}
+export function useUpdateMemberRole(){const qc=useQueryClient();return useMutation({mutationFn:({id,role}:{id:string;role:Role})=>apiClient.patch(`/admin/team/members/${id}`,{role}),onSuccess:()=>{qc.invalidateQueries({queryKey:['team','members']});toast.success('Rol actualizado')}})}
+export function useRemoveMember(){const qc=useQueryClient();return useMutation({mutationFn:(id:string)=>apiClient.delete(`/admin/team/members/${id}`),onSuccess:()=>{qc.invalidateQueries({queryKey:['team','members']});toast.success('Miembro eliminado')}})}

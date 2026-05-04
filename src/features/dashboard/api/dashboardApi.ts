@@ -1,0 +1,4 @@
+import { useQuery } from '@tanstack/react-query'; import { apiClient } from '@/api/client'; import type { Period } from '@/types/shared'; import type { ActivityItem, DashboardMetrics, SystemStatus } from '@/mocks/data/dashboard';
+export function useDashboardMetrics(period:Period){return useQuery({queryKey:['dashboard','metrics',period],queryFn:()=>apiClient.get('/admin/dashboard/metrics',{params:{period}}).then(r=>r.data as DashboardMetrics),staleTime:60000})}
+export function useActivityFeed(limit=10){return useQuery({queryKey:['dashboard','activity',limit],queryFn:()=>apiClient.get('/admin/dashboard/activity',{params:{limit}}).then(r=>r.data as ActivityItem[]),refetchInterval:60000})}
+export function useSystemStatus(){return useQuery({queryKey:['dashboard','system'],queryFn:()=>apiClient.get('/admin/system/status').then(r=>r.data as SystemStatus),refetchInterval:30000})}
