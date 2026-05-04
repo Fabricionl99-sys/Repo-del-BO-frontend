@@ -1,0 +1,2 @@
+export interface Coin { id:string; name:string; symbol:string; emoji:string; isDefault:boolean; type:'earnable'|'premium'; ratioToUSD?:number; expiry:'never'|'days'; expiryDays?:number; active:boolean; totalInCirculation:number; emittedThisWeek:number; redeemedThisWeek:number }
+export interface CoinsGlobalRules { maxBalancePerPlayer:number|null; maxDailyEmissionPerPlayer:number|null; allowP2P:boolean; p2pFeePercent?:number }

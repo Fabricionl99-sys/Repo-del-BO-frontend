@@ -9,6 +9,12 @@ const LoginPage = lazy(() => import('@/pages/LoginPage'));
 const DashboardPage = lazy(() => import('@/features/dashboard/pages/DashboardPage'));
 const TeamPage = lazy(() => import('@/features/team/pages/TeamPage'));
 const ApiKeysPage = lazy(() => import('@/features/apiKeys/pages/ApiKeysPage'));
+const RulesListPage = lazy(() => import('@/features/rules/pages/RulesListPage'));
+const RuleEditorPage = lazy(() => import('@/features/rules/pages/RuleEditorPage'));
+const LevelsCurvePage = lazy(() => import('@/features/levels/pages/LevelsCurvePage'));
+const MultipliersPage = lazy(() => import('@/features/multipliers/pages/MultipliersPage'));
+const MultiplierEditorPage = lazy(() => import('@/features/multipliers/pages/MultiplierEditorPage'));
+const CoinsPage = lazy(() => import('@/features/coins/pages/CoinsPage'));
 const ComingSoonPage = lazy(() => import('@/pages/ComingSoonPage'));
 
 const wrap = (element: React.ReactNode) => <Suspense fallback={<Loading />}>{element}</Suspense>;
@@ -26,11 +32,6 @@ const comingSoonRoutes = [
   { path: 'billing', title: 'Facturación', description: 'plan, consumo y facturas' },
   { path: 'profile', title: 'Mi perfil', description: 'datos personales y seguridad' },
   { path: 'recover-password', title: 'Recuperar contraseña' },
-  { path: 'reglas-xp', title: 'Reglas de XP' },
-  { path: 'reglas-xp/:id', title: 'Editor de regla de XP' },
-  { path: 'curva-niveles', title: 'Curva de niveles' },
-  { path: 'multiplicadores', title: 'Multiplicadores' },
-  { path: 'monedas', title: 'Monedas' },
   { path: 'misiones', title: 'Misiones' },
   { path: 'logros', title: 'Logros' },
   { path: 'cofres', title: 'Cofres' },
@@ -65,6 +66,14 @@ export const router = createBrowserRouter([
         path: 'api-keys',
         element: <ProtectedRoute roles={['admin']}>{wrap(<ApiKeysPage />)}</ProtectedRoute>,
       },
+      { path: 'reglas-xp', element: wrap(<RulesListPage />) },
+      { path: 'reglas-xp/nueva', element: wrap(<RuleEditorPage />) },
+      { path: 'reglas-xp/:id', element: wrap(<RuleEditorPage />) },
+      { path: 'curva-niveles', element: wrap(<LevelsCurvePage />) },
+      { path: 'multiplicadores', element: wrap(<MultipliersPage />) },
+      { path: 'multiplicadores/nuevo', element: wrap(<MultiplierEditorPage />) },
+      { path: 'multiplicadores/:id', element: wrap(<MultiplierEditorPage />) },
+      { path: 'monedas', element: wrap(<CoinsPage />) },
       {
         path: 'branding',
         element: (
