@@ -60,7 +60,7 @@ export function buildCurve(formula = curvePresets[1].formula): LevelsCurve {
   return { version: 4, totalLevels: 100, formula, levels, updatedAt: iso(0), publishedAt: iso(14) };
 }
 
-export let levelsCurve = buildCurve();
+export const levelsCurve = buildCurve();
 export const distribution: PlayerDistribution[] = [
   {level:1,count:4234},{level:25,count:1892},{level:50,count:412},{level:75,count:76},{level:100,count:3},
 ];
