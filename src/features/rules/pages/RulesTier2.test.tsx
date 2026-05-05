@@ -24,7 +24,7 @@ describe('Tier2 reglas', () => {
     wrap(<RulesListPage />);
 
     expect(await screen.findByText('Apuesta deportiva ganadora')).toBeInTheDocument();
-    expect(screen.getByText('x2 activo')).toBeInTheDocument();
+    expect(screen.getByText('x1,5 activo')).toBeInTheDocument();
 
     fireEvent.click(screen.getByText('pausadas'));
     expect(await screen.findByText('Promo finde Champions League')).toBeInTheDocument();
@@ -60,8 +60,8 @@ describe('Tier2 reglas', () => {
           name: body.name ?? 'Regla boost test',
           description: body.description ?? '',
           status: body.status ?? 'active',
-          category: body.trigger?.category ?? 'sports',
-          trigger: body.trigger ?? { event: 'bet_placed', category: 'sports' },
+        category: body.trigger?.category ?? 'deportes',
+        trigger: body.trigger ?? { event: 'bet_placed', category: 'deportes' },
           conditionsLogic: body.conditionsLogic ?? 'all',
           conditions: body.conditions ?? [],
           action: body.action ?? { xpBase: 50 },
@@ -102,7 +102,7 @@ describe('Tier2 reglas', () => {
 
     expect(await screen.findByText('multiplicar XP por tiempo limitado')).toBeInTheDocument();
     fireEvent.click(screen.getByRole('switch', { name: 'activar boost temporal' }));
-    fireEvent.click(screen.getByText('x5'));
+    fireEvent.click(screen.getByText('1.5x'));
     fireEvent.change(screen.getByLabelText('nombre'), { target: { value: 'Regla boost test' } });
     fireEvent.change(screen.getByLabelText('Desde'), { target: { value: '2000-01-01T00:00' } });
     fireEvent.change(screen.getByLabelText('Hasta'), { target: { value: '2099-05-11T23:59' } });
@@ -112,6 +112,6 @@ describe('Tier2 reglas', () => {
     expect(await screen.findByText('Regla boost test')).toBeInTheDocument();
     const row = screen.getByText('Regla boost test').closest('tr');
     expect(row).not.toBeNull();
-    expect(within(row as HTMLElement).getByText('x5 activo')).toBeInTheDocument();
+    expect(within(row as HTMLElement).getByText('x1,5 activo')).toBeInTheDocument();
   });
 });

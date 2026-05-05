@@ -1,3 +1,26 @@
 import { CATEGORIES, type GameCategory } from '@/types/expandedTier5';
-import type { XPRule } from '@/types/rules';
-export function CategorySelector({value,onChange,enabledCategories,existingRules}:{value:GameCategory;onChange:(value:GameCategory)=>void;enabledCategories:GameCategory[];existingRules:XPRule[]}){const enabled=CATEGORIES.filter(c=>enabledCategories.includes(c.value)); const selected=CATEGORIES.find(c=>c.value===value); const conflict=selected?.englobedBy&&existingRules.some(r=>r.status==='active'&&r.category===selected.englobedBy);return <div className="space-y-2"><label><span className="mb-1.5 block text-[12px] text-text-secondary">categoría de juego</span><select className="field" value={value} onChange={e=>onChange(e.target.value as GameCategory)}><optgroup label="Categorías principales">{enabled.filter(c=>c.group==='primary').map(c=><option key={c.value} value={c.value}>{c.label} · {c.description}</option>)}</optgroup><optgroup label="Granulares opcionales">{enabled.filter(c=>c.group==='granular').map(c=><option key={c.value} value={c.value}>{c.label} · {c.description}</option>)}</optgroup></select></label>{conflict&&<div className="rounded-lg border border-warning/25 bg-warning/10 p-3 text-[12px] text-warning"><b>⚠️ Conflicto de categorías</b><p className="mt-1 text-text-secondary">Ya tenés una regla activa con categoría "{CATEGORIES.find(c=>c.value===selected?.englobedBy)?.label}" que engloba {selected?.label}. Una regla más específica anula la genérica para evitar doble cómputo de XP.</p></div>}</div>}
+
+export function CategorySelector({
+  value,
+  onChange,
+  enabledCategories,
+}: {
+  value: GameCategory;
+  onChange: (value: GameCategory) => void;
+  enabledCategories: GameCategory[];
+}) {
+  const enabled = CATEGORIES.filter((category) => enabledCategories.includes(category.value));
+
+  return (
+    <label>
+      <span className="mb-1.5 block text-[12px] text-text-secondary">categoría de juego</span>
+      <select className="field" value={value} onChange={(event) => onChange(event.target.value as GameCategory)}>
+        {enabled.map((category) => (
+          <option key={category.value} value={category.value}>
+            {category.label} · {category.description}
+          </option>
+        ))}
+      </select>
+    </label>
+  );
+}
