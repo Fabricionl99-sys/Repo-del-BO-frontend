@@ -1,0 +1,1313 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>niveles · Configuración general · BO</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&family=Urbanist:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300&display=swap" rel="stylesheet">
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg-primary: #0E1116;
+  --bg-secondary: #161B22;
+  --bg-tertiary: #1C2128;
+  --bg-elevated: #21262D;
+  --bg-hover: #262C36;
+
+  --accent: #0AF784;
+  --accent-hover: #08D971;
+  --accent-glow: rgba(10, 247, 132, 0.15);
+  --accent-subtle: rgba(10, 247, 132, 0.08);
+
+  --text-primary: #FFFFFF;
+  --text-secondary: #B8BEC9;
+  --text-tertiary: #7D8590;
+  --text-disabled: #484F58;
+
+  --border-subtle: rgba(255, 255, 255, 0.06);
+  --border-default: rgba(255, 255, 255, 0.10);
+  --border-strong: rgba(255, 255, 255, 0.16);
+
+  --success: #0AF784;
+  --warning: #F0B72F;
+  --danger: #F85149;
+  --info: #58A6FF;
+  --purple: #A78BFA;
+}
+
+body {
+  font-family: 'Urbanist', system-ui, sans-serif;
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  font-size: 14px;
+  line-height: 1.5;
+  font-weight: 400;
+}
+
+button { font-family: inherit; cursor: pointer; }
+a { color: inherit; }
+
+.app {
+  display: grid;
+  grid-template-columns: 240px 1fr;
+  min-height: 100vh;
+}
+
+/* === SIDEBAR === */
+.sidebar {
+  background: var(--bg-secondary);
+  border-right: 1px solid var(--border-subtle);
+  padding: 16px 0;
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  overflow-y: auto;
+}
+
+.sidebar-brand {
+  padding: 0 20px 20px;
+  border-bottom: 1px solid var(--border-subtle);
+  margin-bottom: 16px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.brand-logo {
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  background: linear-gradient(135deg, var(--accent), #00D9FF);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  color: var(--bg-primary);
+  font-size: 13px;
+}
+
+.brand-name {
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  font-size: 15px;
+}
+
+.operator-selector {
+  margin: 0 12px 16px;
+  padding: 10px 12px;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-subtle);
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+}
+
+.operator-avatar {
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  background: linear-gradient(135deg, var(--purple), var(--info));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  font-size: 11px;
+  color: white;
+}
+
+.operator-info { flex: 1; min-width: 0; }
+.operator-name { font-weight: 500; font-size: 13px; }
+.operator-tier { color: var(--text-tertiary); font-size: 11px; font-family: 'JetBrains Mono', monospace; }
+
+.sidebar-section { margin-bottom: 8px; padding: 0 12px; }
+
+.section-label {
+  color: var(--text-tertiary);
+  font-size: 11px;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  padding: 8px 12px 4px;
+  margin: 0;
+}
+
+.nav-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 12px;
+  border-radius: 6px;
+  color: var(--text-secondary);
+  text-decoration: none;
+  font-size: 13px;
+  font-weight: 400;
+  transition: all 0.12s;
+  margin-bottom: 1px;
+}
+
+.nav-item:hover { background: var(--bg-tertiary); color: var(--text-primary); }
+
+.nav-item.active {
+  background: var(--accent-subtle);
+  color: var(--accent);
+  font-weight: 500;
+}
+
+.nav-icon {
+  width: 16px;
+  height: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+/* === MAIN === */
+.main { display: flex; flex-direction: column; }
+
+.topbar {
+  height: 56px;
+  border-bottom: 1px solid var(--border-subtle);
+  background: var(--bg-secondary);
+  padding: 0 28px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.breadcrumb {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+}
+
+.breadcrumb a {
+  color: var(--text-tertiary);
+  text-decoration: none;
+  font-weight: 400;
+}
+
+.breadcrumb-current {
+  color: var(--text-primary);
+  font-weight: 500;
+}
+
+.topbar-actions { display: flex; align-items: center; gap: 12px; }
+
+.icon-btn {
+  width: 32px;
+  height: 32px;
+  border-radius: 6px;
+  background: transparent;
+  border: 1px solid var(--border-subtle);
+  color: var(--text-secondary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.12s;
+}
+
+.icon-btn:hover { background: var(--bg-tertiary); color: var(--text-primary); border-color: var(--border-default); }
+
+.user-pill {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 10px 4px 4px;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-subtle);
+  border-radius: 16px;
+  cursor: pointer;
+}
+
+.user-avatar {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--accent), #00D9FF);
+  color: var(--bg-primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  font-size: 10px;
+}
+
+.user-name { font-size: 12px; font-weight: 500; }
+.user-role { font-size: 10px; color: var(--text-tertiary); font-family: 'JetBrains Mono', monospace; }
+
+/* === CONTENT === */
+.content {
+  padding: 24px 28px 100px;
+  max-width: 980px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  margin-bottom: 24px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.page-title {
+  font-size: 22px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  margin-bottom: 4px;
+}
+
+.page-subtitle {
+  color: var(--text-tertiary);
+  font-size: 13px;
+  font-weight: 400;
+  font-style: italic;
+}
+
+/* === BUTTONS === */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 500;
+  font-family: inherit;
+  cursor: pointer;
+  transition: all 0.12s;
+  border: 1px solid transparent;
+}
+
+.btn-primary {
+  background: var(--accent);
+  color: var(--bg-primary);
+}
+
+.btn-primary:hover { background: var(--accent-hover); }
+
+.btn-secondary {
+  background: var(--bg-tertiary);
+  color: var(--text-primary);
+  border-color: var(--border-default);
+}
+
+.btn-secondary:hover { background: var(--bg-elevated); }
+
+.btn-ghost {
+  background: transparent;
+  color: var(--text-secondary);
+}
+
+.btn-ghost:hover { background: var(--bg-tertiary); color: var(--text-primary); }
+
+.btn-sm { padding: 4px 10px; font-size: 12px; }
+
+/* === SECTIONS / CARDS === */
+.config-section {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-subtle);
+  border-radius: 10px;
+  margin-bottom: 16px;
+  overflow: hidden;
+}
+
+.section-head {
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--border-subtle);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.section-title {
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.section-num {
+  width: 22px;
+  height: 22px;
+  border-radius: 6px;
+  background: var(--bg-elevated);
+  color: var(--text-secondary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  font-weight: 600;
+  font-family: 'JetBrains Mono', monospace;
+}
+
+.section-num.highlight {
+  background: var(--accent-subtle);
+  color: var(--accent);
+}
+
+.section-desc {
+  color: var(--text-tertiary);
+  font-size: 12px;
+  font-weight: 300;
+  font-style: italic;
+  padding: 4px 20px 0 52px;
+  margin-top: -10px;
+  margin-bottom: -4px;
+}
+
+.section-body { padding: 20px; }
+
+/* === FORM === */
+.form-row {
+  margin-bottom: 16px;
+}
+
+.form-row:last-child { margin-bottom: 0; }
+
+.form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+.form-grid-3 {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 16px;
+}
+
+.form-label {
+  display: block;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text-secondary);
+  margin-bottom: 6px;
+}
+
+.form-input,
+.form-select {
+  width: 100%;
+  padding: 9px 12px;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-default);
+  border-radius: 6px;
+  color: var(--text-primary);
+  font-size: 13px;
+  font-family: inherit;
+  transition: all 0.12s;
+}
+
+.form-input:focus,
+.form-select:focus {
+  outline: none;
+  border-color: var(--accent);
+  background: var(--bg-elevated);
+}
+
+.form-input::placeholder { color: var(--text-disabled); }
+
+.form-input.mono { font-family: 'JetBrains Mono', monospace; font-size: 12px; }
+
+.form-help {
+  font-size: 11px;
+  color: var(--text-tertiary);
+  margin-top: 4px;
+  font-weight: 300;
+}
+
+.form-help a {
+  color: var(--accent);
+  text-decoration: none;
+}
+
+.form-help a:hover { text-decoration: underline; }
+
+/* === RADIO GROUP === */
+.radio-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.radio-option {
+  display: flex;
+  gap: 12px;
+  padding: 10px 12px;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-default);
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.12s;
+}
+
+.radio-option:hover {
+  border-color: var(--border-strong);
+  background: var(--bg-elevated);
+}
+
+.radio-option.selected {
+  background: var(--accent-subtle);
+  border-color: rgba(10, 247, 132, 0.30);
+}
+
+.radio-circle {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  border: 2px solid var(--border-strong);
+  flex-shrink: 0;
+  margin-top: 2px;
+  transition: all 0.12s;
+  position: relative;
+}
+
+.radio-option.selected .radio-circle {
+  border-color: var(--accent);
+}
+
+.radio-option.selected .radio-circle::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--accent);
+}
+
+.radio-text {
+  flex: 1;
+}
+
+.radio-label {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-primary);
+  margin-bottom: 2px;
+}
+
+.radio-desc {
+  font-size: 12px;
+  color: var(--text-tertiary);
+  font-weight: 300;
+}
+
+/* === SWITCH (iOS style) === */
+.switch-row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 12px 14px;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-default);
+  border-radius: 6px;
+  margin-bottom: 8px;
+  transition: all 0.12s;
+}
+
+.switch-row:hover { background: var(--bg-elevated); }
+
+.switch-row:last-child { margin-bottom: 0; }
+
+.switch {
+  width: 36px;
+  height: 20px;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-strong);
+  border-radius: 999px;
+  position: relative;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: all 0.18s;
+}
+
+.switch::after {
+  content: '';
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 14px;
+  height: 14px;
+  background: var(--text-tertiary);
+  border-radius: 50%;
+  transition: all 0.18s;
+}
+
+.switch.on {
+  background: var(--accent);
+  border-color: var(--accent);
+}
+
+.switch.on::after {
+  left: 18px;
+  background: var(--bg-primary);
+}
+
+.switch-text { flex: 1; }
+
+.switch-label {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-primary);
+  margin-bottom: 2px;
+}
+
+.switch-desc {
+  font-size: 12px;
+  color: var(--text-tertiary);
+  font-weight: 300;
+}
+
+/* === EXPAND === */
+.expand-toggle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 12px 14px;
+  background: transparent;
+  border: 1px dashed var(--border-default);
+  border-radius: 6px;
+  color: var(--text-secondary);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.12s;
+  margin-top: 12px;
+  justify-content: center;
+}
+
+.expand-toggle:hover {
+  border-color: var(--border-strong);
+  background: var(--bg-tertiary);
+  color: var(--text-primary);
+}
+
+.expand-content {
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid var(--border-subtle);
+}
+
+/* === ALERT === */
+.alert {
+  display: flex;
+  gap: 10px;
+  padding: 12px 14px;
+  border-radius: 6px;
+  margin-top: 8px;
+}
+
+.alert-warning {
+  background: rgba(240, 183, 47, 0.06);
+  border: 1px solid rgba(240, 183, 47, 0.20);
+}
+
+.alert-info {
+  background: rgba(88, 166, 255, 0.06);
+  border: 1px solid rgba(88, 166, 255, 0.20);
+}
+
+.alert-icon {
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+.alert-text {
+  font-size: 12px;
+  color: var(--text-secondary);
+  line-height: 1.5;
+  flex: 1;
+}
+
+.alert-text strong { font-weight: 500; }
+
+.alert-warning strong { color: var(--warning); }
+
+.alert-info strong { color: var(--info); }
+
+/* === FOOTER FIXED === */
+.footer-actions {
+  position: fixed;
+  bottom: 0;
+  left: 240px;
+  right: 0;
+  background: var(--bg-secondary);
+  border-top: 1px solid var(--border-subtle);
+  padding: 14px 28px;
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  z-index: 5;
+}
+
+.footer-info {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  font-size: 12px;
+  color: var(--text-tertiary);
+  font-style: italic;
+  font-weight: 300;
+}
+
+.dot-saved {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--success);
+  display: inline-block;
+  margin-right: 8px;
+  box-shadow: 0 0 8px var(--accent-glow);
+}
+
+/* === BADGES === */
+.badge-recommended {
+  display: inline-block;
+  font-size: 10px;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  padding: 2px 6px;
+  border-radius: 4px;
+  background: var(--accent-subtle);
+  color: var(--accent);
+  margin-left: 6px;
+  vertical-align: middle;
+}
+</style>
+</head>
+<body>
+
+<div class="app">
+
+<!-- ======== SIDEBAR ======== -->
+<aside class="sidebar">
+  <div class="sidebar-brand">
+    <div class="brand-logo">N</div>
+    <div class="brand-name">niveles</div>
+  </div>
+  <div class="operator-selector">
+    <div class="operator-avatar">CA</div>
+    <div class="operator-info">
+      <div class="operator-name">Casino Astral</div>
+      <div class="operator-tier">plan growth · es-AR</div>
+    </div>
+    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="color: var(--text-tertiary);"><polyline points="6 9 12 15 18 9"/></svg>
+  </div>
+
+  <div class="sidebar-section">
+    <a class="nav-item" href="#">
+      <span class="nav-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg></span>
+      Dashboard
+    </a>
+  </div>
+
+  <div class="sidebar-section">
+    <p class="section-label">Motor XP</p>
+    <a class="nav-item" href="#">
+      <span class="nav-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"/></svg></span>
+      Reglas de XP
+    </a>
+    <a class="nav-item" href="#">
+      <span class="nav-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 17 9 11 13 15 21 7"/></svg></span>
+      Curva de niveles
+    </a>
+    <a class="nav-item" href="#">
+      <span class="nav-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg></span>
+      Multiplicadores
+    </a>
+    <a class="nav-item" href="#">
+      <span class="nav-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v12M8 10h8M8 14h8"/></svg></span>
+      Monedas
+    </a>
+  </div>
+
+  <div class="sidebar-section">
+    <p class="section-label">Setup</p>
+    <a class="nav-item" href="#">
+      <span class="nav-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19 12c0 1-1 2-1 3l2 2-2 2-2-2c-1 0-2 1-3 1l-1 2-2-2c-1 0-2-1-3-1l-2 2-2-2 2-2c0-1-1-2-1-3l-2-1 2-2c0-1 1-2 1-3l-2-2 2-2 2 2c1 0 2-1 3-1l1-2 2 2c1 0 2 1 3 1l2-2 2 2-2 2"/></svg></span>
+      Branding
+    </a>
+    <a class="nav-item" href="#">
+      <span class="nav-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2M9 11a4 4 0 1 0 0-8"/></svg></span>
+      Equipo
+    </a>
+    <a class="nav-item" href="#">
+      <span class="nav-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"/></svg></span>
+      API keys
+    </a>
+    <a class="nav-item active" href="#">
+      <span class="nav-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></span>
+      Configuración general
+    </a>
+  </div>
+</aside>
+
+<!-- ======== MAIN ======== -->
+<div class="main">
+
+  <div class="topbar">
+    <div class="breadcrumb">
+      <a>Setup</a>
+      <span style="color: var(--text-tertiary);">/</span>
+      <span class="breadcrumb-current">Configuración general</span>
+    </div>
+
+    <div class="topbar-actions">
+      <button class="icon-btn"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg></button>
+      <button class="icon-btn"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 1 1 5.83 1c0 2-3 3-3 3M12 17h.01"/></svg></button>
+      <div class="user-pill">
+        <div class="user-avatar">FL</div>
+        <div>
+          <div class="user-name">Fabricio L.</div>
+          <div class="user-role">admin</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="content">
+
+    <div class="page-header">
+      <div>
+        <h1 class="page-title">Configuración general</h1>
+        <p class="page-subtitle">ajustes regionales y del operador</p>
+      </div>
+      <div style="display: flex; gap: 8px;">
+        <button class="btn btn-ghost">Cancelar</button>
+        <button class="btn btn-primary">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+          Guardar cambios
+        </button>
+      </div>
+    </div>
+
+    <!-- ============================================
+         SECCIÓN 1: INFORMACIÓN DEL OPERADOR
+         ============================================ -->
+    <div class="config-section">
+      <div class="section-head">
+        <h2 class="section-title">
+          <span class="section-num">1</span>
+          Información del operador
+        </h2>
+      </div>
+      <div class="section-body">
+        <div class="form-grid">
+          <div class="form-row">
+            <label class="form-label">Nombre comercial</label>
+            <input type="text" class="form-input" value="Casino Astral">
+          </div>
+          <div class="form-row">
+            <label class="form-label">Razón social</label>
+            <input type="text" class="form-input" value="Casino Astral S.A.">
+          </div>
+          <div class="form-row">
+            <label class="form-label">País principal</label>
+            <select class="form-select">
+              <option>Argentina</option>
+              <option>Brasil</option>
+              <option>México</option>
+              <option>Chile</option>
+              <option>Colombia</option>
+              <option>Perú</option>
+              <option>Uruguay</option>
+              <option>España</option>
+              <option>Estados Unidos</option>
+            </select>
+          </div>
+          <div class="form-row">
+            <label class="form-label">Sitio web</label>
+            <input type="text" class="form-input mono" value="https://casinoastral.com">
+          </div>
+        </div>
+        <div class="form-row" style="margin-top: 16px;">
+          <label class="form-label">Logo URL</label>
+          <input type="text" class="form-input mono" value="https://cdn.casinoastral.com/logo.png">
+          <p class="form-help">URL pública del logo del operador. Se usa en notificaciones, emails y branding del widget.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============================================
+         SECCIÓN 2: CONFIGURACIÓN REGIONAL
+         ============================================ -->
+    <div class="config-section">
+      <div class="section-head">
+        <h2 class="section-title">
+          <span class="section-num">2</span>
+          Configuración regional
+        </h2>
+      </div>
+      <p class="section-desc">timezone, idioma y formatos de fecha/hora · afecta toda la UI del BO y los cálculos del motor de gamificación</p>
+      <div class="section-body">
+        <div class="form-grid">
+          <div class="form-row">
+            <label class="form-label">Timezone</label>
+            <select class="form-select">
+              <optgroup label="── América ──">
+                <option selected>America/Argentina/Buenos_Aires (UTC-3)</option>
+                <option>America/Sao_Paulo (UTC-3)</option>
+                <option>America/Mexico_City (UTC-6)</option>
+                <option>America/Santiago (UTC-3)</option>
+                <option>America/Bogota (UTC-5)</option>
+                <option>America/Lima (UTC-5)</option>
+                <option>America/Montevideo (UTC-3)</option>
+                <option>America/New_York (UTC-5)</option>
+              </optgroup>
+              <optgroup label="── Europa ──">
+                <option>Europe/Madrid (UTC+1)</option>
+                <option>Europe/London (UTC+0)</option>
+                <option>Europe/Lisbon (UTC+0)</option>
+                <option>Europe/Berlin (UTC+1)</option>
+              </optgroup>
+              <optgroup label="── Asia ──">
+                <option>Asia/Tokyo (UTC+9)</option>
+                <option>Asia/Singapore (UTC+8)</option>
+                <option>Asia/Manila (UTC+8)</option>
+              </optgroup>
+            </select>
+            <p class="form-help">todas las fechas y horas del BO se muestran en esta zona</p>
+          </div>
+          <div class="form-row">
+            <label class="form-label">Moneda fiat de referencia</label>
+            <select class="form-select">
+              <option>USD · dólar estadounidense</option>
+              <option selected>ARS · peso argentino</option>
+              <option>BRL · real brasileño</option>
+              <option>MXN · peso mexicano</option>
+              <option>EUR · euro</option>
+              <option>CLP · peso chileno</option>
+              <option>COP · peso colombiano</option>
+              <option>PEN · sol peruano</option>
+              <option>UYU · peso uruguayo</option>
+            </select>
+            <p class="form-help">se usa para mostrar montos en reportes y métricas</p>
+          </div>
+          <div class="form-row">
+            <label class="form-label">Idioma del BO</label>
+            <select class="form-select">
+              <option selected>Español (Argentina) · es-AR</option>
+              <option>Español (México) · es-MX</option>
+              <option>Español (España) · es-ES</option>
+              <option>English (US) · en-US</option>
+              <option>Português (Brasil) · pt-BR</option>
+            </select>
+            <p class="form-help">idioma de toda la UI del backoffice</p>
+          </div>
+          <div class="form-row">
+            <label class="form-label">Idioma default del widget</label>
+            <select class="form-select">
+              <option selected>Español (Argentina) · es-AR</option>
+              <option>Español (México) · es-MX</option>
+              <option>Español (España) · es-ES</option>
+              <option>English (US) · en-US</option>
+              <option>Português (Brasil) · pt-BR</option>
+            </select>
+            <p class="form-help">el jugador puede cambiarlo desde su perfil</p>
+          </div>
+        </div>
+
+        <div class="form-grid-3" style="margin-top: 16px;">
+          <div class="form-row">
+            <label class="form-label">Formato de fecha</label>
+            <div class="radio-group">
+              <div class="radio-option selected">
+                <div class="radio-circle"></div>
+                <div class="radio-text">
+                  <div class="radio-label">DD/MM/YYYY</div>
+                  <div class="radio-desc">04/05/2026</div>
+                </div>
+              </div>
+              <div class="radio-option">
+                <div class="radio-circle"></div>
+                <div class="radio-text">
+                  <div class="radio-label">MM/DD/YYYY</div>
+                  <div class="radio-desc">05/04/2026</div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="form-row">
+            <label class="form-label">Formato de hora</label>
+            <div class="radio-group">
+              <div class="radio-option selected">
+                <div class="radio-circle"></div>
+                <div class="radio-text">
+                  <div class="radio-label">24 horas</div>
+                  <div class="radio-desc">14:30</div>
+                </div>
+              </div>
+              <div class="radio-option">
+                <div class="radio-circle"></div>
+                <div class="radio-text">
+                  <div class="radio-label">12 horas (AM/PM)</div>
+                  <div class="radio-desc">2:30 PM</div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="form-row">
+            <label class="form-label">Primer día de la semana</label>
+            <div class="radio-group">
+              <div class="radio-option selected">
+                <div class="radio-circle"></div>
+                <div class="radio-text">
+                  <div class="radio-label">Lunes</div>
+                  <div class="radio-desc">L M M J V S D</div>
+                </div>
+              </div>
+              <div class="radio-option">
+                <div class="radio-circle"></div>
+                <div class="radio-text">
+                  <div class="radio-label">Domingo</div>
+                  <div class="radio-desc">D L M M J V S</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============================================
+         SECCIÓN 3: POLÍTICA DE RESET
+         ============================================ -->
+    <div class="config-section">
+      <div class="section-head">
+        <h2 class="section-title">
+          <span class="section-num">3</span>
+          Política de reset
+        </h2>
+      </div>
+      <p class="section-desc">define cuándo se cierran las ventanas de tiempo del motor de gamificación · afecta recompensas, rankings, misiones y reportes</p>
+      <div class="section-body">
+
+        <div class="form-row">
+          <label class="form-label">Recompensas diarias resetean por:</label>
+          <div class="radio-group">
+            <div class="radio-option">
+              <div class="radio-circle"></div>
+              <div class="radio-text">
+                <div class="radio-label">Timezone del operador</div>
+                <div class="radio-desc">todos los jugadores resetean al mismo tiempo (00:00 hora del operador)</div>
+              </div>
+            </div>
+            <div class="radio-option selected">
+              <div class="radio-circle"></div>
+              <div class="radio-text">
+                <div class="radio-label">Timezone del jugador <span class="badge-recommended">recomendado</span></div>
+                <div class="radio-desc">cada jugador resetea a su medianoche local · más justo para audiencia internacional</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <label class="form-label">Rankings semanales cierran:</label>
+          <div class="radio-group">
+            <div class="radio-option selected">
+              <div class="radio-circle"></div>
+              <div class="radio-text">
+                <div class="radio-label">Timezone del operador</div>
+                <div class="radio-desc">todos los rankings cierran simultáneamente · más limpio para reportes</div>
+              </div>
+            </div>
+            <div class="radio-option">
+              <div class="radio-circle"></div>
+              <div class="radio-text">
+                <div class="radio-label">Timezone del jugador</div>
+                <div class="radio-desc">cada jugador tiene su propia ventana</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <label class="form-label">Misiones diarias resetean por:</label>
+          <div class="radio-group">
+            <div class="radio-option selected">
+              <div class="radio-circle"></div>
+              <div class="radio-text">
+                <div class="radio-label">Timezone del operador</div>
+                <div class="radio-desc">todas las misiones se renuevan al mismo tiempo</div>
+              </div>
+            </div>
+            <div class="radio-option">
+              <div class="radio-circle"></div>
+              <div class="radio-text">
+                <div class="radio-label">Timezone del jugador</div>
+                <div class="radio-desc">cada jugador renueva a su medianoche local</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <label class="form-label">Cierre de mes (para reportes):</label>
+          <div class="radio-group">
+            <div class="radio-option selected">
+              <div class="radio-circle"></div>
+              <div class="radio-text">
+                <div class="radio-label">Calendario operador</div>
+                <div class="radio-desc">28-30-31 según mes · alineado con cierres contables</div>
+              </div>
+            </div>
+            <div class="radio-option">
+              <div class="radio-circle"></div>
+              <div class="radio-text">
+                <div class="radio-label">Rolling 30 días</div>
+                <div class="radio-desc">desde el primer evento del jugador · útil para cohortes</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ============================================
+         SECCIÓN 4: NOTIFICACIONES INTERNAS
+         ============================================ -->
+    <div class="config-section">
+      <div class="section-head">
+        <h2 class="section-title">
+          <span class="section-num">4</span>
+          Notificaciones internas
+        </h2>
+      </div>
+      <p class="section-desc">alertas para tu equipo · NO afecta notificaciones a jugadores (eso se configura en Notificaciones)</p>
+      <div class="section-body">
+        <div class="form-row">
+          <label class="form-label">Email para alertas críticas</label>
+          <input type="text" class="form-input mono" value="admin@casinoastral.com">
+          <p class="form-help">eventos como: caída del servicio, error en la integración, intentos de fraude detectados</p>
+        </div>
+        <div class="form-row">
+          <label class="form-label">Email para reportes diarios</label>
+          <input type="text" class="form-input mono" value="reportes@casinoastral.com">
+          <p class="form-help">recibe resumen diario con KPIs, top jugadores, top reglas y alertas no críticas</p>
+        </div>
+        <div class="form-row">
+          <label class="form-label">Webhook URL para alertas (opcional)</label>
+          <input type="text" class="form-input mono" placeholder="https://webhook.tu-sistema.com/niveles-alerts">
+          <p class="form-help">si tu equipo usa Slack/Discord/Telegram con webhook integrado, podés enviar las alertas ahí</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============================================
+         SECCIÓN 5: COMPLIANCE BÁSICO
+         ============================================ -->
+    <div class="config-section">
+      <div class="section-head">
+        <h2 class="section-title">
+          <span class="section-num">5</span>
+          Compliance básico
+        </h2>
+      </div>
+      <p class="section-desc">información legal del operador · informativo, niveles no valida estos campos</p>
+      <div class="section-body">
+        <div class="form-grid">
+          <div class="form-row">
+            <label class="form-label">Términos y condiciones URL</label>
+            <input type="text" class="form-input mono" value="https://casinoastral.com/terminos">
+          </div>
+          <div class="form-row">
+            <label class="form-label">Privacy policy URL</label>
+            <input type="text" class="form-input mono" value="https://casinoastral.com/privacidad">
+          </div>
+        </div>
+        <div class="form-row" style="margin-top: 16px;">
+          <label class="form-label">Edad mínima del jugador</label>
+          <div class="radio-group" style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
+            <div class="radio-option selected">
+              <div class="radio-circle"></div>
+              <div class="radio-text">
+                <div class="radio-label">18 años</div>
+                <div class="radio-desc">mayoría de jurisdicciones (Latam, EU)</div>
+              </div>
+            </div>
+            <div class="radio-option">
+              <div class="radio-circle"></div>
+              <div class="radio-text">
+                <div class="radio-label">21 años</div>
+                <div class="radio-desc">algunos estados de EE.UU.</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============================================
+         SECCIÓN 6: CATÁLOGO DE JUEGOS  ⭐ LA CRÍTICA
+         ============================================ -->
+    <div class="config-section">
+      <div class="section-head">
+        <h2 class="section-title">
+          <span class="section-num highlight">6</span>
+          Catálogo de juegos
+        </h2>
+        <span style="font-size: 11px; color: var(--accent); font-weight: 500; text-transform: uppercase; letter-spacing: 0.06em;">afecta motor XP</span>
+      </div>
+      <p class="section-desc">elegí qué categorías de juegos ofrece tu casino · solo las activadas aparecen como opciones al crear reglas de XP</p>
+      <div class="section-body">
+
+        <div style="margin-bottom: 14px;">
+          <p class="section-label" style="padding: 0 0 8px 0;">Categorías principales</p>
+        </div>
+
+        <div class="switch-row">
+          <div class="switch on"></div>
+          <div class="switch-text">
+            <div class="switch-label">Deportes</div>
+            <div class="switch-desc">apuestas deportivas · sportsbook</div>
+          </div>
+        </div>
+
+        <div class="switch-row">
+          <div class="switch on"></div>
+          <div class="switch-text">
+            <div class="switch-label">Casino</div>
+            <div class="switch-desc">engloba slot + crash + bingo + RNG · una sola categoría para todo el casino tradicional</div>
+          </div>
+        </div>
+
+        <div class="switch-row">
+          <div class="switch on"></div>
+          <div class="switch-text">
+            <div class="switch-label">Casino en vivo</div>
+            <div class="switch-desc">juegos con dealer humano vía streaming</div>
+          </div>
+        </div>
+
+        <div class="switch-row">
+          <div class="switch on"></div>
+          <div class="switch-text">
+            <div class="switch-label">Virtuales</div>
+            <div class="switch-desc">partidos virtuales, lotería virtual, carreras virtuales</div>
+          </div>
+        </div>
+
+        <div class="switch-row">
+          <div class="switch on"></div>
+          <div class="switch-text">
+            <div class="switch-label">Poker</div>
+            <div class="switch-desc">poker en cualquier formato (cash, torneos, sit & go)</div>
+          </div>
+        </div>
+
+        <button class="expand-toggle">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+          Más opciones · categorías granulares
+          <span style="color: var(--text-tertiary); font-weight: 400;">(solo si necesitás separar slot/crash/bingo del Casino genérico)</span>
+        </button>
+
+        <div class="expand-content">
+
+          <div class="alert alert-info">
+            <span class="alert-icon">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--info)" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+            </span>
+            <div class="alert-text">
+              <strong>Cuándo activar estas opciones:</strong> si tu negocio necesita reglas de XP distintas para slot vs crash vs bingo. Por defecto todo eso entra en "Casino" como una sola categoría, lo cual es más simple y suficiente para la mayoría de operadores.
+            </div>
+          </div>
+
+          <div style="margin-top: 14px;">
+            <p class="section-label" style="padding: 0 0 8px 0;">Categorías granulares</p>
+          </div>
+
+          <div class="switch-row">
+            <div class="switch"></div>
+            <div class="switch-text">
+              <div class="switch-label">Slot solo</div>
+              <div class="switch-desc">tragamonedas como categoría separada del Casino genérico</div>
+            </div>
+          </div>
+
+          <div class="switch-row">
+            <div class="switch"></div>
+            <div class="switch-text">
+              <div class="switch-label">Crash solo</div>
+              <div class="switch-desc">crash games (Aviator, JetX, etc.) como categoría separada</div>
+            </div>
+          </div>
+
+          <div class="switch-row">
+            <div class="switch"></div>
+            <div class="switch-text">
+              <div class="switch-label">Bingo solo</div>
+              <div class="switch-desc">bingo como categoría separada</div>
+            </div>
+          </div>
+
+          <div class="switch-row">
+            <div class="switch"></div>
+            <div class="switch-text">
+              <div class="switch-label">RNG solo</div>
+              <div class="switch-desc">mesas virtuales (ruleta, blackjack RNG) como categoría separada</div>
+            </div>
+          </div>
+
+          <div class="switch-row">
+            <div class="switch"></div>
+            <div class="switch-text">
+              <div class="switch-label">Otro · custom</div>
+              <div class="switch-desc">categoría libre con nombre custom · útil para juegos exóticos o nuevos verticales</div>
+            </div>
+          </div>
+
+          <div class="alert alert-warning" style="margin-top: 12px;">
+            <span class="alert-icon">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--warning)" stroke-width="2"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+            </span>
+            <div class="alert-text">
+              <strong>Conflicto de categorías:</strong> activar "Slot solo" hará que las apuestas de slot ya no cuenten dentro de la categoría "Casino". Si tenés reglas existentes con categoría Casino, las apuestas de slot dejarán de aplicar esas reglas. Vas a tener que crear reglas específicas de Slot si querés que slot tenga reglas distintas.
+            </div>
+          </div>
+
+        </div>
+
+      </div>
+    </div>
+
+  </div>
+</div>
+
+</div>
+
+<!-- ============ FOOTER FIXED ============ -->
+<div class="footer-actions">
+  <div class="footer-info">
+    <span class="dot-saved"></span>
+    Última modificación: hoy 14:30 · por Fabricio L.
+  </div>
+  <button class="btn btn-ghost">Cancelar</button>
+  <button class="btn btn-primary">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+    Guardar cambios
+  </button>
+</div>
+
+</body>
+</html>

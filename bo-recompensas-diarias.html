@@ -1,0 +1,1323 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BO Operador · Recompensas diarias</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Urbanist:ital,wght@0,300;0,400;0,500;0,600;1,300&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg-primary: #0E1116;
+  --bg-secondary: #161B22;
+  --bg-tertiary: #1C2128;
+  --bg-elevated: #21262D;
+  --bg-hover: #262C36;
+  
+  --accent: #0AF784;
+  --accent-hover: #08D971;
+  --accent-glow: rgba(10, 247, 132, 0.15);
+  --accent-subtle: rgba(10, 247, 132, 0.08);
+  
+  --text-primary: #FFFFFF;
+  --text-secondary: #B8BEC9;
+  --text-tertiary: #7D8590;
+  --text-disabled: #484F58;
+  
+  --border-subtle: rgba(255, 255, 255, 0.06);
+  --border-default: rgba(255, 255, 255, 0.10);
+  --border-strong: rgba(255, 255, 255, 0.16);
+  
+  --success: #0AF784;
+  --warning: #F0B72F;
+  --danger: #F85149;
+  --info: #58A6FF;
+  --purple: #A78BFA;
+  --pink: #FF6B9D;
+  --orange: #FF8C42;
+  --gold: #FFD700;
+  
+  --mono: 'JetBrains Mono', monospace;
+}
+
+body {
+  font-family: 'Urbanist', system-ui, sans-serif;
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+button { font-family: inherit; cursor: pointer; }
+input, select, textarea { font-family: inherit; }
+
+.app {
+  display: grid;
+  grid-template-columns: 240px 1fr;
+  min-height: 100vh;
+}
+
+/* === SIDEBAR === */
+.sidebar {
+  background: var(--bg-secondary);
+  border-right: 1px solid var(--border-subtle);
+  padding: 16px 0;
+  position: sticky; top: 0;
+  height: 100vh;
+  overflow-y: auto;
+}
+
+.sidebar-brand {
+  padding: 0 20px 20px;
+  border-bottom: 1px solid var(--border-subtle);
+  margin-bottom: 16px;
+  display: flex; align-items: center; gap: 10px;
+}
+
+.brand-logo {
+  width: 28px; height: 28px;
+  border-radius: 8px;
+  background: linear-gradient(135deg, var(--accent), #00D9FF);
+  display: flex; align-items: center; justify-content: center;
+  font-weight: 600; color: var(--bg-primary); font-size: 13px;
+}
+
+.brand-name { font-size: 15px; font-weight: 600; }
+
+.operator-selector {
+  margin: 0 12px 16px;
+  padding: 10px 12px;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-default);
+  border-radius: 8px;
+  display: flex; align-items: center; gap: 10px;
+  cursor: pointer;
+}
+
+.operator-avatar {
+  width: 24px; height: 24px;
+  border-radius: 6px;
+  background: linear-gradient(135deg, #4D9FFF, #2563EB);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 11px; font-weight: 600; color: white;
+}
+
+.operator-info { flex: 1; min-width: 0; }
+.operator-name { font-size: 13px; font-weight: 500; }
+.operator-tier { font-size: 10px; color: var(--text-tertiary); }
+
+.sidebar-section { margin-bottom: 8px; padding: 0 12px; }
+.section-label {
+  font-size: 10px; font-weight: 600;
+  text-transform: uppercase; letter-spacing: 0.08em;
+  color: var(--text-tertiary); padding: 8px 12px;
+}
+
+.nav-item {
+  display: flex; align-items: center; gap: 10px;
+  padding: 7px 12px; border-radius: 6px;
+  font-size: 13px; color: var(--text-secondary);
+  cursor: pointer; margin-bottom: 1px; text-decoration: none;
+}
+
+.nav-item:hover { background: var(--bg-tertiary); color: var(--text-primary); }
+.nav-item.active {
+  background: var(--accent-subtle); color: var(--accent);
+  font-weight: 500; position: relative;
+}
+.nav-item.active::before {
+  content: ''; position: absolute; left: -12px; top: 50%;
+  transform: translateY(-50%); width: 3px; height: 18px;
+  background: var(--accent); border-radius: 0 2px 2px 0;
+}
+
+.nav-icon { width: 16px; height: 16px; display: flex; align-items: center; }
+
+/* === MAIN === */
+.main { display: flex; flex-direction: column; min-width: 0; }
+
+.topbar {
+  height: 56px;
+  border-bottom: 1px solid var(--border-subtle);
+  padding: 0 28px;
+  display: flex; align-items: center; justify-content: space-between;
+  background: var(--bg-primary);
+  position: sticky; top: 0; z-index: 10;
+}
+
+.breadcrumb { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--text-secondary); }
+.breadcrumb-current { color: var(--text-primary); font-weight: 500; }
+.breadcrumb a { color: var(--text-secondary); text-decoration: none; cursor: pointer; }
+
+.topbar-actions { display: flex; align-items: center; gap: 12px; }
+
+.icon-btn {
+  width: 32px; height: 32px;
+  border-radius: 8px;
+  border: 1px solid var(--border-default);
+  background: var(--bg-tertiary);
+  color: var(--text-secondary);
+  display: flex; align-items: center; justify-content: center;
+}
+
+.icon-btn:hover { background: var(--bg-elevated); color: var(--text-primary); }
+
+.user-pill {
+  display: flex; align-items: center; gap: 8px;
+  padding: 4px 12px 4px 4px; border-radius: 999px;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-default); cursor: pointer;
+}
+
+.user-avatar {
+  width: 24px; height: 24px; border-radius: 50%;
+  background: linear-gradient(135deg, #F0B72F, #E0901F);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 10px; font-weight: 600; color: var(--bg-primary);
+}
+
+.user-name { font-size: 12px; font-weight: 500; }
+.user-role { font-size: 10px; color: var(--text-tertiary); }
+
+/* === CONTENT === */
+.content { padding: 28px 28px 60px; max-width: 1500px; }
+
+.page-header {
+  margin-bottom: 24px;
+  display: flex; justify-content: space-between;
+  align-items: flex-start; gap: 24px;
+}
+
+.page-title {
+  font-size: 24px; font-weight: 600;
+  margin-bottom: 6px; letter-spacing: -0.01em;
+}
+
+.page-subtitle {
+  font-size: 13px; color: var(--text-tertiary);
+  font-weight: 300; font-style: italic;
+}
+
+.page-actions { display: flex; gap: 8px; align-items: center; }
+
+.btn {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 8px 14px; border-radius: 8px;
+  font-size: 13px; font-weight: 500;
+  border: 1px solid transparent;
+  font-family: inherit; cursor: pointer;
+}
+
+.btn-primary {
+  background: var(--accent); color: var(--bg-primary);
+  border-color: var(--accent);
+  box-shadow: 0 0 16px var(--accent-glow);
+}
+.btn-primary:hover { background: var(--accent-hover); }
+
+.btn-secondary {
+  background: var(--bg-tertiary); color: var(--text-primary);
+  border-color: var(--border-default);
+}
+.btn-secondary:hover { background: var(--bg-elevated); border-color: var(--border-strong); }
+
+.btn-ghost { background: transparent; color: var(--text-secondary); }
+.btn-ghost:hover { background: var(--bg-tertiary); color: var(--text-primary); }
+
+.btn-sm { padding: 6px 10px; font-size: 12px; }
+
+/* === CYCLE TABS === */
+.cycle-tabs {
+  display: flex;
+  gap: 0;
+  border-bottom: 1px solid var(--border-subtle);
+  margin-bottom: 24px;
+}
+
+.cycle-tab {
+  padding: 11px 18px;
+  font-size: 13px;
+  color: var(--text-tertiary);
+  background: transparent;
+  border: none;
+  border-bottom: 2px solid transparent;
+  cursor: pointer;
+  font-family: inherit;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.cycle-tab:hover { color: var(--text-primary); }
+.cycle-tab.active {
+  color: var(--accent);
+  border-bottom-color: var(--accent);
+}
+
+.cycle-tab .tab-badge {
+  background: var(--accent-subtle);
+  color: var(--accent);
+  padding: 1px 6px;
+  border-radius: 999px;
+  font-size: 10px;
+  font-weight: 600;
+}
+
+.cycle-tab.add-tab {
+  color: var(--text-tertiary);
+  border-bottom: 2px dashed transparent;
+}
+.cycle-tab.add-tab:hover {
+  color: var(--accent);
+}
+
+/* === STATS BAR === */
+.stats-bar {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+  margin-bottom: 24px;
+}
+
+.stat-card {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-subtle);
+  border-radius: 10px;
+  padding: 14px 16px;
+}
+
+.stat-label {
+  font-size: 11px;
+  color: var(--text-tertiary);
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin-bottom: 6px;
+}
+
+.stat-value {
+  font-size: 22px;
+  font-weight: 600;
+  margin-bottom: 4px;
+  letter-spacing: -0.01em;
+}
+
+.stat-trend {
+  font-size: 11px;
+  display: flex; align-items: center;
+  gap: 4px;
+}
+
+.stat-trend.up { color: var(--success); }
+.stat-trend.neutral { color: var(--text-tertiary); }
+
+/* === SECTION HEADERS === */
+.section-label-h {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-tertiary);
+  margin: 0 0 14px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.section-label-h.with-cta {
+  justify-content: space-between;
+}
+
+.section-label-h .desc {
+  font-size: 11px;
+  font-weight: 300;
+  font-style: italic;
+  text-transform: none;
+  letter-spacing: 0;
+  color: var(--text-tertiary);
+  margin-left: 4px;
+}
+
+.section-spacer { margin-top: 32px; }
+
+/* === CALENDAR ===*/
+.calendar-card {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-subtle);
+  border-radius: 14px;
+  padding: 24px;
+  margin-bottom: 28px;
+}
+
+.calendar-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.calendar-title {
+  font-size: 16px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.calendar-title .ciclo-tag {
+  font-size: 11px;
+  padding: 3px 10px;
+  border-radius: 999px;
+  background: var(--accent-subtle);
+  color: var(--accent);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.calendar-actions { display: flex; gap: 8px; }
+
+.calendar-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 12px;
+}
+
+.day-card {
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-default);
+  border-radius: 12px;
+  padding: 14px 10px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  position: relative;
+  cursor: pointer;
+  transition: all 150ms ease;
+  min-height: 180px;
+}
+
+.day-card:hover {
+  border-color: var(--border-strong);
+  transform: translateY(-2px);
+  background: var(--bg-elevated);
+}
+
+.day-card.special {
+  background: linear-gradient(135deg, rgba(255, 215, 0, 0.08), var(--bg-tertiary));
+  border-color: rgba(255, 215, 0, 0.40);
+  position: relative;
+  overflow: hidden;
+}
+
+.day-card.special::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse at top, rgba(255, 215, 0, 0.15), transparent 60%);
+  pointer-events: none;
+}
+
+.day-card.special > * { position: relative; z-index: 1; }
+
+.day-card.special:hover {
+  border-color: var(--gold);
+  box-shadow: 0 8px 24px rgba(255, 215, 0, 0.20);
+}
+
+.day-number {
+  font-size: 11px;
+  color: var(--text-tertiary);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  font-weight: 600;
+  margin-bottom: 2px;
+}
+
+.day-card.special .day-number {
+  color: var(--gold);
+}
+
+.day-day-big {
+  font-size: 32px;
+  font-weight: 700;
+  color: var(--text-primary);
+  line-height: 1;
+  font-feature-settings: 'tnum';
+}
+
+.day-card.special .day-day-big {
+  background: linear-gradient(135deg, #FFD700, #FFA500);
+  background-clip: text;
+  -webkit-background-clip: text;
+  color: transparent;
+  text-shadow: 0 0 16px rgba(255, 215, 0, 0.30);
+}
+
+.special-crown {
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: var(--gold);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  box-shadow: 0 4px 12px rgba(255, 215, 0, 0.40);
+  z-index: 2;
+}
+
+.day-divider {
+  width: 24px;
+  height: 1px;
+  background: var(--border-default);
+  margin: 4px 0;
+}
+
+.day-rewards {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  align-items: center;
+  width: 100%;
+}
+
+.reward-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 8px;
+  border-radius: 6px;
+  font-size: 10px;
+  font-weight: 600;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-default);
+  width: 100%;
+  justify-content: center;
+}
+
+.reward-pill .emoji { font-size: 12px; }
+.reward-pill .qty { font-feature-settings: 'tnum'; }
+
+.reward-pill.coin { color: var(--gold); border-color: rgba(255, 215, 0, 0.20); background: rgba(255, 215, 0, 0.05); }
+.reward-pill.spins { color: var(--info); border-color: rgba(88, 166, 255, 0.20); background: rgba(88, 166, 255, 0.05); }
+.reward-pill.chest { color: var(--purple); border-color: rgba(167, 139, 250, 0.20); background: rgba(167, 139, 250, 0.05); }
+.reward-pill.boost { color: var(--success); border-color: rgba(10, 247, 132, 0.20); background: rgba(10, 247, 132, 0.05); }
+.reward-pill.gem { color: var(--pink); border-color: rgba(255, 107, 157, 0.20); background: rgba(255, 107, 157, 0.05); }
+
+.day-claimed-rate {
+  margin-top: auto;
+  padding-top: 8px;
+  font-size: 9px;
+  color: var(--text-tertiary);
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  width: 100%;
+  justify-content: center;
+  border-top: 1px solid var(--border-subtle);
+}
+
+.day-claimed-rate .accent { color: var(--success); font-weight: 600; }
+
+/* === CONFIG CARD === */
+.config-card {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-subtle);
+  border-radius: 12px;
+  padding: 20px 22px;
+  margin-bottom: 28px;
+}
+
+.config-row {
+  display: grid;
+  grid-template-columns: 220px 1fr;
+  gap: 20px;
+  padding: 14px 0;
+  border-bottom: 1px solid var(--border-subtle);
+  align-items: center;
+}
+
+.config-row:first-child { padding-top: 0; }
+.config-row:last-child { border-bottom: none; padding-bottom: 0; }
+
+.config-label {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.config-label-title {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-primary);
+}
+
+.config-label-help {
+  font-size: 11px;
+  color: var(--text-tertiary);
+  font-weight: 300;
+  font-style: italic;
+}
+
+.config-value {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.config-radio-group {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.config-radio {
+  padding: 8px 14px;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-default);
+  border-radius: 8px;
+  font-size: 12px;
+  color: var(--text-secondary);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.config-radio:hover {
+  background: var(--bg-elevated);
+}
+
+.config-radio.active {
+  background: var(--accent-subtle);
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.config-radio.active::before {
+  content: '✓';
+  font-weight: 700;
+}
+
+.config-input {
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-default);
+  border-radius: 7px;
+  padding: 8px 12px;
+  color: var(--text-primary);
+  font-size: 13px;
+  font-family: var(--mono);
+  width: 80px;
+  text-align: center;
+}
+
+.config-input:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-subtle);
+}
+
+.config-suffix {
+  font-size: 12px;
+  color: var(--text-tertiary);
+}
+
+.switch {
+  position: relative;
+  width: 36px; height: 20px;
+  background: var(--bg-elevated);
+  border-radius: 999px;
+  cursor: pointer;
+  border: none;
+  padding: 0;
+  flex-shrink: 0;
+}
+
+.switch::after {
+  content: '';
+  position: absolute;
+  top: 2px; left: 2px;
+  width: 16px; height: 16px;
+  border-radius: 50%;
+  background: var(--text-secondary);
+  transition: all 150ms ease;
+}
+
+.switch.on { background: var(--accent); }
+.switch.on::after { left: 18px; background: var(--bg-primary); }
+
+/* === FUNNEL === */
+.funnel-card {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-subtle);
+  border-radius: 12px;
+  padding: 20px 22px;
+}
+
+.funnel-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.funnel-bar-block {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+}
+
+.funnel-day-label {
+  font-size: 10px;
+  color: var(--text-tertiary);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.funnel-bar-container {
+  width: 100%;
+  height: 120px;
+  display: flex;
+  align-items: flex-end;
+  background: var(--bg-tertiary);
+  border-radius: 8px;
+  padding: 8px;
+  position: relative;
+}
+
+.funnel-bar {
+  width: 100%;
+  border-radius: 4px;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  align-items: center;
+  position: relative;
+  background: linear-gradient(180deg, var(--accent), var(--accent-hover));
+  min-height: 8px;
+}
+
+.funnel-bar.special {
+  background: linear-gradient(180deg, var(--gold), #FFA500);
+}
+
+.funnel-bar-pct {
+  position: absolute;
+  top: -18px;
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--text-primary);
+  font-feature-settings: 'tnum';
+  white-space: nowrap;
+}
+
+.funnel-count {
+  font-size: 11px;
+  color: var(--text-tertiary);
+  font-feature-settings: 'tnum';
+  margin-top: 4px;
+}
+
+.funnel-summary {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 16px;
+  padding-top: 16px;
+  margin-top: 12px;
+  border-top: 1px solid var(--border-subtle);
+}
+
+.funnel-summary-item {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.funnel-summary-label {
+  font-size: 10px;
+  color: var(--text-tertiary);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  font-weight: 600;
+}
+
+.funnel-summary-value {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--text-primary);
+  font-feature-settings: 'tnum';
+}
+
+.funnel-summary-value.accent { color: var(--accent); }
+.funnel-summary-value.warning { color: var(--warning); }
+
+.funnel-summary-help {
+  font-size: 11px;
+  color: var(--text-tertiary);
+  font-style: italic;
+  font-weight: 300;
+}
+
+/* === ALERT === */
+.alert {
+  padding: 12px 16px;
+  border-radius: 10px;
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  font-size: 12px;
+  margin-bottom: 16px;
+}
+
+.alert.info {
+  background: rgba(88, 166, 255, 0.08);
+  border: 1px solid rgba(88, 166, 255, 0.25);
+}
+.alert.info svg { color: var(--info); flex-shrink: 0; }
+.alert .alert-text { color: var(--text-secondary); flex: 1; }
+.alert strong { color: var(--text-primary); }
+
+/* === SCROLLBAR === */
+::-webkit-scrollbar { width: 8px; height: 8px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border-default); border-radius: 4px; }
+::-webkit-scrollbar-thumb:hover { background: var(--border-strong); }
+
+@media (max-width: 1300px) {
+  .calendar-grid { grid-template-columns: repeat(4, 1fr); }
+  .funnel-grid { grid-template-columns: repeat(7, 1fr); }
+}
+
+@media (max-width: 1100px) {
+  .stats-bar { grid-template-columns: repeat(2, 1fr); }
+  .config-row { grid-template-columns: 1fr; }
+}
+
+@media (max-width: 768px) {
+  .app { grid-template-columns: 1fr; }
+  .sidebar { display: none; }
+  .calendar-grid { grid-template-columns: repeat(2, 1fr); }
+  .stats-bar { grid-template-columns: 1fr; }
+  .funnel-grid { grid-template-columns: repeat(7, 1fr); gap: 4px; }
+  .funnel-summary { grid-template-columns: 1fr; }
+}
+</style>
+</head>
+<body>
+
+<div class="app">
+
+<aside class="sidebar">
+  <div class="sidebar-brand">
+    <div class="brand-logo">N</div>
+    <div class="brand-name">niveles</div>
+  </div>
+  <div class="operator-selector">
+    <div class="operator-avatar">CA</div>
+    <div class="operator-info">
+      <div class="operator-name">Casino Astral</div>
+      <div class="operator-tier">plan growth · es-AR</div>
+    </div>
+    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="color: var(--text-tertiary);"><polyline points="6 9 12 15 18 9"/></svg>
+  </div>
+
+  <div class="sidebar-section">
+    <a class="nav-item" href="#">
+      <span class="nav-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg></span>
+      Dashboard
+    </a>
+  </div>
+
+  <div class="sidebar-section">
+    <p class="section-label">Engagement</p>
+    <a class="nav-item" href="#">
+      <span class="nav-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 12l2 2 4-4"/></svg></span>
+      Misiones
+    </a>
+    <a class="nav-item" href="#">
+      <span class="nav-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="6"/><path d="M9 13l-2 8 5-3 5 3-2-8"/></svg></span>
+      Logros
+    </a>
+    <a class="nav-item active" href="#">
+      <span class="nav-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></span>
+      Recompensas diarias
+    </a>
+  </div>
+</aside>
+
+<div class="main">
+
+  <div class="topbar">
+    <div class="breadcrumb">
+      <a>Engagement</a>
+      <span style="color: var(--text-tertiary);">/</span>
+      <span class="breadcrumb-current">Recompensas diarias</span>
+    </div>
+    
+    <div class="topbar-actions">
+      <button class="icon-btn"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg></button>
+      <button class="icon-btn"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 1 1 5.83 1c0 2-3 3-3 3M12 17h.01"/></svg></button>
+      <div class="user-pill">
+        <div class="user-avatar">FL</div>
+        <div>
+          <div class="user-name">Fabricio L.</div>
+          <div class="user-role">admin</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="content">
+
+    <div class="page-header">
+      <div>
+        <h1 class="page-title">Recompensas diarias</h1>
+        <p class="page-subtitle">cada login del jugador escala una recompensa · el motor más simple y efectivo de engagement diario</p>
+      </div>
+      <div class="page-actions">
+        <button class="btn btn-secondary">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+          plantillas
+        </button>
+        <button class="btn btn-primary">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+          guardar cambios
+        </button>
+      </div>
+    </div>
+
+    <!-- ===== TABS DE CICLOS ===== -->
+    <div class="cycle-tabs">
+      <button class="cycle-tab active">
+        ciclo semanal
+        <span class="tab-badge">activo</span>
+      </button>
+      <button class="cycle-tab">
+        ciclo mensual VIP
+      </button>
+      <button class="cycle-tab">
+        aniversario 10 años
+        <span class="tab-badge" style="background: rgba(88, 166, 255, 0.15); color: var(--info);">programado</span>
+      </button>
+      <button class="cycle-tab add-tab">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        nuevo ciclo
+      </button>
+    </div>
+
+    <!-- ===== STATS BAR ===== -->
+    <div class="stats-bar">
+      <div class="stat-card">
+        <div class="stat-label">jugadores activos en ciclo</div>
+        <div class="stat-value">8,742</div>
+        <div class="stat-trend up">
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="6 15 12 9 18 15"/></svg>
+          +12.4% vs semana previa
+        </div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">completaron ciclo (7d)</div>
+        <div class="stat-value">2,184</div>
+        <div class="stat-trend neutral">
+          25.0% completion rate
+        </div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">recompensas otorgadas</div>
+        <div class="stat-value">42,180</div>
+        <div class="stat-trend neutral">
+          monedas + cofres + spins
+        </div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">retención día 7</div>
+        <div class="stat-value" style="color: var(--accent);">+38%</div>
+        <div class="stat-trend up">
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="6 15 12 9 18 15"/></svg>
+          vs jugadores sin ciclo
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== ALERT === -->
+    <div class="alert info">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+      <span class="alert-text">los jugadores que completan el día 7 tienen <strong>+38% de retención</strong> que los que no participan · esta es la pantalla más rentable del BO según los benchmarks de iGaming</span>
+    </div>
+
+    <!-- ===== CALENDARIO VISUAL ===== -->
+    <p class="section-label-h">
+      calendario de recompensas
+      <span class="desc">así lo ven tus jugadores · click en un día para editarlo</span>
+    </p>
+
+    <div class="calendar-card">
+
+      <div class="calendar-header">
+        <div class="calendar-title">
+          ciclo semanal
+          <span class="ciclo-tag">7 días</span>
+        </div>
+        <div class="calendar-actions">
+          <button class="btn btn-secondary btn-sm">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+            preview en widget
+          </button>
+          <button class="btn btn-secondary btn-sm">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19 12c0 1-1 2-1 3l2 2-2 2-2-2c-1 0-2 1-3 1l-1 2-2-2c-1 0-2-1-3-1l-2 2-2-2 2-2c0-1-1-2-1-3l-2-1 2-2c0-1 1-2 1-3l-2-2 2-2 2 2c1 0 2-1 3-1l1-2 2 2c1 0 2 1 3 1l2-2 2 2-2 2"/></svg>
+            cambiar duración
+          </button>
+        </div>
+      </div>
+
+      <div class="calendar-grid">
+
+        <!-- DÍA 1 -->
+        <div class="day-card">
+          <div class="day-number">día</div>
+          <div class="day-day-big">1</div>
+          <div class="day-divider"></div>
+          <div class="day-rewards">
+            <div class="reward-pill coin">
+              <span class="emoji">🪙</span>
+              <span class="qty">100</span>
+            </div>
+          </div>
+          <div class="day-claimed-rate">
+            <span class="accent">98.2%</span> reclama
+          </div>
+        </div>
+
+        <!-- DÍA 2 -->
+        <div class="day-card">
+          <div class="day-number">día</div>
+          <div class="day-day-big">2</div>
+          <div class="day-divider"></div>
+          <div class="day-rewards">
+            <div class="reward-pill coin">
+              <span class="emoji">🪙</span>
+              <span class="qty">200</span>
+            </div>
+          </div>
+          <div class="day-claimed-rate">
+            <span class="accent">82.4%</span> reclama
+          </div>
+        </div>
+
+        <!-- DÍA 3 -->
+        <div class="day-card">
+          <div class="day-number">día</div>
+          <div class="day-day-big">3</div>
+          <div class="day-divider"></div>
+          <div class="day-rewards">
+            <div class="reward-pill coin">
+              <span class="emoji">🪙</span>
+              <span class="qty">300</span>
+            </div>
+            <div class="reward-pill spins">
+              <span class="emoji">🎰</span>
+              <span class="qty">5</span>
+            </div>
+          </div>
+          <div class="day-claimed-rate">
+            <span class="accent">68.4%</span> reclama
+          </div>
+        </div>
+
+        <!-- DÍA 4 -->
+        <div class="day-card">
+          <div class="day-number">día</div>
+          <div class="day-day-big">4</div>
+          <div class="day-divider"></div>
+          <div class="day-rewards">
+            <div class="reward-pill coin">
+              <span class="emoji">🪙</span>
+              <span class="qty">500</span>
+            </div>
+          </div>
+          <div class="day-claimed-rate">
+            <span class="accent">52.8%</span> reclama
+          </div>
+        </div>
+
+        <!-- DÍA 5 -->
+        <div class="day-card">
+          <div class="day-number">día</div>
+          <div class="day-day-big">5</div>
+          <div class="day-divider"></div>
+          <div class="day-rewards">
+            <div class="reward-pill coin">
+              <span class="emoji">🪙</span>
+              <span class="qty">800</span>
+            </div>
+            <div class="reward-pill gem">
+              <span class="emoji">💎</span>
+              <span class="qty">3</span>
+            </div>
+          </div>
+          <div class="day-claimed-rate">
+            <span class="accent">42.1%</span> reclama
+          </div>
+        </div>
+
+        <!-- DÍA 6 -->
+        <div class="day-card">
+          <div class="day-number">día</div>
+          <div class="day-day-big">6</div>
+          <div class="day-divider"></div>
+          <div class="day-rewards">
+            <div class="reward-pill coin">
+              <span class="emoji">🪙</span>
+              <span class="qty">1.2k</span>
+            </div>
+            <div class="reward-pill spins">
+              <span class="emoji">🎰</span>
+              <span class="qty">10</span>
+            </div>
+          </div>
+          <div class="day-claimed-rate">
+            <span class="accent">32.4%</span> reclama
+          </div>
+        </div>
+
+        <!-- DÍA 7 - ESPECIAL -->
+        <div class="day-card special">
+          <div class="special-crown">👑</div>
+          <div class="day-number">día</div>
+          <div class="day-day-big">7</div>
+          <div class="day-divider"></div>
+          <div class="day-rewards">
+            <div class="reward-pill coin">
+              <span class="emoji">🪙</span>
+              <span class="qty">5k</span>
+            </div>
+            <div class="reward-pill chest">
+              <span class="emoji">📦</span>
+              <span class="qty">épico</span>
+            </div>
+            <div class="reward-pill boost">
+              <span class="emoji">⚡</span>
+              <span class="qty">x2 24h</span>
+            </div>
+          </div>
+          <div class="day-claimed-rate">
+            <span class="accent">25.0%</span> completa
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ===== CONFIGURACIÓN === -->
+    <p class="section-label-h">
+      configuración del ciclo
+      <span class="desc">define cómo se comporta el ciclo cuando un jugador falta un día</span>
+    </p>
+
+    <div class="config-card">
+
+      <div class="config-row">
+        <div class="config-label">
+          <span class="config-label-title">Duración del ciclo</span>
+          <span class="config-label-help">cantidad de días antes de reiniciar</span>
+        </div>
+        <div class="config-value">
+          <div class="config-radio-group">
+            <button class="config-radio">5 días</button>
+            <button class="config-radio active">7 días</button>
+            <button class="config-radio">14 días</button>
+            <button class="config-radio">30 días</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="config-row">
+        <div class="config-label">
+          <span class="config-label-title">Política de reinicio</span>
+          <span class="config-label-help">qué pasa si el jugador falta un día</span>
+        </div>
+        <div class="config-value">
+          <div class="config-radio-group">
+            <button class="config-radio active">Volver al día 1</button>
+            <button class="config-radio">Mantener progreso · 1 vida</button>
+            <button class="config-radio">Mantener progreso · sin penalización</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="config-row">
+        <div class="config-label">
+          <span class="config-label-title">Ventana para reclamar</span>
+          <span class="config-label-help">cuánto tiempo tiene el jugador desde su login para reclamar</span>
+        </div>
+        <div class="config-value">
+          <input type="text" class="config-input" value="24">
+          <span class="config-suffix">horas desde el login</span>
+        </div>
+      </div>
+
+      <div class="config-row">
+        <div class="config-label">
+          <span class="config-label-title">Segmento de jugadores</span>
+          <span class="config-label-help">a quién se aplica este ciclo</span>
+        </div>
+        <div class="config-value">
+          <div class="config-radio-group">
+            <button class="config-radio active">Todos los jugadores</button>
+            <button class="config-radio">Solo VIP gold+</button>
+            <button class="config-radio">Custom segmento</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="config-row">
+        <div class="config-label">
+          <span class="config-label-title">Notificación push automática</span>
+          <span class="config-label-help">recordatorio si el jugador no entró antes de las 22hs</span>
+        </div>
+        <div class="config-value">
+          <button class="switch on"></button>
+          <span class="config-suffix">"¡tu recompensa de hoy te espera!"</span>
+        </div>
+      </div>
+
+      <div class="config-row">
+        <div class="config-label">
+          <span class="config-label-title">Animación al reclamar</span>
+          <span class="config-label-help">efecto visual cuando el jugador toca el día</span>
+        </div>
+        <div class="config-value">
+          <div class="config-radio-group">
+            <button class="config-radio">Simple</button>
+            <button class="config-radio active">Confetti + sonido</button>
+            <button class="config-radio">Slot machine</button>
+            <button class="config-radio">Cofre apertura</button>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- ===== FUNNEL DE COMPLETION === -->
+    <p class="section-label-h section-spacer">
+      funnel de completion · últimos 7 días
+      <span class="desc">% de jugadores que llega a cada día · usá esto para balancear las recompensas</span>
+    </p>
+
+    <div class="funnel-card">
+
+      <div class="funnel-grid">
+
+        <div class="funnel-bar-block">
+          <div class="funnel-day-label">día 1</div>
+          <div class="funnel-bar-container">
+            <div class="funnel-bar" style="height: 100%;">
+              <span class="funnel-bar-pct">100%</span>
+            </div>
+          </div>
+          <div class="funnel-count">8,742</div>
+        </div>
+
+        <div class="funnel-bar-block">
+          <div class="funnel-day-label">día 2</div>
+          <div class="funnel-bar-container">
+            <div class="funnel-bar" style="height: 82%;">
+              <span class="funnel-bar-pct">82.4%</span>
+            </div>
+          </div>
+          <div class="funnel-count">7,203</div>
+        </div>
+
+        <div class="funnel-bar-block">
+          <div class="funnel-day-label">día 3</div>
+          <div class="funnel-bar-container">
+            <div class="funnel-bar" style="height: 68%;">
+              <span class="funnel-bar-pct">68.4%</span>
+            </div>
+          </div>
+          <div class="funnel-count">5,980</div>
+        </div>
+
+        <div class="funnel-bar-block">
+          <div class="funnel-day-label">día 4</div>
+          <div class="funnel-bar-container">
+            <div class="funnel-bar" style="height: 53%;">
+              <span class="funnel-bar-pct">52.8%</span>
+            </div>
+          </div>
+          <div class="funnel-count">4,616</div>
+        </div>
+
+        <div class="funnel-bar-block">
+          <div class="funnel-day-label">día 5</div>
+          <div class="funnel-bar-container">
+            <div class="funnel-bar" style="height: 42%;">
+              <span class="funnel-bar-pct">42.1%</span>
+            </div>
+          </div>
+          <div class="funnel-count">3,680</div>
+        </div>
+
+        <div class="funnel-bar-block">
+          <div class="funnel-day-label">día 6</div>
+          <div class="funnel-bar-container">
+            <div class="funnel-bar" style="height: 32%;">
+              <span class="funnel-bar-pct">32.4%</span>
+            </div>
+          </div>
+          <div class="funnel-count">2,832</div>
+        </div>
+
+        <div class="funnel-bar-block">
+          <div class="funnel-day-label">día 7</div>
+          <div class="funnel-bar-container">
+            <div class="funnel-bar special" style="height: 25%;">
+              <span class="funnel-bar-pct">25.0%</span>
+            </div>
+          </div>
+          <div class="funnel-count">2,184</div>
+        </div>
+
+      </div>
+
+      <div class="funnel-summary">
+        <div class="funnel-summary-item">
+          <div class="funnel-summary-label">drop más grande</div>
+          <div class="funnel-summary-value warning">día 1 → 2</div>
+          <div class="funnel-summary-help">17.6% no vuelve · considerá bonificar el día 2</div>
+        </div>
+        <div class="funnel-summary-item">
+          <div class="funnel-summary-label">completion rate</div>
+          <div class="funnel-summary-value accent">25.0%</div>
+          <div class="funnel-summary-help">benchmark iGaming: 18-30% es excelente</div>
+        </div>
+        <div class="funnel-summary-item">
+          <div class="funnel-summary-label">retención día 7</div>
+          <div class="funnel-summary-value accent">+38%</div>
+          <div class="funnel-summary-help">vs jugadores que no participan</div>
+        </div>
+      </div>
+
+    </div>
+
+  </div>
+</div>
+
+</div>
+
+</body>
+</html>
