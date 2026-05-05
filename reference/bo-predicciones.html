@@ -1,0 +1,1521 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>niveles · Predicciones · BO</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&family=Urbanist:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300&display=swap" rel="stylesheet">
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg-primary: #0E1116;
+  --bg-secondary: #161B22;
+  --bg-tertiary: #1C2128;
+  --bg-elevated: #21262D;
+  --bg-hover: #262C36;
+
+  --accent: #0AF784;
+  --accent-hover: #08D971;
+  --accent-glow: rgba(10, 247, 132, 0.15);
+  --accent-subtle: rgba(10, 247, 132, 0.08);
+
+  --text-primary: #FFFFFF;
+  --text-secondary: #B8BEC9;
+  --text-tertiary: #7D8590;
+  --text-disabled: #484F58;
+
+  --border-subtle: rgba(255, 255, 255, 0.06);
+  --border-default: rgba(255, 255, 255, 0.10);
+  --border-strong: rgba(255, 255, 255, 0.16);
+
+  --success: #0AF784;
+  --warning: #F0B72F;
+  --danger: #F85149;
+  --info: #58A6FF;
+  --purple: #A78BFA;
+  --pink: #FF6B9D;
+  --gold: #FFD700;
+  --orange: #FF8C42;
+}
+
+body {
+  font-family: 'Urbanist', system-ui, sans-serif;
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  font-size: 14px;
+  line-height: 1.5;
+  font-weight: 400;
+}
+
+button { font-family: inherit; cursor: pointer; }
+
+.app {
+  display: grid;
+  grid-template-columns: 240px 1fr;
+  min-height: 100vh;
+}
+
+/* === SIDEBAR === */
+.sidebar {
+  background: var(--bg-secondary);
+  border-right: 1px solid var(--border-subtle);
+  padding: 16px 0;
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  overflow-y: auto;
+}
+
+.sidebar-brand {
+  padding: 0 20px 20px;
+  border-bottom: 1px solid var(--border-subtle);
+  margin-bottom: 16px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.brand-logo {
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  background: linear-gradient(135deg, var(--accent), #00D9FF);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  color: var(--bg-primary);
+  font-size: 13px;
+}
+
+.brand-name { font-weight: 600; letter-spacing: -0.02em; font-size: 15px; }
+
+.operator-selector {
+  margin: 0 12px 16px;
+  padding: 10px 12px;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-subtle);
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+}
+
+.operator-avatar {
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  background: linear-gradient(135deg, var(--purple), var(--info));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  font-size: 11px;
+  color: white;
+}
+
+.operator-info { flex: 1; min-width: 0; }
+.operator-name { font-weight: 500; font-size: 13px; }
+.operator-tier { color: var(--text-tertiary); font-size: 11px; font-family: 'JetBrains Mono', monospace; }
+
+.sidebar-section { margin-bottom: 8px; padding: 0 12px; }
+
+.section-label {
+  color: var(--text-tertiary);
+  font-size: 11px;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  padding: 8px 12px 4px;
+  margin: 0;
+}
+
+.nav-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 12px;
+  border-radius: 6px;
+  color: var(--text-secondary);
+  text-decoration: none;
+  font-size: 13px;
+  font-weight: 400;
+  transition: all 0.12s;
+  margin-bottom: 1px;
+}
+
+.nav-item:hover { background: var(--bg-tertiary); color: var(--text-primary); }
+
+.nav-item.active {
+  background: var(--accent-subtle);
+  color: var(--accent);
+  font-weight: 500;
+}
+
+.nav-item.coming-soon { color: var(--text-disabled); }
+
+.nav-icon {
+  width: 16px;
+  height: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.nav-badge {
+  margin-left: auto;
+  font-size: 9px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  padding: 2px 5px;
+  border-radius: 3px;
+  background: rgba(240, 183, 47, 0.10);
+  color: var(--warning);
+  font-weight: 600;
+}
+
+/* === MAIN === */
+.main { display: flex; flex-direction: column; }
+
+.topbar {
+  height: 56px;
+  border-bottom: 1px solid var(--border-subtle);
+  background: var(--bg-secondary);
+  padding: 0 28px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.breadcrumb {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+}
+
+.breadcrumb a { color: var(--text-tertiary); text-decoration: none; font-weight: 400; }
+.breadcrumb-current { color: var(--text-primary); font-weight: 500; }
+
+.topbar-actions { display: flex; align-items: center; gap: 12px; }
+
+.icon-btn {
+  width: 32px;
+  height: 32px;
+  border-radius: 6px;
+  background: transparent;
+  border: 1px solid var(--border-subtle);
+  color: var(--text-secondary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.12s;
+}
+
+.icon-btn:hover { background: var(--bg-tertiary); color: var(--text-primary); border-color: var(--border-default); }
+
+.user-pill {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 10px 4px 4px;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-subtle);
+  border-radius: 16px;
+  cursor: pointer;
+}
+
+.user-avatar {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--accent), #00D9FF);
+  color: var(--bg-primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  font-size: 10px;
+}
+
+.user-name { font-size: 12px; font-weight: 500; }
+.user-role { font-size: 10px; color: var(--text-tertiary); font-family: 'JetBrains Mono', monospace; }
+
+/* === CONTENT === */
+.content {
+  padding: 24px 28px;
+  max-width: 1280px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  margin-bottom: 20px;
+}
+
+.page-title {
+  font-size: 22px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  margin-bottom: 4px;
+}
+
+.page-subtitle {
+  color: var(--text-tertiary);
+  font-size: 13px;
+  font-weight: 400;
+  font-style: italic;
+}
+
+/* === STATS BAR === */
+.stats-bar {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.stat-card {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-subtle);
+  border-radius: 10px;
+  padding: 16px 18px;
+}
+
+.stat-label {
+  font-size: 11px;
+  color: var(--text-tertiary);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-weight: 500;
+  margin-bottom: 6px;
+}
+
+.stat-value {
+  font-size: 22px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+}
+
+.stat-sub {
+  font-size: 11px;
+  font-weight: 400;
+  color: var(--text-tertiary);
+  font-family: 'JetBrains Mono', monospace;
+}
+
+.stat-extra {
+  font-size: 12px;
+  color: var(--text-secondary);
+  font-weight: 400;
+  margin-top: 4px;
+}
+
+.stat-extra .accent { color: var(--accent); font-weight: 500; }
+.stat-extra .gold { color: var(--gold); font-weight: 500; }
+
+/* === TABS === */
+.tabs {
+  display: flex;
+  gap: 4px;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-subtle);
+  border-radius: 8px;
+  padding: 4px;
+  margin-bottom: 16px;
+  width: fit-content;
+}
+
+.tab {
+  padding: 7px 14px;
+  border-radius: 5px;
+  background: transparent;
+  border: none;
+  color: var(--text-secondary);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.12s;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.tab:hover { color: var(--text-primary); }
+
+.tab.active {
+  background: var(--bg-elevated);
+  color: var(--text-primary);
+}
+
+.tab-count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 20px;
+  height: 18px;
+  padding: 0 5px;
+  border-radius: 9px;
+  background: var(--bg-tertiary);
+  color: var(--text-tertiary);
+  font-size: 10px;
+  font-weight: 600;
+  font-family: 'JetBrains Mono', monospace;
+}
+
+.tab.active .tab-count {
+  background: var(--accent-subtle);
+  color: var(--accent);
+}
+
+/* === BUTTONS === */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 500;
+  font-family: inherit;
+  cursor: pointer;
+  transition: all 0.12s;
+  border: 1px solid transparent;
+}
+
+.btn-primary { background: var(--accent); color: var(--bg-primary); }
+.btn-primary:hover { background: var(--accent-hover); }
+
+.btn-secondary {
+  background: var(--bg-tertiary);
+  color: var(--text-primary);
+  border-color: var(--border-default);
+}
+.btn-secondary:hover { background: var(--bg-elevated); }
+
+.btn-ghost { background: transparent; color: var(--text-secondary); }
+.btn-ghost:hover { background: var(--bg-tertiary); color: var(--text-primary); }
+
+.btn-sm { padding: 6px 12px; font-size: 12px; }
+
+/* === EVENT CARDS (lista) === */
+.events-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 28px;
+}
+
+.event-card {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-subtle);
+  border-radius: 10px;
+  padding: 16px;
+  display: grid;
+  grid-template-columns: 140px 1fr auto;
+  gap: 18px;
+  align-items: center;
+  transition: all 0.12s;
+}
+
+.event-card:hover {
+  border-color: var(--border-default);
+  transform: translateY(-1px);
+}
+
+.event-banner {
+  width: 140px;
+  height: 86px;
+  border-radius: 8px;
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  font-size: 36px;
+}
+
+.event-banner.football {
+  background: linear-gradient(135deg, rgba(10, 247, 132, 0.18), rgba(88, 166, 255, 0.18));
+  border: 1px solid rgba(10, 247, 132, 0.20);
+}
+
+.event-banner.tennis {
+  background: linear-gradient(135deg, rgba(255, 215, 0, 0.18), rgba(255, 140, 66, 0.18));
+  border: 1px solid rgba(255, 215, 0, 0.20);
+}
+
+.event-banner.basket {
+  background: linear-gradient(135deg, rgba(255, 140, 66, 0.18), rgba(248, 81, 73, 0.18));
+  border: 1px solid rgba(255, 140, 66, 0.20);
+}
+
+.event-banner.ufc {
+  background: linear-gradient(135deg, rgba(248, 81, 73, 0.20), rgba(167, 139, 250, 0.18));
+  border: 1px solid rgba(248, 81, 73, 0.20);
+}
+
+.event-body {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+}
+
+.event-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.event-name {
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+.event-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 11px;
+  font-weight: 500;
+  padding: 3px 8px;
+  border-radius: 4px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.event-status-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+}
+
+.status-active {
+  background: rgba(10, 247, 132, 0.10);
+  color: var(--accent);
+}
+
+.status-active .event-status-dot {
+  background: var(--accent);
+  box-shadow: 0 0 6px var(--accent-glow);
+  animation: pulse 2s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+.event-desc {
+  font-size: 13px;
+  color: var(--text-secondary);
+  font-weight: 400;
+}
+
+.event-meta {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-top: 4px;
+  flex-wrap: wrap;
+}
+
+.meta-item {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 12px;
+  color: var(--text-tertiary);
+}
+
+.meta-item strong {
+  color: var(--text-secondary);
+  font-weight: 500;
+}
+
+.meta-divider {
+  width: 1px;
+  height: 12px;
+  background: var(--border-default);
+}
+
+.event-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  align-items: flex-end;
+}
+
+/* === EVENT DETAIL VIEW === */
+.event-detail {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-default);
+  border-radius: 12px;
+  margin-bottom: 24px;
+  overflow: hidden;
+}
+
+.detail-header {
+  position: relative;
+  padding: 28px 32px;
+  background: linear-gradient(135deg, rgba(10, 247, 132, 0.06), rgba(88, 166, 255, 0.06));
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.detail-eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  color: var(--text-tertiary);
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin-bottom: 6px;
+}
+
+.detail-title {
+  font-size: 26px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  margin-bottom: 6px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.detail-subtitle {
+  font-size: 14px;
+  color: var(--text-secondary);
+  font-weight: 400;
+  font-style: italic;
+}
+
+.detail-actions {
+  position: absolute;
+  top: 24px;
+  right: 24px;
+  display: flex;
+  gap: 6px;
+}
+
+.detail-stats {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0;
+  background: var(--bg-tertiary);
+}
+
+.detail-stat {
+  padding: 14px 20px;
+  border-right: 1px solid var(--border-subtle);
+  text-align: center;
+}
+
+.detail-stat:last-child { border-right: none; }
+
+.detail-stat-label {
+  font-size: 10px;
+  color: var(--text-tertiary);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-weight: 500;
+  margin-bottom: 4px;
+}
+
+.detail-stat-value {
+  font-size: 18px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+.detail-body {
+  padding: 24px 32px;
+}
+
+.detail-section {
+  margin-bottom: 24px;
+}
+
+.detail-section:last-child { margin-bottom: 0; }
+
+.detail-section-title {
+  font-size: 11px;
+  color: var(--text-tertiary);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-weight: 500;
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.detail-section-extra {
+  font-size: 11px;
+  color: var(--text-tertiary);
+  text-transform: none;
+  letter-spacing: normal;
+  font-weight: 400;
+  font-style: italic;
+}
+
+/* === ITEM CARDS === */
+.items-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.item-card {
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-default);
+  border-radius: 8px;
+  padding: 16px 18px;
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 16px;
+  align-items: center;
+}
+
+.item-info {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
+}
+
+.item-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.item-num {
+  width: 22px;
+  height: 22px;
+  border-radius: 6px;
+  background: var(--bg-elevated);
+  color: var(--text-tertiary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  font-weight: 600;
+  font-family: 'JetBrains Mono', monospace;
+  flex-shrink: 0;
+}
+
+.item-name {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.item-market {
+  font-size: 11px;
+  color: var(--text-tertiary);
+  font-family: 'JetBrains Mono', monospace;
+  font-weight: 400;
+  background: var(--bg-elevated);
+  padding: 2px 7px;
+  border-radius: 4px;
+}
+
+.item-options {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.option-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 12px;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-default);
+  border-radius: 6px;
+  color: var(--text-secondary);
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.option-btn-text { font-weight: 600; color: var(--text-primary); }
+
+.option-btn-percent {
+  font-size: 11px;
+  color: var(--text-tertiary);
+  font-family: 'JetBrains Mono', monospace;
+  font-weight: 400;
+  padding-left: 6px;
+  border-left: 1px solid var(--border-default);
+}
+
+.option-btn.lead {
+  background: var(--accent-subtle);
+  border-color: rgba(10, 247, 132, 0.30);
+}
+
+.option-btn.lead .option-btn-text { color: var(--accent); }
+
+.item-meta {
+  display: flex;
+  gap: 12px;
+  font-size: 11px;
+  color: var(--text-tertiary);
+  margin-top: 2px;
+}
+
+.item-meta-item strong {
+  color: var(--text-secondary);
+  font-weight: 500;
+}
+
+.item-prize {
+  text-align: right;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 130px;
+}
+
+.item-prize-label {
+  font-size: 10px;
+  color: var(--text-tertiary);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  font-weight: 500;
+}
+
+.item-prize-value {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--accent);
+  font-family: 'JetBrains Mono', monospace;
+}
+
+.item-prize-sub {
+  font-size: 10px;
+  color: var(--text-tertiary);
+}
+
+/* === GRAND PRIZE === */
+.grand-prize-card {
+  background: linear-gradient(135deg, rgba(255, 215, 0, 0.10), rgba(255, 140, 66, 0.06));
+  border: 1px solid rgba(255, 215, 0, 0.25);
+  border-radius: 10px;
+  padding: 18px 22px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.grand-prize-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 10px;
+  background: rgba(255, 215, 0, 0.18);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--gold);
+  flex-shrink: 0;
+}
+
+.grand-prize-info { flex: 1; }
+
+.grand-prize-title {
+  font-size: 14px;
+  font-weight: 600;
+  margin-bottom: 4px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.grand-prize-desc {
+  font-size: 12px;
+  color: var(--text-secondary);
+  font-weight: 400;
+}
+
+.grand-prize-stat {
+  text-align: right;
+}
+
+.grand-prize-stat-label {
+  font-size: 10px;
+  color: var(--text-tertiary);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  font-weight: 500;
+  margin-bottom: 2px;
+}
+
+.grand-prize-stat-value {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--gold);
+  font-family: 'JetBrains Mono', monospace;
+}
+
+/* === MARKET REFERENCE TABLE === */
+.markets-ref {
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-default);
+  border-radius: 8px;
+  padding: 14px 18px;
+  margin-top: 8px;
+}
+
+.markets-ref-title {
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--text-tertiary);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin-bottom: 10px;
+}
+
+.markets-ref-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px 16px;
+}
+
+.market-ref-item {
+  display: flex;
+  justify-content: space-between;
+  font-size: 12px;
+  padding: 4px 0;
+}
+
+.market-ref-name {
+  color: var(--text-secondary);
+  font-weight: 500;
+}
+
+.market-ref-buttons {
+  color: var(--text-tertiary);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+}
+
+/* === BADGES === */
+.event-counter {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+  font-weight: 500;
+  padding: 3px 8px;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-default);
+  border-radius: 4px;
+  color: var(--text-secondary);
+  font-family: 'JetBrains Mono', monospace;
+}
+</style>
+</head>
+<body>
+
+<div class="app">
+
+<!-- ======== SIDEBAR ======== -->
+<aside class="sidebar">
+  <div class="sidebar-brand">
+    <div class="brand-logo">N</div>
+    <div class="brand-name">niveles</div>
+  </div>
+  <div class="operator-selector">
+    <div class="operator-avatar">CA</div>
+    <div class="operator-info">
+      <div class="operator-name">Casino Astral</div>
+      <div class="operator-tier">plan growth · es-AR</div>
+    </div>
+    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="color: var(--text-tertiary);"><polyline points="6 9 12 15 18 9"/></svg>
+  </div>
+
+  <div class="sidebar-section">
+    <a class="nav-item" href="#">
+      <span class="nav-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg></span>
+      Dashboard
+    </a>
+  </div>
+
+  <div class="sidebar-section">
+    <p class="section-label">Engagement</p>
+    <a class="nav-item" href="#">
+      <span class="nav-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></span>
+      Misiones
+    </a>
+    <a class="nav-item" href="#">
+      <span class="nav-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="7"/><polyline points="8.21 13.89 7 23 12 20 17 23 15.79 13.88"/></svg></span>
+      Logros
+    </a>
+    <a class="nav-item" href="#">
+      <span class="nav-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="9" y1="21" x2="9" y2="9"/></svg></span>
+      Recompensas diarias
+    </a>
+    <a class="nav-item" href="#">
+      <span class="nav-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="20" x2="12" y2="10"/><line x1="18" y1="20" x2="18" y2="4"/><line x1="6" y1="20" x2="6" y2="16"/></svg></span>
+      Ranking
+    </a>
+    <a class="nav-item active" href="#">
+      <span class="nav-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg></span>
+      Predicciones
+    </a>
+    <a class="nav-item coming-soon" href="#">
+      <span class="nav-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg></span>
+      Feed Social
+      <span class="nav-badge">soon</span>
+    </a>
+  </div>
+
+  <div class="sidebar-section">
+    <p class="section-label">Setup</p>
+    <a class="nav-item" href="#">
+      <span class="nav-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19 12c0 1-1 2-1 3l2 2-2 2-2-2c-1 0-2 1-3 1l-1 2-2-2c-1 0-2-1-3-1l-2 2-2-2 2-2c0-1-1-2-1-3l-2-1 2-2c0-1 1-2 1-3l-2-2 2-2 2 2c1 0 2-1 3-1l1-2 2 2c1 0 2 1 3 1l2-2 2 2-2 2"/></svg></span>
+      Branding
+    </a>
+    <a class="nav-item" href="#">
+      <span class="nav-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2M9 11a4 4 0 1 0 0-8"/></svg></span>
+      Equipo
+    </a>
+    <a class="nav-item" href="#">
+      <span class="nav-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></span>
+      Configuración general
+    </a>
+  </div>
+</aside>
+
+<!-- ======== MAIN ======== -->
+<div class="main">
+
+  <div class="topbar">
+    <div class="breadcrumb">
+      <a>Engagement</a>
+      <span style="color: var(--text-tertiary);">/</span>
+      <span class="breadcrumb-current">Predicciones</span>
+    </div>
+
+    <div class="topbar-actions">
+      <button class="icon-btn"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg></button>
+      <button class="icon-btn"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 1 1 5.83 1c0 2-3 3-3 3M12 17h.01"/></svg></button>
+      <div class="user-pill">
+        <div class="user-avatar">FL</div>
+        <div>
+          <div class="user-name">Fabricio L.</div>
+          <div class="user-role">admin</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="content">
+
+    <!-- ============ PAGE HEADER ============ -->
+    <div class="page-header">
+      <div>
+        <h1 class="page-title">Predicciones</h1>
+        <p class="page-subtitle">eventos donde los jugadores predicen resultados y ganan monedas · sin cuotas, sin %, sin componente social</p>
+      </div>
+      <div style="display: flex; gap: 8px;">
+        <button class="btn btn-secondary">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+          Mercados disponibles
+        </button>
+        <button class="btn btn-primary">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          Nuevo evento
+        </button>
+      </div>
+    </div>
+
+    <!-- ============ STATS BAR ============ -->
+    <div class="stats-bar">
+      <div class="stat-card">
+        <div class="stat-label">Eventos activos</div>
+        <div class="stat-value">4</div>
+        <div class="stat-extra">cierre próximo: <span class="accent">5h 23m</span></div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Jugadores participando</div>
+        <div class="stat-value">4.247</div>
+        <div class="stat-extra"><span class="accent">+18.5%</span> vs semana anterior</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Monedas comprometidas</div>
+        <div class="stat-value">89.450</div>
+        <div class="stat-extra">en entradas pagadas</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Pleno histórico</div>
+        <div class="stat-value">2.4%</div>
+        <div class="stat-extra">jugadores que aciertan todos</div>
+      </div>
+    </div>
+
+    <!-- ============ TABS ============ -->
+    <div class="tabs">
+      <button class="tab active">
+        Activos
+        <span class="tab-count">4</span>
+      </button>
+      <button class="tab">
+        Cerrados pendiente resultado
+        <span class="tab-count">1</span>
+      </button>
+      <button class="tab">
+        Pasados
+        <span class="tab-count">12</span>
+      </button>
+      <button class="tab">
+        Borradores
+        <span class="tab-count">2</span>
+      </button>
+    </div>
+
+    <!-- ============ EVENTS LIST · ACTIVOS ============ -->
+    <div class="events-list">
+
+      <!-- EVENTO 1: FÚTBOL · Champions League -->
+      <div class="event-card">
+        <div class="event-banner football">⚽</div>
+        <div class="event-body">
+          <div class="event-head">
+            <div class="event-name">Miércoles de Champions · 7 mayo</div>
+            <span class="event-status status-active">
+              <span class="event-status-dot"></span>
+              activo · cierra en 5h 23m
+            </span>
+          </div>
+          <div class="event-desc">Predecí ganador, total goles y córners de los 5 partidos de la jornada de UCL</div>
+          <div class="event-meta">
+            <span class="meta-item"><strong>5</strong> items · fútbol</span>
+            <span class="meta-divider"></span>
+            <span class="meta-item">cierre <strong>7/05 20:30</strong></span>
+            <span class="meta-divider"></span>
+            <span class="meta-item"><strong>1.847</strong> participantes</span>
+            <span class="meta-divider"></span>
+            <span class="meta-item">entrada <strong>1.000 monedas</strong></span>
+            <span class="meta-divider"></span>
+            <span class="meta-item">pool <strong style="color: var(--accent);">1.84M</strong></span>
+          </div>
+        </div>
+        <div class="event-actions">
+          <button class="btn btn-primary btn-sm">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+            Ver detalle
+          </button>
+          <button class="btn btn-ghost btn-sm">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="1"/><circle cx="12" cy="5" r="1"/><circle cx="12" cy="19" r="1"/></svg>
+            Más
+          </button>
+        </div>
+      </div>
+
+      <!-- EVENTO 2: TENIS · ATP Madrid -->
+      <div class="event-card">
+        <div class="event-banner tennis">🎾</div>
+        <div class="event-body">
+          <div class="event-head">
+            <div class="event-name">ATP Madrid · cuartos de final · 5 mayo</div>
+            <span class="event-status status-active">
+              <span class="event-status-dot"></span>
+              activo · cierra mañana 14:00
+            </span>
+          </div>
+          <div class="event-desc">Predecí los ganadores de los 4 partidos de cuartos · Alcaraz, Sinner, Djokovic y Zverev</div>
+          <div class="event-meta">
+            <span class="meta-item"><strong>4</strong> items · tenis</span>
+            <span class="meta-divider"></span>
+            <span class="meta-item">cierre <strong>6/05 14:00</strong></span>
+            <span class="meta-divider"></span>
+            <span class="meta-item"><strong>892</strong> participantes</span>
+            <span class="meta-divider"></span>
+            <span class="meta-item">entrada <strong>gratis</strong></span>
+            <span class="meta-divider"></span>
+            <span class="meta-item">pleno <strong style="color: var(--accent);">3.500 monedas</strong></span>
+          </div>
+        </div>
+        <div class="event-actions">
+          <button class="btn btn-secondary btn-sm">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+            Ver detalle
+          </button>
+          <button class="btn btn-ghost btn-sm">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="1"/><circle cx="12" cy="5" r="1"/><circle cx="12" cy="19" r="1"/></svg>
+            Más
+          </button>
+        </div>
+      </div>
+
+      <!-- EVENTO 3: BÁSQUET · NBA Playoffs -->
+      <div class="event-card">
+        <div class="event-banner basket">🏀</div>
+        <div class="event-body">
+          <div class="event-head">
+            <div class="event-name">NBA Playoffs · Conference Finals · 8 mayo</div>
+            <span class="event-status status-active">
+              <span class="event-status-dot"></span>
+              activo · cierra en 4 días
+            </span>
+          </div>
+          <div class="event-desc">Predecí el ganador y el total de puntos de los partidos del Este y Oeste</div>
+          <div class="event-meta">
+            <span class="meta-item"><strong>3</strong> items · básquet</span>
+            <span class="meta-divider"></span>
+            <span class="meta-item">cierre <strong>8/05 20:00</strong></span>
+            <span class="meta-divider"></span>
+            <span class="meta-item"><strong>654</strong> participantes</span>
+            <span class="meta-divider"></span>
+            <span class="meta-item">entrada <strong>500 monedas</strong></span>
+            <span class="meta-divider"></span>
+            <span class="meta-item">pool <strong style="color: var(--accent);">327K</strong></span>
+          </div>
+        </div>
+        <div class="event-actions">
+          <button class="btn btn-secondary btn-sm">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+            Ver detalle
+          </button>
+          <button class="btn btn-ghost btn-sm">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="1"/><circle cx="12" cy="5" r="1"/><circle cx="12" cy="19" r="1"/></svg>
+            Más
+          </button>
+        </div>
+      </div>
+
+      <!-- EVENTO 4: UFC -->
+      <div class="event-card">
+        <div class="event-banner ufc">🥊</div>
+        <div class="event-body">
+          <div class="event-head">
+            <div class="event-name">UFC 305 · Pereira vs Adesanya 3 · 11 mayo</div>
+            <span class="event-status status-active">
+              <span class="event-status-dot"></span>
+              activo · cierra en 6 días
+            </span>
+          </div>
+          <div class="event-desc">Predecí ganadores del card principal y el método de victoria de la pelea estelar</div>
+          <div class="event-meta">
+            <span class="meta-item"><strong>4</strong> items · UFC</span>
+            <span class="meta-divider"></span>
+            <span class="meta-item">cierre <strong>11/05 22:00</strong></span>
+            <span class="meta-divider"></span>
+            <span class="meta-item"><strong>854</strong> participantes</span>
+            <span class="meta-divider"></span>
+            <span class="meta-item">entrada <strong>500 monedas</strong></span>
+            <span class="meta-divider"></span>
+            <span class="meta-item">pleno <strong style="color: var(--accent);">10.000 monedas + cofre</strong></span>
+          </div>
+        </div>
+        <div class="event-actions">
+          <button class="btn btn-secondary btn-sm">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+            Ver detalle
+          </button>
+          <button class="btn btn-ghost btn-sm">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="1"/><circle cx="12" cy="5" r="1"/><circle cx="12" cy="19" r="1"/></svg>
+            Más
+          </button>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- ============ EVENT DETAIL VIEW ============ -->
+    <div class="event-detail">
+
+      <div class="detail-header">
+        <div class="detail-eyebrow">
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+          Vista detalle del evento seleccionado
+        </div>
+        <h2 class="detail-title">
+          ⚽ Miércoles de Champions · 7 mayo
+          <span class="event-counter">5 items</span>
+        </h2>
+        <p class="detail-subtitle">Predecí ganador, total goles y córners de los 5 partidos de la jornada · cierra el 7/05 a las 20:30</p>
+        <div class="detail-actions">
+          <button class="btn btn-secondary btn-sm">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="6" y="4" width="4" height="16" rx="1"/><rect x="14" y="4" width="4" height="16" rx="1"/></svg>
+            Pausar
+          </button>
+          <button class="btn btn-secondary btn-sm">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+            Editar
+          </button>
+          <button class="btn btn-secondary btn-sm">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+            Duplicar
+          </button>
+        </div>
+      </div>
+
+      <div class="detail-stats">
+        <div class="detail-stat">
+          <div class="detail-stat-label">Items configurados</div>
+          <div class="detail-stat-value">5 / 15 max</div>
+        </div>
+        <div class="detail-stat">
+          <div class="detail-stat-label">Participantes</div>
+          <div class="detail-stat-value">1.847</div>
+        </div>
+        <div class="detail-stat">
+          <div class="detail-stat-label">Pool acumulado</div>
+          <div class="detail-stat-value" style="color: var(--accent);">1.84M</div>
+        </div>
+        <div class="detail-stat">
+          <div class="detail-stat-label">Predicciones completas</div>
+          <div class="detail-stat-value">67%</div>
+        </div>
+      </div>
+
+      <div class="detail-body">
+
+        <!-- ITEMS -->
+        <div class="detail-section">
+          <div class="detail-section-title">
+            <span>Items configurados · partidos del evento</span>
+            <span class="detail-section-extra">los % indican cuántos jugadores predijeron cada opción</span>
+          </div>
+          <div class="items-list">
+
+            <!-- ITEM 1: 1X2 -->
+            <div class="item-card">
+              <div class="item-info">
+                <div class="item-head">
+                  <span class="item-num">1</span>
+                  <div class="item-name">Real Madrid vs Barcelona</div>
+                  <span class="item-market">resultado 1X2</span>
+                </div>
+                <div class="item-options">
+                  <div class="option-btn">
+                    <span class="option-btn-text">Real Madrid gana</span>
+                    <span class="option-btn-percent">47%</span>
+                  </div>
+                  <div class="option-btn">
+                    <span class="option-btn-text">Empate</span>
+                    <span class="option-btn-percent">18%</span>
+                  </div>
+                  <div class="option-btn lead">
+                    <span class="option-btn-text">Barcelona gana</span>
+                    <span class="option-btn-percent">35%</span>
+                  </div>
+                </div>
+                <div class="item-meta">
+                  <span class="item-meta-item"><strong>1.847</strong> predicciones</span>
+                  <span class="item-meta-item">desde <strong>14:32</strong></span>
+                </div>
+              </div>
+              <div class="item-prize">
+                <div class="item-prize-label">Premio si acierta</div>
+                <div class="item-prize-value">+150</div>
+                <div class="item-prize-sub">monedas</div>
+              </div>
+            </div>
+
+            <!-- ITEM 2: Total goles -->
+            <div class="item-card">
+              <div class="item-info">
+                <div class="item-head">
+                  <span class="item-num">2</span>
+                  <div class="item-name">PSG vs Bayern Munich</div>
+                  <span class="item-market">total goles · más / menos 2.5</span>
+                </div>
+                <div class="item-options">
+                  <div class="option-btn lead">
+                    <span class="option-btn-text">Más 2.5 goles</span>
+                    <span class="option-btn-percent">62%</span>
+                  </div>
+                  <div class="option-btn">
+                    <span class="option-btn-text">Menos 2.5 goles</span>
+                    <span class="option-btn-percent">38%</span>
+                  </div>
+                </div>
+                <div class="item-meta">
+                  <span class="item-meta-item"><strong>1.798</strong> predicciones</span>
+                </div>
+              </div>
+              <div class="item-prize">
+                <div class="item-prize-label">Premio si acierta</div>
+                <div class="item-prize-value">+100</div>
+                <div class="item-prize-sub">monedas</div>
+              </div>
+            </div>
+
+            <!-- ITEM 3: Ambos marcan -->
+            <div class="item-card">
+              <div class="item-info">
+                <div class="item-head">
+                  <span class="item-num">3</span>
+                  <div class="item-name">Liverpool vs Inter</div>
+                  <span class="item-market">ambos marcan · sí / no</span>
+                </div>
+                <div class="item-options">
+                  <div class="option-btn lead">
+                    <span class="option-btn-text">Sí ambos marcan</span>
+                    <span class="option-btn-percent">71%</span>
+                  </div>
+                  <div class="option-btn">
+                    <span class="option-btn-text">No ambos marcan</span>
+                    <span class="option-btn-percent">29%</span>
+                  </div>
+                </div>
+                <div class="item-meta">
+                  <span class="item-meta-item"><strong>1.812</strong> predicciones</span>
+                </div>
+              </div>
+              <div class="item-prize">
+                <div class="item-prize-label">Premio si acierta</div>
+                <div class="item-prize-value">+80</div>
+                <div class="item-prize-sub">monedas</div>
+              </div>
+            </div>
+
+            <!-- ITEM 4: Total córners -->
+            <div class="item-card">
+              <div class="item-info">
+                <div class="item-head">
+                  <span class="item-num">4</span>
+                  <div class="item-name">Arsenal vs Atlético Madrid</div>
+                  <span class="item-market">total córners · más / menos 9.5</span>
+                </div>
+                <div class="item-options">
+                  <div class="option-btn">
+                    <span class="option-btn-text">Más 9.5 córners</span>
+                    <span class="option-btn-percent">44%</span>
+                  </div>
+                  <div class="option-btn lead">
+                    <span class="option-btn-text">Menos 9.5 córners</span>
+                    <span class="option-btn-percent">56%</span>
+                  </div>
+                </div>
+                <div class="item-meta">
+                  <span class="item-meta-item"><strong>1.654</strong> predicciones</span>
+                </div>
+              </div>
+              <div class="item-prize">
+                <div class="item-prize-label">Premio si acierta</div>
+                <div class="item-prize-value">+80</div>
+                <div class="item-prize-sub">monedas</div>
+              </div>
+            </div>
+
+            <!-- ITEM 5: 1X2 -->
+            <div class="item-card">
+              <div class="item-info">
+                <div class="item-head">
+                  <span class="item-num">5</span>
+                  <div class="item-name">Manchester City vs Juventus</div>
+                  <span class="item-market">resultado 1X2</span>
+                </div>
+                <div class="item-options">
+                  <div class="option-btn lead">
+                    <span class="option-btn-text">Man City gana</span>
+                    <span class="option-btn-percent">68%</span>
+                  </div>
+                  <div class="option-btn">
+                    <span class="option-btn-text">Empate</span>
+                    <span class="option-btn-percent">19%</span>
+                  </div>
+                  <div class="option-btn">
+                    <span class="option-btn-text">Juventus gana</span>
+                    <span class="option-btn-percent">13%</span>
+                  </div>
+                </div>
+                <div class="item-meta">
+                  <span class="item-meta-item"><strong>1.781</strong> predicciones</span>
+                </div>
+              </div>
+              <div class="item-prize">
+                <div class="item-prize-label">Premio si acierta</div>
+                <div class="item-prize-value">+150</div>
+                <div class="item-prize-sub">monedas</div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+        <!-- GRAND PRIZE -->
+        <div class="detail-section">
+          <div class="grand-prize-card">
+            <div class="grand-prize-icon">
+              <svg width="26" height="26" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l2.39 7.36H22l-6.18 4.49L18.21 21 12 16.49 5.79 21l2.39-7.15L2 9.36h7.61z"/></svg>
+            </div>
+            <div class="grand-prize-info">
+              <div class="grand-prize-title">Premio pleno · acertar los 5 items</div>
+              <div class="grand-prize-desc">Si un jugador acierta los 5 partidos correctamente, gana premio extra · proyección actual: 44 jugadores en línea para pleno (2.4%)</div>
+            </div>
+            <div class="grand-prize-stat">
+              <div class="grand-prize-stat-label">Pleno</div>
+              <div class="grand-prize-stat-value">5.000 + 🎁</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- MARKET REFERENCE -->
+        <div class="detail-section">
+          <div class="markets-ref">
+            <div class="markets-ref-title">Mercados disponibles · presets fijos del sistema</div>
+            <div class="markets-ref-grid">
+              <div class="market-ref-item">
+                <span class="market-ref-name">Resultado 1X2</span>
+                <span class="market-ref-buttons">3 botones · gana / empata / gana</span>
+              </div>
+              <div class="market-ref-item">
+                <span class="market-ref-name">Ganador 2 opciones</span>
+                <span class="market-ref-buttons">2 botones · gana / gana</span>
+              </div>
+              <div class="market-ref-item">
+                <span class="market-ref-name">Total goles</span>
+                <span class="market-ref-buttons">2 botones · más / menos 2.5</span>
+              </div>
+              <div class="market-ref-item">
+                <span class="market-ref-name">Total córners</span>
+                <span class="market-ref-buttons">2 botones · más / menos 9.5</span>
+              </div>
+              <div class="market-ref-item">
+                <span class="market-ref-name">Ambos marcan</span>
+                <span class="market-ref-buttons">2 botones · sí / no</span>
+              </div>
+              <div class="market-ref-item">
+                <span class="market-ref-name">Resultado exacto</span>
+                <span class="market-ref-buttons">9 botones · 1-0, 1-1, 2-0...</span>
+              </div>
+            </div>
+            <p style="font-size: 11px; color: var(--text-tertiary); margin-top: 12px; font-style: italic;">los mercados son fijos por ahora · WINGOAT puede agregar nuevos sin que el operador haga cambios</p>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+  </div>
+</div>
+
+</div>
+
+</body>
+</html>

@@ -1,0 +1,3 @@
+import type { OperatorConfig } from '@/types/expandedTier5';
+export function formatDateWithConfig(value:string|Date,config?:Pick<OperatorConfig,'timezone'|'date_format'>){const date=new Date(value);const locale=config?.date_format==='MDY'?'en-US':'es-AR';return new Intl.DateTimeFormat(locale,{timeZone:config?.timezone??'UTC',day:'2-digit',month:'2-digit',year:'numeric'}).format(date)}
+export function formatTimeWithConfig(value:string|Date,config?:Pick<OperatorConfig,'timezone'|'time_format'>){const date=new Date(value);return new Intl.DateTimeFormat(config?.time_format==='H12'?'en-US':'es-AR',{timeZone:config?.timezone??'UTC',hour:'2-digit',minute:'2-digit',hour12:config?.time_format==='H12'}).format(date)}

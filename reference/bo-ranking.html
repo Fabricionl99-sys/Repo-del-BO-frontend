@@ -1,0 +1,1781 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>niveles · Ranking · BO</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&family=Urbanist:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300&display=swap" rel="stylesheet">
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg-primary: #0E1116;
+  --bg-secondary: #161B22;
+  --bg-tertiary: #1C2128;
+  --bg-elevated: #21262D;
+  --bg-hover: #262C36;
+
+  --accent: #0AF784;
+  --accent-hover: #08D971;
+  --accent-glow: rgba(10, 247, 132, 0.15);
+  --accent-subtle: rgba(10, 247, 132, 0.08);
+
+  --text-primary: #FFFFFF;
+  --text-secondary: #B8BEC9;
+  --text-tertiary: #7D8590;
+  --text-disabled: #484F58;
+
+  --border-subtle: rgba(255, 255, 255, 0.06);
+  --border-default: rgba(255, 255, 255, 0.10);
+  --border-strong: rgba(255, 255, 255, 0.16);
+
+  --success: #0AF784;
+  --warning: #F0B72F;
+  --danger: #F85149;
+  --info: #58A6FF;
+  --purple: #A78BFA;
+  --pink: #FF6B9D;
+  --gold: #FFD700;
+  --orange: #FF8C42;
+}
+
+body {
+  font-family: 'Urbanist', system-ui, sans-serif;
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  font-size: 14px;
+  line-height: 1.5;
+  font-weight: 400;
+}
+
+button { font-family: inherit; cursor: pointer; }
+
+.app {
+  display: grid;
+  grid-template-columns: 240px 1fr;
+  min-height: 100vh;
+}
+
+/* === SIDEBAR === */
+.sidebar {
+  background: var(--bg-secondary);
+  border-right: 1px solid var(--border-subtle);
+  padding: 16px 0;
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  overflow-y: auto;
+}
+
+.sidebar-brand {
+  padding: 0 20px 20px;
+  border-bottom: 1px solid var(--border-subtle);
+  margin-bottom: 16px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.brand-logo {
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  background: linear-gradient(135deg, var(--accent), #00D9FF);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  color: var(--bg-primary);
+  font-size: 13px;
+}
+
+.brand-name { font-weight: 600; letter-spacing: -0.02em; font-size: 15px; }
+
+.operator-selector {
+  margin: 0 12px 16px;
+  padding: 10px 12px;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-subtle);
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+}
+
+.operator-avatar {
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  background: linear-gradient(135deg, var(--purple), var(--info));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  font-size: 11px;
+  color: white;
+}
+
+.operator-info { flex: 1; min-width: 0; }
+.operator-name { font-weight: 500; font-size: 13px; }
+.operator-tier { color: var(--text-tertiary); font-size: 11px; font-family: 'JetBrains Mono', monospace; }
+
+.sidebar-section { margin-bottom: 8px; padding: 0 12px; }
+
+.section-label {
+  color: var(--text-tertiary);
+  font-size: 11px;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  padding: 8px 12px 4px;
+  margin: 0;
+}
+
+.nav-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 12px;
+  border-radius: 6px;
+  color: var(--text-secondary);
+  text-decoration: none;
+  font-size: 13px;
+  font-weight: 400;
+  transition: all 0.12s;
+  margin-bottom: 1px;
+}
+
+.nav-item:hover { background: var(--bg-tertiary); color: var(--text-primary); }
+
+.nav-item.active {
+  background: var(--accent-subtle);
+  color: var(--accent);
+  font-weight: 500;
+}
+
+.nav-item.coming-soon {
+  color: var(--text-disabled);
+}
+
+.nav-icon {
+  width: 16px;
+  height: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.nav-badge {
+  margin-left: auto;
+  font-size: 9px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  padding: 2px 5px;
+  border-radius: 3px;
+  background: rgba(240, 183, 47, 0.10);
+  color: var(--warning);
+  font-weight: 600;
+}
+
+/* === MAIN === */
+.main { display: flex; flex-direction: column; }
+
+.topbar {
+  height: 56px;
+  border-bottom: 1px solid var(--border-subtle);
+  background: var(--bg-secondary);
+  padding: 0 28px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.breadcrumb {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+}
+
+.breadcrumb a { color: var(--text-tertiary); text-decoration: none; font-weight: 400; }
+.breadcrumb-current { color: var(--text-primary); font-weight: 500; }
+
+.topbar-actions { display: flex; align-items: center; gap: 12px; }
+
+.icon-btn {
+  width: 32px;
+  height: 32px;
+  border-radius: 6px;
+  background: transparent;
+  border: 1px solid var(--border-subtle);
+  color: var(--text-secondary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.12s;
+}
+
+.icon-btn:hover { background: var(--bg-tertiary); color: var(--text-primary); border-color: var(--border-default); }
+
+.user-pill {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 10px 4px 4px;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-subtle);
+  border-radius: 16px;
+  cursor: pointer;
+}
+
+.user-avatar {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--accent), #00D9FF);
+  color: var(--bg-primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  font-size: 10px;
+}
+
+.user-name { font-size: 12px; font-weight: 500; }
+.user-role { font-size: 10px; color: var(--text-tertiary); font-family: 'JetBrains Mono', monospace; }
+
+/* === CONTENT === */
+.content {
+  padding: 24px 28px;
+  max-width: 1280px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  margin-bottom: 20px;
+}
+
+.page-title {
+  font-size: 22px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  margin-bottom: 4px;
+}
+
+.page-subtitle {
+  color: var(--text-tertiary);
+  font-size: 13px;
+  font-weight: 400;
+  font-style: italic;
+}
+
+/* === STATS BAR === */
+.stats-bar {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.stat-card {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-subtle);
+  border-radius: 10px;
+  padding: 16px 18px;
+}
+
+.stat-label {
+  font-size: 11px;
+  color: var(--text-tertiary);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-weight: 500;
+  margin-bottom: 6px;
+}
+
+.stat-value {
+  font-size: 22px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+}
+
+.stat-sub {
+  font-size: 11px;
+  font-weight: 400;
+  color: var(--text-tertiary);
+  font-family: 'JetBrains Mono', monospace;
+}
+
+.stat-extra {
+  font-size: 12px;
+  color: var(--text-secondary);
+  font-weight: 400;
+  margin-top: 4px;
+}
+
+.stat-extra .accent { color: var(--accent); font-weight: 500; }
+.stat-extra .gold { color: var(--gold); font-weight: 500; }
+
+/* === TOOLBAR / TABS === */
+.toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+  gap: 12px;
+}
+
+.tabs {
+  display: flex;
+  gap: 4px;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-subtle);
+  border-radius: 8px;
+  padding: 4px;
+}
+
+.tab {
+  padding: 7px 14px;
+  border-radius: 5px;
+  background: transparent;
+  border: none;
+  color: var(--text-secondary);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.12s;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.tab:hover { color: var(--text-primary); }
+
+.tab.active {
+  background: var(--bg-elevated);
+  color: var(--text-primary);
+}
+
+.tab-count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 20px;
+  height: 18px;
+  padding: 0 5px;
+  border-radius: 9px;
+  background: var(--bg-tertiary);
+  color: var(--text-tertiary);
+  font-size: 10px;
+  font-weight: 600;
+  font-family: 'JetBrains Mono', monospace;
+}
+
+.tab.active .tab-count {
+  background: var(--accent-subtle);
+  color: var(--accent);
+}
+
+/* === BUTTONS === */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 500;
+  font-family: inherit;
+  cursor: pointer;
+  transition: all 0.12s;
+  border: 1px solid transparent;
+}
+
+.btn-primary { background: var(--accent); color: var(--bg-primary); }
+.btn-primary:hover { background: var(--accent-hover); }
+
+.btn-secondary {
+  background: var(--bg-tertiary);
+  color: var(--text-primary);
+  border-color: var(--border-default);
+}
+.btn-secondary:hover { background: var(--bg-elevated); }
+
+.btn-ghost { background: transparent; color: var(--text-secondary); }
+.btn-ghost:hover { background: var(--bg-tertiary); color: var(--text-primary); }
+
+.btn-sm { padding: 6px 12px; font-size: 12px; }
+
+.btn-danger-ghost {
+  background: transparent;
+  color: var(--danger);
+  border: 1px solid rgba(248, 81, 73, 0.20);
+}
+.btn-danger-ghost:hover { background: rgba(248, 81, 73, 0.06); }
+
+/* === RANKING CARDS === */
+.ranking-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.ranking-card {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-subtle);
+  border-radius: 10px;
+  padding: 18px 20px;
+  display: grid;
+  grid-template-columns: 56px 1fr auto;
+  gap: 16px;
+  align-items: center;
+  transition: all 0.12s;
+}
+
+.ranking-card:hover {
+  border-color: var(--border-default);
+  transform: translateY(-1px);
+}
+
+.ranking-card.disabled {
+  opacity: 0.55;
+}
+
+.ranking-icon {
+  width: 56px;
+  height: 56px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 26px;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-default);
+}
+
+.ranking-icon.casino { background: rgba(167, 139, 250, 0.12); color: var(--purple); border-color: rgba(167, 139, 250, 0.25); }
+.ranking-icon.live { background: rgba(255, 107, 157, 0.12); color: var(--pink); border-color: rgba(255, 107, 157, 0.25); }
+.ranking-icon.sports { background: rgba(88, 166, 255, 0.12); color: var(--info); border-color: rgba(88, 166, 255, 0.25); }
+.ranking-icon.virtuals { background: rgba(255, 140, 66, 0.12); color: var(--orange); border-color: rgba(255, 140, 66, 0.25); }
+.ranking-icon.poker { background: rgba(240, 183, 47, 0.12); color: var(--warning); border-color: rgba(240, 183, 47, 0.25); }
+.ranking-icon.xp { background: var(--accent-subtle); color: var(--accent); border-color: rgba(10, 247, 132, 0.25); }
+.ranking-icon.deposit { background: rgba(255, 215, 0, 0.10); color: var(--gold); border-color: rgba(255, 215, 0, 0.25); }
+.ranking-icon.vip { background: rgba(167, 139, 250, 0.12); color: var(--purple); border-color: rgba(167, 139, 250, 0.25); }
+
+.ranking-body {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+}
+
+.ranking-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.ranking-name {
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+.ranking-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 11px;
+  font-weight: 500;
+  padding: 3px 8px;
+  border-radius: 4px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.ranking-status-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+}
+
+.status-active {
+  background: rgba(10, 247, 132, 0.10);
+  color: var(--accent);
+}
+
+.status-active .ranking-status-dot {
+  background: var(--accent);
+  box-shadow: 0 0 6px var(--accent-glow);
+}
+
+.status-paused {
+  background: rgba(240, 183, 47, 0.10);
+  color: var(--warning);
+}
+
+.status-paused .ranking-status-dot { background: var(--warning); }
+
+.status-available {
+  background: var(--bg-tertiary);
+  color: var(--text-tertiary);
+}
+
+.status-available .ranking-status-dot { background: var(--text-tertiary); }
+
+.ranking-desc {
+  font-size: 13px;
+  color: var(--text-secondary);
+  font-weight: 400;
+}
+
+.ranking-meta {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-top: 6px;
+  flex-wrap: wrap;
+}
+
+.meta-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: var(--text-tertiary);
+}
+
+.meta-item strong {
+  color: var(--text-secondary);
+  font-weight: 500;
+}
+
+.meta-divider {
+  width: 1px;
+  height: 12px;
+  background: var(--border-default);
+}
+
+.ranking-actions {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+
+/* === SWITCH === */
+.switch {
+  width: 36px;
+  height: 20px;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-strong);
+  border-radius: 999px;
+  position: relative;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: all 0.18s;
+}
+
+.switch::after {
+  content: '';
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 14px;
+  height: 14px;
+  background: var(--text-tertiary);
+  border-radius: 50%;
+  transition: all 0.18s;
+}
+
+.switch.on { background: var(--accent); border-color: var(--accent); }
+
+.switch.on::after {
+  left: 18px;
+  background: var(--bg-primary);
+}
+
+/* === EMPTY ROW BETWEEN ACTIVE / AVAILABLE === */
+.section-divider {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 8px 0 4px;
+  padding: 0 4px;
+}
+
+.section-divider-line {
+  flex: 1;
+  height: 1px;
+  background: var(--border-subtle);
+}
+
+.section-divider-text {
+  font-size: 11px;
+  color: var(--text-tertiary);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-weight: 500;
+}
+
+/* === SECCIÓN ACTIVATE BUTTON === */
+.activate-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 14px;
+  background: var(--accent-subtle);
+  color: var(--accent);
+  border: 1px solid rgba(10, 247, 132, 0.25);
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.12s;
+}
+
+.activate-btn:hover {
+  background: rgba(10, 247, 132, 0.14);
+  border-color: rgba(10, 247, 132, 0.40);
+}
+
+/* === MODAL OVERLAY === */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.65);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+  padding: 24px;
+  display: none;
+}
+
+.modal-overlay.show { display: flex; }
+
+.modal {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-default);
+  border-radius: 14px;
+  width: 100%;
+  max-width: 720px;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+}
+
+.modal-head {
+  padding: 20px 24px;
+  border-bottom: 1px solid var(--border-subtle);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  position: sticky;
+  top: 0;
+  background: var(--bg-secondary);
+  z-index: 1;
+}
+
+.modal-title {
+  font-size: 16px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+.modal-close {
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  background: transparent;
+  border: 1px solid var(--border-subtle);
+  color: var(--text-secondary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.12s;
+}
+
+.modal-close:hover { background: var(--bg-tertiary); color: var(--text-primary); }
+
+.modal-body { padding: 20px 24px; }
+
+.modal-foot {
+  padding: 14px 24px;
+  border-top: 1px solid var(--border-subtle);
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  position: sticky;
+  bottom: 0;
+  background: var(--bg-secondary);
+}
+
+.modal-section { margin-bottom: 20px; }
+.modal-section:last-child { margin-bottom: 0; }
+
+.modal-section-title {
+  font-size: 11px;
+  color: var(--text-tertiary);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-weight: 500;
+  margin-bottom: 10px;
+}
+
+.form-row { margin-bottom: 14px; }
+.form-row:last-child { margin-bottom: 0; }
+
+.form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+}
+
+.form-label {
+  display: block;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text-secondary);
+  margin-bottom: 6px;
+}
+
+.form-input,
+.form-select {
+  width: 100%;
+  padding: 9px 12px;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-default);
+  border-radius: 6px;
+  color: var(--text-primary);
+  font-size: 13px;
+  font-family: inherit;
+  transition: all 0.12s;
+}
+
+.form-input:focus,
+.form-select:focus {
+  outline: none;
+  border-color: var(--accent);
+  background: var(--bg-elevated);
+}
+
+.form-help {
+  font-size: 11px;
+  color: var(--text-tertiary);
+  margin-top: 4px;
+  font-weight: 300;
+}
+
+/* === RADIO PILLS (compact) === */
+.radio-pills {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.radio-pill {
+  padding: 7px 14px;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-default);
+  border-radius: 6px;
+  color: var(--text-secondary);
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.12s;
+}
+
+.radio-pill:hover {
+  border-color: var(--border-strong);
+  background: var(--bg-elevated);
+}
+
+.radio-pill.selected {
+  background: var(--accent-subtle);
+  border-color: rgba(10, 247, 132, 0.40);
+  color: var(--accent);
+}
+
+/* === PRIZES TABLE === */
+.prizes-table {
+  width: 100%;
+  border-collapse: collapse;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-default);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.prizes-table th {
+  background: var(--bg-elevated);
+  padding: 10px 12px;
+  text-align: left;
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--text-tertiary);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.prizes-table td {
+  padding: 10px 12px;
+  border-top: 1px solid var(--border-subtle);
+  font-size: 13px;
+}
+
+.position-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 32px;
+  height: 26px;
+  padding: 0 8px;
+  border-radius: 5px;
+  background: var(--bg-elevated);
+  color: var(--text-secondary);
+  font-size: 12px;
+  font-weight: 600;
+  font-family: 'JetBrains Mono', monospace;
+}
+
+.position-badge.gold { background: rgba(255, 215, 0, 0.14); color: var(--gold); }
+.position-badge.silver { background: rgba(184, 190, 201, 0.14); color: var(--text-secondary); }
+.position-badge.bronze { background: rgba(255, 140, 66, 0.14); color: var(--orange); }
+
+.prize-input {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+
+.prize-input .form-input { padding: 6px 10px; font-size: 12px; }
+
+.prize-input-mini {
+  width: 100px;
+}
+
+.prize-actions {
+  display: flex;
+  gap: 4px;
+}
+
+.action-btn-mini {
+  width: 26px;
+  height: 26px;
+  border-radius: 5px;
+  background: transparent;
+  border: 1px solid var(--border-subtle);
+  color: var(--text-tertiary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.12s;
+}
+
+.action-btn-mini:hover {
+  background: var(--bg-elevated);
+  color: var(--text-primary);
+  border-color: var(--border-default);
+}
+
+.action-btn-mini.danger:hover {
+  color: var(--danger);
+  border-color: rgba(248, 81, 73, 0.30);
+}
+
+.add-row-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  width: 100%;
+  padding: 10px 12px;
+  background: transparent;
+  border: 1px dashed var(--border-default);
+  border-radius: 6px;
+  color: var(--text-secondary);
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.12s;
+  margin-top: 8px;
+  justify-content: center;
+}
+
+.add-row-btn:hover {
+  border-color: var(--border-strong);
+  background: var(--bg-tertiary);
+  color: var(--text-primary);
+}
+
+.add-row-btn.disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.prizes-summary {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px;
+  margin-top: 10px;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-default);
+  border-radius: 6px;
+}
+
+.prizes-summary-label {
+  font-size: 11px;
+  color: var(--text-tertiary);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.prizes-summary-value {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+/* === LEADERBOARD VIEW === */
+.leaderboard-view {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-subtle);
+  border-radius: 10px;
+  padding: 20px;
+  margin-top: 20px;
+  display: none;
+}
+
+.leaderboard-view.show { display: block; }
+
+.leaderboard-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.leaderboard-title {
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.leaderboard-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.leaderboard-table th {
+  text-align: left;
+  padding: 10px 12px;
+  font-size: 11px;
+  color: var(--text-tertiary);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-weight: 500;
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.leaderboard-table td {
+  padding: 12px;
+  border-bottom: 1px solid var(--border-subtle);
+  font-size: 13px;
+}
+
+.leaderboard-table tr:last-child td { border-bottom: none; }
+
+.leaderboard-table tr:hover { background: var(--bg-tertiary); }
+
+.player-cell {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.player-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--purple), var(--info));
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  font-size: 11px;
+  flex-shrink: 0;
+}
+
+.player-handle {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 13px;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.verified-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: var(--info);
+  color: var(--bg-primary);
+}
+
+.vip-badge {
+  display: inline-block;
+  font-size: 9px;
+  font-weight: 700;
+  padding: 2px 5px;
+  border-radius: 3px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.vip-badge.gold { background: rgba(255, 215, 0, 0.14); color: var(--gold); }
+.vip-badge.silver { background: rgba(184, 190, 201, 0.20); color: var(--text-primary); }
+.vip-badge.bronze { background: rgba(255, 140, 66, 0.14); color: var(--orange); }
+
+.position-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  font-weight: 700;
+  font-size: 13px;
+  font-family: 'JetBrains Mono', monospace;
+}
+
+.position-icon.gold { background: rgba(255, 215, 0, 0.14); color: var(--gold); }
+.position-icon.silver { background: rgba(184, 190, 201, 0.18); color: var(--text-primary); }
+.position-icon.bronze { background: rgba(255, 140, 66, 0.14); color: var(--orange); }
+.position-icon.normal { background: var(--bg-elevated); color: var(--text-secondary); }
+
+.metric-value {
+  font-family: 'JetBrains Mono', monospace;
+  font-weight: 500;
+}
+
+.change-indicator {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.change-up { color: var(--accent); }
+.change-down { color: var(--danger); }
+.change-equal { color: var(--text-tertiary); }
+.change-new { color: var(--info); }
+</style>
+</head>
+<body>
+
+<div class="app">
+
+<!-- ======== SIDEBAR ======== -->
+<aside class="sidebar">
+  <div class="sidebar-brand">
+    <div class="brand-logo">N</div>
+    <div class="brand-name">niveles</div>
+  </div>
+  <div class="operator-selector">
+    <div class="operator-avatar">CA</div>
+    <div class="operator-info">
+      <div class="operator-name">Casino Astral</div>
+      <div class="operator-tier">plan growth · es-AR</div>
+    </div>
+    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="color: var(--text-tertiary);"><polyline points="6 9 12 15 18 9"/></svg>
+  </div>
+
+  <div class="sidebar-section">
+    <a class="nav-item" href="#">
+      <span class="nav-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg></span>
+      Dashboard
+    </a>
+  </div>
+
+  <div class="sidebar-section">
+    <p class="section-label">Engagement</p>
+    <a class="nav-item" href="#">
+      <span class="nav-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></span>
+      Misiones
+    </a>
+    <a class="nav-item" href="#">
+      <span class="nav-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="7"/><polyline points="8.21 13.89 7 23 12 20 17 23 15.79 13.88"/></svg></span>
+      Logros
+    </a>
+    <a class="nav-item" href="#">
+      <span class="nav-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="9" y1="21" x2="9" y2="9"/></svg></span>
+      Recompensas diarias
+    </a>
+    <a class="nav-item active" href="#">
+      <span class="nav-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="20" x2="12" y2="10"/><line x1="18" y1="20" x2="18" y2="4"/><line x1="6" y1="20" x2="6" y2="16"/></svg></span>
+      Ranking
+    </a>
+    <a class="nav-item" href="#">
+      <span class="nav-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg></span>
+      Predicciones
+    </a>
+    <a class="nav-item coming-soon" href="#">
+      <span class="nav-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg></span>
+      Feed Social
+      <span class="nav-badge">soon</span>
+    </a>
+  </div>
+
+  <div class="sidebar-section">
+    <p class="section-label">Setup</p>
+    <a class="nav-item" href="#">
+      <span class="nav-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19 12c0 1-1 2-1 3l2 2-2 2-2-2c-1 0-2 1-3 1l-1 2-2-2c-1 0-2-1-3-1l-2 2-2-2 2-2c0-1-1-2-1-3l-2-1 2-2c0-1 1-2 1-3l-2-2 2-2 2 2c1 0 2-1 3-1l1-2 2 2c1 0 2 1 3 1l2-2 2 2-2 2"/></svg></span>
+      Branding
+    </a>
+    <a class="nav-item" href="#">
+      <span class="nav-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2M9 11a4 4 0 1 0 0-8"/></svg></span>
+      Equipo
+    </a>
+    <a class="nav-item" href="#">
+      <span class="nav-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></span>
+      Configuración general
+    </a>
+  </div>
+</aside>
+
+<!-- ======== MAIN ======== -->
+<div class="main">
+
+  <div class="topbar">
+    <div class="breadcrumb">
+      <a>Engagement</a>
+      <span style="color: var(--text-tertiary);">/</span>
+      <span class="breadcrumb-current">Ranking</span>
+    </div>
+
+    <div class="topbar-actions">
+      <button class="icon-btn"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg></button>
+      <button class="icon-btn"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 1 1 5.83 1c0 2-3 3-3 3M12 17h.01"/></svg></button>
+      <div class="user-pill">
+        <div class="user-avatar">FL</div>
+        <div>
+          <div class="user-name">Fabricio L.</div>
+          <div class="user-role">admin</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="content">
+
+    <!-- ============ PAGE HEADER ============ -->
+    <div class="page-header">
+      <div>
+        <h1 class="page-title">Ranking</h1>
+        <p class="page-subtitle">activá los leaderboards predefinidos · los jugadores compiten por posición y ganan premios al cierre de ventana</p>
+      </div>
+    </div>
+
+    <!-- ============ STATS BAR ============ -->
+    <div class="stats-bar">
+      <div class="stat-card">
+        <div class="stat-label">Rankings activos</div>
+        <div class="stat-value">4 <span class="stat-sub">/ 8</span></div>
+        <div class="stat-extra">de 8 disponibles</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Jugadores compitiendo</div>
+        <div class="stat-value">13.064</div>
+        <div class="stat-extra"><span class="accent">+3.2%</span> vs mes anterior</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Premios distribuidos · mes</div>
+        <div class="stat-value">2.4M <span class="stat-sub">monedas</span></div>
+        <div class="stat-extra">~ <span class="gold">$24K USD</span> equivalente</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Top performer global</div>
+        <div class="stat-value" style="font-size: 16px;">@tigre_loco_82</div>
+        <div class="stat-extra">#1 en <span class="accent">XP global</span></div>
+      </div>
+    </div>
+
+    <!-- ============ TOOLBAR ============ -->
+    <div class="toolbar">
+      <div class="tabs">
+        <button class="tab active">
+          Activos
+          <span class="tab-count">4</span>
+        </button>
+        <button class="tab">
+          Disponibles
+          <span class="tab-count">4</span>
+        </button>
+        <button class="tab">
+          Histórico
+        </button>
+      </div>
+      <button class="btn btn-secondary btn-sm">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M8 12h13M3 18h18"/></svg>
+        Reordenar visualización
+      </button>
+    </div>
+
+    <!-- ============ RANKING LIST · ACTIVOS ============ -->
+    <div class="ranking-list">
+
+      <!-- ACTIVO 1: XP Global -->
+      <div class="ranking-card">
+        <div class="ranking-icon xp">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+        </div>
+        <div class="ranking-body">
+          <div class="ranking-head">
+            <div class="ranking-name">Mejores en XP</div>
+            <span class="ranking-status status-active">
+              <span class="ranking-status-dot"></span>
+              activo
+            </span>
+          </div>
+          <div class="ranking-desc">XP total ganado en todas las categorías · ranking global del operador</div>
+          <div class="ranking-meta">
+            <span class="meta-item"><strong>mensual</strong></span>
+            <span class="meta-divider"></span>
+            <span class="meta-item">público a todos</span>
+            <span class="meta-divider"></span>
+            <span class="meta-item"><strong>13.064</strong> jugadores</span>
+            <span class="meta-divider"></span>
+            <span class="meta-item">cierra <strong>31/05</strong> · en 27 días</span>
+            <span class="meta-divider"></span>
+            <span class="meta-item">top 1: <strong style="color: var(--accent);">100.000 monedas</strong> + cofre</span>
+          </div>
+        </div>
+        <div class="ranking-actions">
+          <div class="switch on" title="ranking activo"></div>
+          <button class="btn btn-secondary btn-sm" onclick="document.getElementById('configModal').classList.add('show')">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+            Configurar
+          </button>
+          <button class="btn btn-primary btn-sm" onclick="document.getElementById('leaderboardView').classList.add('show'); document.getElementById('leaderboardView').scrollIntoView({behavior:'smooth'})">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+            Ver leaderboard
+          </button>
+        </div>
+      </div>
+
+      <!-- ACTIVO 2: Casino -->
+      <div class="ranking-card">
+        <div class="ranking-icon casino">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="9" cy="9" r="1.5" fill="currentColor"/><circle cx="15" cy="9" r="1.5" fill="currentColor"/><circle cx="9" cy="15" r="1.5" fill="currentColor"/><circle cx="15" cy="15" r="1.5" fill="currentColor"/></svg>
+        </div>
+        <div class="ranking-body">
+          <div class="ranking-head">
+            <div class="ranking-name">Mejores en Casino</div>
+            <span class="ranking-status status-active">
+              <span class="ranking-status-dot"></span>
+              activo
+            </span>
+          </div>
+          <div class="ranking-desc">Top jugadores por monto apostado en slot, crash, bingo y RNG</div>
+          <div class="ranking-meta">
+            <span class="meta-item"><strong>mensual</strong></span>
+            <span class="meta-divider"></span>
+            <span class="meta-item">público a todos</span>
+            <span class="meta-divider"></span>
+            <span class="meta-item"><strong>8.742</strong> jugadores</span>
+            <span class="meta-divider"></span>
+            <span class="meta-item">cierra <strong>31/05</strong></span>
+            <span class="meta-divider"></span>
+            <span class="meta-item">top 1: <strong style="color: var(--accent);">50.000 monedas</strong> + cofre legendario</span>
+          </div>
+        </div>
+        <div class="ranking-actions">
+          <div class="switch on"></div>
+          <button class="btn btn-secondary btn-sm">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+            Configurar
+          </button>
+          <button class="btn btn-primary btn-sm">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+            Ver leaderboard
+          </button>
+        </div>
+      </div>
+
+      <!-- ACTIVO 3: Casino en vivo (privado VIP) -->
+      <div class="ranking-card">
+        <div class="ranking-icon live">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg>
+        </div>
+        <div class="ranking-body">
+          <div class="ranking-head">
+            <div class="ranking-name">Mejores en Casino en vivo</div>
+            <span class="ranking-status status-active">
+              <span class="ranking-status-dot"></span>
+              activo
+            </span>
+          </div>
+          <div class="ranking-desc">Top jugadores por sesiones jugadas con dealer humano · solo para tier VIP</div>
+          <div class="ranking-meta">
+            <span class="meta-item"><strong>semanal</strong></span>
+            <span class="meta-divider"></span>
+            <span class="meta-item">
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="margin-right: 2px;"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+              privada VIP
+            </span>
+            <span class="meta-divider"></span>
+            <span class="meta-item"><strong>142</strong> VIPs</span>
+            <span class="meta-divider"></span>
+            <span class="meta-item">cierra <strong>domingo 11/05</strong></span>
+            <span class="meta-divider"></span>
+            <span class="meta-item">top 1: <strong style="color: var(--accent);">100.000 monedas</strong></span>
+          </div>
+        </div>
+        <div class="ranking-actions">
+          <div class="switch on"></div>
+          <button class="btn btn-secondary btn-sm">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+            Configurar
+          </button>
+          <button class="btn btn-primary btn-sm">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+            Ver leaderboard
+          </button>
+        </div>
+      </div>
+
+      <!-- ACTIVO 4: Deportes -->
+      <div class="ranking-card">
+        <div class="ranking-icon sports">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+        </div>
+        <div class="ranking-body">
+          <div class="ranking-head">
+            <div class="ranking-name">Mejores en Deportes</div>
+            <span class="ranking-status status-active">
+              <span class="ranking-status-dot"></span>
+              activo
+            </span>
+          </div>
+          <div class="ranking-desc">Top jugadores por monto apostado en sportsbook</div>
+          <div class="ranking-meta">
+            <span class="meta-item"><strong>diario</strong></span>
+            <span class="meta-divider"></span>
+            <span class="meta-item">público a todos</span>
+            <span class="meta-divider"></span>
+            <span class="meta-item"><strong>4.180</strong> jugadores</span>
+            <span class="meta-divider"></span>
+            <span class="meta-item">cierra <strong>hoy 23:59</strong></span>
+            <span class="meta-divider"></span>
+            <span class="meta-item">top 1: <strong style="color: var(--accent);">5.000 monedas</strong></span>
+          </div>
+        </div>
+        <div class="ranking-actions">
+          <div class="switch on"></div>
+          <button class="btn btn-secondary btn-sm">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+            Configurar
+          </button>
+          <button class="btn btn-primary btn-sm">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+            Ver leaderboard
+          </button>
+        </div>
+      </div>
+
+      <!-- ============ DIVIDER ============ -->
+      <div class="section-divider">
+        <span class="section-divider-line"></span>
+        <span class="section-divider-text">Disponibles · 4 rankings sin activar</span>
+        <span class="section-divider-line"></span>
+      </div>
+
+      <!-- DISPONIBLE 1: Virtuales -->
+      <div class="ranking-card disabled">
+        <div class="ranking-icon virtuals">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><polygon points="6 3 20 12 6 21 6 3"/></svg>
+        </div>
+        <div class="ranking-body">
+          <div class="ranking-head">
+            <div class="ranking-name">Mejores en Virtuales</div>
+            <span class="ranking-status status-available">
+              <span class="ranking-status-dot"></span>
+              disponible
+            </span>
+          </div>
+          <div class="ranking-desc">Top jugadores por monto apostado en partidos virtuales y lotería virtual</div>
+          <div class="ranking-meta">
+            <span class="meta-item">métrica preconfigurada · <strong>monto apostado</strong></span>
+            <span class="meta-divider"></span>
+            <span class="meta-item">tu eligís ventana, premios y visibilidad</span>
+          </div>
+        </div>
+        <div class="ranking-actions">
+          <div class="switch"></div>
+          <button class="activate-btn">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            Activar y configurar
+          </button>
+        </div>
+      </div>
+
+      <!-- DISPONIBLE 2: Poker -->
+      <div class="ranking-card disabled">
+        <div class="ranking-icon poker">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="2" y="4" width="14" height="18" rx="2"/><path d="M8 11h4M8 15h4"/><path d="M18 6v14"/><rect x="18" y="6" width="4" height="14" rx="1"/></svg>
+        </div>
+        <div class="ranking-body">
+          <div class="ranking-head">
+            <div class="ranking-name">Mejores en Poker</div>
+            <span class="ranking-status status-available">
+              <span class="ranking-status-dot"></span>
+              disponible
+            </span>
+          </div>
+          <div class="ranking-desc">Top jugadores por manos jugadas en cualquier formato (cash, torneos, sit & go)</div>
+          <div class="ranking-meta">
+            <span class="meta-item">métrica preconfigurada · <strong>manos jugadas</strong></span>
+            <span class="meta-divider"></span>
+            <span class="meta-item">tu eligís ventana, premios y visibilidad</span>
+          </div>
+        </div>
+        <div class="ranking-actions">
+          <div class="switch"></div>
+          <button class="activate-btn">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            Activar y configurar
+          </button>
+        </div>
+      </div>
+
+      <!-- DISPONIBLE 3: Mejores depositadores -->
+      <div class="ranking-card disabled">
+        <div class="ranking-icon deposit">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+        </div>
+        <div class="ranking-body">
+          <div class="ranking-head">
+            <div class="ranking-name">Mejores depositadores</div>
+            <span class="ranking-status status-available">
+              <span class="ranking-status-dot"></span>
+              disponible
+            </span>
+          </div>
+          <div class="ranking-desc">Top jugadores por monto depositado en la ventana · ranking financiero</div>
+          <div class="ranking-meta">
+            <span class="meta-item">métrica preconfigurada · <strong>monto depositado</strong></span>
+            <span class="meta-divider"></span>
+            <span class="meta-item">recomendado: ventana mensual</span>
+          </div>
+        </div>
+        <div class="ranking-actions">
+          <div class="switch"></div>
+          <button class="activate-btn">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            Activar y configurar
+          </button>
+        </div>
+      </div>
+
+      <!-- DISPONIBLE 4: Mejores VIP -->
+      <div class="ranking-card disabled">
+        <div class="ranking-icon vip">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/><circle cx="12" cy="12" r="3" fill="currentColor"/></svg>
+        </div>
+        <div class="ranking-body">
+          <div class="ranking-head">
+            <div class="ranking-name">Mejores VIP</div>
+            <span class="ranking-status status-available">
+              <span class="ranking-status-dot"></span>
+              disponible
+            </span>
+          </div>
+          <div class="ranking-desc">XP de jugadores tier VIP+ solamente · ranking exclusivo para alto valor</div>
+          <div class="ranking-meta">
+            <span class="meta-item">métrica preconfigurada · <strong>XP ganado · solo VIPs</strong></span>
+            <span class="meta-divider"></span>
+            <span class="meta-item">recomendado: ventana mensual privada</span>
+          </div>
+        </div>
+        <div class="ranking-actions">
+          <div class="switch"></div>
+          <button class="activate-btn">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            Activar y configurar
+          </button>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- ============ LEADERBOARD VIEW (oculto por default) ============ -->
+    <div class="leaderboard-view" id="leaderboardView">
+      <div class="leaderboard-head">
+        <div>
+          <div class="leaderboard-title">Mejores en XP · top 20</div>
+          <div style="font-size: 12px; color: var(--text-tertiary); margin-top: 2px;">actualizado hace 3 min · cierra el 31/05 a las 23:59</div>
+        </div>
+        <button class="btn btn-ghost btn-sm" onclick="document.getElementById('leaderboardView').classList.remove('show')">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          Cerrar
+        </button>
+      </div>
+      <table class="leaderboard-table">
+        <thead>
+          <tr>
+            <th style="width: 40px;">pos</th>
+            <th>jugador</th>
+            <th>XP del mes</th>
+            <th style="width: 80px;">cambio</th>
+            <th style="width: 110px;">tier VIP</th>
+            <th style="width: 130px;">premio si gana</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><span class="position-icon gold">1</span></td>
+            <td><div class="player-cell"><div class="player-avatar" style="background: linear-gradient(135deg, var(--gold), var(--orange));">TL</div><div><div class="player-handle">@tigre_loco_82 <span class="verified-badge"><svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></span></div></div></div></td>
+            <td><span class="metric-value">1.847.220</span></td>
+            <td><span class="change-indicator change-up">↑ 1</span></td>
+            <td><span class="vip-badge gold">VIP gold</span></td>
+            <td><span style="font-weight: 600; color: var(--accent);">100.000 + 🎁</span></td>
+          </tr>
+          <tr>
+            <td><span class="position-icon silver">2</span></td>
+            <td><div class="player-cell"><div class="player-avatar" style="background: linear-gradient(135deg, var(--purple), var(--pink));">MA</div><div><div class="player-handle">@maria_apuestas</div></div></div></td>
+            <td><span class="metric-value">1.756.880</span></td>
+            <td><span class="change-indicator change-down">↓ 1</span></td>
+            <td><span class="vip-badge silver">VIP silver</span></td>
+            <td><span style="font-weight: 600; color: var(--accent);">50.000 + 🎁</span></td>
+          </tr>
+          <tr>
+            <td><span class="position-icon bronze">3</span></td>
+            <td><div class="player-cell"><div class="player-avatar" style="background: linear-gradient(135deg, var(--info), var(--purple));">JP</div><div><div class="player-handle">@joaquin_play <span class="verified-badge"><svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></span></div></div></div></td>
+            <td><span class="metric-value">1.598.110</span></td>
+            <td><span class="change-indicator change-equal">=</span></td>
+            <td><span class="vip-badge silver">VIP silver</span></td>
+            <td><span style="font-weight: 600; color: var(--accent);">25.000 + 🎁</span></td>
+          </tr>
+          <tr>
+            <td><span class="position-icon normal">4</span></td>
+            <td><div class="player-cell"><div class="player-avatar" style="background: linear-gradient(135deg, var(--accent), var(--info));">SB</div><div><div class="player-handle">@sofia_bet</div></div></div></td>
+            <td><span class="metric-value">1.342.560</span></td>
+            <td><span class="change-indicator change-up">↑ 3</span></td>
+            <td><span class="vip-badge bronze">VIP bronze</span></td>
+            <td>10.000</td>
+          </tr>
+          <tr>
+            <td><span class="position-icon normal">5</span></td>
+            <td><div class="player-cell"><div class="player-avatar" style="background: linear-gradient(135deg, var(--danger), var(--orange));">EC</div><div><div class="player-handle">@elcrack777</div></div></div></td>
+            <td><span class="metric-value">1.198.040</span></td>
+            <td><span class="change-indicator change-down">↓ 2</span></td>
+            <td>—</td>
+            <td>10.000</td>
+          </tr>
+          <tr>
+            <td><span class="position-icon normal">6</span></td>
+            <td><div class="player-cell"><div class="player-avatar" style="background: linear-gradient(135deg, var(--purple), var(--accent));">CG</div><div><div class="player-handle">@chela_gamer</div></div></div></td>
+            <td><span class="metric-value">1.087.320</span></td>
+            <td><span class="change-indicator change-up">↑ 5</span></td>
+            <td>—</td>
+            <td>5.000</td>
+          </tr>
+          <tr>
+            <td><span class="position-icon normal">7</span></td>
+            <td><div class="player-cell"><div class="player-avatar" style="background: linear-gradient(135deg, var(--info), var(--pink));">AR</div><div><div class="player-handle">@andres_roller</div></div></div></td>
+            <td><span class="metric-value">980.510</span></td>
+            <td><span class="change-indicator change-new">NEW</span></td>
+            <td>—</td>
+            <td>5.000</td>
+          </tr>
+          <tr>
+            <td><span class="position-icon normal">8</span></td>
+            <td><div class="player-cell"><div class="player-avatar" style="background: linear-gradient(135deg, var(--warning), var(--gold));">LM</div><div><div class="player-handle">@luna_moneda</div></div></div></td>
+            <td><span class="metric-value">945.890</span></td>
+            <td><span class="change-indicator change-down">↓ 4</span></td>
+            <td><span class="vip-badge bronze">VIP bronze</span></td>
+            <td>5.000</td>
+          </tr>
+          <tr>
+            <td><span class="position-icon normal">9</span></td>
+            <td><div class="player-cell"><div class="player-avatar" style="background: linear-gradient(135deg, var(--accent), var(--purple));">PM</div><div><div class="player-handle">@pablo_master</div></div></div></td>
+            <td><span class="metric-value">897.120</span></td>
+            <td><span class="change-indicator change-up">↑ 2</span></td>
+            <td>—</td>
+            <td>5.000</td>
+          </tr>
+          <tr>
+            <td><span class="position-icon normal">10</span></td>
+            <td><div class="player-cell"><div class="player-avatar" style="background: linear-gradient(135deg, var(--orange), var(--danger));">VS</div><div><div class="player-handle">@victorslot</div></div></div></td>
+            <td><span class="metric-value">854.330</span></td>
+            <td><span class="change-indicator change-equal">=</span></td>
+            <td>—</td>
+            <td>5.000</td>
+          </tr>
+        </tbody>
+      </table>
+      <p style="text-align: center; padding: 14px 0 4px; font-size: 11px; color: var(--text-tertiary); font-style: italic;">mostrando top 10 · ver puestos 11-20 · cierre del ranking 31/05 a las 23:59</p>
+    </div>
+
+  </div>
+</div>
+
+</div>
+
+<!-- ============ MODAL: CONFIGURAR RANKING ============ -->
+<div class="modal-overlay" id="configModal">
+  <div class="modal">
+    <div class="modal-head">
+      <div class="modal-title">
+        <span style="color: var(--text-tertiary); font-weight: 400; font-size: 12px; display: block; margin-bottom: 2px;">Configurar ranking</span>
+        Mejores en XP
+      </div>
+      <button class="modal-close" onclick="document.getElementById('configModal').classList.remove('show')">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <div class="modal-body">
+
+      <div class="modal-section">
+        <p class="modal-section-title">Ventana de tiempo</p>
+        <div class="radio-pills">
+          <button class="radio-pill">Diaria</button>
+          <button class="radio-pill">Semanal</button>
+          <button class="radio-pill selected">Mensual</button>
+          <button class="radio-pill">All-time</button>
+        </div>
+        <p class="form-help">cuándo se cierra y se reparten premios</p>
+      </div>
+
+      <div class="modal-section">
+        <p class="modal-section-title">Visibilidad</p>
+        <div class="radio-pills">
+          <button class="radio-pill selected">Público a todos</button>
+          <button class="radio-pill">Privado VIP+</button>
+          <button class="radio-pill">Por país</button>
+          <button class="radio-pill">Anónimo</button>
+        </div>
+        <p class="form-help">quiénes ven el ranking · "anónimo" muestra posiciones pero oculta nombres</p>
+      </div>
+
+      <div class="modal-section">
+        <p class="modal-section-title">Premios al top</p>
+        <table class="prizes-table">
+          <thead>
+            <tr>
+              <th style="width: 80px;">posición</th>
+              <th>premio</th>
+              <th style="width: 70px; text-align: right;">acciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><span class="position-badge gold">#1</span></td>
+              <td>
+                <div class="prize-input">
+                  <input type="text" class="form-input prize-input-mini" value="100000">
+                  <select class="form-select" style="flex: 1;">
+                    <option selected>monedas + cofre legendario</option>
+                    <option>monedas</option>
+                    <option>cofre + multiplicador</option>
+                    <option>XP boost</option>
+                  </select>
+                </div>
+              </td>
+              <td><div class="prize-actions" style="justify-content: flex-end;"><button class="action-btn-mini danger"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg></button></div></td>
+            </tr>
+            <tr>
+              <td><span class="position-badge silver">#2</span></td>
+              <td>
+                <div class="prize-input">
+                  <input type="text" class="form-input prize-input-mini" value="50000">
+                  <select class="form-select" style="flex: 1;">
+                    <option selected>monedas + cofre épico</option>
+                  </select>
+                </div>
+              </td>
+              <td><div class="prize-actions" style="justify-content: flex-end;"><button class="action-btn-mini danger"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg></button></div></td>
+            </tr>
+            <tr>
+              <td><span class="position-badge bronze">#3</span></td>
+              <td>
+                <div class="prize-input">
+                  <input type="text" class="form-input prize-input-mini" value="25000">
+                  <select class="form-select" style="flex: 1;">
+                    <option selected>monedas + cofre raro</option>
+                  </select>
+                </div>
+              </td>
+              <td><div class="prize-actions" style="justify-content: flex-end;"><button class="action-btn-mini danger"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg></button></div></td>
+            </tr>
+            <tr>
+              <td><span class="position-badge">#4-10</span></td>
+              <td>
+                <div class="prize-input">
+                  <input type="text" class="form-input prize-input-mini" value="10000">
+                  <select class="form-select" style="flex: 1;">
+                    <option selected>monedas</option>
+                  </select>
+                </div>
+              </td>
+              <td><div class="prize-actions" style="justify-content: flex-end;"><button class="action-btn-mini danger"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg></button></div></td>
+            </tr>
+            <tr>
+              <td><span class="position-badge">#11-20</span></td>
+              <td>
+                <div class="prize-input">
+                  <input type="text" class="form-input prize-input-mini" value="5000">
+                  <select class="form-select" style="flex: 1;">
+                    <option selected>monedas</option>
+                  </select>
+                </div>
+              </td>
+              <td><div class="prize-actions" style="justify-content: flex-end;"><button class="action-btn-mini danger"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg></button></div></td>
+            </tr>
+          </tbody>
+        </table>
+        <button class="add-row-btn disabled" title="máximo 20 posiciones premiables">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          Agregar fila · ya cubrís hasta el #20 (límite máximo)
+        </button>
+        <div class="prizes-summary">
+          <span class="prizes-summary-label">total a distribuir si llena el podio</span>
+          <span class="prizes-summary-value">295.000 monedas + 3 cofres</span>
+        </div>
+      </div>
+
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" onclick="document.getElementById('configModal').classList.remove('show')">Cancelar</button>
+      <button class="btn btn-primary">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+        Guardar configuración
+      </button>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>

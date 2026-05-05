@@ -148,3 +148,22 @@ handlers.push(
   http.post('*/admin/branding/upload-image', async () => { await wait(); return HttpResponse.json({url:'https://dummyimage.com/128x128/0AF784/0E1116&text=N'}); }),
   http.get('*/admin/branding/preview-token', async () => { await wait(); return HttpResponse.json({token:'preview_mock_token'}); }),
 );
+
+import { leaderboard, markets, operatorConfig, predictionEvents, rankings } from '@/mocks/data/expandedTier5';
+handlers.push(
+  http.get('*/admin/operator-config', async () => { await wait(); return HttpResponse.json(operatorConfig); }),
+  http.patch('*/admin/operator-config', async ({ request }) => { await wait(); Object.assign(operatorConfig, await request.json()); return HttpResponse.json(operatorConfig); }),
+  http.get('*/admin/rankings', async () => { await wait(); return HttpResponse.json(rankings); }),
+  http.get('*/admin/rankings/:id/leaderboard', async ({ params }) => { await wait(); const ranking = rankings.find(r=>r.id===params.id)??rankings[0]; return HttpResponse.json({ ranking_id: ranking.id, updated_at: new Date().toISOString(), closes_at: ranking.closes_at, entries: leaderboard }); }),
+  http.patch('*/admin/rankings/:id', async ({ params, request }) => { await wait(); const ranking = rankings.find(r=>r.id===params.id)??rankings[0]; Object.assign(ranking, await request.json()); return HttpResponse.json(ranking); }),
+  http.post('*/admin/rankings/:id/activate', async ({ params }) => { await wait(); const ranking = rankings.find(r=>r.id===params.id)??rankings[0]; ranking.active = true; return HttpResponse.json(ranking); }),
+  http.post('*/admin/rankings/:id/deactivate', async ({ params }) => { await wait(); const ranking = rankings.find(r=>r.id===params.id)??rankings[0]; ranking.active = false; return HttpResponse.json(ranking); }),
+  http.get('*/admin/rankings/:id/history', async () => { await wait(); return HttpResponse.json([{ id:'hist_1', closed_at:new Date().toISOString(), winner:'@tigre_loco_82', distributed:185000 }]); }),
+  http.get('*/admin/predictions/events', async ({ request }) => { await wait(); const status = new URL(request.url).searchParams.get('status'); return HttpResponse.json(predictionEvents.filter(e=>!status||e.status===status)); }),
+  http.get('*/admin/predictions/events/:id', async ({ params }) => { await wait(); return HttpResponse.json(predictionEvents.find(e=>e.id===params.id)??predictionEvents[0]); }),
+  http.post('*/admin/predictions/events', async ({ request }) => { await wait(); const body = await request.json() as Partial<typeof predictionEvents[number]>; const item = { ...predictionEvents[0], ...body, id:`evt_${Date.now()}`, status:'draft' as const }; predictionEvents.unshift(item); return HttpResponse.json(item,{status:201}); }),
+  http.patch('*/admin/predictions/events/:id', async ({ params, request }) => { await wait(); const item = predictionEvents.find(e=>e.id===params.id)??predictionEvents[0]; Object.assign(item, await request.json()); return HttpResponse.json(item); }),
+  http.post('*/admin/predictions/events/:id/publish', async ({ params }) => { await wait(); const item = predictionEvents.find(e=>e.id===params.id)??predictionEvents[0]; item.status='active'; return HttpResponse.json(item); }),
+  http.post('*/admin/predictions/events/:id/load-results', async ({ params }) => { await wait(); const item = predictionEvents.find(e=>e.id===params.id)??predictionEvents[0]; item.status='past'; return HttpResponse.json({ total_distributed:247000, winners_count:1234, grand_prize_winners:44, status:'past' }); }),
+  http.get('*/admin/predictions/markets', async () => { await wait(); return HttpResponse.json(markets); }),
+);
