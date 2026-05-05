@@ -1,3 +1,0 @@
-import { defineConfig } from 'vitest/config';
-import react from '@vitejs/plugin-react';
-export default defineConfig({ plugins: [react()], resolve: { alias: { '@': '/workspace/src' } }, test: { environment: 'jsdom', setupFiles: ['./src/test/setup.ts'], coverage: { provider: 'v8', reporter: ['text', 'html', 'lcov'], thresholds: { 'src/components/ui/**/*.{ts,tsx}': { branches: 70, functions: 70, lines: 70, statements: 70 }, 'src/features/**/pages/*.tsx': { branches: 50, functions: 50, lines: 50, statements: 50 } }, exclude: ['**/*.config.*', '**/mocks/**', '**/types/**', '**/*.test.*', 'src/main.tsx', 'src/router.tsx'] } } });
