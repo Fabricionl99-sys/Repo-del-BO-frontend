@@ -14,9 +14,15 @@ export interface RuleEditorFormValues {
   action: {
     xpBase: number;
     xpMaxPerEvent?: number | null;
-    alsoCoins?: { amount: number; currencyId: string };
   };
-  boost?: { enabled: boolean; multiplier: 2 | 3 | 5; starts_at: string; ends_at: string };
+  boost?: {
+    enabled: boolean;
+    multiplier: 1.5 | 2 | 3 | 5;
+    starts_at: string;
+    ends_at: string;
+    scope: 'all' | 'category';
+    category_code?: string;
+  };
 }
 
 /**

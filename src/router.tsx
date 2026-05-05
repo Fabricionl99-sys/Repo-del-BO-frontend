@@ -12,6 +12,7 @@ const ApiKeysPage = lazy(() => import('@/features/apiKeys/pages/ApiKeysPage'));
 const RulesListPage = lazy(() => import('@/features/rules/pages/RulesListPage'));
 const RuleEditorPage = lazy(() => import('@/features/rules/pages/RuleEditorPage'));
 const LevelsCurvePage = lazy(() => import('@/features/levels/pages/LevelsCurvePage'));
+const EconomyPage = lazy(() => import('@/features/economy/pages/EconomyPage'));
 const CoinsPage = lazy(() => import('@/features/coins/pages/CoinsPage'));
 const MissionsPage = lazy(() => import('@/features/missions/pages/MissionsPage'));
 const MissionEditorPage = lazy(() => import('@/features/missions/pages/MissionEditorPage'));
@@ -73,6 +74,7 @@ export const router = createBrowserRouter([
       { path: 'reglas-xp/nueva', element: wrap(<RuleEditorPage />) },
       { path: 'reglas-xp/:id', element: wrap(<RuleEditorPage />) },
       { path: 'curva-niveles', element: wrap(<LevelsCurvePage />) },
+      { path: 'economia', element: wrap(<EconomyPage />) },
       { path: 'monedas', element: wrap(<CoinsPage />) },
       { path: 'misiones', element: wrap(<MissionsPage />) },
       { path: 'misiones/nueva', element: wrap(<MissionEditorPage />) },
