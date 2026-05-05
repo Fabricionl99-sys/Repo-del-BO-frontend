@@ -10,17 +10,17 @@ export interface RuleEditorFormValues {
   description: string;
   trigger: { event: string; category: string };
   conditionsLogic: 'all' | 'any';
-  conditions: { field: string; operator: string; value: string | number | boolean }[];
+  conditions: { field: string; operator: string; value: string | number | boolean | string[] }[];
   action: {
     xpBase: number;
     xpMaxPerEvent?: number | null;
     alsoCoins?: { amount: number; currencyId: string };
   };
-  applicableMultiplierIds: string[];
+  boost?: { enabled: boolean; multiplier: 2 | 3 | 5; starts_at: string; ends_at: string };
 }
 
 /**
- * Bloque reusable para editar condiciones AND/OR de reglas y multiplicadores.
+ * Bloque reusable para editar condiciones AND/OR de reglas.
  * Uso: envolver la página con FormProvider<RuleEditorFormValues> y renderizar <BlockConditions />.
  */
 export function BlockConditions() {

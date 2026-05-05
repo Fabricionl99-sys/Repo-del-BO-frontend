@@ -19,7 +19,7 @@ http.get('*/admin/api-keys/allowed-ips',async()=>{await wait(); return HttpRespo
 http.get('*/admin/api-keys/recent-requests',async()=>{await wait(); return HttpResponse.json(recentRequests)}),
 ];
 
-import { coins, coinsGlobalRules, curvePresets, distribution, levelsCurve, multipliers, ruleListItems, xpRules, buildCurve } from '@/mocks/data/tier2';
+import { coins, coinsGlobalRules, curvePresets, distribution, levelsCurve, ruleListItems, xpRules, buildCurve } from '@/mocks/data/tier2';
 
 handlers.push(
   http.get('*/admin/xp-rules', async ({ request }) => {
@@ -34,18 +34,18 @@ handlers.push(
   }),
   http.patch('*/admin/xp-rules/:id', async ({ params, request }) => {
     await wait();
-    const body = await request.json() as { active?: boolean; status?: string; name?: string };
+    const body = await request.json() as Partial<(typeof xpRules)[number]> & { active?: boolean };
     const rule = xpRules.find((item) => item.id === params.id) ?? xpRules[0];
+    Object.assign(rule, body);
     if (typeof body.active === 'boolean') rule.status = body.active ? 'active' : 'paused';
-    if (body.status) rule.status = body.status as typeof rule.status;
-    if (body.name) rule.name = body.name;
     rule.updatedAt = new Date().toISOString();
     return HttpResponse.json(rule);
   }),
   http.post('*/admin/xp-rules', async ({ request }) => {
     await wait();
     const body = await request.json() as Partial<(typeof xpRules)[number]>;
-    const rule = { ...xpRules[0], ...body, id: `rule_${Date.now()}`, updatedAt: new Date().toISOString(), createdAt: new Date().toISOString() };
+    const baseRule = { ...xpRules[0], boost: undefined };
+    const rule = { ...baseRule, ...body, id: `rule_${Date.now()}`, updatedAt: new Date().toISOString(), createdAt: new Date().toISOString() };
     xpRules.unshift(rule);
     return HttpResponse.json(rule, { status: 201 });
   }),
@@ -56,10 +56,6 @@ handlers.push(
     xpRules.unshift(copy);
     return HttpResponse.json(copy, { status: 201 });
   }),
-  http.get('*/admin/multipliers', async () => { await wait(); return HttpResponse.json(multipliers); }),
-  http.get('*/admin/multipliers/:id', async ({ params }) => { await wait(); return HttpResponse.json(multipliers.find((item) => item.id === params.id) ?? multipliers[0]); }),
-  http.post('*/admin/multipliers', async ({ request }) => { await wait(); const body = await request.json() as Partial<typeof multipliers[number]>; const item = { ...multipliers[0], ...body, id:`mult_${Date.now()}`, status:'scheduled' as const }; multipliers.unshift(item); return HttpResponse.json(item,{status:201}); }),
-  http.patch('*/admin/multipliers/:id', async ({ params, request }) => { await wait(); const body = await request.json() as Partial<typeof multipliers[number]>; const item = multipliers.find((m) => m.id === params.id) ?? multipliers[0]; Object.assign(item, body); return HttpResponse.json(item); }),
   http.get('*/admin/coins', async () => { await wait(); return HttpResponse.json(coins); }),
   http.post('*/admin/coins', async ({ request }) => { await wait(); const body = await request.json() as Partial<typeof coins[number]>; const coin = { ...coins[0], ...body, id:`coin_${Date.now()}`, isDefault:false, active:false }; coins.push(coin); return HttpResponse.json(coin,{status:201}); }),
   http.patch('*/admin/coins/:id', async ({ params, request }) => { await wait(); const body = await request.json() as Partial<typeof coins[number]>; const coin = coins.find((item) => item.id === params.id) ?? coins[0]; Object.assign(coin, body); return HttpResponse.json(coin); }),
@@ -147,4 +143,23 @@ handlers.push(
   http.post('*/admin/branding/suggest-palette', async () => { await wait(); return HttpResponse.json(palettePresets[1].palette); }),
   http.post('*/admin/branding/upload-image', async () => { await wait(); return HttpResponse.json({url:'https://dummyimage.com/128x128/0AF784/0E1116&text=N'}); }),
   http.get('*/admin/branding/preview-token', async () => { await wait(); return HttpResponse.json({token:'preview_mock_token'}); }),
+);
+
+import { leaderboard, markets, operatorConfig, predictionEvents, rankings } from '@/mocks/data/expandedTier5';
+handlers.push(
+  http.get('*/admin/operator-config', async () => { await wait(); return HttpResponse.json(operatorConfig); }),
+  http.patch('*/admin/operator-config', async ({ request }) => { await wait(); Object.assign(operatorConfig, await request.json()); return HttpResponse.json(operatorConfig); }),
+  http.get('*/admin/rankings', async () => { await wait(); return HttpResponse.json(rankings); }),
+  http.get('*/admin/rankings/:id/leaderboard', async ({ params }) => { await wait(); const ranking = rankings.find(r=>r.id===params.id)??rankings[0]; return HttpResponse.json({ ranking_id: ranking.id, updated_at: new Date().toISOString(), closes_at: ranking.closes_at, entries: leaderboard }); }),
+  http.patch('*/admin/rankings/:id', async ({ params, request }) => { await wait(); const ranking = rankings.find(r=>r.id===params.id)??rankings[0]; Object.assign(ranking, await request.json()); return HttpResponse.json(ranking); }),
+  http.post('*/admin/rankings/:id/activate', async ({ params }) => { await wait(); const ranking = rankings.find(r=>r.id===params.id)??rankings[0]; ranking.active = true; return HttpResponse.json(ranking); }),
+  http.post('*/admin/rankings/:id/deactivate', async ({ params }) => { await wait(); const ranking = rankings.find(r=>r.id===params.id)??rankings[0]; ranking.active = false; return HttpResponse.json(ranking); }),
+  http.get('*/admin/rankings/:id/history', async () => { await wait(); return HttpResponse.json([{ id:'hist_1', closed_at:new Date().toISOString(), winner:'@tigre_loco_82', distributed:185000 }]); }),
+  http.get('*/admin/predictions/events', async ({ request }) => { await wait(); const status = new URL(request.url).searchParams.get('status'); return HttpResponse.json(predictionEvents.filter(e=>!status||e.status===status)); }),
+  http.get('*/admin/predictions/events/:id', async ({ params }) => { await wait(); return HttpResponse.json(predictionEvents.find(e=>e.id===params.id)??predictionEvents[0]); }),
+  http.post('*/admin/predictions/events', async ({ request }) => { await wait(); const body = await request.json() as Partial<typeof predictionEvents[number]>; const item = { ...predictionEvents[0], ...body, id:`evt_${Date.now()}`, status:'draft' as const }; predictionEvents.unshift(item); return HttpResponse.json(item,{status:201}); }),
+  http.patch('*/admin/predictions/events/:id', async ({ params, request }) => { await wait(); const item = predictionEvents.find(e=>e.id===params.id)??predictionEvents[0]; Object.assign(item, await request.json()); return HttpResponse.json(item); }),
+  http.post('*/admin/predictions/events/:id/publish', async ({ params }) => { await wait(); const item = predictionEvents.find(e=>e.id===params.id)??predictionEvents[0]; item.status='active'; return HttpResponse.json(item); }),
+  http.post('*/admin/predictions/events/:id/load-results', async ({ params }) => { await wait(); const item = predictionEvents.find(e=>e.id===params.id)??predictionEvents[0]; item.status='past'; return HttpResponse.json({ total_distributed:247000, winners_count:1234, grand_prize_winners:44, status:'past' }); }),
+  http.get('*/admin/predictions/markets', async () => { await wait(); return HttpResponse.json(markets); }),
 );

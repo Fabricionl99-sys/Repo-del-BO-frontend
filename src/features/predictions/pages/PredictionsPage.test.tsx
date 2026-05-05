@@ -1,0 +1,7 @@
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { cleanup, fireEvent, render, screen } from '@testing-library/react';
+import { MemoryRouter } from 'react-router-dom';
+import { describe, expect, it } from 'vitest';
+import PredictionsPage from './PredictionsPage';
+function wrap(route='/predicciones'){cleanup();return render(<MemoryRouter initialEntries={[route]}><QueryClientProvider client={new QueryClient({defaultOptions:{queries:{retry:false}}})}><PredictionsPage/></QueryClientProvider></MemoryRouter>)}
+describe('Predicciones',()=>{it('lista, detalle, mercados y cargar resultados',async()=>{wrap();expect(await screen.findByText(/Miércoles de Champions/)).toBeInTheDocument();fireEvent.click(screen.getAllByText('Ver detalle')[0]);expect(screen.getByText('Mercados disponibles')).toBeInTheDocument();fireEvent.click(screen.getByText('closed_pending_result'));expect(await screen.findByText('UFC Fight Night')).toBeInTheDocument();fireEvent.click(screen.getByText('Ver detalle'));fireEvent.click(screen.getByText('Calcular y distribuir premios'));});it('crea borrador',async()=>{wrap();fireEvent.click(await screen.findByText('nuevo evento'));fireEvent.click(screen.getByText('crear borrador'));expect(screen.getByDisplayValue('Evento QA Champions')).toBeInTheDocument();});it('empty',()=>{wrap('/predicciones?mockState=empty');expect(screen.getByText('No hay predicciones')).toBeInTheDocument()})});

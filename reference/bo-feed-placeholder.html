@@ -1,0 +1,832 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>niveles · Feed Social · BO</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&family=Urbanist:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300&display=swap" rel="stylesheet">
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg-primary: #0E1116;
+  --bg-secondary: #161B22;
+  --bg-tertiary: #1C2128;
+  --bg-elevated: #21262D;
+  --bg-hover: #262C36;
+
+  --accent: #0AF784;
+  --accent-hover: #08D971;
+  --accent-glow: rgba(10, 247, 132, 0.15);
+  --accent-subtle: rgba(10, 247, 132, 0.08);
+
+  --text-primary: #FFFFFF;
+  --text-secondary: #B8BEC9;
+  --text-tertiary: #7D8590;
+  --text-disabled: #484F58;
+
+  --border-subtle: rgba(255, 255, 255, 0.06);
+  --border-default: rgba(255, 255, 255, 0.10);
+  --border-strong: rgba(255, 255, 255, 0.16);
+
+  --success: #0AF784;
+  --warning: #F0B72F;
+  --danger: #F85149;
+  --info: #58A6FF;
+  --purple: #A78BFA;
+  --pink: #FF6B9D;
+}
+
+body {
+  font-family: 'Urbanist', system-ui, sans-serif;
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  font-size: 14px;
+  line-height: 1.5;
+  font-weight: 400;
+}
+
+button { font-family: inherit; cursor: pointer; }
+
+.app {
+  display: grid;
+  grid-template-columns: 240px 1fr;
+  min-height: 100vh;
+}
+
+/* === SIDEBAR === */
+.sidebar {
+  background: var(--bg-secondary);
+  border-right: 1px solid var(--border-subtle);
+  padding: 16px 0;
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  overflow-y: auto;
+}
+
+.sidebar-brand {
+  padding: 0 20px 20px;
+  border-bottom: 1px solid var(--border-subtle);
+  margin-bottom: 16px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.brand-logo {
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  background: linear-gradient(135deg, var(--accent), #00D9FF);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  color: var(--bg-primary);
+  font-size: 13px;
+}
+
+.brand-name { font-weight: 600; letter-spacing: -0.02em; font-size: 15px; }
+
+.operator-selector {
+  margin: 0 12px 16px;
+  padding: 10px 12px;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-subtle);
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+}
+
+.operator-avatar {
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  background: linear-gradient(135deg, var(--purple), var(--info));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  font-size: 11px;
+  color: white;
+}
+
+.operator-info { flex: 1; min-width: 0; }
+.operator-name { font-weight: 500; font-size: 13px; }
+.operator-tier { color: var(--text-tertiary); font-size: 11px; font-family: 'JetBrains Mono', monospace; }
+
+.sidebar-section { margin-bottom: 8px; padding: 0 12px; }
+
+.section-label {
+  color: var(--text-tertiary);
+  font-size: 11px;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  padding: 8px 12px 4px;
+  margin: 0;
+}
+
+.nav-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 12px;
+  border-radius: 6px;
+  color: var(--text-secondary);
+  text-decoration: none;
+  font-size: 13px;
+  font-weight: 400;
+  transition: all 0.12s;
+  margin-bottom: 1px;
+}
+
+.nav-item:hover { background: var(--bg-tertiary); color: var(--text-primary); }
+
+.nav-item.active {
+  background: var(--accent-subtle);
+  color: var(--accent);
+  font-weight: 500;
+}
+
+.nav-item.coming-soon {
+  color: var(--text-disabled);
+  cursor: pointer;
+}
+
+.nav-item.coming-soon:hover {
+  color: var(--text-tertiary);
+  background: transparent;
+}
+
+.nav-item.coming-soon.active {
+  background: rgba(240, 183, 47, 0.06);
+  color: var(--warning);
+}
+
+.nav-icon {
+  width: 16px;
+  height: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.nav-badge {
+  margin-left: auto;
+  font-size: 9px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  padding: 2px 5px;
+  border-radius: 3px;
+  background: rgba(240, 183, 47, 0.10);
+  color: var(--warning);
+  font-weight: 600;
+}
+
+/* === MAIN === */
+.main { display: flex; flex-direction: column; }
+
+.topbar {
+  height: 56px;
+  border-bottom: 1px solid var(--border-subtle);
+  background: var(--bg-secondary);
+  padding: 0 28px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.breadcrumb {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+}
+
+.breadcrumb a { color: var(--text-tertiary); text-decoration: none; font-weight: 400; }
+.breadcrumb-current { color: var(--text-primary); font-weight: 500; }
+
+.topbar-actions { display: flex; align-items: center; gap: 12px; }
+
+.icon-btn {
+  width: 32px;
+  height: 32px;
+  border-radius: 6px;
+  background: transparent;
+  border: 1px solid var(--border-subtle);
+  color: var(--text-secondary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.12s;
+}
+
+.icon-btn:hover { background: var(--bg-tertiary); color: var(--text-primary); border-color: var(--border-default); }
+
+.user-pill {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 10px 4px 4px;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-subtle);
+  border-radius: 16px;
+  cursor: pointer;
+}
+
+.user-avatar {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--accent), #00D9FF);
+  color: var(--bg-primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  font-size: 10px;
+}
+
+.user-name { font-size: 12px; font-weight: 500; }
+.user-role { font-size: 10px; color: var(--text-tertiary); font-family: 'JetBrains Mono', monospace; }
+
+/* === CONTENT === */
+.content {
+  padding: 48px 28px;
+  max-width: 1100px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+/* === HERO === */
+.hero {
+  text-align: center;
+  padding: 32px 0 48px;
+  position: relative;
+}
+
+.hero-icon-wrap {
+  position: relative;
+  width: 96px;
+  height: 96px;
+  margin: 0 auto 24px;
+}
+
+.hero-icon {
+  width: 96px;
+  height: 96px;
+  border-radius: 24px;
+  background: linear-gradient(135deg, rgba(167, 139, 250, 0.15), rgba(255, 107, 157, 0.15));
+  border: 1px solid rgba(167, 139, 250, 0.20);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  z-index: 1;
+}
+
+.hero-icon::before {
+  content: '';
+  position: absolute;
+  inset: -20px;
+  background: radial-gradient(circle, rgba(167, 139, 250, 0.20), transparent 70%);
+  z-index: -1;
+  border-radius: 50%;
+}
+
+.coming-soon-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px 4px 8px;
+  background: rgba(240, 183, 47, 0.10);
+  border: 1px solid rgba(240, 183, 47, 0.25);
+  border-radius: 999px;
+  color: var(--warning);
+  font-size: 11px;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin-bottom: 16px;
+}
+
+.coming-soon-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--warning);
+  display: inline-block;
+  animation: pulse 2s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
+}
+
+.hero-title {
+  font-size: 36px;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  margin-bottom: 12px;
+  background: linear-gradient(135deg, var(--text-primary), var(--text-secondary));
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.hero-subtitle {
+  font-size: 16px;
+  color: var(--text-secondary);
+  font-weight: 300;
+  max-width: 580px;
+  margin: 0 auto;
+  line-height: 1.6;
+  font-style: italic;
+}
+
+/* === FEATURE CARDS === */
+.section-features {
+  margin-bottom: 56px;
+}
+
+.features-title {
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--text-tertiary);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.features-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 14px;
+}
+
+.feature-card {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-subtle);
+  border-radius: 10px;
+  padding: 20px;
+  position: relative;
+  overflow: hidden;
+  opacity: 0.78;
+  transition: all 0.16s;
+}
+
+.feature-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: var(--feature-color, var(--purple));
+  opacity: 0.40;
+}
+
+.feature-card:hover {
+  opacity: 0.92;
+  transform: translateY(-2px);
+}
+
+.feature-card[data-color="purple"] { --feature-color: var(--purple); }
+.feature-card[data-color="pink"] { --feature-color: var(--pink); }
+.feature-card[data-color="info"] { --feature-color: var(--info); }
+.feature-card[data-color="warning"] { --feature-color: var(--warning); }
+
+.feature-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.04);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--feature-color);
+  margin-bottom: 14px;
+}
+
+.feature-name {
+  font-size: 14px;
+  font-weight: 600;
+  margin-bottom: 6px;
+  color: var(--text-secondary);
+}
+
+.feature-desc {
+  font-size: 12px;
+  color: var(--text-tertiary);
+  font-weight: 300;
+  line-height: 1.5;
+}
+
+/* === MEANWHILE SECTION === */
+.meanwhile {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-subtle);
+  border-radius: 12px;
+  padding: 24px 28px;
+  margin-bottom: 32px;
+}
+
+.meanwhile-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+.meanwhile-icon {
+  width: 28px;
+  height: 28px;
+  border-radius: 7px;
+  background: var(--accent-subtle);
+  color: var(--accent);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.meanwhile-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.meanwhile-subtitle {
+  font-size: 12px;
+  color: var(--text-tertiary);
+  font-weight: 300;
+  font-style: italic;
+}
+
+.meanwhile-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.meanwhile-item {
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-default);
+  border-radius: 8px;
+  padding: 14px 16px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  cursor: pointer;
+  transition: all 0.12s;
+  text-decoration: none;
+  color: inherit;
+}
+
+.meanwhile-item:hover {
+  background: var(--bg-elevated);
+  border-color: var(--border-strong);
+  transform: translateY(-1px);
+}
+
+.meanwhile-item-icon {
+  width: 32px;
+  height: 32px;
+  border-radius: 7px;
+  background: var(--accent-subtle);
+  color: var(--accent);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.meanwhile-item-text { flex: 1; }
+
+.meanwhile-item-name {
+  font-size: 13px;
+  font-weight: 500;
+  margin-bottom: 2px;
+}
+
+.meanwhile-item-desc {
+  font-size: 11px;
+  color: var(--text-tertiary);
+  font-weight: 300;
+}
+
+.meanwhile-arrow {
+  color: var(--text-tertiary);
+  flex-shrink: 0;
+}
+
+/* === ROADMAP INFO === */
+.roadmap-info {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 12px;
+  padding: 16px;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-subtle);
+  border-radius: 10px;
+  margin-bottom: 24px;
+}
+
+.roadmap-stat {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.roadmap-stat-label {
+  font-size: 10px;
+  font-weight: 500;
+  color: var(--text-tertiary);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.roadmap-stat-value {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-primary);
+  font-family: 'JetBrains Mono', monospace;
+}
+
+.roadmap-stat-value.warning {
+  color: var(--warning);
+}
+
+/* === FEEDBACK CTA === */
+.feedback-cta {
+  text-align: center;
+  padding: 24px 0;
+  border-top: 1px solid var(--border-subtle);
+  font-size: 12px;
+  color: var(--text-tertiary);
+  font-weight: 300;
+  font-style: italic;
+}
+
+.feedback-cta a {
+  color: var(--accent);
+  text-decoration: none;
+  font-weight: 500;
+}
+
+.feedback-cta a:hover {
+  text-decoration: underline;
+}
+</style>
+</head>
+<body>
+
+<div class="app">
+
+<!-- ======== SIDEBAR ======== -->
+<aside class="sidebar">
+  <div class="sidebar-brand">
+    <div class="brand-logo">N</div>
+    <div class="brand-name">niveles</div>
+  </div>
+  <div class="operator-selector">
+    <div class="operator-avatar">CA</div>
+    <div class="operator-info">
+      <div class="operator-name">Casino Astral</div>
+      <div class="operator-tier">plan growth · es-AR</div>
+    </div>
+    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="color: var(--text-tertiary);"><polyline points="6 9 12 15 18 9"/></svg>
+  </div>
+
+  <div class="sidebar-section">
+    <a class="nav-item" href="#">
+      <span class="nav-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg></span>
+      Dashboard
+    </a>
+  </div>
+
+  <div class="sidebar-section">
+    <p class="section-label">Engagement</p>
+    <a class="nav-item" href="#">
+      <span class="nav-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></span>
+      Misiones
+    </a>
+    <a class="nav-item" href="#">
+      <span class="nav-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="7"/><polyline points="8.21 13.89 7 23 12 20 17 23 15.79 13.88"/></svg></span>
+      Logros
+    </a>
+    <a class="nav-item" href="#">
+      <span class="nav-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="9" y1="21" x2="9" y2="9"/></svg></span>
+      Recompensas diarias
+    </a>
+    <a class="nav-item" href="#">
+      <span class="nav-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="20" x2="12" y2="10"/><line x1="18" y1="20" x2="18" y2="4"/><line x1="6" y1="20" x2="6" y2="16"/></svg></span>
+      Ranking
+    </a>
+    <a class="nav-item" href="#">
+      <span class="nav-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg></span>
+      Predicciones
+    </a>
+    <a class="nav-item coming-soon active" href="#">
+      <span class="nav-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg></span>
+      Feed Social
+      <span class="nav-badge">soon</span>
+    </a>
+  </div>
+
+  <div class="sidebar-section">
+    <p class="section-label">Setup</p>
+    <a class="nav-item" href="#">
+      <span class="nav-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19 12c0 1-1 2-1 3l2 2-2 2-2-2c-1 0-2 1-3 1l-1 2-2-2c-1 0-2-1-3-1l-2 2-2-2 2-2c0-1-1-2-1-3l-2-1 2-2c0-1 1-2 1-3l-2-2 2-2 2 2c1 0 2-1 3-1l1-2 2 2c1 0 2 1 3 1l2-2 2 2-2 2"/></svg></span>
+      Branding
+    </a>
+    <a class="nav-item" href="#">
+      <span class="nav-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2M9 11a4 4 0 1 0 0-8"/></svg></span>
+      Equipo
+    </a>
+    <a class="nav-item" href="#">
+      <span class="nav-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></span>
+      Configuración general
+    </a>
+  </div>
+</aside>
+
+<!-- ======== MAIN ======== -->
+<div class="main">
+
+  <div class="topbar">
+    <div class="breadcrumb">
+      <a>Engagement</a>
+      <span style="color: var(--text-tertiary);">/</span>
+      <span class="breadcrumb-current">Feed Social</span>
+    </div>
+
+    <div class="topbar-actions">
+      <button class="icon-btn"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg></button>
+      <button class="icon-btn"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 1 1 5.83 1c0 2-3 3-3 3M12 17h.01"/></svg></button>
+      <div class="user-pill">
+        <div class="user-avatar">FL</div>
+        <div>
+          <div class="user-name">Fabricio L.</div>
+          <div class="user-role">admin</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="content">
+
+    <!-- ============ HERO ============ -->
+    <div class="hero">
+      <div class="hero-icon-wrap">
+        <div class="hero-icon">
+          <svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="rgba(167, 139, 250, 0.85)" stroke-width="1.5">
+            <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/>
+          </svg>
+        </div>
+      </div>
+
+      <div class="coming-soon-badge">
+        <span class="coming-soon-dot"></span>
+        Próximamente · Etapa 9
+      </div>
+
+      <h1 class="hero-title">Feed Social</h1>
+      <p class="hero-subtitle">
+        Una red social interna para tus jugadores · posts, predicciones compartidas, clanes que compiten en torneos y famosos verificados que mueven la comunidad
+      </p>
+    </div>
+
+    <!-- ============ ROADMAP INFO ============ -->
+    <div class="roadmap-info">
+      <div class="roadmap-stat">
+        <div class="roadmap-stat-label">Etapa</div>
+        <div class="roadmap-stat-value warning">9 — Módulo Social</div>
+      </div>
+      <div class="roadmap-stat">
+        <div class="roadmap-stat-label">Esfuerzo estimado</div>
+        <div class="roadmap-stat-value">90-120 días</div>
+      </div>
+      <div class="roadmap-stat">
+        <div class="roadmap-stat-label">Bloqueado por</div>
+        <div class="roadmap-stat-value">MVP + 5 operadores</div>
+      </div>
+    </div>
+
+    <!-- ============ FEATURE PREVIEW ============ -->
+    <div class="section-features">
+      <p class="features-title">Qué va a incluir</p>
+      <div class="features-grid">
+
+        <div class="feature-card" data-color="purple">
+          <div class="feature-icon">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+              <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+            </svg>
+          </div>
+          <div class="feature-name">Posts y comentarios</div>
+          <div class="feature-desc">los jugadores comparten apuestas, victorias y momentos · likes, comentarios y compartidos</div>
+        </div>
+
+        <div class="feature-card" data-color="pink">
+          <div class="feature-icon">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+              <circle cx="12" cy="12" r="10"/>
+              <circle cx="12" cy="12" r="6"/>
+              <circle cx="12" cy="12" r="2"/>
+            </svg>
+          </div>
+          <div class="feature-name">Predicciones sociales</div>
+          <div class="feature-desc">predicciones compartidas en el feed · jugadores discuten, copian y compiten entre sí</div>
+        </div>
+
+        <div class="feature-card" data-color="info">
+          <div class="feature-icon">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+              <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+              <circle cx="9" cy="7" r="4"/>
+              <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+              <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+            </svg>
+          </div>
+          <div class="feature-name">Clanes</div>
+          <div class="feature-desc">grupos de jugadores que se invitan a torneos · ranking de clanes · gestión y banes desde el BO</div>
+        </div>
+
+        <div class="feature-card" data-color="warning">
+          <div class="feature-icon">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+              <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+              <polyline points="22 4 12 14.01 9 11.01"/>
+            </svg>
+          </div>
+          <div class="feature-name">Verificación ✓</div>
+          <div class="feature-desc">famosos y high rollers con badge verificado · refuerzo de confianza y storytelling</div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ============ MEANWHILE ============ -->
+    <div class="meanwhile">
+      <div class="meanwhile-head">
+        <div class="meanwhile-icon">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><polyline points="20 6 9 17 4 12"/></svg>
+        </div>
+        <div>
+          <div class="meanwhile-title">Mientras tanto · ya disponible</div>
+          <div class="meanwhile-subtitle">features actuales que cubren parte del problema sin esperar al feed completo</div>
+        </div>
+      </div>
+
+      <div class="meanwhile-grid">
+
+        <a class="meanwhile-item" href="#">
+          <div class="meanwhile-item-icon">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg>
+          </div>
+          <div class="meanwhile-item-text">
+            <div class="meanwhile-item-name">Predicciones (sin componente social)</div>
+            <div class="meanwhile-item-desc">eventos donde los jugadores predicen resultados y ganan monedas</div>
+          </div>
+          <svg class="meanwhile-arrow" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg>
+        </a>
+
+        <a class="meanwhile-item" href="#">
+          <div class="meanwhile-item-icon">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/><path d="M4 22h16M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22M18 2H6v7a6 6 0 0 0 12 0V2Z"/></svg>
+          </div>
+          <div class="meanwhile-item-text">
+            <div class="meanwhile-item-name">Torneos</div>
+            <div class="meanwhile-item-desc">competencia entre jugadores con prize pool · fomenta engagement sin red social completa</div>
+          </div>
+          <svg class="meanwhile-arrow" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg>
+        </a>
+
+      </div>
+    </div>
+
+    <!-- ============ FEEDBACK ============ -->
+    <div class="feedback-cta">
+      ¿Te interesa que esto llegue antes? <a href="#">contanos qué features priorizar</a> · tu feedback acelera el roadmap
+    </div>
+
+  </div>
+</div>
+
+</div>
+
+</body>
+</html>

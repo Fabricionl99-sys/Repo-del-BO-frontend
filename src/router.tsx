@@ -12,8 +12,6 @@ const ApiKeysPage = lazy(() => import('@/features/apiKeys/pages/ApiKeysPage'));
 const RulesListPage = lazy(() => import('@/features/rules/pages/RulesListPage'));
 const RuleEditorPage = lazy(() => import('@/features/rules/pages/RuleEditorPage'));
 const LevelsCurvePage = lazy(() => import('@/features/levels/pages/LevelsCurvePage'));
-const MultipliersPage = lazy(() => import('@/features/multipliers/pages/MultipliersPage'));
-const MultiplierEditorPage = lazy(() => import('@/features/multipliers/pages/MultiplierEditorPage'));
 const CoinsPage = lazy(() => import('@/features/coins/pages/CoinsPage'));
 const MissionsPage = lazy(() => import('@/features/missions/pages/MissionsPage'));
 const MissionEditorPage = lazy(() => import('@/features/missions/pages/MissionEditorPage'));
@@ -31,6 +29,10 @@ const NewsEditorPage = lazy(() => import('@/features/news/pages/NewsEditorPage')
 const ModerationPage = lazy(() => import('@/features/moderation/pages/ModerationPage'));
 const MetricsPage = lazy(() => import('@/features/metrics/pages/MetricsPage'));
 const BrandingPage = lazy(() => import('@/features/branding/pages/BrandingPage'));
+const SettingsPage = lazy(() => import('@/features/settings/pages/SettingsPage'));
+const RankingsPage = lazy(() => import('@/features/rankings/pages/RankingsPage'));
+const PredictionsPage = lazy(() => import('@/features/predictions/pages/PredictionsPage'));
+const FeedPlaceholderPage = lazy(() => import('@/features/feed/pages/FeedPlaceholderPage'));
 const ComingSoonPage = lazy(() => import('@/pages/ComingSoonPage'));
 
 const wrap = (element: React.ReactNode) => <Suspense fallback={<Loading />}>{element}</Suspense>;
@@ -40,9 +42,6 @@ const comingSoonRoutes = [
   { path: 'cajas-misteriosas', title: 'Cajas misteriosas' },
   { path: 'ruedas-fortuna', title: 'Ruedas de la fortuna' },
   { path: 'raspaditas', title: 'Raspaditas' },
-  { path: 'ranking', title: 'Ranking público' },
-  { path: 'predicciones', title: 'Predicciones' },
-  { path: 'feed', title: 'Feed social', description: 'configuración del feed (la moderación está en /moderacion)' },
   { path: 'notificaciones-push', title: 'Notificaciones push', description: 'configuración avanzada (lo básico está en /notificaciones)' },
   { path: 'reportes', title: 'Reportes', description: 'exportes scheduled (las métricas en vivo están en /metricas)' },
   { path: 'billing', title: 'Facturación', description: 'plan, consumo y facturas' },
@@ -74,9 +73,6 @@ export const router = createBrowserRouter([
       { path: 'reglas-xp/nueva', element: wrap(<RuleEditorPage />) },
       { path: 'reglas-xp/:id', element: wrap(<RuleEditorPage />) },
       { path: 'curva-niveles', element: wrap(<LevelsCurvePage />) },
-      { path: 'multiplicadores', element: wrap(<MultipliersPage />) },
-      { path: 'multiplicadores/nuevo', element: wrap(<MultiplierEditorPage />) },
-      { path: 'multiplicadores/:id', element: wrap(<MultiplierEditorPage />) },
       { path: 'monedas', element: wrap(<CoinsPage />) },
       { path: 'misiones', element: wrap(<MissionsPage />) },
       { path: 'misiones/nueva', element: wrap(<MissionEditorPage />) },
@@ -102,6 +98,10 @@ export const router = createBrowserRouter([
       { path: 'noticias/:id', element: wrap(<NewsEditorPage />) },
       { path: 'moderacion', element: wrap(<ModerationPage />) },
       { path: 'metricas', element: wrap(<MetricsPage />) },
+      { path: 'configuracion-general', element: <ProtectedRoute roles={['admin']}>{wrap(<SettingsPage />)}</ProtectedRoute> },
+      { path: 'ranking', element: wrap(<RankingsPage />) },
+      { path: 'predicciones', element: wrap(<PredictionsPage />) },
+      { path: 'feed', element: wrap(<FeedPlaceholderPage />) },
       {
         path: 'branding',
         element: <ProtectedRoute roles={['admin']}>{wrap(<BrandingPage />)}</ProtectedRoute>,
