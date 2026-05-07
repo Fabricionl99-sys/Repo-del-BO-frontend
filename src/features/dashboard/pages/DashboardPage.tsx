@@ -141,7 +141,7 @@ function DashboardMetricsGrid({
 
 function QuickActions({ onNavigate }: { onNavigate: (path: string) => void }) {
   const actions = [
-    [Plus, 'Crear regla de XP', 'define cuánta XP gana cada acción', '/reglas-xp/nueva'],
+    [Plus, 'Crear regla de XP', 'define cuánta XP gana cada acción', '/reglas-xp?create=1'],
     [BarChart3, 'Editar curva de niveles', 'configura cuánta XP necesita cada nivel', '/curva-niveles'],
     [Mail, 'Publicar noticia', 'comunicate con tus jugadores', '/noticias/nueva'],
     [Award, 'Lanzar torneo', 'crea competencia con premios', '/torneos/nuevo'],

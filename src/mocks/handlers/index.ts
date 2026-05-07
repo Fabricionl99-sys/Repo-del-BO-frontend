@@ -1,11 +1,9 @@
 import { delay, http, HttpResponse } from 'msw';
-import { economyHandlers } from './economy';
 import { metricsByPeriod, activity, systemStatus } from '@/mocks/data/dashboard';
 import { teamMembers } from '@/mocks/data/team';
 import { allowedIps, apiKeyBundles, recentRequests, revealed } from '@/mocks/data/apiKeys';
 const wait=()=>delay(200+Math.random()*600);
 export const handlers=[
-...economyHandlers,
 http.post('*/auth/login',async()=>{await wait(); return HttpResponse.json({accessToken:'mock_access_token',refreshToken:'mock_refresh_token'})}),
 http.post('*/auth/refresh',async()=>{await wait(); const { mockLogin } = await import('@/mocks/data/auth'); return HttpResponse.json({user:mockLogin.user,accessToken:'mock_access_token_refreshed',refreshToken:'mock_refresh_token_refreshed'})}),
 http.get('*/admin/dashboard/metrics',async({request})=>{await wait(); const p=new URL(request.url).searchParams.get('period') as keyof typeof metricsByPeriod || '7d'; return HttpResponse.json(metricsByPeriod[p]??metricsByPeriod['7d'])}),
@@ -21,7 +19,7 @@ http.get('*/admin/api-keys/allowed-ips',async()=>{await wait(); return HttpRespo
 http.get('*/admin/api-keys/recent-requests',async()=>{await wait(); return HttpResponse.json(recentRequests)}),
 ];
 
-import { coins, coinsGlobalRules, curvePresets, distribution, levelsCurve, ruleListItems, xpRules, buildCurve } from '@/mocks/data/tier2';
+import { coins, coinsConfig, coinsGlobalRules, levelsCurve, ruleListItems, xpRules } from '@/mocks/data/tier2';
 
 handlers.push(
   http.get('*/admin/xp-rules', async ({ request }) => {
@@ -59,17 +57,41 @@ handlers.push(
     return HttpResponse.json(copy, { status: 201 });
   }),
   http.get('*/admin/coins', async () => { await wait(); return HttpResponse.json(coins); }),
-  http.post('*/admin/coins', async ({ request }) => { await wait(); const body = await request.json() as Partial<typeof coins[number]>; const coin = { ...coins[0], ...body, id:`coin_${Date.now()}`, isDefault:false, active:false }; coins.push(coin); return HttpResponse.json(coin,{status:201}); }),
+  http.post('*/admin/coins', async ({ request }) => {
+    await wait();
+    const body = await request.json() as Partial<(typeof coins)[number]>;
+    const coin: (typeof coins)[number] = {
+      id: `coin_${Date.now()}`,
+      name: body.name ?? 'Moneda',
+      symbol: (body.symbol ?? 'M').toUpperCase(),
+      imageUrl: body.imageUrl,
+      emoji: body.emoji ?? '🪙',
+      deliveryMode: body.deliveryMode ?? 'auto_xp',
+      xpPerUnit: body.deliveryMode === 'manual' ? null : body.xpPerUnit ?? 3,
+      caps: body.caps ?? {},
+      p2p: body.p2p ?? { enabled: false },
+      isDefault: false,
+      active: body.active ?? true,
+      totalInCirculation: body.totalInCirculation ?? 0,
+      emittedThisWeek: body.emittedThisWeek ?? 0,
+      redeemedThisWeek: body.redeemedThisWeek ?? 0,
+    };
+    coins.push(coin);
+    return HttpResponse.json(coin, { status: 201 });
+  }),
   http.patch('*/admin/coins/:id', async ({ params, request }) => { await wait(); const body = await request.json() as Partial<typeof coins[number]>; const coin = coins.find((item) => item.id === params.id) ?? coins[0]; Object.assign(coin, body); return HttpResponse.json(coin); }),
+  http.delete('*/admin/coins/:id', async ({ params }) => { await wait(); const index = coins.findIndex((item) => item.id === params.id); if (index >= 0) coins.splice(index, 1); return new HttpResponse(null, { status: 204 }); }),
   http.get('*/admin/coins/global-rules', async () => { await wait(); return HttpResponse.json(coinsGlobalRules); }),
   http.patch('*/admin/coins/global-rules', async ({ request }) => { await wait(); Object.assign(coinsGlobalRules, await request.json()); return HttpResponse.json(coinsGlobalRules); }),
+  http.get('*/admin/coins-config', async () => { await wait(); return HttpResponse.json(coinsConfig); }),
+  http.patch('*/admin/coins-config', async ({ request }) => { await wait(); Object.assign(coinsConfig, await request.json()); return HttpResponse.json(coinsConfig); }),
+  http.post('*/admin/coins/upload-image', async () => { await wait(); return HttpResponse.json({ url: 'https://images.unsplash.com/photo-1529626455594-4ff0802cfb7e?w=64&h=64&fit=crop' }); }),
   http.get('*/admin/levels/curve', async () => { await wait(); return HttpResponse.json(levelsCurve); }),
-  http.get('*/admin/levels/presets', async () => { await wait(); return HttpResponse.json(curvePresets); }),
-  http.get('*/admin/levels/distribution', async () => { await wait(); return HttpResponse.json(distribution); }),
-  http.put('*/admin/levels/curve/draft', async ({ request }) => { await wait(); return HttpResponse.json(await request.json()); }),
-  http.post('*/admin/levels/curve/publish', async ({ request }) => { await wait(); const curve = await request.json(); return HttpResponse.json(curve); }),
+  http.put('*/admin/levels/curve/draft', async ({ request }) => { await wait(); const body = (await request.json()) as typeof levelsCurve; Object.assign(levelsCurve, body); return HttpResponse.json(levelsCurve); }),
+  http.post('*/admin/levels/curve/publish', async ({ request }) => { await wait(); const body = (await request.json()) as typeof levelsCurve; Object.assign(levelsCurve, body); levelsCurve.publishedAt = new Date().toISOString(); return HttpResponse.json(levelsCurve); }),
   http.post('*/admin/levels/curve/preview', async () => { await wait(); return HttpResponse.json({ affectedPlayers: 12847, levelChanges: [{ fromLevel: 24, toLevel: 23, playersCount: 412 }] }); }),
-  http.get('*/admin/levels/curve/draft', async () => { await wait(); return HttpResponse.json(buildCurve()); }),
+  http.get('*/admin/levels/curve/draft', async () => { await wait(); return HttpResponse.json(levelsCurve); }),
+  http.post('*/admin/levels/badge-upload', async () => { await wait(); return HttpResponse.json({ url: 'https://images.unsplash.com/photo-1529626455594-4ff0802cfb7e?w=64&h=64&fit=crop' }); }),
 );
 
 import { achievements, chests, cycles, missions, tournaments } from '@/mocks/data/tier3';
