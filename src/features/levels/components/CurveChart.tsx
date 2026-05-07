@@ -13,10 +13,11 @@ export function CurveChart({
   onScaleChange: (scale: 'linear' | 'log') => void;
 }) {
   const maxXp = Math.max(...curve.levels.map((level) => level.xpRequired), 1);
+  const denom = Math.max(curve.levels.length - 1, 1);
   const path = useMemo(() => {
     return curve.levels
       .map((level, index) => {
-        const x = 30 + ((level.level - 1) / 99) * 740;
+        const x = 30 + ((level.level - 1) / denom) * 740;
         const value =
           scale === 'log'
             ? Math.log10(level.xpRequired + 1) / Math.log10(maxXp + 1)
@@ -25,7 +26,7 @@ export function CurveChart({
         return `${index === 0 ? 'M' : 'L'}${x},${y}`;
       })
       .join(' ');
-  }, [curve.levels, maxXp, scale]);
+  }, [curve.levels, denom, maxXp, scale]);
 
   return (
     <div className="card">
@@ -58,9 +59,9 @@ export function CurveChart({
             opacity=".45"
           />
           {curve.levels
-            .filter((level) => level.isMilestone)
+            .filter((level) => level.milestoneEnabled)
             .map((level) => {
-              const x = 30 + ((level.level - 1) / 99) * 740;
+              const x = 30 + ((level.level - 1) / denom) * 740;
               const y = 250 - (level.xpRequired / maxXp) * 220;
               return <circle key={level.level} cx={x} cy={y} r="4" fill="var(--accent)" />;
             })}

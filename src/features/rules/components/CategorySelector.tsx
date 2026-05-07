@@ -13,11 +13,11 @@ export function CategorySelector({
 
   return (
     <label>
-      <span className="mb-1.5 block text-[12px] text-text-secondary">categoría de juego</span>
+      <span className="mb-1.5 block text-[12px] text-text-secondary">Categoría</span>
       <select className="field" value={value} onChange={(event) => onChange(event.target.value as GameCategory)}>
         {enabled.map((category) => (
           <option key={category.value} value={category.value}>
-            {category.label} · {category.description}
+            {category.value}
           </option>
         ))}
       </select>

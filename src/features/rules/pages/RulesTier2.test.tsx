@@ -36,7 +36,7 @@ describe('Tier2 reglas', () => {
     expect(screen.getByText('Todavía no tenés reglas')).toBeInTheDocument();
   });
 
-  it('editor permite agregar condición y cambiar monedas', async () => {
+  it('editor muestra USD por XP y permite guardar', async () => {
     wrap(
       <Routes>
         <Route path="/reglas-xp/:id" element={<RuleEditorPage />} />
@@ -44,27 +44,26 @@ describe('Tier2 reglas', () => {
       '/reglas-xp/rule_sports_win',
     );
 
-    expect(await screen.findByText('¿qué evento dispara esta regla?')).toBeInTheDocument();
-    fireEvent.click(screen.getByText('agregar condición'));
-    expect(screen.getAllByTitle('eliminar').length).toBeGreaterThan(0);
+    expect(await screen.findByText('Cuánto se apuesta para 1 XP')).toBeInTheDocument();
     fireEvent.click(screen.getByText('Activar'));
   });
 
-  it('editor permite activar boost, configurar fechas y persistir badge', async () => {
+  it('modal nueva regla activa boost y persiste', async () => {
     const createdRules: XPRule[] = [];
     server.use(
       http.post('*/admin/xp-rules', async ({ request }) => {
         const body = (await request.json()) as Partial<XPRule>;
         const rule = {
           id: 'rule_boost_test',
-          name: body.name ?? 'Regla boost test',
+          name: body.name ?? 'Apuestas · Deportes',
           description: body.description ?? '',
           status: body.status ?? 'active',
-        category: body.trigger?.category ?? 'deportes',
-        trigger: body.trigger ?? { event: 'bet_placed', category: 'deportes' },
+          category: body.category ?? 'deportes',
+          usd_per_xp: body.usd_per_xp ?? 10,
+          trigger: body.trigger ?? { event: 'bet_placed', category: 'deportes' },
           conditionsLogic: body.conditionsLogic ?? 'all',
           conditions: body.conditions ?? [],
-          action: body.action ?? { xpBase: 50 },
+          action: body.action ?? { xpBase: 1, xpPerAmount: { xp: 1, amount: 10, currency: 'USD' } },
           boost: body.boost,
           createdAt: new Date().toISOString(),
           updatedAt: new Date().toISOString(),
@@ -81,7 +80,7 @@ describe('Tier2 reglas', () => {
               name: rule.name,
               description: rule.description,
               category: rule.category,
-              xpDisplay: { value: `+${rule.action.xpBase}`, perUnit: 'único' },
+              xpDisplay: { value: `$${rule.usd_per_xp ?? 10}`, perUnit: 'por 1 XP' },
               status: rule.status,
               updatedAt: rule.updatedAt,
               active: rule.status === 'active',
@@ -95,22 +94,22 @@ describe('Tier2 reglas', () => {
     wrap(
       <Routes>
         <Route path="/reglas-xp" element={<RulesListPage />} />
-        <Route path="/reglas-xp/nueva" element={<RuleEditorPage />} />
       </Routes>,
-      '/reglas-xp/nueva',
+      '/reglas-xp',
     );
 
-    expect(await screen.findByText('multiplicar XP por tiempo limitado')).toBeInTheDocument();
+    fireEvent.click(screen.getByText('Nueva regla'));
+    expect(await screen.findByRole('heading', { name: /Nueva regla XP/i })).toBeInTheDocument();
+    expect(screen.getByText('Boost temporal')).toBeInTheDocument();
     fireEvent.click(screen.getByRole('switch', { name: 'activar boost temporal' }));
     fireEvent.click(screen.getByText('1.5x'));
-    fireEvent.change(screen.getByLabelText('nombre'), { target: { value: 'Regla boost test' } });
     fireEvent.change(screen.getByLabelText('Desde'), { target: { value: '2000-01-01T00:00' } });
     fireEvent.change(screen.getByLabelText('Hasta'), { target: { value: '2099-05-11T23:59' } });
-    fireEvent.click(screen.getByText('Activar'));
+    fireEvent.click(screen.getByText('Guardar regla'));
 
-    await waitFor(() => expect(screen.queryByText('Cargando reglas...')).not.toBeInTheDocument());
-    expect(await screen.findByText('Regla boost test')).toBeInTheDocument();
-    const row = screen.getByText('Regla boost test').closest('tr');
+    await waitFor(() => expect(screen.queryByRole('heading', { name: /Nueva regla XP/i })).not.toBeInTheDocument());
+    expect(await screen.findByText('Apuestas · Deportes')).toBeInTheDocument();
+    const row = screen.getByText('Apuestas · Deportes').closest('tr');
     expect(row).not.toBeNull();
     expect(within(row as HTMLElement).getByText('x1,5 activo')).toBeInTheDocument();
   });

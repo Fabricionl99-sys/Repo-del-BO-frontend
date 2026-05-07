@@ -1,21 +1,154 @@
 import { useState } from 'react';
-import { Download, MoreVertical, Plus } from 'lucide-react';
+import { Download, Pencil, Plus, Trash2 } from 'lucide-react';
 import { useSearchParams } from 'react-router-dom';
 import { Button } from '@/components/ui/Button';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { ErrorState } from '@/components/ui/ErrorState';
 import { IconButton } from '@/components/ui/IconButton';
 import { Loading } from '@/components/ui/Loading';
-import { Modal } from '@/components/ui/Modal';
 import { PageHeader } from '@/components/ui/PageHeader';
 import { StatCard } from '@/components/ui/StatCard';
 import { Switch } from '@/components/ui/Switch';
+import { Table, type Column } from '@/components/ui/Table';
 import { formatNumber } from '@/lib/format';
-import { useCoins, useCoinsGlobalRules, useSaveCoin, useSaveGlobalRules } from '@/features/coinsApi';
-import type { Coin } from '@/types/coins';
-export default function CoinsPage(){const [params]=useSearchParams(); const mock=params.get('mockState'); const q=useCoins(); const coins=mock==='empty'?[]:(q.data??[]); const [editor,setEditor]=useState(false); return <><PageHeader title="Monedas" subtitle="configurá los tipos de monedas virtuales y sus reglas de circulación" actions={<><Button icon={<Download size={14}/>}>exportar</Button><Button variant="primary" icon={<Plus size={14}/>} onClick={()=>setEditor(true)}>nueva moneda</Button></>}/><div className="mb-7 grid grid-cols-4 gap-4 max-md:grid-cols-2"><StatCard label="monedas activas" value={coins.filter(c=>c.active).length} hint="+ 1 borrador"/><StatCard label="total emitido (7d)" value="+4.7M" trend={{value:'+14.2% vs semana previa',direction:'up'}}/><StatCard label="total gastado (7d)" value="-2.3M" trend={{value:'+8.9% engagement en tienda',direction:'up'}}/><StatCard label="balance neto del sistema" value="+2.4M" hint="circulación saludable"/></div>{mock==='empty'&&coins.length===0&&<EmptyState title="No hay monedas configuradas" description="Creá tu moneda principal para conectar reglas, tienda y recompensas." action={<Button variant="primary" onClick={()=>setEditor(true)}>Crear moneda</Button>}/>}{(mock==='loading'||q.isLoading)&&<Loading label="Cargando monedas..."/>}{(mock==='error'||q.isError)&&<ErrorState onRetry={()=>q.refetch()}/>} {mock!=='empty'&&mock!=='loading'&&mock!=='error'&&!q.isLoading&&!q.isError&&coins.length===0&&<EmptyState title="No hay monedas configuradas" description="Creá tu moneda principal para conectar reglas, tienda y recompensas." action={<Button variant="primary" onClick={()=>setEditor(true)}>Crear moneda</Button>}/>} {coins.length>0&&<><p className="label-section mb-4 text-accent">tipos de monedas configuradas</p><div className="mb-7 grid grid-cols-3 gap-4 max-[1200px]:grid-cols-2 max-md:grid-cols-1">{coins.map(c=><CoinCard key={c.id} coin={c} onEdit={()=>setEditor(true)}/>)}</div><GlobalRulesCard/></>}<CoinEditor open={editor} onClose={()=>setEditor(false)}/></>}
-function CoinCard({coin,onEdit}:{coin:Coin;onEdit:()=>void}){return <div className="card overflow-hidden"><div className="border-b border-border-subtle p-5"><div className="flex items-start gap-3"><div className="text-[34px]">{coin.emoji}</div><div><div className="text-[15px] font-semibold">{coin.name} <span className="text-[11px] text-text-tertiary">{coin.symbol}</span></div><span className={`mt-1 inline-flex rounded-full px-2 py-0.5 text-[10px] ${coin.isDefault?'bg-accent-subtle text-accent':'bg-bg-tertiary text-text-secondary'}`}>{coin.isDefault?'principal':coin.type}</span><div className="mt-1 text-[11px] text-text-tertiary">{coin.ratioToUSD?`${formatNumber(1/coin.ratioToUSD)} ${coin.symbol} ≈ $1.00 USD`:'no convertible a USD'}</div></div></div></div><div className="space-y-4 p-5"><div className="grid grid-cols-2 gap-3"><Mini label="en circulación" value={formatNumber(coin.totalInCirculation,{compact:true})}/><Mini label="emitidas 7d" value={`+${formatNumber(coin.emittedThisWeek,{compact:true})}`}/></div><div className="rounded-lg bg-bg-tertiary p-3 text-[12px]"><Row label="balance máximo" value="100,000"/><Row label="expiración" value={coin.expiry==='never'?'sin expiración':`${coin.expiryDays} días`}/><Row label="decimales" value="0 (entero)"/></div><div className="flex gap-2"><Button size="sm" variant="primary" onClick={onEdit}>editar</Button><Button size="sm">historial</Button><IconButton icon={MoreVertical} title="más" size="sm"/></div></div></div>}
-function Mini({label,value}:{label:string;value:string}){return <div><div className="text-[10px] text-text-tertiary">{label}</div><div className="text-mono text-[17px] font-semibold">{value}</div></div>}
-function Row({label,value}:{label:string;value:string}){return <div className="flex justify-between border-b border-border-subtle py-1 last:border-0"><span className="text-text-tertiary">{label}</span><span>{value}</span></div>}
-function GlobalRulesCard(){const q=useCoinsGlobalRules(); const save=useSaveGlobalRules(); const [allow,setAllow]=useState(false); if(q.isLoading)return <Loading label="Cargando reglas globales..."/>; if(q.isError)return <ErrorState onRetry={()=>q.refetch()}/>; const rules=q.data!; return <div className="card p-5"><h2 className="section-title mb-4">Reglas globales de circulación</h2><div className="grid gap-4"><label><span className="mb-1.5 block text-[12px] text-text-secondary">tope de monedas por jugador</span><input className="field" defaultValue={rules.maxBalancePerPlayer??''}/></label><label><span className="mb-1.5 block text-[12px] text-text-secondary">tope diario emisión por jugador</span><input className="field" defaultValue={rules.maxDailyEmissionPerPlayer??''}/></label><div className="flex items-center gap-3"><Switch checked={allow||rules.allowP2P} onChange={setAllow}/><span className="text-[13px]">permitir transferencias P2P</span>{(allow||rules.allowP2P)&&<input className="field w-28" placeholder="fee %"/>}</div><Button className="self-end" variant="primary" loading={save.isPending} onClick={()=>save.mutate({...rules,allowP2P:allow})}>guardar cambios</Button></div></div>}
-function CoinEditor({open,onClose}:{open:boolean;onClose:()=>void}){const save=useSaveCoin(); const [name,setName]=useState('Estrellas VIP'); const [symbol,setSymbol]=useState('VIP'); const [type,setType]=useState<'earnable'|'premium'>('earnable'); const submit=async()=>{await save.mutateAsync({name,symbol,type,emoji:'⭐',active:true,totalInCirculation:0,emittedThisWeek:0,redeemedThisWeek:0,expiry:'never'}); onClose()}; return <Modal open={open} onClose={onClose} title="Nueva moneda" description="definí nombre, símbolo y reglas básicas"><div className="grid gap-4"><input className="field" placeholder="nombre" value={name} onChange={e=>setName(e.target.value)}/><input className="field" placeholder="símbolo" value={symbol} onChange={e=>setSymbol(e.target.value)}/><select className="field" value={type} onChange={e=>setType(e.target.value as 'earnable'|'premium')}><option value="earnable">earnable</option><option value="premium">premium</option></select><Button variant="primary" loading={save.isPending} onClick={submit}>guardar moneda</Button></div></Modal>}
+import { useCoins, useDeleteCoin, useSaveCoin } from '@/features/coinsApi';
+import type { Coin, CoinDeliveryMode } from '@/types/coins';
+import { CurrencyEditorModal } from '../components/CurrencyEditorModal';
+
+const modeLabel = (m: CoinDeliveryMode) => (m === 'auto_xp' ? 'Por XP' : 'Manual');
+
+export default function CoinsPage() {
+  const [params] = useSearchParams();
+  const mock = params.get('mockState');
+  const q = useCoins();
+  const save = useSaveCoin();
+  const del = useDeleteCoin();
+  const coins = mock === 'empty' ? [] : (q.data ?? []);
+  const [editor, setEditor] = useState(false);
+  const [editing, setEditing] = useState<Coin | null>(null);
+
+  const openNew = () => {
+    setEditing(null);
+    setEditor(true);
+  };
+  const openEdit = (coin: Coin) => {
+    setEditing(coin);
+    setEditor(true);
+  };
+
+  const columns: Column<Coin>[] = [
+    {
+      key: 'img',
+      header: '',
+      width: '56px',
+      render: (c) =>
+        c.imageUrl ? (
+          <img src={c.imageUrl} alt="" className="h-9 w-9 rounded-md border border-border-subtle object-cover" />
+        ) : (
+          <span className="text-xl">{c.emoji ?? '🪙'}</span>
+        ),
+    },
+    { key: 'name', header: 'Moneda', render: (c) => <span className="font-medium">{c.name}</span> },
+    { key: 'sym', header: 'Símbolo', render: (c) => <span className="text-mono text-text-secondary">{c.symbol}</span> },
+    { key: 'mode', header: 'Modo', render: (c) => <span>{modeLabel(c.deliveryMode)}</span> },
+    {
+      key: 'on',
+      header: 'Activa',
+      render: (c) => (
+        <Switch
+          checked={c.active}
+          onChange={(active) => save.mutate({ id: c.id, active })}
+          aria-label={`activar ${c.name}`}
+        />
+      ),
+    },
+    {
+      key: 'circ',
+      header: 'En circulación',
+      render: (c) => <span className="text-mono text-[13px]">{formatNumber(c.totalInCirculation, { compact: true })}</span>,
+    },
+    {
+      key: 'actions',
+      header: '',
+      align: 'right',
+      render: (c) => (
+        <div className="flex justify-end gap-1">
+          <IconButton icon={Pencil} title="editar" size="sm" onClick={() => openEdit(c)} />
+          {!c.isDefault ? (
+            <IconButton
+              icon={Trash2}
+              title="eliminar"
+              size="sm"
+              onClick={() => {
+                if (confirm(`¿Eliminar moneda ${c.name}?`)) del.mutate(c.id);
+              }}
+            />
+          ) : null}
+        </div>
+      ),
+    },
+  ];
+
+  return (
+    <>
+      <PageHeader
+        title="Monedas"
+        subtitle="Configurá los tipos de monedas virtuales, modo de entrega y reglas anti-abuso."
+        actions={
+          <>
+            <Button icon={<Download size={14} />}>exportar</Button>
+            <Button variant="primary" icon={<Plus size={14} />} onClick={openNew}>
+              nueva moneda
+            </Button>
+          </>
+        }
+      />
+
+      <div className="mb-7 grid grid-cols-4 gap-4 max-md:grid-cols-2">
+        <StatCard label="monedas activas" value={coins.filter((c) => c.active).length} hint="config por moneda" />
+        <StatCard label="modo automático" value={coins.filter((c) => c.deliveryMode === 'auto_xp').length} />
+        <StatCard label="modo manual" value={coins.filter((c) => c.deliveryMode === 'manual').length} />
+        <StatCard label="P2P habilitado" value={coins.filter((c) => c.p2p.enabled).length} />
+      </div>
+
+      {mock === 'empty' && coins.length === 0 && (
+        <EmptyState
+          title="No hay monedas configuradas"
+          description="Creá tu moneda principal para conectar reglas, tienda y recompensas."
+          action={
+            <Button variant="primary" onClick={openNew}>
+              Crear moneda
+            </Button>
+          }
+        />
+      )}
+      {(mock === 'loading' || q.isLoading) && <Loading label="Cargando monedas..." />}
+      {(mock === 'error' || q.isError) && <ErrorState onRetry={() => q.refetch()} />}
+      {mock !== 'empty' && mock !== 'loading' && mock !== 'error' && !q.isLoading && !q.isError && coins.length === 0 && (
+        <EmptyState
+          title="No hay monedas configuradas"
+          description="Creá tu moneda principal para conectar reglas, tienda y recompensas."
+          action={
+            <Button variant="primary" onClick={openNew}>
+              Crear moneda
+            </Button>
+          }
+        />
+      )}
+      {coins.length > 0 && (
+        <div className="card p-5">
+          <Table columns={columns} rows={coins} rowKey={(c) => c.id} />
+        </div>
+      )}
+
+      <CurrencyEditorModal
+        open={editor}
+        onClose={() => {
+          setEditor(false);
+          setEditing(null);
+        }}
+        initial={editing}
+      />
+    </>
+  );
+}
