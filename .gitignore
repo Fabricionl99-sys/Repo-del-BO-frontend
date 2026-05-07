@@ -6,3 +6,10 @@ coverage
 .DS_Store
 
 *.tsbuildinfo
+# artefactos emitidos por tsc junto a configs (no versionar)
+/vite.config.js
+/vite.config.d.ts
+/vitest.config.js
+/vitest.config.d.ts
+/tailwind.config.js
+/tailwind.config.d.ts
