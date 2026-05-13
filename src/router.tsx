@@ -15,8 +15,6 @@ const LevelsCurvePage = lazy(() => import('@/features/levels/pages/LevelsCurvePa
 const CoinsPage = lazy(() => import('@/features/coins/pages/CoinsPage'));
 const MissionsPage = lazy(() => import('@/features/missions/pages/MissionsPage'));
 const MissionEditorPage = lazy(() => import('@/features/missions/pages/MissionEditorPage'));
-const AchievementsPage = lazy(() => import('@/features/achievements/pages/AchievementsPage'));
-const AchievementEditorPage = lazy(() => import('@/features/achievements/pages/AchievementEditorPage'));
 const ChestsPage = lazy(() => import('@/features/chests/pages/ChestsPage'));
 const ChestEditorPage = lazy(() => import('@/features/chests/pages/ChestEditorPage'));
 const DailyRewardsPage = lazy(() => import('@/features/dailyRewards/pages/DailyRewardsPage'));
@@ -34,6 +32,7 @@ const RankingsPage = lazy(() => import('@/features/rankings/pages/RankingsPage')
 const PredictionsPage = lazy(() => import('@/features/predictions/pages/PredictionsPage'));
 const FeedPlaceholderPage = lazy(() => import('@/features/feed/pages/FeedPlaceholderPage'));
 const ComingSoonPage = lazy(() => import('@/pages/ComingSoonPage'));
+const NotFoundPage = lazy(() => import('@/pages/NotFoundPage'));
 
 const wrap = (element: React.ReactNode) => <Suspense fallback={<Loading />}>{element}</Suspense>;
 
@@ -76,9 +75,6 @@ export const router = createBrowserRouter([
       { path: 'misiones', element: wrap(<MissionsPage />) },
       { path: 'misiones/nueva', element: wrap(<MissionEditorPage />) },
       { path: 'misiones/:id', element: wrap(<MissionEditorPage />) },
-      { path: 'logros', element: wrap(<AchievementsPage />) },
-      { path: 'logros/nuevo', element: wrap(<AchievementEditorPage />) },
-      { path: 'logros/:id', element: wrap(<AchievementEditorPage />) },
       { path: 'cofres', element: wrap(<ChestsPage />) },
       { path: 'cofres/nuevo', element: wrap(<ChestEditorPage />) },
       { path: 'cofres/:id', element: wrap(<ChestEditorPage />) },
@@ -101,6 +97,7 @@ export const router = createBrowserRouter([
       { path: 'ranking', element: wrap(<RankingsPage />) },
       { path: 'predicciones', element: wrap(<PredictionsPage />) },
       { path: 'feed', element: wrap(<FeedPlaceholderPage />) },
+      { path: 'logros/*', element: wrap(<NotFoundPage />) },
       {
         path: 'branding',
         element: <ProtectedRoute roles={['admin']}>{wrap(<BrandingPage />)}</ProtectedRoute>,
