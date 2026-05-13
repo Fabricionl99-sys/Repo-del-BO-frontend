@@ -94,7 +94,7 @@ handlers.push(
   http.post('*/admin/levels/badge-upload', async () => { await wait(); return HttpResponse.json({ url: 'https://images.unsplash.com/photo-1529626455594-4ff0802cfb7e?w=64&h=64&fit=crop' }); }),
 );
 
-import { achievements, chests, cycles, missions, tournaments } from '@/mocks/data/tier3';
+import { chests, cycles, missions, tournaments } from '@/mocks/data/tier3';
 
 function crudHandlers<T extends { id: string }>(key: string, path: string, data: T[]) {
   handlers.push(
@@ -106,7 +106,6 @@ function crudHandlers<T extends { id: string }>(key: string, path: string, data:
   );
 }
 crudHandlers('mission', 'missions', missions);
-crudHandlers('achievement', 'achievements', achievements);
 crudHandlers('chest', 'chests', chests);
 crudHandlers('cycle', 'daily-rewards/cycles', cycles);
 crudHandlers('tournament', 'tournaments', tournaments);

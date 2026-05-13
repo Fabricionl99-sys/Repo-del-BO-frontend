@@ -1,7 +1,6 @@
 import type { RuleCondition, Reward, Targeting, Availability, Tier } from './shared';
 export type MissionType = 'daily' | 'weekly' | 'monthly' | 'one_time' | 'event';
 export interface Mission { id:string; name:string; description:string; iconKey:string; category:string; type:MissionType; objective:{type:'counter'|'streak'|'first_time'|'reach_level'|'custom';event?:string;targetValue:number;filters:RuleCondition[]}; rewards:Reward[]; availability:Availability; targeting:Targeting; status:'active'|'paused'|'draft'|'expired'; progress:{started:number;completed:number}; updatedAt:string }
-export interface Achievement { id:string; name:string; description:string; tier:Tier; iconKey:string; unlockCondition:{type:'event_based'|'level_reached'|'cumulative'|'custom';event?:string;levelTarget?:number;cumulativeMetric?:string;cumulativeTarget?:number;filters:RuleCondition[]}; reward:Reward; visibility:'always_visible'|'secret_until_unlocked'; status:'active'|'draft'|'archived'; unlockRatePercent:number }
 export type Rarity = 'common'|'rare'|'epic'|'legendary';
 export type RewardType = 'coins'|'xp'|'chest'|'item'|'bonus';
 export interface ChestReward { id:string; probability:number; type:RewardType; amount?:number; label:string; coinId?:string }
