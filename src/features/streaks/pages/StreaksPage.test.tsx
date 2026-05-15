@@ -24,7 +24,7 @@ describe('StreaksPage', () => {
 
   it('empty state', () => {
     wrap('/rachas?mockState=empty');
-    expect(screen.getByText('Sin programas')).toBeInTheDocument();
+    expect(screen.getByText('Aún no tenés programas de racha')).toBeInTheDocument();
   });
 
   it('tab jugadores', async () => {

@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { Plus } from 'lucide-react';
+import { BookOpen, Flame, Plus } from 'lucide-react';
 
 import {
   useActivateStreakProgram,
@@ -16,6 +16,7 @@ import { EmptyState } from '@/components/ui/EmptyState';
 import { ErrorState } from '@/components/ui/ErrorState';
 import { Loading } from '@/components/ui/Loading';
 import { Modal } from '@/components/ui/Modal';
+import { StreaksDocModal } from '@/features/streaks/components/StreaksDocModal';
 import { PageHeader } from '@/components/ui/PageHeader';
 import { Table, type Column } from '@/components/ui/Table';
 
@@ -27,6 +28,7 @@ export default function StreaksPage() {
   const nav = useNavigate();
   const [tab, setTab] = useState<Tab>('programs');
   const [playerDetail, setPlayerDetail] = useState<string | null>(null);
+  const [docOpen, setDocOpen] = useState(false);
 
   const programsQ = useStreakPrograms();
   const playersQ = usePlayerStreaks(0, 50);
@@ -139,12 +141,19 @@ export default function StreaksPage() {
       </div>
       {mock === 'empty' && programs.length === 0 && tab === 'programs' ? (
         <EmptyState
-          title="Sin programas"
-          description="Creá un programa de racha alineado al backend."
+          icon={Flame}
+          title="Aún no tenés programas de racha"
+          description="Las rachas premian a los jugadores por mantener actividad consecutiva. Creá tu primer programa."
           action={
-            <Button variant="primary" onClick={() => nav('/rachas/nueva')}>
-              Crear programa
-            </Button>
+            <div className="flex flex-col items-center gap-3 sm:flex-row">
+              <Button variant="primary" onClick={() => nav('/rachas/nueva')}>
+                Crear primer programa
+              </Button>
+              <button type="button" className="inline-flex items-center gap-1.5 text-[13px] text-accent hover:underline" onClick={() => setDocOpen(true)}>
+                <BookOpen size={14} />
+                Ver documentación
+              </button>
+            </div>
           }
         />
       ) : null}
@@ -155,12 +164,19 @@ export default function StreaksPage() {
       {tab === 'programs' && programsReady ? (
         programs.length === 0 ? (
           <EmptyState
-            title="Sin programas"
-            description="Creá un programa de racha alineado al backend."
+            icon={Flame}
+            title="Aún no tenés programas de racha"
+            description="Las rachas premian a los jugadores por mantener actividad consecutiva. Creá tu primer programa."
             action={
-              <Button variant="primary" onClick={() => nav('/rachas/nueva')}>
-                Crear programa
-              </Button>
+              <div className="flex flex-col items-center gap-3 sm:flex-row">
+                <Button variant="primary" onClick={() => nav('/rachas/nueva')}>
+                  Crear primer programa
+                </Button>
+                <button type="button" className="inline-flex items-center gap-1.5 text-[13px] text-accent hover:underline" onClick={() => setDocOpen(true)}>
+                  <BookOpen size={14} />
+                  Ver documentación
+                </button>
+              </div>
             }
           />
         ) : (
@@ -173,6 +189,7 @@ export default function StreaksPage() {
         <Table columns={playerColumns} rows={playersQ.data?.items ?? []} rowKey={(r) => `${r.player_id}-${r.program_id}`} />
       ) : null}
       <PlayerHistoryModal playerId={playerDetail} onClose={() => setPlayerDetail(null)} />
+      <StreaksDocModal open={docOpen} onClose={() => setDocOpen(false)} />
     </>
   );
 }

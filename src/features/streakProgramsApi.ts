@@ -19,6 +19,21 @@ export function useStreakProgram(id: string | null) {
   });
 }
 
+export function useStreakProgramNameAvailable(debouncedName: string, excludeId?: string | null) {
+  const trimmed = debouncedName.trim();
+  return useQuery({
+    queryKey: ['streak-programs', 'name-available', trimmed, excludeId ?? ''],
+    enabled: trimmed.length >= 3,
+    queryFn: () =>
+      apiClient
+        .get<{ available: boolean }>('/admin/streak-programs/name-available', {
+          params: { name: trimmed, exclude_id: excludeId || undefined },
+        })
+        .then((r) => r.data),
+    staleTime: 20_000,
+  });
+}
+
 export function useSaveStreakProgram() {
   const qc = useQueryClient();
   return useMutation({

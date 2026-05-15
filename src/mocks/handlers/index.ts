@@ -121,6 +121,15 @@ handlers.push(
   http.post('*/admin/streak-programs/:id/activate', async ({ params }) => { await wait(); const item = streakPrograms.find((p) => p.id === params.id) ?? streakPrograms[0]; item.is_active = true; return HttpResponse.json(item); }),
   http.post('*/admin/streak-programs/:id/deactivate', async ({ params }) => { await wait(); const item = streakPrograms.find((p) => p.id === params.id) ?? streakPrograms[0]; item.is_active = false; return HttpResponse.json(item); }),
   http.post('*/admin/streak-programs/:id/migrate-active', async ({ params }) => { await wait(); const item = streakPrograms.find((p) => p.id === params.id) ?? streakPrograms[0]; return HttpResponse.json({ program_id: item.id, migrated_players: 1284, ok: true }); }),
+  http.get('*/admin/streak-programs/name-available', async ({ request }) => {
+    await wait();
+    const url = new URL(request.url);
+    const name = (url.searchParams.get('name') ?? '').trim().toLowerCase();
+    const excludeId = url.searchParams.get('exclude_id') ?? '';
+    if (name.length < 3) return HttpResponse.json({ available: false });
+    const taken = streakPrograms.some((p) => p.name.trim().toLowerCase() === name && p.id !== excludeId);
+    return HttpResponse.json({ available: !taken });
+  }),
   http.get('*/admin/player-streaks', async ({ request }) => { await wait(); const url = new URL(request.url); const offset = Number(url.searchParams.get('offset') ?? 0); const limit = Math.min(200, Number(url.searchParams.get('limit') ?? 50)); const slice = playerStreakSummaries.slice(offset, offset + limit); return HttpResponse.json({ items: slice, total: playerStreakSummaries.length, limit, offset }); }),
   http.get('*/admin/player-streaks/:player_id', async ({ params }) => { await wait(); const detail = playerStreakDetails[String(params.player_id)] ?? { player_id: String(params.player_id), program_id: streakPrograms[0].id, program_name: streakPrograms[0].name, days: [] }; return HttpResponse.json(detail); }),
   http.get('*/admin/reward-endpoints', async () => { await wait(); return HttpResponse.json(rewardEndpoints.map((e) => { const o = { ...e }; delete o.hmac_secret; return o; })); }),

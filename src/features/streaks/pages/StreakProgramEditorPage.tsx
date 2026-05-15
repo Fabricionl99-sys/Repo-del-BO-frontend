@@ -1,228 +1,126 @@
-import { useEffect } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { FormProvider, useFieldArray, useForm } from 'react-hook-form';
+import { FormProvider, useFieldArray, useForm, useFormContext, useWatch } from 'react-hook-form';
 
+import { StreakEditorPlayerPreview } from '@/features/streaks/components/StreakEditorPlayerPreview';
+import {
+  DailyRewardFields,
+  FieldErr,
+  MilestoneCard,
+  RESET_OPTIONS,
+} from '@/features/streaks/streakEditorFields';
+import {
+  ACTIVITY_OPTIONS,
+  type StreakEditorFormValues,
+  TIMEZONE_OPTIONS,
+  applyValidationErrors,
+  buildProgramPayload,
+  defaultStreakEditorForm,
+  emptyMilestoneRow,
+  programToEditorForm,
+  timezoneFriendlyLabel,
+  validateStreakEditorFormWithListLimits,
+} from '@/features/streaks/streakEditorForm';
 import { ConfiguratorScaffold, ConfigSection } from '@/components/configurator/ConfiguratorScaffold';
 import { Button } from '@/components/ui/Button';
 import { ErrorState } from '@/components/ui/ErrorState';
 import { Loading } from '@/components/ui/Loading';
 import { PageHeader } from '@/components/ui/PageHeader';
 import { StickyBottomBar } from '@/features/rules/components/RuleBlocks';
-import { useActivateStreakProgram, useSaveStreakProgram, useStreakProgram } from '@/features/streakProgramsApi';
-import { toast } from '@/stores/toastStore';
-import type { StreakActivityType, StreakProgram, StreakResetPolicy } from '@/types/streakPrograms';
+import {
+  useActivateStreakProgram,
+  useSaveStreakProgram,
+  useStreakProgram,
+  useStreakProgramNameAvailable,
+} from '@/features/streakProgramsApi';
+import { useCoins } from '@/features/coinsApi';
+import { useDebounce } from '@/hooks/useDebounce';
+import { useOperatorStore } from '@/stores/operatorStore';
 
-const ACTIVITY_OPTIONS: { value: StreakActivityType; label: string }[] = [
-  { value: 'login', label: 'Login diario' },
-  { value: 'deposit_individual', label: 'Depósito individual' },
-  { value: 'deposit_cumulative', label: 'Depósitos acumulados' },
-  { value: 'bet_individual', label: 'Apuesta individual' },
-  { value: 'bet_cumulative', label: 'Apuestas acumuladas' },
-];
-
-const RESET_OPTIONS: { value: StreakResetPolicy; label: string }[] = [
-  { value: 'strict', label: 'Estricto (sin gracia)' },
-  { value: 'grace', label: 'Gracia (horas extra)' },
-  { value: 'soft_reset', label: 'Soft reset (JSON avanzado)' },
-];
-
-const MILESTONE_REWARD_TYPES = ['coins', 'xp', 'chest', 'freespin', 'freebet', 'cashback', 'bonus_deposit'] as const;
-
-const TIMEZONE_HINTS = [
-  'America/Argentina/Buenos_Aires',
-  'America/Mexico_City',
-  'America/Santiago',
-  'Europe/Madrid',
-  'UTC',
-];
-
-type DailyKind = 'xp' | 'coins' | 'json';
-
-type StreakEditorForm = {
-  name: string;
-  activity_type: StreakActivityType;
-  timezone: string;
-  reset_policy: StreakResetPolicy;
-  grace_hours: number;
-  soft_reset_config_json: string;
-  daily_kind: DailyKind;
-  daily_amount: number;
-  daily_coin_id: string;
-  daily_json: string;
-  milestones: { day_number: number; reward_type: string; reward_config_json: string }[];
-};
-
-const defaultForm = (): StreakEditorForm => ({
-  name: '',
-  activity_type: 'login',
-  timezone: 'America/Argentina/Buenos_Aires',
-  reset_policy: 'strict',
-  grace_hours: 36,
-  soft_reset_config_json: '{}',
-  daily_kind: 'xp',
-  daily_amount: 25,
-  daily_coin_id: 'coin_oro',
-  daily_json: '{"type":"xp","amount":25}',
-  milestones: [{ day_number: 7, reward_type: 'coins', reward_config_json: '{"amount":500,"coin_id":"coin_oro"}' }],
-});
-
-function programToForm(p: StreakProgram): StreakEditorForm {
-  const dr = p.daily_micro_reward;
-  let daily_kind: DailyKind = 'json';
-  let daily_amount = 0;
-  let daily_coin_id = '';
-  const daily_json = JSON.stringify(dr ?? {}, null, 2);
-  if (dr && typeof dr === 'object' && !Array.isArray(dr)) {
-    const t = dr.type;
-    if (t === 'xp') {
-      daily_kind = 'xp';
-      daily_amount = Number(dr.amount ?? 0);
-    } else if (t === 'coins') {
-      daily_kind = 'coins';
-      daily_amount = Number(dr.amount ?? 0);
-      daily_coin_id = String(dr.coin_id ?? '');
-    }
-  }
-  let grace_hours = 36;
-  let soft_reset_config_json = '{}';
-  if (p.reset_policy === 'grace') {
-    grace_hours = Number(p.reset_policy_config?.grace_hours ?? 36);
-  } else if (p.reset_policy === 'soft_reset') {
-    soft_reset_config_json = JSON.stringify(p.reset_policy_config ?? {}, null, 2);
-  }
-  return {
-    name: p.name,
-    activity_type: p.activity_type,
-    timezone: p.timezone,
-    reset_policy: p.reset_policy,
-    grace_hours,
-    soft_reset_config_json,
-    daily_kind,
-    daily_amount,
-    daily_coin_id,
-    daily_json,
-    milestones: (p.milestones ?? []).map((m) => ({
-      day_number: m.day_number,
-      reward_type: m.reward_type,
-      reward_config_json: JSON.stringify(m.reward_config ?? {}, null, 2),
-    })),
-  };
-}
-
-function buildPayload(f: StreakEditorForm, id?: string): Partial<StreakProgram> & { id?: string } {
-  let reset_policy_config: Record<string, unknown> = {};
-  if (f.reset_policy === 'grace') {
-    reset_policy_config = { grace_hours: Math.max(1, Math.round(f.grace_hours)) };
-  } else if (f.reset_policy === 'soft_reset') {
-    try {
-      reset_policy_config = JSON.parse(f.soft_reset_config_json.trim() || '{}') as Record<string, unknown>;
-      if (typeof reset_policy_config !== 'object' || reset_policy_config === null || Array.isArray(reset_policy_config)) {
-        throw new Error('Debe ser un objeto JSON');
-      }
-    } catch {
-      throw new Error('Config de soft reset: JSON inválido');
-    }
-  }
-
-  let daily_micro_reward: Record<string, unknown>;
-  if (f.daily_kind === 'xp') {
-    daily_micro_reward = { type: 'xp', amount: f.daily_amount };
-  } else if (f.daily_kind === 'coins') {
-    daily_micro_reward = { type: 'coins', amount: f.daily_amount, coin_id: f.daily_coin_id.trim() || 'coin_oro' };
-  } else {
-    try {
-      daily_micro_reward = JSON.parse(f.daily_json.trim() || '{}') as Record<string, unknown>;
-      if (typeof daily_micro_reward !== 'object' || daily_micro_reward === null || Array.isArray(daily_micro_reward)) {
-        throw new Error('Debe ser un objeto JSON');
-      }
-    } catch {
-      throw new Error('Micro recompensa diaria: JSON inválido');
-    }
-  }
-
-  const milestones = f.milestones.map((m) => {
-    let reward_config: Record<string, unknown>;
-    try {
-      reward_config = JSON.parse(m.reward_config_json.trim() || '{}') as Record<string, unknown>;
-      if (typeof reward_config !== 'object' || reward_config === null || Array.isArray(reward_config)) {
-        throw new Error('Debe ser un objeto');
-      }
-    } catch {
-      throw new Error(`Milestone día ${m.day_number}: JSON de reward_config inválido`);
-    }
-    return {
-      day_number: Math.max(1, Math.round(m.day_number)),
-      reward_type: m.reward_type,
-      reward_config,
-    };
-  });
-
-  milestones.sort((a, b) => a.day_number - b.day_number);
-
-  const base: Partial<StreakProgram> & { id?: string } = {
-    name: f.name.trim(),
-    activity_type: f.activity_type,
-    timezone: f.timezone.trim(),
-    reset_policy: f.reset_policy,
-    reset_policy_config,
-    daily_micro_reward,
-    milestones,
-  };
-  if (id) base.id = id;
-  return base;
+function EditorPreviewBridge({ defTz, defCoin }: { defTz: string; defCoin: string }) {
+  const {
+    control,
+    formState: { errors },
+  } = useFormContext<StreakEditorFormValues>();
+  const v = useWatch({ control, defaultValue: defaultStreakEditorForm(defTz, defCoin) });
+  return <StreakEditorPlayerPreview values={v as StreakEditorFormValues} formErrors={errors} />;
 }
 
 export default function StreakProgramEditorPage() {
   const { id } = useParams();
   const isNew = !id;
   const nav = useNavigate();
+  const op = useOperatorStore((s) => s.current);
+  const coinsQ = useCoins();
+  const defaultCoin = coinsQ.data?.find((c) => c.active)?.id ?? 'coin_oro';
+  const defaultTz = op?.timezone ?? 'America/Argentina/Buenos_Aires';
+
   const q = useStreakProgram(isNew ? null : id!);
   const save = useSaveStreakProgram();
   const activate = useActivateStreakProgram();
 
-  const form = useForm<StreakEditorForm>({ defaultValues: defaultForm() });
+  const form = useForm<StreakEditorFormValues>({ defaultValues: defaultStreakEditorForm(defaultTz, defaultCoin) });
   const { fields, append, remove } = useFieldArray({ control: form.control, name: 'milestones' });
+  const [milestoneListError, setMilestoneListError] = useState('');
+
+  const nameWatch = form.watch('name');
+  const debouncedName = useDebounce(nameWatch, 400);
+  const nameQ = useStreakProgramNameAvailable(debouncedName, isNew ? null : id);
 
   useEffect(() => {
     if (!isNew && q.data) {
-      form.reset(programToForm(q.data));
+      form.reset(programToEditorForm(q.data, defaultCoin));
     }
-  }, [isNew, q.data, form]);
+  }, [isNew, q.data, form, defaultCoin]);
 
   const resetPolicy = form.watch('reset_policy');
-  const dailyKind = form.watch('daily_kind');
+  const mstones = form.watch('milestones');
+  const milestoneOrder = useMemo(() => {
+    const rows = mstones ?? [];
+    return rows.map((_, i) => i).sort((a, b) => (rows[a]?.day_number ?? 0) - (rows[b]?.day_number ?? 0));
+  }, [mstones]);
 
   if (!isNew && q.isLoading) return <Loading label="Cargando programa..." />;
   if (!isNew && q.isError) return <ErrorState onRetry={() => q.refetch()} />;
 
+  const resolveNameAvailable = (): boolean | null => {
+    const cur = nameWatch.trim().toLowerCase();
+    if (cur.length < 3) return null;
+    const orig = !isNew && q.data ? q.data.name.trim().toLowerCase() : '';
+    if (!isNew && cur === orig) return true;
+    if (nameQ.isFetched) return nameQ.data?.available ?? null;
+    return null;
+  };
+
   const persist = async (thenActivate: boolean) => {
-    if (!form.getValues('name').trim()) {
-      toast.error('El nombre es obligatorio');
+    const vals = form.getValues();
+    setMilestoneListError('');
+    if (debouncedName.trim().length >= 3 && nameQ.isFetching) {
+      form.setError('name', { type: 'manual', message: 'Esperá la verificación del nombre…' });
       return;
     }
-    let payload: Partial<StreakProgram> & { id?: string };
-    try {
-      payload = buildPayload(form.getValues(), isNew ? undefined : id);
-    } catch (e) {
-      toast.error(e instanceof Error ? e.message : 'Revisá los datos del formulario');
-      return;
-    }
+    const nameAvailable = resolveNameAvailable();
+    const { fieldErrors, milestonesListError } = validateStreakEditorFormWithListLimits(vals, nameAvailable);
+    applyValidationErrors(form, fieldErrors);
+    if (milestonesListError) setMilestoneListError(milestonesListError);
+    if (Object.keys(fieldErrors).length > 0 || milestonesListError) return;
+    const payload = buildProgramPayload(vals, isNew ? undefined : id);
     try {
       const saved = await save.mutateAsync(payload);
-      if (thenActivate) {
-        await activate.mutateAsync(saved.id);
-      }
+      if (thenActivate) await activate.mutateAsync(saved.id);
       nav('/rachas');
     } catch {
-      /* toast desde mutation si aplica */
+      /* toast desde API */
     }
   };
+
+  const canAddMilestone = fields.length < 20;
 
   return (
     <FormProvider {...form}>
       <PageHeader
         title={isNew ? 'Crear programa de racha' : q.data?.name ?? 'Editar programa'}
-        subtitle="Actividad, timezone, política de reset, micro recompensa diaria e hitos (milestones). Los JSON deben ser objetos válidos."
+        subtitle="Configuración guiada: reset, micro recompensa diaria e hitos sin JSON. El backend sigue siendo la fuente de verdad."
         actions={
           <Button variant="secondary" onClick={() => nav('/rachas')}>
             Volver al listado
@@ -230,8 +128,12 @@ export default function StreakProgramEditorPage() {
         }
       />
       <ConfiguratorScaffold>
-        <ConfigSection icon="📛" title="Nombre">
-          <input className="field" placeholder="Ej. Racha de login 7 días" {...form.register('name', { required: true })} />
+        <ConfigSection icon="📛" title="Nombre del programa">
+          <input className="field" placeholder="Ej. Racha de login 7 días" {...form.register('name')} />
+          <FieldErr path="name" />
+          {debouncedName.trim().length >= 3 && nameQ.isFetching ? (
+            <p className="mt-1 text-[12px] text-text-tertiary">Comprobando que el nombre esté disponible…</p>
+          ) : null}
         </ConfigSection>
 
         <ConfigSection icon="🎯" title="Tipo de actividad">
@@ -242,16 +144,18 @@ export default function StreakProgramEditorPage() {
               </option>
             ))}
           </select>
+          <FieldErr path="activity_type" />
         </ConfigSection>
 
         <ConfigSection icon="🌐" title="Timezone (IANA)">
-          <input className="field" list="streak-timezones" {...form.register('timezone')} />
-          <datalist id="streak-timezones">
-            {TIMEZONE_HINTS.map((tz) => (
-              <option key={tz} value={tz} />
+          <input className="field" list="streak-tz-list" {...form.register('timezone')} />
+          <datalist id="streak-tz-list">
+            {TIMEZONE_OPTIONS.map((t) => (
+              <option key={t.value} value={t.value} label={t.label} />
             ))}
           </datalist>
-          <p className="mt-2 text-[11px] text-text-tertiary">Usá un timezone IANA válido; el backend calcula cortes de día en esa zona.</p>
+          <p className="mt-2 text-[12px] text-text-secondary">{timezoneFriendlyLabel(form.watch('timezone'))}</p>
+          <FieldErr path="timezone" />
         </ConfigSection>
 
         <ConfigSection icon="🔁" title="Política de reset">
@@ -262,96 +166,83 @@ export default function StreakProgramEditorPage() {
               </option>
             ))}
           </select>
+          <FieldErr path="reset_policy" />
           {resetPolicy === 'grace' ? (
-            <div className="mt-3">
-              <label className="mb-1 block text-[12px] text-text-secondary">Horas de gracia</label>
-              <input className="field" type="number" min={1} max={168} {...form.register('grace_hours', { valueAsNumber: true })} />
+            <div className="mt-4 space-y-4">
+              <div>
+                <label className="mb-1 block text-[12px] text-text-secondary">Días de gracia permitidos en 30 días rolling</label>
+                <input className="field max-w-xs" type="number" min={1} max={10} {...form.register('grace_days_rolling', { valueAsNumber: true })} />
+                <FieldErr path="grace_days_rolling" />
+              </div>
+              <div>
+                <p className="mb-2 text-[12px] text-text-secondary">Después de los días de gracia, ¿qué pasa?</p>
+                <label className="mr-4 inline-flex items-center gap-2 text-[13px]">
+                  <input type="radio" value="reset_zero" {...form.register('grace_after_action')} />
+                  Reset a 0
+                </label>
+                <label className="inline-flex items-center gap-2 text-[13px]">
+                  <input type="radio" value="lose_days" {...form.register('grace_after_action')} />
+                  Pierde X días
+                </label>
+              </div>
+              {form.watch('grace_after_action') === 'lose_days' ? (
+                <div>
+                  <label className="mb-1 block text-[12px] text-text-secondary">Cuántos días pierde (máx. según tus hitos)</label>
+                  <input className="field max-w-xs" type="number" min={1} {...form.register('grace_lose_days', { valueAsNumber: true })} />
+                  <FieldErr path="grace_lose_days" />
+                </div>
+              ) : null}
             </div>
           ) : null}
           {resetPolicy === 'soft_reset' ? (
-            <div className="mt-3">
-              <label className="mb-1 block text-[12px] text-text-secondary">reset_policy_config (JSON)</label>
-              <textarea className="field min-h-28 font-mono text-[12px]" {...form.register('soft_reset_config_json')} />
+            <div className="mt-4">
+              <label className="mb-1 block text-[12px] text-text-secondary">Días que pierde al romper racha</label>
+              <input
+                className="field max-w-xs"
+                type="number"
+                min={1}
+                max={20}
+                title="Si el jugador rompe la racha en día 10, pasa al día 7 (ejemplo con 3 días perdidos)."
+                {...form.register('soft_days_lost_on_break', { valueAsNumber: true })}
+              />
+              <p className="mt-2 text-[11px] text-text-tertiary" title="Ejemplo ilustrativo">
+                Tip: si rompe en día 10 y acá ponés 3, el jugador retoma visualmente cerca del día 7.
+              </p>
+              <FieldErr path="soft_days_lost_on_break" />
             </div>
           ) : null}
-          {resetPolicy === 'strict' ? <p className="mt-2 text-[12px] text-text-tertiary">Sin parámetros adicionales en reset_policy_config.</p> : null}
+          {resetPolicy === 'strict' ? <p className="mt-2 text-[12px] text-text-tertiary">Sin parámetros adicionales.</p> : null}
         </ConfigSection>
 
-        <ConfigSection icon="🎁" title="Micro recompensa diaria (JSONB)">
-          <select className="field" {...form.register('daily_kind')}>
-            <option value="xp">XP fija</option>
-            <option value="coins">Monedas</option>
-            <option value="json">JSON libre</option>
-          </select>
-          {dailyKind === 'xp' ? (
-            <div className="mt-3 grid max-w-xs grid-cols-1 gap-3">
-              <div>
-                <label className="mb-1 block text-[12px] text-text-secondary">Cantidad XP</label>
-                <input className="field" type="number" min={0} {...form.register('daily_amount', { valueAsNumber: true })} />
-              </div>
-            </div>
-          ) : null}
-          {dailyKind === 'coins' ? (
-            <div className="mt-3 grid max-w-md grid-cols-2 gap-3">
-              <div>
-                <label className="mb-1 block text-[12px] text-text-secondary">Cantidad</label>
-                <input className="field" type="number" min={0} {...form.register('daily_amount', { valueAsNumber: true })} />
-              </div>
-              <div>
-                <label className="mb-1 block text-[12px] text-text-secondary">coin_id</label>
-                <input className="field" {...form.register('daily_coin_id')} />
-              </div>
-            </div>
-          ) : null}
-          {dailyKind === 'json' ? (
-            <div className="mt-3">
-              <textarea className="field min-h-32 font-mono text-[12px]" {...form.register('daily_json')} />
-            </div>
-          ) : null}
+        <ConfigSection icon="🎁" title="Micro recompensa diaria">
+          <DailyRewardFields />
         </ConfigSection>
 
         <ConfigSection icon="🏁" title="Milestones">
-          <p className="mb-3 text-[12px] text-text-tertiary">
-            Cada hito define el día del programa y la recompensa. reward_config debe ser un objeto JSON (ej. monto, coin_id, chest_id).
-          </p>
+          {milestoneListError ? <p className="mb-2 text-[12px] text-danger">{milestoneListError}</p> : null}
+          <p className="mb-3 text-[12px] text-text-tertiary">Hasta 20 hitos · días únicos entre 1 y 365 · se ordenan al guardar.</p>
           <div className="space-y-3">
-            {fields.map((field, index) => (
-              <div key={field.id} className="rounded-lg border border-border-subtle bg-bg-secondary p-4">
-                <div className="mb-3 flex flex-wrap items-end gap-3">
-                  <div className="w-24">
-                    <label className="mb-1 block text-[11px] text-text-secondary">Día</label>
-                    <input className="field" type="number" min={1} {...form.register(`milestones.${index}.day_number`, { valueAsNumber: true })} />
-                  </div>
-                  <div className="min-w-[160px] flex-1">
-                    <label className="mb-1 block text-[11px] text-text-secondary">reward_type</label>
-                    <select className="field" {...form.register(`milestones.${index}.reward_type`)}>
-                      {MILESTONE_REWARD_TYPES.map((t) => (
-                        <option key={t} value={t}>
-                          {t}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                  <Button type="button" size="sm" variant="secondary" onClick={() => remove(index)}>
-                    Quitar
+            {milestoneOrder.map((i) => (
+              <div key={fields[i]?.id ?? i} className="relative">
+                <MilestoneCard index={i} />
+                <div className="mt-2 flex justify-end">
+                  <Button type="button" size="sm" variant="secondary" onClick={() => remove(i)}>
+                    Quitar hito
                   </Button>
                 </div>
-                <label className="mb-1 block text-[11px] text-text-secondary">reward_config (JSON)</label>
-                <textarea className="field min-h-24 font-mono text-[11px]" {...form.register(`milestones.${index}.reward_config_json`)} />
               </div>
             ))}
           </div>
           <div className="mt-3">
-            <Button
-              type="button"
-              variant="secondary"
-              onClick={() => append({ day_number: 1, reward_type: 'coins', reward_config_json: '{"amount":100,"coin_id":"coin_oro"}' })}
-            >
+            <Button type="button" variant="secondary" disabled={!canAddMilestone} onClick={() => append(emptyMilestoneRow(defaultCoin))}>
               + Agregar milestone
             </Button>
+            {!canAddMilestone ? <span className="ml-2 text-[12px] text-text-tertiary">Límite 20 hitos</span> : null}
           </div>
         </ConfigSection>
       </ConfiguratorScaffold>
+
+      <EditorPreviewBridge defTz={defaultTz} defCoin={defaultCoin} />
 
       <StickyBottomBar
         onCancel={() => nav('/rachas')}
