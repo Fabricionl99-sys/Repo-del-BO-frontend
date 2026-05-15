@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
+import { Plus } from 'lucide-react';
 
 import {
   useActivateStreakProgram,
@@ -23,6 +24,7 @@ type Tab = 'programs' | 'players';
 export default function StreaksPage() {
   const [params] = useSearchParams();
   const mock = params.get('mockState');
+  const nav = useNavigate();
   const [tab, setTab] = useState<Tab>('programs');
   const [playerDetail, setPlayerDetail] = useState<string | null>(null);
 
@@ -35,10 +37,23 @@ export default function StreaksPage() {
   const programs = mock === 'empty' ? [] : (programsQ.data ?? []);
 
   const programColumns: Column<StreakProgram>[] = [
-    { key: 'name', header: 'programa', render: (p) => <b>{p.name}</b> },
+    {
+      key: 'name',
+      header: 'programa',
+      render: (p) => (
+        <button type="button" className="text-left font-semibold hover:text-accent" onClick={() => nav(`/rachas/${p.id}`)}>
+          {p.name}
+        </button>
+      ),
+    },
     { key: 'activity', header: 'actividad', render: (p) => <span className="font-mono text-[11px]">{p.activity_type}</span> },
     { key: 'tz', header: 'timezone', render: (p) => <span className="text-[11px] text-text-tertiary">{p.timezone}</span> },
     { key: 'policy', header: 'reset', render: (p) => <span className="text-[11px]">{p.reset_policy}</span> },
+    {
+      key: 'milestones',
+      header: 'hitos',
+      render: (p) => <span className="text-[12px] text-text-secondary">{p.milestones?.length ?? 0}</span>,
+    },
     {
       key: 'active',
       header: 'activo',
@@ -51,6 +66,9 @@ export default function StreaksPage() {
       header: '',
       render: (p) => (
         <div className="flex flex-wrap gap-1">
+          <Button size="sm" variant="secondary" onClick={() => nav(`/rachas/${p.id}`)}>
+            editar
+          </Button>
           {p.is_active ? (
             <Button size="sm" variant="secondary" loading={deactivate.isPending} onClick={() => deactivate.mutate(p.id)}>
               desactivar
@@ -95,7 +113,13 @@ export default function StreaksPage() {
       <PageHeader
         title="Programas de racha"
         subtitle="Streak programs (Sub-etapa 8) · actividad, timezone, política de reset y milestones"
-        actions={null}
+        actions={
+          tab === 'programs' ? (
+            <Button variant="primary" icon={<Plus size={14} />} onClick={() => nav('/rachas/nueva')}>
+              nuevo programa
+            </Button>
+          ) : null
+        }
       />
       <div className="mb-5 inline-flex rounded-lg border border-border-subtle bg-bg-secondary p-0.5">
         <button
@@ -114,7 +138,15 @@ export default function StreaksPage() {
         </button>
       </div>
       {mock === 'empty' && programs.length === 0 && tab === 'programs' ? (
-        <EmptyState title="Sin programas" description="Creá un programa de racha alineado al backend." />
+        <EmptyState
+          title="Sin programas"
+          description="Creá un programa de racha alineado al backend."
+          action={
+            <Button variant="primary" onClick={() => nav('/rachas/nueva')}>
+              Crear programa
+            </Button>
+          }
+        />
       ) : null}
       {(mock === 'loading' || programsQ.isLoading) && tab === 'programs' ? (
         <Loading label="Cargando programas de racha..." />
@@ -122,20 +154,17 @@ export default function StreaksPage() {
       {(mock === 'error' || programsQ.isError) && tab === 'programs' ? <ErrorState onRetry={() => programsQ.refetch()} /> : null}
       {tab === 'programs' && programsReady ? (
         programs.length === 0 ? (
-          <EmptyState title="Sin programas" description="Creá un programa de racha alineado al backend." />
+          <EmptyState
+            title="Sin programas"
+            description="Creá un programa de racha alineado al backend."
+            action={
+              <Button variant="primary" onClick={() => nav('/rachas/nueva')}>
+                Crear programa
+              </Button>
+            }
+          />
         ) : (
-          <div className="space-y-6">
-            <Table columns={programColumns} rows={programs} rowKey={(p) => p.id} />
-            {programs.map((p) => (
-              <div key={p.id} className="card p-4">
-                <h3 className="label-section mb-2">Milestones · {p.name}</h3>
-                <pre className="max-h-40 overflow-auto rounded-lg bg-bg-tertiary p-3 font-mono text-[11px] text-text-secondary">
-                  {JSON.stringify(p.milestones, null, 2)}
-                </pre>
-                <p className="mt-2 text-[11px] text-text-tertiary">Micro recompensa diaria: {JSON.stringify(p.daily_micro_reward)}</p>
-              </div>
-            ))}
-          </div>
+          <Table columns={programColumns} rows={programs} rowKey={(p) => p.id} />
         )
       ) : null}
       {tab === 'players' && (playersQ.isLoading ? <Loading label="Cargando jugadores..." /> : null)}
