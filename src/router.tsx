@@ -34,6 +34,7 @@ const SettingsPage = lazy(() => import('@/features/settings/pages/SettingsPage')
 const RankingsPage = lazy(() => import('@/features/rankings/pages/RankingsPage'));
 const PredictionsPage = lazy(() => import('@/features/predictions/pages/PredictionsPage'));
 const FeedPlaceholderPage = lazy(() => import('@/features/feed/pages/FeedPlaceholderPage'));
+const WalletPage = lazy(() => import('@/features/wallet/pages/WalletPage'));
 const ComingSoonPage = lazy(() => import('@/pages/ComingSoonPage'));
 const NotFoundPage = lazy(() => import('@/pages/NotFoundPage'));
 
@@ -46,7 +47,6 @@ const comingSoonRoutes = [
   { path: 'raspaditas', title: 'Raspaditas' },
   { path: 'notificaciones-push', title: 'Notificaciones push', description: 'configuración avanzada (lo básico está en /notificaciones)' },
   { path: 'reportes', title: 'Reportes', description: 'exportes scheduled (las métricas en vivo están en /metricas)' },
-  { path: 'billing', title: 'Facturación', description: 'plan, consumo y facturas' },
   { path: 'profile', title: 'Mi perfil', description: 'datos personales y seguridad' },
   { path: 'recover-password', title: 'Recuperar contraseña' },
 ];
@@ -112,6 +112,10 @@ export const router = createBrowserRouter([
       {
         path: 'branding',
         element: <ProtectedRoute roles={['admin']}>{wrap(<BrandingPage />)}</ProtectedRoute>,
+      },
+      {
+        path: 'wallet',
+        element: <ProtectedRoute roles={['admin']}>{wrap(<WalletPage />)}</ProtectedRoute>,
       },
       ...comingSoonRoutes.map((route) => ({
         path: route.path,
