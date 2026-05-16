@@ -3,8 +3,13 @@ import type { Path } from 'react-hook-form';
 
 import { useChests } from '@/features/tier3Api';
 import { useCoins } from '@/features/coinsApi';
-import { FIAT_CURRENCIES, type StreakEditorFormValues, type StreakRewardKind } from '@/features/streaks/streakEditorForm';
-import type { StreakResetPolicy } from '@/types/streakPrograms';
+import {
+  coinCodeForSelect,
+  FIAT_CURRENCIES,
+  type StreakEditorFormValues,
+  type StreakRewardKind,
+} from '@/features/streaks/streakEditorForm';
+import type { StreakActivityType, StreakResetPolicy } from '@/types/streakPrograms';
 
 export const RESET_OPTIONS: { value: StreakResetPolicy; label: string }[] = [
   { value: 'strict', label: 'Estricto (sin gracia)' },
@@ -48,6 +53,76 @@ export function FieldErr({ path }: { path: string }) {
   return msg ? <p className="mt-1 text-[12px] text-danger">{msg}</p> : null;
 }
 
+export function ActivityConfigFields() {
+  const { register, watch } = useFormContext<StreakEditorFormValues>();
+  const activityType = watch('activity_type') as StreakActivityType;
+
+  if (activityType === 'login') {
+    return (
+      <div className="mt-3 max-w-xs">
+        <label className="mb-1 block text-[12px] text-text-secondary">Logins mínimos por día</label>
+        <input className="field" type="number" min={1} {...register('minimum_logins_per_day', { valueAsNumber: true })} />
+        <FieldErr path="minimum_logins_per_day" />
+      </div>
+    );
+  }
+
+  if (activityType === 'deposit_individual') {
+    return (
+      <div className="mt-3 max-w-xs">
+        <label className="mb-1 block text-[12px] text-text-secondary">Monto mínimo por depósito (USD)</label>
+        <input className="field" type="number" min={0.01} step={0.01} {...register('minimum_amount_per_deposit', { valueAsNumber: true })} />
+        <FieldErr path="minimum_amount_per_deposit" />
+      </div>
+    );
+  }
+
+  if (activityType === 'deposit_cumulative') {
+    return (
+      <div className="mt-3 max-w-xs">
+        <label className="mb-1 block text-[12px] text-text-secondary">Monto acumulado mínimo por día (USD)</label>
+        <input className="field" type="number" min={0.01} step={0.01} {...register('minimum_amount_total_per_day', { valueAsNumber: true })} />
+        <FieldErr path="minimum_amount_total_per_day" />
+      </div>
+    );
+  }
+
+  if (activityType === 'bet_individual') {
+    return (
+      <div className="mt-3 grid max-w-lg grid-cols-2 gap-3">
+        <div>
+          <label className="mb-1 block text-[12px] text-text-secondary">Monto mínimo por apuesta (USD)</label>
+          <input className="field" type="number" min={0.01} step={0.01} {...register('minimum_amount_per_bet', { valueAsNumber: true })} />
+          <FieldErr path="minimum_amount_per_bet" />
+        </div>
+        <div>
+          <label className="mb-1 block text-[12px] text-text-secondary">Filtro categoría (opcional)</label>
+          <input className="field" placeholder="deportes, casino…" {...register('category_filter')} />
+          <p className="mt-1 text-[11px] text-text-tertiary">Vacío = todas las categorías</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (activityType === 'bet_cumulative') {
+    return (
+      <div className="mt-3 grid max-w-lg grid-cols-2 gap-3">
+        <div>
+          <label className="mb-1 block text-[12px] text-text-secondary">Monto acumulado mínimo por día (USD)</label>
+          <input className="field" type="number" min={0.01} step={0.01} {...register('minimum_amount_total_bet_per_day', { valueAsNumber: true })} />
+          <FieldErr path="minimum_amount_total_bet_per_day" />
+        </div>
+        <div>
+          <label className="mb-1 block text-[12px] text-text-secondary">Filtro categoría (opcional)</label>
+          <input className="field" placeholder="deportes, casino…" {...register('category_filter')} />
+        </div>
+      </div>
+    );
+  }
+
+  return null;
+}
+
 export function DailyRewardFields() {
   const { register, watch } = useFormContext<StreakEditorFormValues>();
   const coinsQ = useCoins();
@@ -77,15 +152,15 @@ export function DailyRewardFields() {
         <div className="mt-3 grid max-w-lg grid-cols-2 gap-3">
           <div>
             <label className="mb-1 block text-[12px] text-text-secondary">Tipo de moneda</label>
-            <select className="field" {...register('daily_coin_id')}>
+            <select className="field" {...register('daily_coin_code')}>
               {coins.length === 0 ? <option value="">Sin monedas activas</option> : null}
               {coins.map((c) => (
-                <option key={c.id} value={c.id}>
-                  {c.emoji} {c.name} ({c.symbol})
+                <option key={c.id} value={coinCodeForSelect(c.id)}>
+                  {c.emoji} {c.name} ({coinCodeForSelect(c.id)})
                 </option>
               ))}
             </select>
-            <FieldErr path="daily_coin_id" />
+            <FieldErr path="daily_coin_code" />
           </div>
           <div>
             <label className="mb-1 block text-[12px] text-text-secondary">Cantidad</label>
@@ -112,8 +187,8 @@ export function DailyRewardFields() {
         <div className="mt-3 grid max-w-lg grid-cols-2 gap-3">
           <div>
             <label className="mb-1 block text-[12px] text-text-secondary">Cantidad de spins</label>
-            <input className="field" type="number" min={1} {...register('daily_freespin_count', { valueAsNumber: true })} />
-            <FieldErr path="daily_freespin_count" />
+            <input className="field" type="number" min={1} {...register('daily_freespin_quantity', { valueAsNumber: true })} />
+            <FieldErr path="daily_freespin_quantity" />
           </div>
           <div>
             <label className="mb-1 block text-[12px] text-text-secondary">Game ID (opcional)</label>
@@ -144,12 +219,12 @@ export function DailyRewardFields() {
         <div className="mt-3 grid max-w-lg grid-cols-2 gap-3">
           <div>
             <label className="mb-1 block text-[12px] text-text-secondary">Porcentaje</label>
-            <input className="field" type="number" min={0.01} max={100} step={0.01} {...register('daily_cashback_percent', { valueAsNumber: true })} />
-            <FieldErr path="daily_cashback_percent" />
+            <input className="field" type="number" min={0.01} max={100} step={0.01} {...register('daily_cashback_percentage', { valueAsNumber: true })} />
+            <FieldErr path="daily_cashback_percentage" />
           </div>
           <div>
             <label className="mb-1 block text-[12px] text-text-secondary">Monto máximo (opcional)</label>
-            <input className="field" type="number" min={0} step={0.01} {...register('daily_cashback_cap', { valueAsNumber: true })} />
+            <input className="field" type="number" min={0} step={0.01} {...register('daily_cashback_max_amount', { valueAsNumber: true })} />
           </div>
         </div>
       ) : null}
@@ -157,12 +232,12 @@ export function DailyRewardFields() {
         <div className="mt-3 grid max-w-lg grid-cols-2 gap-3">
           <div>
             <label className="mb-1 block text-[12px] text-text-secondary">Porcentaje match</label>
-            <input className="field" type="number" min={0.01} max={500} step={0.01} {...register('daily_bonus_percent', { valueAsNumber: true })} />
-            <FieldErr path="daily_bonus_percent" />
+            <input className="field" type="number" min={0.01} max={500} step={0.01} {...register('daily_bonus_percentage', { valueAsNumber: true })} />
+            <FieldErr path="daily_bonus_percentage" />
           </div>
           <div>
             <label className="mb-1 block text-[12px] text-text-secondary">Monto máximo (opcional)</label>
-            <input className="field" type="number" min={0} step={0.01} {...register('daily_bonus_cap', { valueAsNumber: true })} />
+            <input className="field" type="number" min={0} step={0.01} {...register('daily_bonus_max_amount', { valueAsNumber: true })} />
           </div>
         </div>
       ) : null}
@@ -221,15 +296,15 @@ export function MilestoneCard({ index }: { index: number }) {
         <div className="grid max-w-lg grid-cols-2 gap-3">
           <div>
             <label className="mb-1 block text-[11px] text-text-secondary">Moneda</label>
-            <select className="field" {...register(mp(index, 'coin_id'))}>
+            <select className="field" {...register(mp(index, 'coin_code'))}>
               {coins.length === 0 ? <option value="">Sin monedas</option> : null}
               {coins.map((c) => (
-                <option key={c.id} value={c.id}>
+                <option key={c.id} value={coinCodeForSelect(c.id)}>
                   {c.emoji} {c.name}
                 </option>
               ))}
             </select>
-            <FieldErr path={mp(index, 'coin_id')} />
+            <FieldErr path={mp(index, 'coin_code')} />
           </div>
           <div>
             <label className="mb-1 block text-[11px] text-text-secondary">Cantidad</label>
@@ -256,8 +331,8 @@ export function MilestoneCard({ index }: { index: number }) {
         <div className="grid max-w-lg grid-cols-2 gap-3">
           <div>
             <label className="mb-1 block text-[11px] text-text-secondary">Spins</label>
-            <input className="field" type="number" min={1} {...register(mp(index, 'freespin_count'), { valueAsNumber: true })} />
-            <FieldErr path={mp(index, 'freespin_count')} />
+            <input className="field" type="number" min={1} {...register(mp(index, 'freespin_quantity'), { valueAsNumber: true })} />
+            <FieldErr path={mp(index, 'freespin_quantity')} />
           </div>
           <div>
             <label className="mb-1 block text-[11px] text-text-secondary">Game ID (opcional)</label>
@@ -288,12 +363,12 @@ export function MilestoneCard({ index }: { index: number }) {
         <div className="grid max-w-lg grid-cols-2 gap-3">
           <div>
             <label className="mb-1 block text-[11px] text-text-secondary">%</label>
-            <input className="field" type="number" min={0.01} max={100} step={0.01} {...register(mp(index, 'cashback_percent'), { valueAsNumber: true })} />
-            <FieldErr path={mp(index, 'cashback_percent')} />
+            <input className="field" type="number" min={0.01} max={100} step={0.01} {...register(mp(index, 'cashback_percentage'), { valueAsNumber: true })} />
+            <FieldErr path={mp(index, 'cashback_percentage')} />
           </div>
           <div>
             <label className="mb-1 block text-[11px] text-text-secondary">Tope (opcional)</label>
-            <input className="field" type="number" min={0} step={0.01} {...register(mp(index, 'cashback_cap'), { valueAsNumber: true })} />
+            <input className="field" type="number" min={0} step={0.01} {...register(mp(index, 'cashback_max_amount'), { valueAsNumber: true })} />
           </div>
         </div>
       ) : null}
@@ -301,12 +376,12 @@ export function MilestoneCard({ index }: { index: number }) {
         <div className="grid max-w-lg grid-cols-2 gap-3">
           <div>
             <label className="mb-1 block text-[11px] text-text-secondary">% match</label>
-            <input className="field" type="number" min={0.01} max={500} step={0.01} {...register(mp(index, 'bonus_percent'), { valueAsNumber: true })} />
-            <FieldErr path={mp(index, 'bonus_percent')} />
+            <input className="field" type="number" min={0.01} max={500} step={0.01} {...register(mp(index, 'bonus_percentage'), { valueAsNumber: true })} />
+            <FieldErr path={mp(index, 'bonus_percentage')} />
           </div>
           <div>
             <label className="mb-1 block text-[11px] text-text-secondary">Tope (opcional)</label>
-            <input className="field" type="number" min={0} step={0.01} {...register(mp(index, 'bonus_cap'), { valueAsNumber: true })} />
+            <input className="field" type="number" min={0} step={0.01} {...register(mp(index, 'bonus_max_amount'), { valueAsNumber: true })} />
           </div>
         </div>
       ) : null}

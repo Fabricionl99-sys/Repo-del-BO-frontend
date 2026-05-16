@@ -89,19 +89,24 @@ export default function StreaksPage() {
   ];
 
   const playerColumns: Column<PlayerStreakSummary>[] = [
-    { key: 'h', header: 'jugador', render: (r) => <span>{r.player_handle}</span> },
-    { key: 'p', header: 'programa', render: (r) => <span className="text-[12px]">{r.program_name}</span> },
+    { key: 'h', header: 'jugador', render: (r) => <span className="font-mono text-[12px]">{r.external_player_id}</span> },
+    { key: 'p', header: 'programa', render: (r) => <span className="text-[12px]">{r.streak_program_name}</span> },
     { key: 'd', header: 'día actual', render: (r) => <span>{r.current_day}</span> },
     {
-      key: 'risk',
-      header: 'riesgo',
-      render: (r) => (r.streak_at_risk ? <span className="text-warning">en riesgo</span> : <span className="text-text-tertiary">ok</span>),
+      key: 'status',
+      header: 'estado',
+      render: (r) => (
+        <span className={r.status === 'active' && r.grace_days_used > 0 ? 'text-warning' : 'text-text-tertiary'}>
+          {r.status}
+          {r.grace_days_used > 0 ? ` · gracia ${r.grace_days_used}` : ''}
+        </span>
+      ),
     },
     {
       key: 'x',
       header: '',
       render: (r) => (
-        <Button size="sm" variant="secondary" onClick={() => setPlayerDetail(r.player_id)}>
+        <Button size="sm" variant="secondary" onClick={() => setPlayerDetail(r.external_player_id)}>
           historial
         </Button>
       ),
@@ -186,7 +191,11 @@ export default function StreaksPage() {
       {tab === 'players' && (playersQ.isLoading ? <Loading label="Cargando jugadores..." /> : null)}
       {tab === 'players' && playersQ.isError ? <ErrorState onRetry={() => playersQ.refetch()} /> : null}
       {tab === 'players' && !playersQ.isLoading && !playersQ.isError ? (
-        <Table columns={playerColumns} rows={playersQ.data?.items ?? []} rowKey={(r) => `${r.player_id}-${r.program_id}`} />
+        <Table
+          columns={playerColumns}
+          rows={playersQ.data?.items ?? []}
+          rowKey={(r) => `${r.external_player_id}-${r.streak_program_id}`}
+        />
       ) : null}
       <PlayerHistoryModal playerId={playerDetail} onClose={() => setPlayerDetail(null)} />
       <StreaksDocModal open={docOpen} onClose={() => setDocOpen(false)} />
@@ -201,11 +210,13 @@ function PlayerHistoryModal({ playerId, onClose }: { playerId: string | null; on
       {q.isLoading ? <Loading label="Cargando..." /> : null}
       {q.data ? (
         <ul className="space-y-2 text-[13px]">
-          {q.data.days.map((d) => (
+          {q.data.completed_days.map((d) => (
             <li key={d.day_number} className="flex justify-between rounded-lg border border-border-subtle px-3 py-2">
               <span>Día {d.day_number}</span>
               <span className="text-text-tertiary">{d.completed_at}</span>
-              <span>{d.reward_claimed ? 'reclamado' : 'pendiente'}</span>
+              <span className="text-[11px] text-text-secondary">
+                {d.milestone_reward_id ? 'hito' : d.micro_reward_id ? 'micro' : '—'}
+              </span>
             </li>
           ))}
         </ul>

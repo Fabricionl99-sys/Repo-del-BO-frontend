@@ -4,6 +4,7 @@ import { FormProvider, useFieldArray, useForm, useFormContext, useWatch } from '
 
 import { StreakEditorPlayerPreview } from '@/features/streaks/components/StreakEditorPlayerPreview';
 import {
+  ActivityConfigFields,
   DailyRewardFields,
   FieldErr,
   MilestoneCard,
@@ -15,6 +16,7 @@ import {
   TIMEZONE_OPTIONS,
   applyValidationErrors,
   buildProgramPayload,
+  coinCodeForSelect,
   defaultStreakEditorForm,
   emptyMilestoneRow,
   programToEditorForm,
@@ -52,7 +54,7 @@ export default function StreakProgramEditorPage() {
   const nav = useNavigate();
   const op = useOperatorStore((s) => s.current);
   const coinsQ = useCoins();
-  const defaultCoin = coinsQ.data?.find((c) => c.active)?.id ?? 'coin_oro';
+  const defaultCoin = coinCodeForSelect(coinsQ.data?.find((c) => c.active)?.id ?? 'coin_oro');
   const defaultTz = op?.timezone ?? 'America/Argentina/Buenos_Aires';
 
   const q = useStreakProgram(isNew ? null : id!);
@@ -145,6 +147,7 @@ export default function StreakProgramEditorPage() {
             ))}
           </select>
           <FieldErr path="activity_type" />
+          <ActivityConfigFields />
         </ConfigSection>
 
         <ConfigSection icon="🌐" title="Timezone (IANA)">
@@ -177,7 +180,7 @@ export default function StreakProgramEditorPage() {
               <div>
                 <p className="mb-2 text-[12px] text-text-secondary">Después de los días de gracia, ¿qué pasa?</p>
                 <label className="mr-4 inline-flex items-center gap-2 text-[13px]">
-                  <input type="radio" value="reset_zero" {...form.register('grace_after_action')} />
+                  <input type="radio" value="reset_to_zero" {...form.register('grace_after_action')} />
                   Reset a 0
                 </label>
                 <label className="inline-flex items-center gap-2 text-[13px]">
@@ -188,8 +191,8 @@ export default function StreakProgramEditorPage() {
               {form.watch('grace_after_action') === 'lose_days' ? (
                 <div>
                   <label className="mb-1 block text-[12px] text-text-secondary">Cuántos días pierde (máx. según tus hitos)</label>
-                  <input className="field max-w-xs" type="number" min={1} {...form.register('grace_lose_days', { valueAsNumber: true })} />
-                  <FieldErr path="grace_lose_days" />
+                  <input className="field max-w-xs" type="number" min={1} {...form.register('grace_days_lost', { valueAsNumber: true })} />
+                  <FieldErr path="grace_days_lost" />
                 </div>
               ) : null}
             </div>

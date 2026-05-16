@@ -112,26 +112,116 @@ function crudHandlers<T extends { id: string }>(key: string, path: string, data:
 }
 crudHandlers('mission', 'missions', missions);
 crudHandlers('chest', 'chests', chests);
-crudHandlers('streak-program', 'streak-programs', streakPrograms);
+// streak-programs: shapes con wrapper { data } (api-shapes.md §5)
+handlers.push(
+  http.get('*/admin/streak-programs', async () => {
+    await wait();
+    return HttpResponse.json({ data: streakPrograms });
+  }),
+  http.get('*/admin/streak-programs/:id', async ({ params }) => {
+    await wait();
+    const item = streakPrograms.find((p) => p.id === params.id) ?? streakPrograms[0];
+    return HttpResponse.json({ data: item });
+  }),
+  http.post('*/admin/streak-programs', async ({ request }) => {
+    await wait();
+    const body = (await request.json()) as Partial<(typeof streakPrograms)[number]>;
+    const item = {
+      ...streakPrograms[0],
+      ...body,
+      id: `sp_${Date.now()}`,
+      is_active: false,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    };
+    streakPrograms.unshift(item);
+    return HttpResponse.json({ data: item }, { status: 201 });
+  }),
+  http.patch('*/admin/streak-programs/:id', async ({ params, request }) => {
+    await wait();
+    const body = (await request.json()) as Partial<(typeof streakPrograms)[number]>;
+    const item = streakPrograms.find((p) => p.id === params.id) ?? streakPrograms[0];
+    Object.assign(item, body, { updated_at: new Date().toISOString() });
+    return HttpResponse.json({ data: item });
+  }),
+  http.delete('*/admin/streak-programs/:id', async ({ params }) => {
+    await wait();
+    const index = streakPrograms.findIndex((p) => p.id === params.id);
+    if (index >= 0) streakPrograms.splice(index, 1);
+    return new HttpResponse(null, { status: 204 });
+  }),
+);
 crudHandlers('tournament', 'tournaments', tournaments);
 handlers.push(
   http.post('*/admin/missions/:id/duplicate', async ({ params }) => { await wait(); const item = missions.find((m) => m.id === params.id) ?? missions[0]; const copy = { ...item, id: `mission_copy_${Date.now()}`, name: `${item.name} copia`, status: 'draft' as const }; missions.unshift(copy); return HttpResponse.json(copy, { status: 201 }); }),
   http.get('*/admin/missions/:id/progress', async () => { await wait(); return HttpResponse.json({ started: 4821, completed: 1847, percent: 38.3 }); }),
   http.post('*/admin/chests/:id/preview-opens', async () => { await wait(); return HttpResponse.json({ opens: 1000, distribution: [{ label: '100 oro', count: 502 }, { label: '500 oro', count: 301 }, { label: '1000 XP', count: 149 }, { label: 'jackpot', count: 48 }] }); }),
-  http.post('*/admin/streak-programs/:id/activate', async ({ params }) => { await wait(); const item = streakPrograms.find((p) => p.id === params.id) ?? streakPrograms[0]; item.is_active = true; return HttpResponse.json(item); }),
-  http.post('*/admin/streak-programs/:id/deactivate', async ({ params }) => { await wait(); const item = streakPrograms.find((p) => p.id === params.id) ?? streakPrograms[0]; item.is_active = false; return HttpResponse.json(item); }),
-  http.post('*/admin/streak-programs/:id/migrate-active', async ({ params }) => { await wait(); const item = streakPrograms.find((p) => p.id === params.id) ?? streakPrograms[0]; return HttpResponse.json({ program_id: item.id, migrated_players: 1284, ok: true }); }),
+  http.post('*/admin/streak-programs/:id/activate', async ({ params }) => {
+    await wait();
+    const item = streakPrograms.find((p) => p.id === params.id) ?? streakPrograms[0];
+    item.is_active = true;
+    item.activated_at = new Date().toISOString();
+    return HttpResponse.json({ data: item });
+  }),
+  http.post('*/admin/streak-programs/:id/deactivate', async ({ params }) => {
+    await wait();
+    const item = streakPrograms.find((p) => p.id === params.id) ?? streakPrograms[0];
+    item.is_active = false;
+    return HttpResponse.json({ data: item });
+  }),
+  http.post('*/admin/streak-programs/:id/migrate-active', async ({ params }) => {
+    await wait();
+    const item = streakPrograms.find((p) => p.id === params.id) ?? streakPrograms[0];
+    return HttpResponse.json({
+      data: {
+        program_id: item.id,
+        migrated_count: 1284,
+        message: '1284 jugadores con racha activa migrados a la nueva config.',
+      },
+    });
+  }),
   http.get('*/admin/streak-programs/name-available', async ({ request }) => {
     await wait();
     const url = new URL(request.url);
     const name = (url.searchParams.get('name') ?? '').trim().toLowerCase();
     const excludeId = url.searchParams.get('exclude_id') ?? '';
-    if (name.length < 3) return HttpResponse.json({ available: false });
+    if (name.length < 3) {
+      return HttpResponse.json({ data: { available: false, reason: 'Name too short' } });
+    }
     const taken = streakPrograms.some((p) => p.name.trim().toLowerCase() === name && p.id !== excludeId);
-    return HttpResponse.json({ available: !taken });
+    return HttpResponse.json({
+      data: taken ? { available: false, reason: 'Already exists in this tenant' } : { available: true },
+    });
   }),
-  http.get('*/admin/player-streaks', async ({ request }) => { await wait(); const url = new URL(request.url); const offset = Number(url.searchParams.get('offset') ?? 0); const limit = Math.min(200, Number(url.searchParams.get('limit') ?? 50)); const slice = playerStreakSummaries.slice(offset, offset + limit); return HttpResponse.json({ items: slice, total: playerStreakSummaries.length, limit, offset }); }),
-  http.get('*/admin/player-streaks/:player_id', async ({ params }) => { await wait(); const detail = playerStreakDetails[String(params.player_id)] ?? { player_id: String(params.player_id), program_id: streakPrograms[0].id, program_name: streakPrograms[0].name, days: [] }; return HttpResponse.json(detail); }),
+  http.get('*/admin/player-streaks', async ({ request }) => {
+    await wait();
+    const url = new URL(request.url);
+    const offset = Number(url.searchParams.get('offset') ?? 0);
+    const limit = Math.min(200, Number(url.searchParams.get('limit') ?? 50));
+    const slice = playerStreakSummaries.slice(offset, offset + limit);
+    return HttpResponse.json({
+      data: slice,
+      pagination: { limit, offset, total: playerStreakSummaries.length },
+    });
+  }),
+  http.get('*/admin/player-streaks/:player_id', async ({ params }) => {
+    await wait();
+    const key = String(params.player_id);
+    const detail = playerStreakDetails[key] ?? {
+      id: `ps_${key}`,
+      external_player_id: key,
+      streak_program_id: streakPrograms[0].id,
+      streak_program_name: streakPrograms[0].name,
+      streak_instance_id: `si_${key}`,
+      current_day: 0,
+      status: 'active' as const,
+      started_at: new Date().toISOString(),
+      last_activity_at: null,
+      grace_days_used: 0,
+      completed_days: [],
+    };
+    return HttpResponse.json({ data: detail });
+  }),
   http.get('*/admin/reward-endpoints', async () => { await wait(); return HttpResponse.json(rewardEndpoints.map((e) => { const o = { ...e }; delete o.hmac_secret; return o; })); }),
   http.get('*/admin/reward-endpoints/:reward_type_id', async ({ params }) => { await wait(); const id = Number(params.reward_type_id); const item = rewardEndpoints.find((e) => e.reward_type_id === id) ?? rewardEndpoints[0]; const o = { ...item }; delete o.hmac_secret; return HttpResponse.json(o); }),
   http.post('*/admin/reward-endpoints', async ({ request }) => { await wait(); const body = (await request.json()) as { reward_type_code: string; url: string }; const secret = `whsec_${Math.random().toString(36).slice(2)}${Math.random().toString(36).slice(2)}`; const nextId = Math.max(0, ...rewardEndpoints.map((e) => e.reward_type_id)) + 1; const row = { reward_type_id: nextId, reward_type_code: body.reward_type_code as RewardTypeCode, url: body.url, is_enabled: true, last_ping_at: null, last_ping_status: null as RewardEndpointPingStatus, last_ping_message: null, hmac_secret_last4: secret.slice(-4), created_at: new Date().toISOString(), updated_at: new Date().toISOString(), hmac_secret: secret }; rewardEndpoints.push(row); return HttpResponse.json(row, { status: 201 }); }),
@@ -199,8 +289,66 @@ handlers.push(
 
 import { leaderboard, markets, operatorConfig, predictionEvents, rankings } from '@/mocks/data/expandedTier5';
 handlers.push(
-  http.get('*/admin/operator-config', async () => { await wait(); return HttpResponse.json(operatorConfig); }),
-  http.patch('*/admin/operator-config', async ({ request }) => { await wait(); Object.assign(operatorConfig, await request.json()); return HttpResponse.json(operatorConfig); }),
+  http.get('*/admin/operator-config', async () => {
+    await wait();
+    return HttpResponse.json({
+      data: {
+        ...operatorConfig,
+        plan: {
+          code: 'pro',
+          name: 'Plan Pro',
+          modules_enabled: [
+            'xp_engine',
+            'coins',
+            'streaks',
+            'missions',
+            'shop',
+            'chests',
+            'rewards_delivery',
+            'rankings',
+            'predictions',
+            'tournaments',
+            'notifications',
+            'news',
+            'moderation',
+            'metrics',
+            'branding',
+          ],
+        },
+      },
+    });
+  }),
+  http.patch('*/admin/operator-config', async ({ request }) => {
+    await wait();
+    const body = (await request.json()) as Record<string, unknown>;
+    Object.assign(operatorConfig, body);
+    return HttpResponse.json({
+      data: {
+        ...operatorConfig,
+        plan: {
+          code: 'pro',
+          name: 'Plan Pro',
+          modules_enabled: [
+            'xp_engine',
+            'coins',
+            'streaks',
+            'missions',
+            'shop',
+            'chests',
+            'rewards_delivery',
+            'rankings',
+            'predictions',
+            'tournaments',
+            'notifications',
+            'news',
+            'moderation',
+            'metrics',
+            'branding',
+          ],
+        },
+      },
+    });
+  }),
   http.get('*/admin/rankings', async () => { await wait(); return HttpResponse.json(rankings); }),
   http.get('*/admin/rankings/:id/leaderboard', async ({ params }) => { await wait(); const ranking = rankings.find(r=>r.id===params.id)??rankings[0]; return HttpResponse.json({ ranking_id: ranking.id, updated_at: new Date().toISOString(), closes_at: ranking.closes_at, entries: leaderboard }); }),
   http.patch('*/admin/rankings/:id', async ({ params, request }) => { await wait(); const ranking = rankings.find(r=>r.id===params.id)??rankings[0]; Object.assign(ranking, await request.json()); return HttpResponse.json(ranking); }),
