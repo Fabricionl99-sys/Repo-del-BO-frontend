@@ -1,7 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { apiClient } from '@/api/client';
 import { toast } from '@/stores/toastStore';
-import type { BrandingConfig, FunnelStep, HeatmapCell, KpiSet, ModerationItem, ModerationStats, PalettePreset, VipDistribution } from '@/types/tier5';
+import type { FunnelStep, HeatmapCell, KpiSet, ModerationItem, ModerationStats, VipDistribution } from '@/types/tier5';
 export const useModerationQueue=(kind?:string)=>useQuery({queryKey:['moderation','queue',kind],queryFn:()=>apiClient.get('/admin/moderation/queue',{params:{kind}}).then(r=>r.data as ModerationItem[]),refetchInterval:30000});
 export const useModerationStats=()=>useQuery({queryKey:['moderation','stats'],queryFn:()=>apiClient.get('/admin/moderation/stats').then(r=>r.data as ModerationStats),refetchInterval:30000});
 export function useModerationAction(action:'approve'|'reject'|'warn'){const qc=useQueryClient();return useMutation({mutationFn:(id:string)=>apiClient.post(`/admin/moderation/queue/${id}/${action}`),onSuccess:()=>{toast.success(`acción ${action} registrada`);qc.invalidateQueries({queryKey:['moderation']})}})}
@@ -12,10 +12,3 @@ export const useVipDistribution=(period:string)=>useQuery({queryKey:['metrics','
 export const useHeatmap=(period:string)=>useQuery({queryKey:['metrics','heatmap',period],queryFn:()=>apiClient.get('/admin/metrics/heatmap',{params:{period}}).then(r=>r.data as HeatmapCell[])});
 export const useTopRules=(period:string)=>useQuery({queryKey:['metrics','rules',period],queryFn:()=>apiClient.get('/admin/metrics/top-rules',{params:{period,limit:5}}).then(r=>r.data as {id:string;name:string;count:number}[])});
 export const useTopPlayers=(period:string)=>useQuery({queryKey:['metrics','players',period],queryFn:()=>apiClient.get('/admin/metrics/top-players',{params:{period,limit:5}}).then(r=>r.data as {id:string;handle:string;xp:number}[])});
-export const useBranding=()=>useQuery({queryKey:['branding'],queryFn:()=>apiClient.get('/admin/branding').then(r=>r.data as BrandingConfig)});
-export const useBrandingDraft=()=>useQuery({queryKey:['branding','draft'],queryFn:()=>apiClient.get('/admin/branding/draft').then(r=>r.data as BrandingConfig)});
-export const usePalettePresets=()=>useQuery({queryKey:['branding','palettes'],queryFn:()=>apiClient.get('/admin/branding/palettes').then(r=>r.data as PalettePreset[])});
-export const useUpdateBrandingDraft=()=>useMutation({mutationFn:(draft:BrandingConfig)=>apiClient.put('/admin/branding/draft',draft)});
-export const usePublishBranding=()=>useMutation({mutationFn:(draft:BrandingConfig)=>apiClient.post('/admin/branding/publish',draft)});
-export const usePreviewToken=()=>useQuery({queryKey:['branding','preview-token'],queryFn:()=>apiClient.get('/admin/branding/preview-token').then(r=>r.data as {token:string})});
-export const useSuggestPalette=()=>useMutation({mutationFn:(imageUrl:string)=>apiClient.post('/admin/branding/suggest-palette',{imageUrl}).then(r=>r.data as BrandingConfig['palette'])});
