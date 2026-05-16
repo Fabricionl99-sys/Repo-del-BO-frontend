@@ -16,6 +16,7 @@ const ROUTE_MODULE: Record<string, ModuleCode | null> = {
   '/rachas': 'streaks',
   '/rankings': 'rankings',
   '/ranking': 'rankings',
+  '/avatares': 'avatars',
   '/predicciones': 'predictions',
   '/torneos': 'tournaments',
   '/tienda': 'shop',
@@ -51,6 +52,7 @@ export const SIDEBAR_MODULE_BY_PATH: Record<string, ModuleCode | null> = {
   '/rachas': 'streaks',
   '/rankings': 'rankings',
   '/ranking': 'rankings',
+  '/avatares': 'avatars',
   '/predicciones': 'predictions',
   '/feed': null,
   '/torneos': 'tournaments',
@@ -80,7 +82,7 @@ export const MODULE_NAV_LABELS: Partial<Record<ModuleCode, { path: string; label
   rewards_delivery: { path: '/bandeja-premios', label: 'Bandeja de premios' },
   notifications: { path: '/notificaciones', label: 'Notificaciones' },
   branding: { path: '/branding', label: 'Branding' },
-  avatars: { path: '/modulos', label: 'Avatares' },
+  avatars: { path: '/avatares', label: 'Avatares' },
   multi_currency: { path: '/modulos', label: 'Multi-moneda' },
 };
 

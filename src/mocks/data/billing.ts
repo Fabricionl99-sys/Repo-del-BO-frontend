@@ -149,6 +149,7 @@ export const activeModules: OperatorActiveModulePublic[] = [
   { code: 'tournaments', activated_at: iso(30), pending_deactivation: false, pending_deactivation_at: null, operator_price_usd_monthly: 170 },
   { code: 'predictions', activated_at: iso(30), pending_deactivation: false, pending_deactivation_at: null, operator_price_usd_monthly: 152 },
   { code: 'rankings', activated_at: iso(20), pending_deactivation: false, pending_deactivation_at: null, operator_price_usd_monthly: 125 },
+  { code: 'avatars', activated_at: iso(18), pending_deactivation: false, pending_deactivation_at: null, operator_price_usd_monthly: 80 },
   { code: 'branding', activated_at: iso(15), pending_deactivation: false, pending_deactivation_at: null, operator_price_usd_monthly: 71 },
   { code: 'notifications', activated_at: iso(10), pending_deactivation: true, pending_deactivation_at: iso(-7), operator_price_usd_monthly: 89 },
 ];

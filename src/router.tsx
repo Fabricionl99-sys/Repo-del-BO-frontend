@@ -31,6 +31,7 @@ const MetricsPage = lazy(() => import('@/features/metrics/pages/MetricsPage'));
 const BrandingPage = lazy(() => import('@/features/branding/pages/BrandingPage'));
 const SettingsPage = lazy(() => import('@/features/settings/pages/SettingsPage'));
 const RankingsPage = lazy(() => import('@/features/rankings/pages/RankingsPage'));
+const AvatarsPage = lazy(() => import('@/features/avatars/pages/AvatarsPage'));
 const PredictionsPage = lazy(() => import('@/features/predictions/pages/PredictionsPage'));
 const FeedPlaceholderPage = lazy(() => import('@/features/feed/pages/FeedPlaceholderPage'));
 const WalletPage = lazy(() => import('@/features/wallet/pages/WalletPage'));
@@ -107,6 +108,7 @@ export const router = createBrowserRouter([
       { path: 'configuracion-general', element: <ProtectedRoute roles={['admin']}>{wrap(<SettingsPage />)}</ProtectedRoute> },
       { path: 'rankings', element: wrap(<RankingsPage />) },
       { path: 'rankings/:code', element: wrap(<RankingsPage />) },
+      { path: 'avatares', element: wrap(<AvatarsPage />) },
       { path: 'ranking', element: <Navigate to="/rankings" replace /> },
       { path: 'predicciones', element: wrap(<PredictionsPage />) },
       { path: 'feed', element: wrap(<FeedPlaceholderPage />) },
