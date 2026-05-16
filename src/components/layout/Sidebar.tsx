@@ -60,7 +60,7 @@ const sections = [
       ['/misiones', 'Misiones', Target] as const,
       ['/cofres', 'Cofres', Package] as const,
       ['/rachas', 'Programas de racha', Flame] as const,
-      ['/ranking', 'Ranking', BarChart3] as const,
+      ['/rankings', 'Rankings', BarChart3] as const,
       ['/predicciones', 'Predicciones', Target] as const,
       ['/feed', 'Feed Social', MessageCircle, 'soon'] as const,
       ['/torneos', 'Torneos', Award] as const,
