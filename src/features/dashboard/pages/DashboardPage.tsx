@@ -257,19 +257,31 @@ function SystemStatusCard({
               <span className="text-[12px] text-text-tertiary">{service.metric}</span>
             </div>
           ))}
-          <div className="mt-4 border-t border-border-subtle pt-4">
-            <p className="label-section mb-2.5">consumo del plan</p>
-            <div className="mb-1.5 flex justify-between text-[13px]">
-              <span>eventos este mes</span>
-              <span className="text-text-tertiary">38.2M / 50M</span>
+          {query.data.planUsage.eventsLimit > 0 && (
+            <div className="mt-4 border-t border-border-subtle pt-4">
+              <p className="label-section mb-2.5">consumo del plan</p>
+              <div className="mb-1.5 flex justify-between text-[13px]">
+                <span>eventos este mes</span>
+                <span className="text-text-tertiary">
+                  {formatNumber(query.data.planUsage.eventsThisMonth, { compact: true })} /{' '}
+                  {formatNumber(query.data.planUsage.eventsLimit, { compact: true })}
+                </span>
+              </div>
+              <div className="h-1.5 overflow-hidden rounded-full bg-bg-tertiary">
+                <div
+                  className="h-full rounded-full bg-accent"
+                  style={{
+                    width: `${Math.min(100, (query.data.planUsage.eventsThisMonth / query.data.planUsage.eventsLimit) * 100)}%`,
+                  }}
+                />
+              </div>
+              {query.data.planUsage.daysToReset > 0 && (
+                <p className="mt-2 text-[11px] font-light italic text-text-tertiary">
+                  faltan {query.data.planUsage.daysToReset} días para que se renueve
+                </p>
+              )}
             </div>
-            <div className="h-1.5 overflow-hidden rounded-full bg-bg-tertiary">
-              <div className="h-full rounded-full bg-accent" style={{ width: '76%' }} />
-            </div>
-            <p className="mt-2 text-[11px] font-light italic text-text-tertiary">
-              faltan {query.data.planUsage.daysToReset} días para que se renueve
-            </p>
-          </div>
+          )}
         </div>
       )}
     </div>
