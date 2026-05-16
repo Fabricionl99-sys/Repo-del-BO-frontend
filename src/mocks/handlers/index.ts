@@ -287,6 +287,13 @@ handlers.push(
   http.get('*/admin/branding/preview-token', async () => { await wait(); return HttpResponse.json({token:'preview_mock_token'}); }),
 );
 
+import {
+  activeModules,
+  billingSnapshot,
+  moduleCatalog,
+  operatorPriceForModule,
+  walletTransactions,
+} from '@/mocks/data/billing';
 import { leaderboard, markets, operatorConfig, predictionEvents, rankings } from '@/mocks/data/expandedTier5';
 handlers.push(
   http.get('*/admin/operator-config', async () => {
@@ -294,27 +301,7 @@ handlers.push(
     return HttpResponse.json({
       data: {
         ...operatorConfig,
-        plan: {
-          code: 'pro',
-          name: 'Plan Pro',
-          modules_enabled: [
-            'xp_engine',
-            'coins',
-            'streaks',
-            'missions',
-            'shop',
-            'chests',
-            'rewards_delivery',
-            'rankings',
-            'predictions',
-            'tournaments',
-            'notifications',
-            'news',
-            'moderation',
-            'metrics',
-            'branding',
-          ],
-        },
+        ...billingSnapshot,
       },
     });
   }),
@@ -322,32 +309,82 @@ handlers.push(
     await wait();
     const body = (await request.json()) as Record<string, unknown>;
     Object.assign(operatorConfig, body);
+    Object.assign(billingSnapshot, body);
     return HttpResponse.json({
       data: {
         ...operatorConfig,
-        plan: {
-          code: 'pro',
-          name: 'Plan Pro',
-          modules_enabled: [
-            'xp_engine',
-            'coins',
-            'streaks',
-            'missions',
-            'shop',
-            'chests',
-            'rewards_delivery',
-            'rankings',
-            'predictions',
-            'tournaments',
-            'notifications',
-            'news',
-            'moderation',
-            'metrics',
-            'branding',
-          ],
-        },
+        ...billingSnapshot,
       },
     });
+  }),
+  http.get('*/admin/wallet/balance', async () => {
+    await wait();
+    return HttpResponse.json({ data: billingSnapshot });
+  }),
+  http.get('*/admin/wallet/transactions', async ({ request }) => {
+    await wait();
+    const url = new URL(request.url);
+    const limit = Number(url.searchParams.get('limit') ?? 20);
+    const offset = Number(url.searchParams.get('offset') ?? 0);
+    const type = url.searchParams.get('transaction_type');
+    const filtered = walletTransactions.filter((tx) => !type || tx.transaction_type === type);
+    const items = filtered.slice(offset, offset + limit);
+    return HttpResponse.json({ data: { items, total: filtered.length, limit, offset } });
+  }),
+  http.post('*/admin/wallet/topup', async ({ request }) => {
+    await wait();
+    const body = (await request.json()) as { amount_usd: number; payment_method: string; payment_reference?: string };
+    billingSnapshot.wallet_balance_usd += body.amount_usd;
+    operatorConfig.wallet_balance_usd = billingSnapshot.wallet_balance_usd;
+    const tx = {
+      id: `tx_${Date.now()}`,
+      transaction_type: 'topup' as const,
+      amount_usd: body.amount_usd,
+      reason: `Recarga ${body.payment_method}`,
+      notes: body.payment_reference ?? null,
+      balance_after_usd: billingSnapshot.wallet_balance_usd,
+      created_at: new Date().toISOString(),
+    };
+    walletTransactions.unshift(tx);
+    return HttpResponse.json({ data: tx }, { status: 201 });
+  }),
+  http.get('*/admin/modules/catalog', async () => {
+    await wait();
+    return HttpResponse.json({ data: moduleCatalog });
+  }),
+  http.get('*/admin/modules/active', async () => {
+    await wait();
+    return HttpResponse.json({ data: activeModules });
+  }),
+  http.post('*/admin/modules/:code/activate', async ({ params }) => {
+    await wait();
+    const code = params.code as string;
+    const catalog = moduleCatalog.find((m) => m.code === code);
+    const existing = activeModules.find((m) => m.code === code);
+    if (existing) {
+      existing.pending_deactivation = false;
+      existing.pending_deactivation_at = null;
+      return HttpResponse.json({ data: existing });
+    }
+    const mod = {
+      code,
+      activated_at: new Date().toISOString(),
+      pending_deactivation: false,
+      pending_deactivation_at: null,
+      operator_price_usd_monthly: catalog ? operatorPriceForModule(catalog.code, catalog.price_usd_monthly) : 0,
+    };
+    activeModules.push(mod as (typeof activeModules)[number]);
+    return HttpResponse.json({ data: mod }, { status: 201 });
+  }),
+  http.post('*/admin/modules/:code/deactivate', async ({ params }) => {
+    await wait();
+    const code = params.code as string;
+    const mod = activeModules.find((m) => m.code === code);
+    if (mod) {
+      mod.pending_deactivation = true;
+      mod.pending_deactivation_at = new Date(Date.now() + 7 * 86400000).toISOString();
+    }
+    return HttpResponse.json({ data: mod ?? { code, pending_deactivation: true } });
   }),
   http.get('*/admin/rankings', async () => { await wait(); return HttpResponse.json(rankings); }),
   http.get('*/admin/rankings/:id/leaderboard', async ({ params }) => { await wait(); const ranking = rankings.find(r=>r.id===params.id)??rankings[0]; return HttpResponse.json({ ranking_id: ranking.id, updated_at: new Date().toISOString(), closes_at: ranking.closes_at, entries: leaderboard }); }),

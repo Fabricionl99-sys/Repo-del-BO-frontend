@@ -26,6 +26,10 @@ export const operatorConfig: OperatorConfig = {
   privacy_url: 'https://casinoastral.com/privacidad',
   min_player_age: 18,
   game_catalog: { deportes: true, casino: true, casino_vivo: true, virtuales: true, poker: true },
+  billing_mode: 'wallet',
+  wallet_balance_usd: 2840.5,
+  wallet_low_balance_threshold_usd: 500,
+  status: 'active',
 };
 
 export const rankings: Ranking[] = [

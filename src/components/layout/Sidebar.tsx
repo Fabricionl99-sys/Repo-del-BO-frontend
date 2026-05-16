@@ -22,7 +22,7 @@ import {
   Zap,
 } from 'lucide-react';
 
-import { isModuleEnabled, SIDEBAR_MODULE_BY_PATH } from '@/features/plan/planModules';
+import { isModuleActive, SIDEBAR_MODULE_BY_PATH } from '@/features/billing/moduleCatalog';
 import { OperatorSelector } from './OperatorSelector';
 import { useAuthStore } from '@/stores/authStore';
 import { useOperatorStore } from '@/stores/operatorStore';
@@ -79,7 +79,7 @@ const sections = [
 
 export function Sidebar() {
   const role = useAuthStore((s) => s.user?.role);
-  const modules = useOperatorStore((s) => s.modulesEnabled);
+  const activeModuleCodes = useOperatorStore((s) => s.activeModuleCodes);
 
   return (
     <aside className="sticky top-0 h-screen overflow-y-auto border-r border-border-subtle bg-bg-secondary py-4">
@@ -97,7 +97,7 @@ export function Sidebar() {
             .filter((item) => {
               const roleOk = !item[3] || item[3] === role || item[3] === 'soon';
               const mod = SIDEBAR_MODULE_BY_PATH[item[0]];
-              return roleOk && isModuleEnabled(modules, mod);
+              return roleOk && isModuleActive(activeModuleCodes, mod);
             })
             .map(([to, label, Icon]) => (
               <NavLink
