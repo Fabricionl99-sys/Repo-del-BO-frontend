@@ -17,7 +17,10 @@ const MissionsPage = lazy(() => import('@/features/missions/pages/MissionsPage')
 const MissionEditorPage = lazy(() => import('@/features/missions/pages/MissionEditorPage'));
 const ChestsPage = lazy(() => import('@/features/chests/pages/ChestsPage'));
 const ChestEditorPage = lazy(() => import('@/features/chests/pages/ChestEditorPage'));
-const DailyRewardsPage = lazy(() => import('@/features/dailyRewards/pages/DailyRewardsPage'));
+const StreaksPage = lazy(() => import('@/features/streaks/pages/StreaksPage'));
+const StreakProgramEditorPage = lazy(() => import('@/features/streaks/pages/StreakProgramEditorPage'));
+const WebhooksPage = lazy(() => import('@/features/integrations/pages/WebhooksPage'));
+const DeliveriesPage = lazy(() => import('@/features/deliveries/pages/DeliveriesPage'));
 const TournamentsPage = lazy(() => import('@/features/tournaments/pages/TournamentsPage'));
 const TournamentEditorPage = lazy(() => import('@/features/tournaments/pages/TournamentEditorPage'));
 const ShopPage = lazy(() => import('@/features/shop/pages/ShopPage'));
@@ -78,7 +81,10 @@ export const router = createBrowserRouter([
       { path: 'cofres', element: wrap(<ChestsPage />) },
       { path: 'cofres/nuevo', element: wrap(<ChestEditorPage />) },
       { path: 'cofres/:id', element: wrap(<ChestEditorPage />) },
-      { path: 'recompensas-diarias', element: wrap(<DailyRewardsPage />) },
+      { path: 'recompensas-diarias', element: <Navigate to="/rachas" replace /> },
+      { path: 'rachas', element: wrap(<StreaksPage />) },
+      { path: 'rachas/nueva', element: wrap(<StreakProgramEditorPage />) },
+      { path: 'rachas/:id', element: wrap(<StreakProgramEditorPage />) },
       { path: 'torneos', element: wrap(<TournamentsPage />) },
       { path: 'torneos/nuevo', element: wrap(<TournamentEditorPage />) },
       { path: 'torneos/:id', element: wrap(<TournamentEditorPage />) },
@@ -93,6 +99,11 @@ export const router = createBrowserRouter([
       { path: 'noticias/:id', element: wrap(<NewsEditorPage />) },
       { path: 'moderacion', element: wrap(<ModerationPage />) },
       { path: 'metricas', element: wrap(<MetricsPage />) },
+      {
+        path: 'integraciones',
+        element: <ProtectedRoute roles={['admin']}>{wrap(<WebhooksPage />)}</ProtectedRoute>,
+      },
+      { path: 'bandeja-premios', element: wrap(<DeliveriesPage />) },
       { path: 'configuracion-general', element: <ProtectedRoute roles={['admin']}>{wrap(<SettingsPage />)}</ProtectedRoute> },
       { path: 'ranking', element: wrap(<RankingsPage />) },
       { path: 'predicciones', element: wrap(<PredictionsPage />) },
