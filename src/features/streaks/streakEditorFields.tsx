@@ -1,7 +1,7 @@
 import { useFormContext, useWatch } from 'react-hook-form';
 import type { Path } from 'react-hook-form';
 
-import { useChests } from '@/features/tier3Api';
+import { useChestTypeOptions } from '@/features/chests/chestsApi';
 import { useCoins } from '@/features/coinsApi';
 import {
   coinCodeForSelect,
@@ -126,7 +126,7 @@ export function ActivityConfigFields() {
 export function DailyRewardFields() {
   const { register, watch } = useFormContext<StreakEditorFormValues>();
   const coinsQ = useCoins();
-  const chestsQ = useChests();
+  const chestsQ = useChestTypeOptions();
   const kind = watch('daily_reward_kind');
   const coins = (coinsQ.data ?? []).filter((c) => c.active);
   const chests = chestsQ.data ?? [];
@@ -175,7 +175,7 @@ export function DailyRewardFields() {
           <select className="field" {...register('daily_chest_id')}>
             <option value="">Elegí…</option>
             {chests.map((c) => (
-              <option key={c.id} value={c.id}>
+              <option key={c.code} value={c.code}>
                 {c.name}
               </option>
             ))}
@@ -252,7 +252,7 @@ function mp(index: number, key: string): Path<StreakEditorFormValues> {
 export function MilestoneCard({ index }: { index: number }) {
   const { register, control } = useFormContext<StreakEditorFormValues>();
   const coinsQ = useCoins();
-  const chestsQ = useChests();
+  const chestsQ = useChestTypeOptions();
   const coins = (coinsQ.data ?? []).filter((c) => c.active);
   const chests = chestsQ.data ?? [];
   const kindRaw = useWatch({ control, name: mp(index, 'reward_kind') });
@@ -319,7 +319,7 @@ export function MilestoneCard({ index }: { index: number }) {
           <select className="field" {...register(mp(index, 'chest_id'))}>
             <option value="">Elegí…</option>
             {chests.map((c) => (
-              <option key={c.id} value={c.id}>
+              <option key={c.code} value={c.code}>
                 {c.name}
               </option>
             ))}

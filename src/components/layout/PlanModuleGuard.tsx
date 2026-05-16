@@ -7,7 +7,7 @@ import { useOperatorStore } from '@/stores/operatorStore';
 import { toast } from '@/stores/toastStore';
 
 /** Rutas que muestran su propio empty state si el módulo está inactivo. */
-const SELF_GATED_PREFIXES = ['/tienda', '/modulos', '/wallet'];
+const SELF_GATED_PREFIXES = ['/tienda', '/modulos', '/wallet', '/cofres'];
 
 export function PlanModuleGuard() {
   const location = useLocation();

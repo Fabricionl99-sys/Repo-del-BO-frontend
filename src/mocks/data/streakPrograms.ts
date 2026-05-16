@@ -18,7 +18,7 @@ export const streakPrograms: StreakProgram[] = [
     daily_micro_reward: { type: 'xp', config: { amount: 25 } },
     milestones: [
       { day_number: 3, reward_type: 'coins', reward_config: { amount: 100, coin_code: 'main' } },
-      { day_number: 7, reward_type: 'chest', reward_config: { chest_id: 'chest_legendary' } },
+      { day_number: 7, reward_type: 'chest', reward_config: { chest_id: 'legendario' } },
     ],
     is_active: true,
     activated_at: iso(-1),

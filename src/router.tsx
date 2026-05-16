@@ -16,7 +16,6 @@ const CoinsPage = lazy(() => import('@/features/coins/pages/CoinsPage'));
 const MissionsPage = lazy(() => import('@/features/missions/pages/MissionsPage'));
 const MissionEditorPage = lazy(() => import('@/features/missions/pages/MissionEditorPage'));
 const ChestsPage = lazy(() => import('@/features/chests/pages/ChestsPage'));
-const ChestEditorPage = lazy(() => import('@/features/chests/pages/ChestEditorPage'));
 const StreaksPage = lazy(() => import('@/features/streaks/pages/StreaksPage'));
 const StreakProgramEditorPage = lazy(() => import('@/features/streaks/pages/StreakProgramEditorPage'));
 const WebhooksPage = lazy(() => import('@/features/integrations/pages/WebhooksPage'));
@@ -80,8 +79,8 @@ export const router = createBrowserRouter([
       { path: 'misiones/nueva', element: wrap(<MissionEditorPage />) },
       { path: 'misiones/:id', element: wrap(<MissionEditorPage />) },
       { path: 'cofres', element: wrap(<ChestsPage />) },
-      { path: 'cofres/nuevo', element: wrap(<ChestEditorPage />) },
-      { path: 'cofres/:id', element: wrap(<ChestEditorPage />) },
+      { path: 'cofres/nuevo', element: wrap(<ChestsPage />) },
+      { path: 'cofres/:code', element: wrap(<ChestsPage />) },
       { path: 'recompensas-diarias', element: <Navigate to="/rachas" replace /> },
       { path: 'rachas', element: wrap(<StreaksPage />) },
       { path: 'rachas/nueva', element: wrap(<StreakProgramEditorPage />) },
