@@ -288,7 +288,7 @@ handlers.push(
 
 import { operatorPriceForModule } from '@/features/billing/pricing';
 import { activeModules, billingSnapshot, moduleCatalog, walletTransactions } from '@/mocks/data/billing';
-import { leaderboard, markets, operatorConfig, predictionEvents, rankings } from '@/mocks/data/expandedTier5';
+import { markets, operatorConfig, predictionEvents } from '@/mocks/data/expandedTier5';
 handlers.push(
   http.get('*/admin/operator-config', async () => {
     await wait();
@@ -380,12 +380,6 @@ handlers.push(
     }
     return HttpResponse.json({ data: mod ?? { code, pending_deactivation: true } });
   }),
-  http.get('*/admin/rankings', async () => { await wait(); return HttpResponse.json(rankings); }),
-  http.get('*/admin/rankings/:id/leaderboard', async ({ params }) => { await wait(); const ranking = rankings.find(r=>r.id===params.id)??rankings[0]; return HttpResponse.json({ ranking_id: ranking.id, updated_at: new Date().toISOString(), closes_at: ranking.closes_at, entries: leaderboard }); }),
-  http.patch('*/admin/rankings/:id', async ({ params, request }) => { await wait(); const ranking = rankings.find(r=>r.id===params.id)??rankings[0]; Object.assign(ranking, await request.json()); return HttpResponse.json(ranking); }),
-  http.post('*/admin/rankings/:id/activate', async ({ params }) => { await wait(); const ranking = rankings.find(r=>r.id===params.id)??rankings[0]; ranking.active = true; return HttpResponse.json(ranking); }),
-  http.post('*/admin/rankings/:id/deactivate', async ({ params }) => { await wait(); const ranking = rankings.find(r=>r.id===params.id)??rankings[0]; ranking.active = false; return HttpResponse.json(ranking); }),
-  http.get('*/admin/rankings/:id/history', async () => { await wait(); return HttpResponse.json([{ id:'hist_1', closed_at:new Date().toISOString(), winner:'@tigre_loco_82', distributed:185000 }]); }),
   http.get('*/admin/predictions/events', async ({ request }) => { await wait(); const status = new URL(request.url).searchParams.get('status'); return HttpResponse.json(predictionEvents.filter(e=>!status||e.status===status)); }),
   http.get('*/admin/predictions/events/:id', async ({ params }) => { await wait(); return HttpResponse.json(predictionEvents.find(e=>e.id===params.id)??predictionEvents[0]); }),
   http.post('*/admin/predictions/events', async ({ request }) => { await wait(); const body = await request.json() as Partial<typeof predictionEvents[number]>; const item = { ...predictionEvents[0], ...body, id:`evt_${Date.now()}`, status:'draft' as const }; predictionEvents.unshift(item); return HttpResponse.json(item,{status:201}); }),
@@ -674,5 +668,150 @@ handlers.push(
         p.player_id.toLowerCase().includes(q),
     );
     return HttpResponse.json({ data: list.slice(0, 10) });
+  }),
+);
+
+import {
+  leaderboardsByCode,
+  rankingConfigs,
+  recomputeLeaderboard,
+} from '@/mocks/data/rankings';
+import type {
+  RankingConfig,
+  RankingCreatePayload,
+  RankingMetadataPayload,
+  RankingPrize,
+  RankingPrizePayload,
+} from '@/types/rankings';
+
+function findRanking(code: string) {
+  return rankingConfigs.find((r) => r.code === code);
+}
+
+handlers.push(
+  http.get('*/admin/rankings', async ({ request }) => {
+    await wait();
+    const url = new URL(request.url);
+    const status = url.searchParams.get('status');
+    const periodType = url.searchParams.get('period_type');
+    const metricType = url.searchParams.get('metric_type');
+    const search = (url.searchParams.get('search') ?? '').toLowerCase();
+    let list = [...rankingConfigs];
+    if (status === 'active') list = list.filter((r) => r.status === 'active');
+    if (status === 'archived') list = list.filter((r) => r.status === 'archived');
+    if (periodType) list = list.filter((r) => r.period_type === periodType);
+    if (metricType) list = list.filter((r) => r.metric_type === metricType);
+    if (search) {
+      list = list.filter(
+        (r) => r.name.toLowerCase().includes(search) || r.code.toLowerCase().includes(search),
+      );
+    }
+    return HttpResponse.json({ data: list });
+  }),
+  http.get('*/admin/rankings/:code', async ({ params }) => {
+    await wait();
+    const item = findRanking(String(params.code));
+    if (!item) return new HttpResponse(null, { status: 404 });
+    return HttpResponse.json({ data: item });
+  }),
+  http.post('*/admin/rankings', async ({ request }) => {
+    await wait();
+    const body = (await request.json()) as RankingCreatePayload;
+    if (findRanking(body.code)) {
+      return HttpResponse.json({ message: 'code duplicado' }, { status: 409 });
+    }
+    const prizes: RankingPrize[] = body.prizes.map((p, i) => ({
+      ...p,
+      id: `rp_${body.code}_${Date.now()}_${i}`,
+    }));
+    const item: RankingConfig = {
+      id: `rank_${Date.now()}`,
+      code: body.code,
+      name: body.name,
+      description: body.description,
+      metric_type: body.metric_type,
+      period_type: body.period_type,
+      period_resets_at: body.period_resets_at,
+      is_active: body.is_active,
+      is_visible_to_players: body.is_visible_to_players,
+      max_visible_positions: body.max_visible_positions,
+      prizes,
+      restrictions: body.restrictions,
+      status: 'active',
+      last_recomputed_at: null,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    };
+    rankingConfigs.unshift(item);
+    leaderboardsByCode[item.code] = {
+      ranking_code: item.code,
+      updated_at: new Date().toISOString(),
+      entries: [],
+    };
+    return HttpResponse.json({ data: item }, { status: 201 });
+  }),
+  http.patch('*/admin/rankings/:code', async ({ params, request }) => {
+    await wait();
+    const item = findRanking(String(params.code));
+    if (!item) return new HttpResponse(null, { status: 404 });
+    const body = (await request.json()) as Partial<RankingMetadataPayload>;
+    Object.assign(item, body, { updated_at: new Date().toISOString() });
+    if (body.restrictions) item.restrictions = body.restrictions;
+    return HttpResponse.json({ data: item });
+  }),
+  http.delete('*/admin/rankings/:code', async ({ params }) => {
+    await wait();
+    const item = findRanking(String(params.code));
+    if (item) {
+      item.status = 'archived';
+      item.is_active = false;
+      item.updated_at = new Date().toISOString();
+    }
+    return new HttpResponse(null, { status: 204 });
+  }),
+  http.post('*/admin/rankings/:code/prizes', async ({ params, request }) => {
+    await wait();
+    const item = findRanking(String(params.code));
+    if (!item) return new HttpResponse(null, { status: 404 });
+    const body = (await request.json()) as RankingPrizePayload;
+    const prize: RankingPrize = { ...body, id: `rp_${params.code}_${Date.now()}` };
+    item.prizes.push(prize);
+    item.updated_at = new Date().toISOString();
+    return HttpResponse.json({ data: prize }, { status: 201 });
+  }),
+  http.patch('*/admin/rankings/:code/prizes/:prizeId', async ({ params, request }) => {
+    await wait();
+    const item = findRanking(String(params.code));
+    if (!item) return new HttpResponse(null, { status: 404 });
+    const prize = item.prizes.find((p) => p.id === params.prizeId);
+    if (!prize) return new HttpResponse(null, { status: 404 });
+    Object.assign(prize, (await request.json()) as RankingPrizePayload);
+    item.updated_at = new Date().toISOString();
+    return HttpResponse.json({ data: prize });
+  }),
+  http.delete('*/admin/rankings/:code/prizes/:prizeId', async ({ params }) => {
+    await wait();
+    const item = findRanking(String(params.code));
+    if (!item) return new HttpResponse(null, { status: 404 });
+    const index = item.prizes.findIndex((p) => p.id === params.prizeId);
+    if (index >= 0) item.prizes.splice(index, 1);
+    item.updated_at = new Date().toISOString();
+    return new HttpResponse(null, { status: 204 });
+  }),
+  http.get('*/admin/rankings/:code/leaderboard', async ({ params }) => {
+    await wait();
+    const code = String(params.code);
+    const board = leaderboardsByCode[code] ?? {
+      ranking_code: code,
+      updated_at: new Date().toISOString(),
+      entries: [],
+    };
+    return HttpResponse.json({ data: board });
+  }),
+  http.post('*/admin/rankings/:code/recompute', async ({ params }) => {
+    await wait();
+    const code = String(params.code);
+    const board = recomputeLeaderboard(code);
+    return HttpResponse.json({ data: board });
   }),
 );
