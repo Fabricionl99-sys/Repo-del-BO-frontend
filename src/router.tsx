@@ -35,6 +35,7 @@ const RankingsPage = lazy(() => import('@/features/rankings/pages/RankingsPage')
 const PredictionsPage = lazy(() => import('@/features/predictions/pages/PredictionsPage'));
 const FeedPlaceholderPage = lazy(() => import('@/features/feed/pages/FeedPlaceholderPage'));
 const WalletPage = lazy(() => import('@/features/wallet/pages/WalletPage'));
+const ModulesPage = lazy(() => import('@/features/modules/pages/ModulesPage'));
 const ComingSoonPage = lazy(() => import('@/pages/ComingSoonPage'));
 const NotFoundPage = lazy(() => import('@/pages/NotFoundPage'));
 
@@ -117,6 +118,11 @@ export const router = createBrowserRouter([
         path: 'wallet',
         element: <ProtectedRoute roles={['admin']}>{wrap(<WalletPage />)}</ProtectedRoute>,
       },
+      {
+        path: 'modulos',
+        element: <ProtectedRoute roles={['admin']}>{wrap(<ModulesPage />)}</ProtectedRoute>,
+      },
+      { path: 'billing', element: <Navigate to="/wallet" replace /> },
       ...comingSoonRoutes.map((route) => ({
         path: route.path,
         element: wrap(<ComingSoonPage title={route.title} description={route.description} />),

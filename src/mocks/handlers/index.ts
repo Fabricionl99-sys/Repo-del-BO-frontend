@@ -287,13 +287,8 @@ handlers.push(
   http.get('*/admin/branding/preview-token', async () => { await wait(); return HttpResponse.json({token:'preview_mock_token'}); }),
 );
 
-import {
-  activeModules,
-  billingSnapshot,
-  moduleCatalog,
-  operatorPriceForModule,
-  walletTransactions,
-} from '@/mocks/data/billing';
+import { operatorPriceForModule } from '@/features/billing/pricing';
+import { activeModules, billingSnapshot, moduleCatalog, walletTransactions } from '@/mocks/data/billing';
 import { leaderboard, markets, operatorConfig, predictionEvents, rankings } from '@/mocks/data/expandedTier5';
 handlers.push(
   http.get('*/admin/operator-config', async () => {
