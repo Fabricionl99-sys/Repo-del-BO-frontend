@@ -95,7 +95,7 @@ handlers.push(
   http.post('*/admin/levels/badge-upload', async () => { await wait(); return HttpResponse.json({ url: 'https://images.unsplash.com/photo-1529626455594-4ff0802cfb7e?w=64&h=64&fit=crop' }); }),
 );
 
-import { chests, missions, tournaments } from '@/mocks/data/tier3';
+import { missions, tournaments } from '@/mocks/data/tier3';
 import { streakPrograms } from '@/mocks/data/streakPrograms';
 import { playerStreakDetails, playerStreakSummaries } from '@/mocks/data/playerStreaks';
 import { rewardEndpoints } from '@/mocks/data/rewardEndpoints';
@@ -112,7 +112,6 @@ function crudHandlers<T extends { id: string }>(key: string, path: string, data:
   );
 }
 crudHandlers('mission', 'missions', missions);
-crudHandlers('chest', 'chests', chests);
 // streak-programs: shapes con wrapper { data } (api-shapes.md §5)
 handlers.push(
   http.get('*/admin/streak-programs', async () => {
@@ -156,7 +155,6 @@ crudHandlers('tournament', 'tournaments', tournaments);
 handlers.push(
   http.post('*/admin/missions/:id/duplicate', async ({ params }) => { await wait(); const item = missions.find((m) => m.id === params.id) ?? missions[0]; const copy = { ...item, id: `mission_copy_${Date.now()}`, name: `${item.name} copia`, status: 'draft' as const }; missions.unshift(copy); return HttpResponse.json(copy, { status: 201 }); }),
   http.get('*/admin/missions/:id/progress', async () => { await wait(); return HttpResponse.json({ started: 4821, completed: 1847, percent: 38.3 }); }),
-  http.post('*/admin/chests/:id/preview-opens', async () => { await wait(); return HttpResponse.json({ opens: 1000, distribution: [{ label: '100 oro', count: 502 }, { label: '500 oro', count: 301 }, { label: '1000 XP', count: 149 }, { label: 'jackpot', count: 48 }] }); }),
   http.post('*/admin/streak-programs/:id/activate', async ({ params }) => {
     await wait();
     const item = streakPrograms.find((p) => p.id === params.id) ?? streakPrograms[0];
@@ -492,5 +490,189 @@ handlers.push(
     const item = shopPurchases.find((p) => p.id === params.id);
     if (!item) return new HttpResponse(null, { status: 404 });
     return HttpResponse.json({ data: item });
+  }),
+);
+
+import {
+  chestInventory,
+  chestTypes,
+  playerSearchResults,
+} from '@/mocks/data/chests';
+import type {
+  ChestGrantManualPayload,
+  ChestPrize,
+  ChestPrizePayload,
+  ChestType,
+  ChestTypeCreatePayload,
+  ChestTypeMetadataPayload,
+} from '@/types/chests';
+
+function findChestType(code: string) {
+  return chestTypes.find((t) => t.code === code);
+}
+
+handlers.push(
+  http.get('*/admin/chests/types', async ({ request }) => {
+    await wait();
+    const url = new URL(request.url);
+    const status = url.searchParams.get('status');
+    const search = (url.searchParams.get('search') ?? '').toLowerCase();
+    let list = [...chestTypes];
+    if (status === 'active') list = list.filter((t) => t.status === 'active');
+    if (status === 'archived') list = list.filter((t) => t.status === 'archived');
+    if (search) {
+      list = list.filter(
+        (t) => t.name.toLowerCase().includes(search) || t.code.toLowerCase().includes(search),
+      );
+    }
+    return HttpResponse.json({ data: list });
+  }),
+  http.get('*/admin/chests/types/:code', async ({ params }) => {
+    await wait();
+    const item = findChestType(String(params.code));
+    if (!item) return new HttpResponse(null, { status: 404 });
+    return HttpResponse.json({ data: item });
+  }),
+  http.post('*/admin/chests/types', async ({ request }) => {
+    await wait();
+    const body = (await request.json()) as ChestTypeCreatePayload;
+    if (findChestType(body.code)) {
+      return HttpResponse.json({ message: 'code duplicado' }, { status: 409 });
+    }
+    const prizes: ChestPrize[] = body.prizes.map((p, i) => ({
+      ...p,
+      id: `prize_${body.code}_${Date.now()}_${i}`,
+    }));
+    const item: ChestType = {
+      code: body.code,
+      name: body.name,
+      description: body.description,
+      image_url: body.image_url,
+      color_theme: body.color_theme,
+      is_active: body.is_active,
+      default_expiration_hours: body.default_expiration_hours,
+      has_pity_system: body.has_pity_system,
+      pity_threshold: body.pity_threshold,
+      pity_guaranteed_prize_id: body.pity_guaranteed_prize_id,
+      prizes,
+      status: 'active',
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    };
+    chestTypes.unshift(item);
+    return HttpResponse.json({ data: item }, { status: 201 });
+  }),
+  http.patch('*/admin/chests/types/:code', async ({ params, request }) => {
+    await wait();
+    const item = findChestType(String(params.code));
+    if (!item) return new HttpResponse(null, { status: 404 });
+    const body = (await request.json()) as Partial<ChestTypeMetadataPayload>;
+    Object.assign(item, body, { updated_at: new Date().toISOString() });
+    return HttpResponse.json({ data: item });
+  }),
+  http.delete('*/admin/chests/types/:code', async ({ params }) => {
+    await wait();
+    const item = findChestType(String(params.code));
+    if (item) {
+      item.status = 'archived';
+      item.is_active = false;
+      item.updated_at = new Date().toISOString();
+    }
+    return new HttpResponse(null, { status: 204 });
+  }),
+  http.post('*/admin/chests/types/:code/prizes', async ({ params, request }) => {
+    await wait();
+    const item = findChestType(String(params.code));
+    if (!item) return new HttpResponse(null, { status: 404 });
+    const body = (await request.json()) as ChestPrizePayload;
+    const prize: ChestPrize = { ...body, id: `prize_${params.code}_${Date.now()}` };
+    item.prizes.push(prize);
+    item.updated_at = new Date().toISOString();
+    return HttpResponse.json({ data: prize }, { status: 201 });
+  }),
+  http.patch('*/admin/chests/types/:code/prizes/:prizeId', async ({ params, request }) => {
+    await wait();
+    const item = findChestType(String(params.code));
+    if (!item) return new HttpResponse(null, { status: 404 });
+    const prize = item.prizes.find((p) => p.id === params.prizeId);
+    if (!prize) return new HttpResponse(null, { status: 404 });
+    Object.assign(prize, (await request.json()) as ChestPrizePayload);
+    item.updated_at = new Date().toISOString();
+    return HttpResponse.json({ data: prize });
+  }),
+  http.delete('*/admin/chests/types/:code/prizes/:prizeId', async ({ params }) => {
+    await wait();
+    const item = findChestType(String(params.code));
+    if (!item) return new HttpResponse(null, { status: 404 });
+    const index = item.prizes.findIndex((p) => p.id === params.prizeId);
+    if (index >= 0) item.prizes.splice(index, 1);
+    item.updated_at = new Date().toISOString();
+    return new HttpResponse(null, { status: 204 });
+  }),
+  http.get('*/admin/chests/inventory', async ({ request }) => {
+    await wait();
+    const url = new URL(request.url);
+    const chestTypeCode = url.searchParams.get('chest_type_code');
+    const playerId = url.searchParams.get('player_id');
+    const playerSearch = (url.searchParams.get('player_search') ?? '').toLowerCase();
+    const status = url.searchParams.get('status');
+    const acquiredVia = url.searchParams.get('acquired_via');
+    const from = url.searchParams.get('from');
+    const to = url.searchParams.get('to');
+    const limit = Number(url.searchParams.get('limit') ?? 50);
+    const offset = Number(url.searchParams.get('offset') ?? 0);
+    let list = [...chestInventory];
+    if (chestTypeCode) list = list.filter((i) => i.chest_type_code === chestTypeCode);
+    if (playerId) list = list.filter((i) => i.player_id === playerId);
+    if (playerSearch) {
+      list = list.filter(
+        (i) =>
+          i.player_handle?.toLowerCase().includes(playerSearch) ||
+          i.player_id.toLowerCase().includes(playerSearch),
+      );
+    }
+    if (status) list = list.filter((i) => i.status === status);
+    if (acquiredVia) list = list.filter((i) => i.acquired_via === acquiredVia);
+    if (from) list = list.filter((i) => i.acquired_at >= from);
+    if (to) list = list.filter((i) => i.acquired_at <= `${to}T23:59:59.999Z`);
+    const items = list.slice(offset, offset + limit);
+    return HttpResponse.json({
+      data: items,
+      pagination: { limit, offset, total: list.length },
+    });
+  }),
+  http.post('*/admin/chests/grant-manual', async ({ request }) => {
+    await wait();
+    const body = (await request.json()) as ChestGrantManualPayload;
+    const type = findChestType(body.chest_type_code) ?? chestTypes[0];
+    const player = playerSearchResults.find((p) => p.player_id === body.player_id);
+    const item = {
+      id: `chest_inv_${Date.now()}`,
+      player_id: body.player_id,
+      player_handle: player?.player_handle ?? body.player_id,
+      chest_type_code: type.code,
+      chest_type_name: type.name,
+      acquired_at: new Date().toISOString(),
+      acquired_via: 'manual_grant' as const,
+      expires_at: type.default_expiration_hours
+        ? new Date(Date.now() + type.default_expiration_hours * 3600000).toISOString()
+        : null,
+      opened_at: null,
+      prize_id: null,
+      prize_snapshot: null,
+      status: 'unopened' as const,
+    };
+    chestInventory.unshift(item);
+    return HttpResponse.json({ data: item }, { status: 201 });
+  }),
+  http.get('*/admin/players/search', async ({ request }) => {
+    await wait();
+    const q = (new URL(request.url).searchParams.get('q') ?? '').toLowerCase();
+    const list = playerSearchResults.filter(
+      (p) =>
+        p.player_handle.toLowerCase().includes(q) ||
+        p.player_id.toLowerCase().includes(q),
+    );
+    return HttpResponse.json({ data: list.slice(0, 10) });
   }),
 );

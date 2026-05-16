@@ -1,0 +1,328 @@
+import type { ChestType, PlayerChestInventoryItem, PlayerSearchResult } from '@/types/chests';
+
+const iso = (daysAgo: number) => new Date(Date.now() - daysAgo * 86400000).toISOString();
+const isoFuture = (daysAhead: number) => new Date(Date.now() + daysAhead * 86400000).toISOString();
+
+export const chestTypes: ChestType[] = [
+  {
+    code: 'bronce',
+    name: 'Cofre Bronce',
+    description: 'Recompensas básicas para jugadores nuevos.',
+    image_url: 'https://images.unsplash.com/photo-1518709268805-4e9042af2176?w=400',
+    color_theme: '#CD7F32',
+    is_active: true,
+    default_expiration_hours: 168,
+    has_pity_system: false,
+    pity_threshold: null,
+    pity_guaranteed_prize_id: null,
+    prizes: [
+      {
+        id: 'prize_bronce_1',
+        reward_type: 'coins',
+        reward_config: { amount: 50, currency_code: 'main' },
+        probability_percent: 50,
+        image_url: 'https://images.unsplash.com/photo-1621761190629-7961477624c4?w=200',
+        name: '50 monedas',
+        is_rare: false,
+      },
+      {
+        id: 'prize_bronce_2',
+        reward_type: 'coins',
+        reward_config: { amount: 100, currency_code: 'main' },
+        probability_percent: 35,
+        image_url: 'https://images.unsplash.com/photo-1621761190629-7961477624c4?w=200',
+        name: '100 monedas',
+        is_rare: false,
+      },
+      {
+        id: 'prize_bronce_3',
+        reward_type: 'freespin',
+        reward_config: { quantity: 5, game_id: 'book_of_dead' },
+        probability_percent: 15,
+        image_url: 'https://images.unsplash.com/photo-1596838132731-3301c3fd4317?w=200',
+        name: '5 Free Spins',
+        is_rare: true,
+      },
+    ],
+    status: 'active',
+    created_at: iso(180),
+    updated_at: iso(10),
+  },
+  {
+    code: 'plata',
+    name: 'Cofre Plata',
+    description: 'Premios intermedios con chance de freebet.',
+    image_url: 'https://images.unsplash.com/photo-1610375461245-0973aa8e7b74?w=400',
+    color_theme: '#C0C0C0',
+    is_active: true,
+    default_expiration_hours: 120,
+    has_pity_system: false,
+    pity_threshold: null,
+    pity_guaranteed_prize_id: null,
+    prizes: [
+      {
+        id: 'prize_plata_1',
+        reward_type: 'coins',
+        reward_config: { amount: 200, currency_code: 'main' },
+        probability_percent: 40,
+        image_url: 'https://images.unsplash.com/photo-1621761190629-7961477624c4?w=200',
+        name: '200 monedas',
+        is_rare: false,
+      },
+      {
+        id: 'prize_plata_2',
+        reward_type: 'freebet',
+        reward_config: { amount: 5, currency: 'USD' },
+        probability_percent: 30,
+        image_url: 'https://images.unsplash.com/photo-1607863680198-23d4b2565df0?w=200',
+        name: 'Freebet $5',
+        is_rare: false,
+      },
+      {
+        id: 'prize_plata_3',
+        reward_type: 'freespin',
+        reward_config: { quantity: 15 },
+        probability_percent: 20,
+        image_url: 'https://images.unsplash.com/photo-1596838132731-3301c3fd4317?w=200',
+        name: '15 Free Spins',
+        is_rare: false,
+      },
+      {
+        id: 'prize_plata_4',
+        reward_type: 'cashback',
+        reward_config: { percentage: 5, max_amount: 25 },
+        probability_percent: 10,
+        image_url: 'https://images.unsplash.com/photo-1511512578047-dfb367046420?w=200',
+        name: 'Cashback 5%',
+        is_rare: true,
+      },
+    ],
+    status: 'active',
+    created_at: iso(150),
+    updated_at: iso(8),
+  },
+  {
+    code: 'oro',
+    name: 'Cofre Oro',
+    description: 'Recompensas premium con bono de depósito.',
+    image_url: 'https://images.unsplash.com/photo-1611591437281-460bfac57584?w=400',
+    color_theme: '#FFD700',
+    is_active: true,
+    default_expiration_hours: 72,
+    has_pity_system: true,
+    pity_threshold: 10,
+    pity_guaranteed_prize_id: 'prize_oro_4',
+    prizes: [
+      {
+        id: 'prize_oro_1',
+        reward_type: 'coins',
+        reward_config: { amount: 500, currency_code: 'main' },
+        probability_percent: 35,
+        image_url: 'https://images.unsplash.com/photo-1621761190629-7961477624c4?w=200',
+        name: '500 monedas',
+        is_rare: false,
+      },
+      {
+        id: 'prize_oro_2',
+        reward_type: 'freebet',
+        reward_config: { amount: 15, currency: 'USD' },
+        probability_percent: 25,
+        image_url: 'https://images.unsplash.com/photo-1607863680198-23d4b2565df0?w=200',
+        name: 'Freebet $15',
+        is_rare: false,
+      },
+      {
+        id: 'prize_oro_3',
+        reward_type: 'bonus_deposit',
+        reward_config: { amount: 50, currency: 'USD' },
+        probability_percent: 25,
+        image_url: 'https://images.unsplash.com/photo-1553729459-efe14ef3575c?w=200',
+        name: 'Bono $50',
+        is_rare: false,
+      },
+      {
+        id: 'prize_oro_4',
+        reward_type: 'freespin',
+        reward_config: { quantity: 50, game_id: 'starburst' },
+        probability_percent: 15,
+        image_url: 'https://images.unsplash.com/photo-1596838132731-3301c3fd4317?w=200',
+        name: '50 Free Spins Starburst',
+        is_rare: true,
+      },
+    ],
+    status: 'active',
+    created_at: iso(120),
+    updated_at: iso(5),
+  },
+  {
+    code: 'diamante',
+    name: 'Cofre Diamante',
+    description: 'Premios exclusivos VIP con cofres anidados.',
+    image_url: 'https://images.unsplash.com/photo-1615485500834-bc10199bc9c3?w=400',
+    color_theme: '#B9F2FF',
+    is_active: true,
+    default_expiration_hours: null,
+    has_pity_system: true,
+    pity_threshold: 8,
+    pity_guaranteed_prize_id: 'prize_diamante_5',
+    prizes: [
+      {
+        id: 'prize_diamante_1',
+        reward_type: 'coins',
+        reward_config: { amount: 1000, currency_code: 'vip' },
+        probability_percent: 30,
+        image_url: 'https://images.unsplash.com/photo-1621761190629-7961477624c4?w=200',
+        name: '1000 monedas VIP',
+        is_rare: false,
+      },
+      {
+        id: 'prize_diamante_2',
+        reward_type: 'freebet',
+        reward_config: { amount: 25, currency: 'USD' },
+        probability_percent: 25,
+        image_url: 'https://images.unsplash.com/photo-1607863680198-23d4b2565df0?w=200',
+        name: 'Freebet $25',
+        is_rare: false,
+      },
+      {
+        id: 'prize_diamante_3',
+        reward_type: 'avatar_pack',
+        reward_config: { avatar_ids: ['avatar_neon', 'avatar_gold'] },
+        probability_percent: 20,
+        image_url: 'https://images.unsplash.com/photo-1534447677768-be436bb09401?w=200',
+        name: 'Pack avatares Neon',
+        is_rare: false,
+      },
+      {
+        id: 'prize_diamante_4',
+        reward_type: 'chest',
+        reward_config: { chest_type_code: 'oro' },
+        probability_percent: 15,
+        image_url: 'https://images.unsplash.com/photo-1611591437281-460bfac57584?w=200',
+        name: 'Cofre Oro extra',
+        is_rare: false,
+      },
+      {
+        id: 'prize_diamante_5',
+        reward_type: 'manual',
+        reward_config: { description: 'Premio físico · merchandising exclusivo' },
+        probability_percent: 10,
+        image_url: 'https://images.unsplash.com/photo-1607083206968-13611e9d7648?w=200',
+        name: 'Merch exclusivo',
+        is_rare: true,
+      },
+    ],
+    status: 'active',
+    created_at: iso(90),
+    updated_at: iso(3),
+  },
+  {
+    code: 'legendario',
+    name: 'Cofre Legendario',
+    description: 'El cofre más codiciado · pity cada 10 aperturas.',
+    image_url: 'https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=400',
+    color_theme: '#9B59B6',
+    is_active: false,
+    default_expiration_hours: 48,
+    has_pity_system: true,
+    pity_threshold: 10,
+    pity_guaranteed_prize_id: 'prize_legendario_4',
+    prizes: [
+      {
+        id: 'prize_legendario_1',
+        reward_type: 'coins',
+        reward_config: { amount: 2000, currency_code: 'vip' },
+        probability_percent: 40,
+        image_url: 'https://images.unsplash.com/photo-1621761190629-7961477624c4?w=200',
+        name: '2000 monedas VIP',
+        is_rare: false,
+      },
+      {
+        id: 'prize_legendario_2',
+        reward_type: 'bonus_deposit',
+        reward_config: { amount: 100, currency: 'USD' },
+        probability_percent: 30,
+        image_url: 'https://images.unsplash.com/photo-1553729459-efe14ef3575c?w=200',
+        name: 'Bono $100',
+        is_rare: false,
+      },
+      {
+        id: 'prize_legendario_3',
+        reward_type: 'chest',
+        reward_config: { chest_type_code: 'diamante' },
+        probability_percent: 20,
+        image_url: 'https://images.unsplash.com/photo-1615485500834-bc10199bc9c3?w=200',
+        name: 'Cofre Diamante',
+        is_rare: false,
+      },
+      {
+        id: 'prize_legendario_4',
+        reward_type: 'manual',
+        reward_config: { description: 'Jackpot · viaje + $5000 en freebets' },
+        probability_percent: 10,
+        image_url: 'https://images.unsplash.com/photo-1469474968028-56623f02e42e?w=200',
+        name: 'Jackpot Legendario',
+        is_rare: true,
+      },
+    ],
+    status: 'archived',
+    created_at: iso(60),
+    updated_at: iso(1),
+  },
+];
+
+const players: PlayerSearchResult[] = [
+  { player_id: 'pl_8821', player_handle: 'crypto_king_88' },
+  { player_id: 'pl_4412', player_handle: 'MariaG_bet' },
+  { player_id: 'pl_1190', player_handle: 'slot_hunter' },
+  { player_id: 'pl_3301', player_handle: 'vip_roller' },
+  { player_id: 'pl_7720', player_handle: 'neon_player' },
+  { player_id: 'pl_9922', player_handle: 'theme_fan' },
+  { player_id: 'pl_5510', player_handle: 'retry_me' },
+  { player_id: 'pl_6611', player_handle: 'manual_ops' },
+  { player_id: 'pl_2244', player_handle: 'newbie_spin' },
+  { player_id: 'pl_7788', player_handle: 'high_roller_x' },
+];
+
+export const playerSearchResults = players;
+
+const acquiredViaOptions = [
+  'shop_purchase',
+  'mission_completed',
+  'streak_completed',
+  'level_up',
+  'welcome',
+  'manual_grant',
+] as const;
+
+function buildInventory(): PlayerChestInventoryItem[] {
+  const items: PlayerChestInventoryItem[] = [];
+  const typeCodes = chestTypes.filter((t) => t.status === 'active').map((t) => t.code);
+  let idx = 0;
+  for (let day = 0; day < 45; day += 1) {
+    const player = players[idx % players.length];
+    const type = chestTypes[idx % typeCodes.length];
+    const acquiredVia = acquiredViaOptions[idx % acquiredViaOptions.length];
+    const opened = idx % 3 !== 0;
+    const expired = !opened && idx % 7 === 0;
+    const prize = opened ? type.prizes[0] : null;
+    items.push({
+      id: `chest_inv_${String(idx + 1).padStart(3, '0')}`,
+      player_id: player.player_id,
+      player_handle: player.player_handle,
+      chest_type_code: type.code,
+      chest_type_name: type.name,
+      acquired_at: iso(day),
+      acquired_via: acquiredVia,
+      expires_at: type.default_expiration_hours ? isoFuture(type.default_expiration_hours / 24 - day) : null,
+      opened_at: opened ? iso(day - 0.5) : null,
+      prize_id: prize?.id ?? null,
+      prize_snapshot: opened && prize ? { ...prize } : null,
+      status: expired ? 'expired' : opened ? 'opened' : 'unopened',
+    });
+    idx += 1;
+  }
+  return items;
+}
+
+export const chestInventory: PlayerChestInventoryItem[] = buildInventory();
