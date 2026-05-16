@@ -1,15 +1,520 @@
-import { Monitor, RotateCcw, RotateCw, Save, Smartphone } from 'lucide-react';
-import { useDeferredValue, useEffect, useRef, useState } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import {
+  ArrowDownLeft,
+  ArrowDownRight,
+  ArrowUpLeft,
+  ArrowUpRight,
+  Eye,
+  Palette,
+  RotateCcw,
+  Save,
+  Type,
+} from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { Link, useSearchParams } from 'react-router-dom';
+
 import { Button } from '@/components/ui/Button';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { ErrorState } from '@/components/ui/ErrorState';
-import { IconButton } from '@/components/ui/IconButton';
 import { Loading } from '@/components/ui/Loading';
 import { PageHeader } from '@/components/ui/PageHeader';
-import { ConfiguratorScaffold, ConfigSection } from '@/components/configurator/ConfiguratorScaffold';
-import { useBranding, usePalettePresets, usePreviewToken, usePublishBranding, useSuggestPalette, useUpdateBrandingDraft } from '@/features/tier5Api';
-import type { BrandingConfig } from '@/types/tier5';
-export default function BrandingPage(){const [params]=useSearchParams(); const mock=params.get('mockState'); const q=useBranding(); const presets=usePalettePresets(); const update=useUpdateBrandingDraft(); const publish=usePublishBranding(); const suggest=useSuggestPalette(); const [draft,setDraft]=useState<BrandingConfig|null>(null); const config=draft??q.data; const deferred=useDeferredValue(config); useEffect(()=>{if(!draft)return; const t=setTimeout(()=>update.mutate(draft),1000); return()=>clearTimeout(t)},[draft,update]); if(mock==='empty')return <EmptyState title="Sin branding" description="Configura una paleta inicial para el widget."/>; if(mock==='loading'||q.isLoading)return <Loading label="Cargando branding..."/>; if(mock==='error'||q.isError||!config)return <ErrorState onRetry={()=>q.refetch()}/>; return <><PageHeader title="Branding" subtitle="personalizá la apariencia del widget que ven tus jugadores" actions={<><Button icon={<RotateCcw size={14}/>} onClick={()=>setDraft(null)}>resetear</Button><Button variant="primary" icon={<Save size={14}/>} loading={publish.isPending} onClick={()=>publish.mutate(config)}>publicar cambios</Button></>}/><div className="grid grid-cols-[1fr_400px] gap-6 max-[1300px]:grid-cols-1"><ConfiguratorScaffold><ConfigSection icon="🎨" title="paletas predefinidas"><div className="grid grid-cols-4 gap-3 max-md:grid-cols-2">{presets.data?.map(p=><button key={p.id} onClick={()=>setDraft({...config,palette:p.palette})} className="rounded-xl border border-border-subtle bg-bg-tertiary p-4 text-left hover:border-accent/30"><div className="mb-3 grid grid-cols-4 overflow-hidden rounded">{Object.values(p.palette).slice(0,4).map((c,i)=><span key={i} className="h-8" style={{background:c}}/>)}</div><b>{p.name}</b></button>)}</div></ConfigSection><ConfigSection icon="🌈" title="colores custom"><ColorGrid config={config} onChange={setDraft}/><Button loading={suggest.isPending} onClick={async()=>setDraft({...config,palette:await suggest.mutateAsync(config.images.logo??'mock')})}>sugerir paleta desde logo</Button></ConfigSection><ConfigSection icon="🔤" title="tipografía"><select className="field" value={config.typography.fontFamily} onChange={e=>setDraft({...config,typography:{...config.typography,fontFamily:e.target.value as BrandingConfig['typography']['fontFamily']}})}><option value="urbanist">Urbanist</option><option value="inter">Inter</option><option value="manrope">Manrope</option></select><select className="field" value={config.typography.baseSize} onChange={e=>setDraft({...config,typography:{...config.typography,baseSize:Number(e.target.value) as 14|15|16}})}><option value="14">14px</option><option value="15">15px</option><option value="16">16px</option></select></ConfigSection><ConfigSection icon="📐" title="densidad"><select className="field" value={config.density} onChange={e=>setDraft({...config,density:e.target.value as BrandingConfig['density']})}><option value="compact">compacta</option><option value="medium">media</option><option value="spacious">espaciosa</option></select></ConfigSection><ConfigSection icon="🖼️" title="imágenes"><input className="field" value={config.images.logo??''} onChange={e=>setDraft({...config,images:{...config.images,logo:e.target.value}})}/><Button>subir imagen</Button></ConfigSection><ConfigSection icon="💬" title="textos personalizados"><input className="field" value={config.texts.homeGreeting} onChange={e=>setDraft({...config,texts:{...config.texts,homeGreeting:e.target.value}})}/><input className="field" value={config.texts.primaryButton} onChange={e=>setDraft({...config,texts:{...config.texts,primaryButton:e.target.value}})}/></ConfigSection></ConfiguratorScaffold><aside><LiveWidgetPreview config={deferred}/></aside></div></>}
-function ColorGrid({config,onChange}:{config:BrandingConfig;onChange:(c:BrandingConfig)=>void}){const keys=Object.keys(config.palette) as Array<keyof BrandingConfig['palette']>;return <div className="grid grid-cols-2 gap-3">{keys.map(k=><label key={k} className="rounded-lg border border-border-subtle bg-bg-tertiary p-3"><span className="mb-1 block text-[11px] text-text-tertiary">{k}</span><div className="flex gap-2"><input type="color" value={config.palette[k].startsWith('#')?config.palette[k]:'#0AF784'} onChange={e=>onChange({...config,palette:{...config.palette,[k]:e.target.value}})}/><input className="field py-1" value={config.palette[k]} onChange={e=>onChange({...config,palette:{...config.palette,[k]:e.target.value}})}/></div></label>)}</div>}
-function LiveWidgetPreview({config}:{config:BrandingConfig|undefined}){const [viewport,setViewport]=useState<'mobile'|'desktop'>('mobile'); const token=usePreviewToken(); const iframe=useRef<HTMLIFrameElement>(null); useEffect(()=>{iframe.current?.contentWindow?.postMessage({type:'BRANDING_UPDATE',config},'*')},[config]); if(!config)return null; const src=`https://widget.niveles.io/preview?token=${token.data?.token??'mock'}`; return <div className="card overflow-hidden"><header className="section-head"><h2 className="section-title">Preview en vivo</h2><div className="flex gap-1"><IconButton icon={Smartphone} active={viewport==='mobile'} onClick={()=>setViewport('mobile')} title="móvil"/><IconButton icon={Monitor} active={viewport==='desktop'} onClick={()=>setViewport('desktop')} title="desktop"/><IconButton icon={RotateCw} onClick={()=>iframe.current?.contentWindow?.location.reload()} title="recargar"/></div></header><div className="flex justify-center bg-bg-tertiary p-5"><div className={`${viewport==='mobile'?'h-[640px] w-[320px]':'h-[640px] w-full'} overflow-hidden rounded-2xl bg-bg-primary shadow-modal`}><iframe ref={iframe} src={src} title="widget preview" className="h-full w-full border-0"/></div></div><p className="p-4 text-[11px] text-text-tertiary">Los cambios se envían por postMessage al iframe del widget real.</p></div>}
+import { ConfigSection, ConfiguratorScaffold } from '@/components/configurator/ConfiguratorScaffold';
+import { isModuleActive } from '@/features/billing/moduleCatalog';
+import { cn } from '@/lib/cn';
+import { useOperatorStore } from '@/stores/operatorStore';
+import type { BrandingConfig, BrandingFontFamily, ColorPalette, WidgetPosition, WidgetSize } from '@/types/branding';
+import { BRANDING_FONT_OPTIONS, WELCOME_TEXT_MAX } from '@/types/branding';
+
+import {
+  useBrandingConfig,
+  usePreviewBranding,
+  useResetBranding,
+  useUpdateBranding,
+  useUploadBackground,
+  useUploadFavicon,
+  useUploadLogo,
+} from '../brandingApi';
+import { formToUpdatePayload, configToFormValues } from '../brandingForm';
+import { PALETTE_PRESETS, presetPalette } from '../brandingPresets';
+import {
+  validateBackgroundUpload,
+  validateCustomCss,
+  validateFaviconUpload,
+  validateLogoUpload,
+  validateWelcomeText,
+} from '../brandingUploadValidation';
+import { BrandingUploadZone, fileToDataUrl } from '../components/BrandingUploadZone';
+import { ResetBrandingModal } from '../components/ResetBrandingModal';
+import { WidgetPreviewMock } from '../components/WidgetPreviewMock';
+import { WidgetPreviewModal } from '../components/WidgetPreviewModal';
+
+const tabs = ['Paleta de colores', 'Tipografía', 'Logo e imágenes', 'Configuración del widget', 'Avanzado'] as const;
+type Tab = (typeof tabs)[number];
+
+const colorKeys: Array<keyof ColorPalette> = [
+  'primary_color',
+  'secondary_color',
+  'accent_color',
+  'background_color',
+  'text_color',
+];
+
+const colorLabels: Record<keyof ColorPalette, string> = {
+  primary_color: 'primary',
+  secondary_color: 'secondary',
+  accent_color: 'accent',
+  background_color: 'background',
+  text_color: 'text',
+};
+
+const positionOptions: Array<{ value: WidgetPosition; icon: typeof ArrowDownRight; label: string }> = [
+  { value: 'bottom_right', icon: ArrowDownRight, label: 'abajo derecha' },
+  { value: 'bottom_left', icon: ArrowDownLeft, label: 'abajo izquierda' },
+  { value: 'top_right', icon: ArrowUpRight, label: 'arriba derecha' },
+  { value: 'top_left', icon: ArrowUpLeft, label: 'arriba izquierda' },
+];
+
+const sizeOptions: WidgetSize[] = ['small', 'medium', 'large'];
+
+export default function BrandingPage() {
+  const [params] = useSearchParams();
+  const mock = params.get('mockState');
+  const activeModuleCodes = useOperatorStore((s) => s.activeModuleCodes);
+  const brandingActive = isModuleActive(activeModuleCodes, 'branding');
+
+  const [tab, setTab] = useState<Tab>('Paleta de colores');
+  const [draft, setDraft] = useState<BrandingConfig | null>(null);
+  const [customMode, setCustomMode] = useState(false);
+  const [previewOpen, setPreviewOpen] = useState(false);
+  const [resetOpen, setResetOpen] = useState(false);
+  const [cssError, setCssError] = useState<string | undefined>();
+
+  const configQ = useBrandingConfig();
+  const update = useUpdateBranding();
+  const preview = usePreviewBranding();
+  const reset = useResetBranding();
+  const uploadLogo = useUploadLogo();
+  const uploadFavicon = useUploadFavicon();
+  const uploadBackground = useUploadBackground();
+
+  const saved = configQ.data;
+  const config = draft ?? saved;
+
+  useEffect(() => {
+    if (saved && !draft) {
+      setCustomMode(saved.palette_preset === 'custom');
+    }
+  }, [saved, draft]);
+
+  if (!brandingActive && mock !== 'loading') {
+    return (
+      <>
+        <PageHeader title="Branding" subtitle="Personalizá la apariencia del widget para tus jugadores" />
+        <EmptyState
+          icon={Palette}
+          title="Módulo Branding no activo"
+          description="Activá el módulo branding desde el catálogo para personalizar colores, tipografías y assets."
+          action={
+            <Link to="/modulos">
+              <Button variant="primary">Activar módulo Branding</Button>
+            </Link>
+          }
+        />
+      </>
+    );
+  }
+
+  if (mock === 'empty') {
+    return (
+      <>
+        <PageHeader title="Branding" subtitle="Personalizá la apariencia del widget para tus jugadores" />
+        <EmptyState
+          icon={Palette}
+          title="Empezá personalizando"
+          description="Elegí una paleta predefinida o creá la tuya para el widget de gamificación."
+          action={<Button variant="primary" onClick={() => configQ.refetch()}>Cargar configuración</Button>}
+        />
+      </>
+    );
+  }
+
+  if (mock === 'loading' || configQ.isLoading) return <Loading label="Cargando branding..." />;
+  if (mock === 'error' || configQ.isError || !config) return <ErrorState onRetry={() => configQ.refetch()} />;
+
+  const patch = (partial: Partial<BrandingConfig>) => setDraft({ ...config, ...partial });
+
+  const applyPreset = (presetId: BrandingConfig['palette_preset']) => {
+    if (presetId === 'custom') {
+      setCustomMode(true);
+      patch({ palette_preset: 'custom' });
+      return;
+    }
+    setCustomMode(false);
+    patch({
+      palette_preset: presetId,
+      color_palette: presetPalette(presetId),
+    });
+  };
+
+  const handleSave = async () => {
+    const welcomeErr = validateWelcomeText(config.welcome_text);
+    const cssErr = validateCustomCss(config.custom_css ?? '');
+    if (welcomeErr || cssErr) {
+      setCssError(cssErr);
+      return;
+    }
+    await update.mutateAsync(formToUpdatePayload(configToFormValues(config)));
+    setDraft(null);
+  };
+
+  const handlePreview = async () => {
+    await preview.mutateAsync(formToUpdatePayload(configToFormValues(config)));
+    setPreviewOpen(true);
+  };
+
+  const handleReset = async () => {
+    const next = await reset.mutateAsync();
+    setDraft(next);
+    setCustomMode(false);
+    setResetOpen(false);
+  };
+
+  return (
+    <>
+      <PageHeader title="Branding" subtitle="Personalizá colores, tipografías, logos y comportamiento del widget" />
+
+      <div className="mb-4 flex flex-wrap gap-2 border-b border-border-subtle">
+        {tabs.map((t) => (
+          <button
+            key={t}
+            type="button"
+            onClick={() => setTab(t)}
+            className={cn(
+              'px-4 py-2 text-sm font-medium transition-colors',
+              tab === t ? 'border-b-2 border-accent text-accent' : 'text-text-secondary hover:text-text-primary',
+            )}
+          >
+            {t}
+          </button>
+        ))}
+      </div>
+
+      <div className="grid grid-cols-[1fr_360px] gap-6 pb-28 max-[1200px]:grid-cols-1">
+        <ConfiguratorScaffold>
+          {tab === 'Paleta de colores' && (
+            <ConfigSection icon={<Palette size={16} />} title="paletas predefinidas">
+              <div className="grid grid-cols-2 gap-3 max-md:grid-cols-1">
+                {PALETTE_PRESETS.map((preset) => (
+                  <button
+                    key={preset.id}
+                    type="button"
+                    onClick={() => applyPreset(preset.id)}
+                    className={cn(
+                      'rounded-xl border bg-bg-secondary p-4 text-left transition hover:-translate-y-0.5',
+                      config.palette_preset === preset.id ? 'border-accent' : 'border-border-subtle',
+                    )}
+                  >
+                    <div className="mb-3 grid grid-cols-5 overflow-hidden rounded-lg">
+                      {Object.values(preset.color_palette).map((c, i) => (
+                        <span key={i} className="h-8" style={{ background: c }} />
+                      ))}
+                    </div>
+                    <div className="text-[14px] font-semibold">{preset.name}</div>
+                    <p className="mt-1 text-[11px] text-text-tertiary">{preset.description}</p>
+                  </button>
+                ))}
+              </div>
+              <Button variant="ghost" className="mt-4" onClick={() => applyPreset('custom')}>
+                Personalizar paleta
+              </Button>
+              {customMode && (
+                <div className="mt-4 space-y-4 rounded-xl border border-border-subtle bg-bg-secondary p-4">
+                  <p className="label-section">modo custom</p>
+                  <div className="grid grid-cols-2 gap-3 max-md:grid-cols-1">
+                    {colorKeys.map((key) => (
+                      <label key={key} className="rounded-lg border border-border-subtle bg-bg-tertiary p-3">
+                        <span className="mb-1 block text-[11px] text-text-tertiary">{colorLabels[key]}</span>
+                        <div className="flex gap-2">
+                          <input
+                            type="color"
+                            value={config.color_palette[key]}
+                            onChange={(e) =>
+                              patch({
+                                palette_preset: 'custom',
+                                color_palette: { ...config.color_palette, [key]: e.target.value },
+                              })
+                            }
+                          />
+                          <input
+                            className="field py-1 font-mono text-[12px]"
+                            value={config.color_palette[key]}
+                            onChange={(e) =>
+                              patch({
+                                palette_preset: 'custom',
+                                color_palette: { ...config.color_palette, [key]: e.target.value },
+                              })
+                            }
+                          />
+                        </div>
+                      </label>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </ConfigSection>
+          )}
+
+          {tab === 'Tipografía' && (
+            <ConfigSection icon={<Type size={16} />} title="tipografía">
+              <div className="grid grid-cols-2 gap-3 max-md:grid-cols-1">
+                <div>
+                  <label className="mb-1 block text-[12px] text-text-secondary">fuente</label>
+                  <select
+                    className="field"
+                    value={config.typography.font_family}
+                    onChange={(e) =>
+                      patch({
+                        typography: { ...config.typography, font_family: e.target.value as BrandingFontFamily },
+                      })
+                    }
+                  >
+                    {BRANDING_FONT_OPTIONS.map((f) => (
+                      <option key={f} value={f}>{f}</option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label className="mb-1 block text-[12px] text-text-secondary">peso títulos</label>
+                  <select
+                    className="field"
+                    value={config.typography.heading_weight}
+                    onChange={(e) =>
+                      patch({
+                        typography: {
+                          ...config.typography,
+                          heading_weight: e.target.value as BrandingConfig['typography']['heading_weight'],
+                        },
+                      })
+                    }
+                  >
+                    {['400', '500', '600', '700', '800'].map((w) => (
+                      <option key={w} value={w}>{w}</option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label className="mb-1 block text-[12px] text-text-secondary">peso cuerpo</label>
+                  <select
+                    className="field"
+                    value={config.typography.body_weight}
+                    onChange={(e) =>
+                      patch({
+                        typography: {
+                          ...config.typography,
+                          body_weight: e.target.value as BrandingConfig['typography']['body_weight'],
+                        },
+                      })
+                    }
+                  >
+                    {['400', '500', '600'].map((w) => (
+                      <option key={w} value={w}>{w}</option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+              <div
+                className="mt-4 rounded-xl border border-border-subtle p-4"
+                style={{ fontFamily: config.typography.font_family }}
+              >
+                <div style={{ fontWeight: config.typography.heading_weight }} className="text-[20px]">
+                  Título del widget
+                </div>
+                <div style={{ fontWeight: config.typography.body_weight }} className="mt-2 text-[14px] text-text-secondary">
+                  Texto de cuerpo · misiones, tienda y progreso de nivel
+                </div>
+              </div>
+            </ConfigSection>
+          )}
+
+          {tab === 'Logo e imágenes' && (
+            <ConfigSection icon={<Palette size={16} />} title="assets visuales">
+              <div className="grid grid-cols-2 gap-4 max-md:grid-cols-1">
+                <div>
+                  <p className="label-section mb-2">logo</p>
+                  <BrandingUploadZone
+                    previewUrl={config.logo_url}
+                    hint="500 KB · 200-1024 px · PNG/JPG/WebP/SVG · cuadrado"
+                    accept="image/png,image/jpeg,image/webp,image/svg+xml"
+                    validate={validateLogoUpload}
+                    onValidated={async (file, url) => {
+                      const uploaded = await uploadLogo.mutateAsync(file).catch(async () => ({
+                        url: await fileToDataUrl(file),
+                      }));
+                      patch({ logo_url: uploaded.url ?? url });
+                    }}
+                    onClear={() => patch({ logo_url: null })}
+                  />
+                </div>
+                <div>
+                  <p className="label-section mb-2">favicon</p>
+                  <BrandingUploadZone
+                    previewUrl={config.favicon_url}
+                    hint="100 KB · 16-256 px · PNG/ICO"
+                    accept="image/png,image/x-icon,.ico"
+                    previewClassName="h-10 w-10"
+                    validate={validateFaviconUpload}
+                    onValidated={async (file, url) => {
+                      const uploaded = await uploadFavicon.mutateAsync(file).catch(async () => ({
+                        url: await fileToDataUrl(file),
+                      }));
+                      patch({ favicon_url: uploaded.url ?? url });
+                    }}
+                    onClear={() => patch({ favicon_url: null })}
+                  />
+                  <div className="mt-2 flex items-center gap-2 rounded-lg border border-border-subtle bg-bg-tertiary px-3 py-2">
+                    {config.favicon_url && <img src={config.favicon_url} alt="" className="h-4 w-4" />}
+                    <span className="text-[11px] text-text-tertiary">preview tab simulada</span>
+                  </div>
+                </div>
+              </div>
+              <div className="mt-4">
+                <p className="label-section mb-2">background (opcional)</p>
+                <BrandingUploadZone
+                  previewUrl={config.background_image_url}
+                  hint="2 MB · mínimo 1920×1080 · PNG/JPG/WebP"
+                  accept="image/png,image/jpeg,image/webp"
+                  previewClassName="h-24 w-full"
+                  validate={validateBackgroundUpload}
+                  onValidated={async (file, url) => {
+                    const uploaded = await uploadBackground.mutateAsync(file).catch(async () => ({
+                      url: await fileToDataUrl(file),
+                    }));
+                    patch({ background_image_url: uploaded.url ?? url });
+                  }}
+                  onClear={() => patch({ background_image_url: null })}
+                />
+              </div>
+            </ConfigSection>
+          )}
+
+          {tab === 'Configuración del widget' && (
+            <ConfigSection title="widget">
+              <div className="mb-4">
+                <p className="label-section mb-2">posición</p>
+                <div className="grid grid-cols-2 gap-2 max-md:grid-cols-1">
+                  {positionOptions.map(({ value, icon: Icon, label }) => (
+                    <label
+                      key={value}
+                      className={cn(
+                        'flex cursor-pointer items-center gap-2 rounded-lg border px-3 py-2 text-[12px]',
+                        config.widget_position === value ? 'border-accent bg-accent/5' : 'border-border-subtle',
+                      )}
+                    >
+                      <input
+                        type="radio"
+                        name="widget_position"
+                        checked={config.widget_position === value}
+                        onChange={() => patch({ widget_position: value })}
+                      />
+                      <Icon size={14} />
+                      {label}
+                    </label>
+                  ))}
+                </div>
+              </div>
+              <div className="mb-4">
+                <p className="label-section mb-2">tamaño</p>
+                <div className="flex flex-wrap gap-2">
+                  {sizeOptions.map((size) => (
+                    <label
+                      key={size}
+                      className={cn(
+                        'cursor-pointer rounded-lg border px-4 py-2 text-[12px] capitalize',
+                        config.widget_size === size ? 'border-accent bg-accent/5' : 'border-border-subtle',
+                      )}
+                    >
+                      <input
+                        type="radio"
+                        name="widget_size"
+                        checked={config.widget_size === size}
+                        onChange={() => patch({ widget_size: size })}
+                      />
+                      {size}
+                    </label>
+                  ))}
+                </div>
+              </div>
+              <div>
+                <label className="mb-1 block text-[12px] text-text-secondary">texto de bienvenida</label>
+                <textarea
+                  className="field min-h-20"
+                  maxLength={WELCOME_TEXT_MAX}
+                  value={config.welcome_text}
+                  onChange={(e) => patch({ welcome_text: e.target.value })}
+                />
+                <p className="mt-1 text-[11px] text-text-tertiary">
+                  {config.welcome_text.length}/{WELCOME_TEXT_MAX}
+                </p>
+              </div>
+            </ConfigSection>
+          )}
+
+          {tab === 'Avanzado' && (
+            <ConfigSection title="developers">
+              <p className="mb-3 rounded-lg border border-warning/30 bg-warning/10 px-3 py-2 text-[12px] text-warning">
+                Cambios avanzados · usar con cuidado. CSS inválido puede romper el widget.
+              </p>
+              <textarea
+                className="field min-h-40 font-mono text-[12px]"
+                placeholder=".widget-header { border-radius: 12px; }"
+                value={config.custom_css ?? ''}
+                onChange={(e) => {
+                  setCssError(validateCustomCss(e.target.value));
+                  patch({ custom_css: e.target.value || null });
+                }}
+              />
+              {cssError && <p className="mt-1 text-[12px] text-danger">{cssError}</p>}
+              <Button
+                variant="ghost"
+                className="mt-2"
+                onClick={() => setPreviewOpen(true)}
+              >
+                Probar CSS en preview
+              </Button>
+            </ConfigSection>
+          )}
+        </ConfiguratorScaffold>
+
+        <aside className="hidden max-[1200px]:block">
+          <WidgetPreviewMock config={config} viewport="mobile" />
+        </aside>
+        <aside className="max-[1200px]:hidden">
+          <div className="card sticky top-4 overflow-hidden">
+            <header className="section-head">
+              <h2 className="label-section">preview en vivo</h2>
+            </header>
+            <div className="bg-bg-tertiary p-4">
+              <WidgetPreviewMock config={config} viewport="mobile" />
+            </div>
+          </div>
+        </aside>
+      </div>
+
+      <div className="fixed bottom-0 left-[240px] right-0 z-20 border-t border-border-subtle bg-bg-primary/95 px-6 py-4 backdrop-blur max-md:left-0">
+        <div className="flex flex-wrap items-center justify-end gap-3">
+          <Button variant="ghost" icon={<RotateCcw size={14} />} onClick={() => setResetOpen(true)}>
+            Resetear a defaults
+          </Button>
+          <Button variant="ghost" icon={<Eye size={14} />} loading={preview.isPending} onClick={handlePreview}>
+            Vista previa
+          </Button>
+          <Button variant="primary" icon={<Save size={14} />} loading={update.isPending} onClick={handleSave}>
+            Guardar cambios
+          </Button>
+        </div>
+      </div>
+
+      <WidgetPreviewModal open={previewOpen} config={config} onClose={() => setPreviewOpen(false)} />
+      <ResetBrandingModal open={resetOpen} loading={reset.isPending} onClose={() => setResetOpen(false)} onConfirm={handleReset} />
+    </>
+  );
+}
