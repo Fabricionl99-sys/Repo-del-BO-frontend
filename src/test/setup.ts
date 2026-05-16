@@ -1,7 +1,9 @@
 import '@testing-library/jest-dom/vitest';
-import { cleanup } from '@testing-library/react';
+import { cleanup, configure } from '@testing-library/react';
 import { afterAll, afterEach, beforeAll } from 'vitest';
 import { server } from '@/mocks/server';
+
+configure({ asyncUtilTimeout: 5_000 });
 
 /** MSW XMLHttpRequest interceptor expects ProgressEvent in Node/jsdom. */
 if (typeof globalThis.ProgressEvent === 'undefined') {
