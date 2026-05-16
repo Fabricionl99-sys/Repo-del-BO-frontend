@@ -257,7 +257,10 @@ handlers.push(
   http.post('*/admin/news/upload-banner', async () => { await wait(); return HttpResponse.json({ uploadUrl: 'https://uploads.preview.niveles.io/mock-news', finalUrl: 'https://images.unsplash.com/photo-1542751371-adc38448a05e?w=800' }); }),
 );
 
-import { branding, funnel, heatmap, kpis, moderationQueue, moderationStats, palettePresets, topPlayers, topRules, vipDistribution } from '@/mocks/data/tier5';
+import { funnel, heatmap, kpis, moderationQueue, moderationStats, topPlayers, topRules, vipDistribution } from '@/mocks/data/tier5';
+import { brandingConfig } from '@/mocks/data/brandingConfig';
+import { defaultBrandingConfig } from '@/features/branding/brandingPresets';
+import type { BrandingUpdatePayload } from '@/types/branding';
 handlers.push(
   http.get('*/admin/moderation/queue', async ({ request }) => { await wait(); const kind=new URL(request.url).searchParams.get('kind'); return HttpResponse.json(moderationQueue.filter((item)=>!kind||item.kind===kind)); }),
   http.get('*/admin/moderation/queue/:id', async ({ params }) => { await wait(); return HttpResponse.json(moderationQueue.find((item)=>item.id===params.id)??moderationQueue[0]); }),
@@ -276,14 +279,48 @@ handlers.push(
   http.get('*/admin/metrics/top-rules', async () => { await wait(); return HttpResponse.json(topRules); }),
   http.get('*/admin/metrics/top-players', async () => { await wait(); return HttpResponse.json(topPlayers); }),
   http.post('*/admin/metrics/export-pdf', async () => { await wait(); return HttpResponse.json({downloadUrl:'https://reports.preview.niveles.io/mock.pdf'}); }),
-  http.get('*/admin/branding', async () => { await wait(); return HttpResponse.json(branding); }),
-  http.get('*/admin/branding/draft', async () => { await wait(); return HttpResponse.json(branding); }),
-  http.put('*/admin/branding/draft', async ({ request }) => { await wait(); Object.assign(branding, await request.json()); return HttpResponse.json(branding); }),
-  http.post('*/admin/branding/publish', async ({ request }) => { await wait(); Object.assign(branding, await request.json(), {publishedAt:new Date().toISOString()}); return HttpResponse.json(branding); }),
-  http.get('*/admin/branding/palettes', async () => { await wait(); return HttpResponse.json(palettePresets); }),
-  http.post('*/admin/branding/suggest-palette', async () => { await wait(); return HttpResponse.json(palettePresets[1].palette); }),
-  http.post('*/admin/branding/upload-image', async () => { await wait(); return HttpResponse.json({url:'https://dummyimage.com/128x128/0AF784/0E1116&text=N'}); }),
-  http.get('*/admin/branding/preview-token', async () => { await wait(); return HttpResponse.json({token:'preview_mock_token'}); }),
+  http.get('*/admin/branding', async () => {
+    await wait();
+    return HttpResponse.json({ data: { ...brandingConfig } });
+  }),
+  http.patch('*/admin/branding', async ({ request }) => {
+    await wait();
+    const body = (await request.json()) as BrandingUpdatePayload;
+    Object.assign(brandingConfig, body, { last_updated_at: new Date().toISOString() });
+    return HttpResponse.json({ data: { ...brandingConfig } });
+  }),
+  http.post('*/admin/branding/preview', async ({ request }) => {
+    await wait();
+    const body = (await request.json()) as BrandingUpdatePayload;
+    return HttpResponse.json({
+      data: {
+        ...brandingConfig,
+        ...body,
+        tenant_id: brandingConfig.tenant_id,
+        last_updated_at: brandingConfig.last_updated_at,
+      },
+    });
+  }),
+  http.post('*/admin/branding/reset', async () => {
+    await wait();
+    const fresh = defaultBrandingConfig(brandingConfig.tenant_id);
+    Object.assign(brandingConfig, fresh);
+    return HttpResponse.json({ data: { ...brandingConfig } });
+  }),
+  http.post('*/admin/branding/upload-logo', async () => {
+    await wait();
+    return HttpResponse.json({ data: { url: 'https://dummyimage.com/256x256/0AF784/0E1116&text=Logo' } });
+  }),
+  http.post('*/admin/branding/upload-favicon', async () => {
+    await wait();
+    return HttpResponse.json({ data: { url: 'https://dummyimage.com/32x32/0AF784/0E1116&text=F' } });
+  }),
+  http.post('*/admin/branding/upload-background', async () => {
+    await wait();
+    return HttpResponse.json({
+      data: { url: 'https://images.unsplash.com/photo-1542751371-adc38448a05e?w=1920' },
+    });
+  }),
 );
 
 import { operatorPriceForModule } from '@/features/billing/pricing';
