@@ -2,7 +2,8 @@ import { delay, http, HttpResponse } from 'msw';
 import { metricsByPeriod, activity, systemStatus } from '@/mocks/data/dashboard';
 import { teamMembers } from '@/mocks/data/team';
 import { allowedIps, apiKeyBundles, recentRequests, revealed } from '@/mocks/data/apiKeys';
-const wait=()=>delay(200+Math.random()*600);
+const wait = () =>
+  import.meta.env.MODE === 'test' ? Promise.resolve() : delay(200 + Math.random() * 600);
 export const handlers=[
 http.post('*/auth/login',async()=>{await wait(); return HttpResponse.json({accessToken:'mock_access_token',refreshToken:'mock_refresh_token'})}),
 http.post('*/auth/refresh',async()=>{await wait(); const { mockLogin } = await import('@/mocks/data/auth'); return HttpResponse.json({user:mockLogin.user,accessToken:'mock_access_token_refreshed',refreshToken:'mock_refresh_token_refreshed'})}),
