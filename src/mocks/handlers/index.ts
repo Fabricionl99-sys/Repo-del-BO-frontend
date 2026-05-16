@@ -395,3 +395,101 @@ handlers.push(
   http.post('*/admin/predictions/events/:id/load-results', async ({ params }) => { await wait(); const item = predictionEvents.find(e=>e.id===params.id)??predictionEvents[0]; item.status='past'; return HttpResponse.json({ total_distributed:247000, winners_count:1234, grand_prize_winners:44, status:'past' }); }),
   http.get('*/admin/predictions/markets', async () => { await wait(); return HttpResponse.json(markets); }),
 );
+
+import { shopProducts, shopPurchases } from '@/mocks/data/shop';
+import type { ShopProduct, ShopProductPayload } from '@/types/shop';
+
+handlers.push(
+  http.get('*/admin/shop/products', async ({ request }) => {
+    await wait();
+    const url = new URL(request.url);
+    const status = url.searchParams.get('status');
+    const rewardType = url.searchParams.get('reward_type');
+    const currency = url.searchParams.get('currency_code');
+    const search = (url.searchParams.get('search') ?? '').toLowerCase();
+    let list = shopProducts.filter((p) => p.status !== 'archived' || status === 'archived' || status === 'all');
+    if (status === 'active') list = list.filter((p) => p.status === 'active');
+    if (status === 'archived') list = list.filter((p) => p.status === 'archived');
+    if (rewardType) list = list.filter((p) => p.reward_type === rewardType);
+    if (currency) list = list.filter((p) => p.currency_code === currency);
+    if (search) {
+      list = list.filter(
+        (p) => p.name.toLowerCase().includes(search) || p.code.toLowerCase().includes(search),
+      );
+    }
+    return HttpResponse.json({ data: list });
+  }),
+  http.get('*/admin/shop/products/:id', async ({ params }) => {
+    await wait();
+    const item = shopProducts.find((p) => p.id === params.id);
+    if (!item) return new HttpResponse(null, { status: 404 });
+    return HttpResponse.json({ data: item });
+  }),
+  http.post('*/admin/shop/products', async ({ request }) => {
+    await wait();
+    const body = (await request.json()) as ShopProductPayload;
+    const item: ShopProduct = {
+      id: `shop_prod_${Date.now()}`,
+      ...body,
+      status: 'active',
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    };
+    shopProducts.unshift(item);
+    return HttpResponse.json({ data: item }, { status: 201 });
+  }),
+  http.patch('*/admin/shop/products/:id', async ({ params, request }) => {
+    await wait();
+    const body = (await request.json()) as Partial<ShopProductPayload>;
+    const item = shopProducts.find((p) => p.id === params.id);
+    if (!item) return new HttpResponse(null, { status: 404 });
+    Object.assign(item, body, { updated_at: new Date().toISOString() });
+    return HttpResponse.json({ data: item });
+  }),
+  http.delete('*/admin/shop/products/:id', async ({ params }) => {
+    await wait();
+    const item = shopProducts.find((p) => p.id === params.id);
+    if (item) {
+      item.status = 'archived';
+      item.is_active = false;
+      item.updated_at = new Date().toISOString();
+    }
+    return new HttpResponse(null, { status: 204 });
+  }),
+  http.get('*/admin/shop/purchases', async ({ request }) => {
+    await wait();
+    const url = new URL(request.url);
+    const status = url.searchParams.get('status');
+    const productId = url.searchParams.get('product_id');
+    const playerId = url.searchParams.get('player_id');
+    const playerSearch = (url.searchParams.get('player_search') ?? '').toLowerCase();
+    const from = url.searchParams.get('from');
+    const to = url.searchParams.get('to');
+    const limit = Number(url.searchParams.get('limit') ?? 50);
+    const offset = Number(url.searchParams.get('offset') ?? 0);
+    let list = [...shopPurchases];
+    if (status) list = list.filter((p) => p.delivery_status === status);
+    if (productId) list = list.filter((p) => p.product_id === productId);
+    if (playerId) list = list.filter((p) => p.player_id === playerId);
+    if (playerSearch) {
+      list = list.filter(
+        (p) =>
+          p.player_handle?.toLowerCase().includes(playerSearch) ||
+          p.player_id.toLowerCase().includes(playerSearch),
+      );
+    }
+    if (from) list = list.filter((p) => p.purchased_at >= from);
+    if (to) list = list.filter((p) => p.purchased_at <= `${to}T23:59:59.999Z`);
+    const items = list.slice(offset, offset + limit);
+    return HttpResponse.json({
+      data: items,
+      pagination: { limit, offset, total: list.length },
+    });
+  }),
+  http.get('*/admin/shop/purchases/:id', async ({ params }) => {
+    await wait();
+    const item = shopPurchases.find((p) => p.id === params.id);
+    if (!item) return new HttpResponse(null, { status: 404 });
+    return HttpResponse.json({ data: item });
+  }),
+);
