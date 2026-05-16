@@ -815,3 +815,221 @@ handlers.push(
     return HttpResponse.json({ data: board });
   }),
 );
+
+import {
+  activeAvatarCount,
+  avatarCategories,
+  avatarInventory,
+  avatars,
+  syncCategoryAvatarCounts,
+} from '@/mocks/data/avatars';
+import type { AvatarCategoryPayload, AvatarCreatePayload, AvatarMetadataPayload } from '@/types/avatars';
+import { MAX_ACTIVE_AVATARS } from '@/types/avatars';
+
+handlers.push(
+  http.get('*/admin/avatars/categories', async () => {
+    await wait();
+    syncCategoryAvatarCounts();
+    return HttpResponse.json({ data: [...avatarCategories].sort((a, b) => a.display_order - b.display_order) });
+  }),
+  http.post('*/admin/avatars/categories', async ({ request }) => {
+    await wait();
+    const body = (await request.json()) as AvatarCategoryPayload;
+    if (avatarCategories.some((c) => c.code === body.code)) {
+      return HttpResponse.json({ message: 'El code ya existe' }, { status: 409 });
+    }
+    const item = {
+      id: `cat_${body.code}`,
+      ...body,
+      avatar_count: 0,
+    };
+    avatarCategories.push(item);
+    return HttpResponse.json({ data: item }, { status: 201 });
+  }),
+  http.patch('*/admin/avatars/categories/reorder', async ({ request }) => {
+    await wait();
+    const body = (await request.json()) as { ordered_ids: string[] };
+    body.ordered_ids.forEach((id, index) => {
+      const cat = avatarCategories.find((c) => c.id === id);
+      if (cat) cat.display_order = index;
+    });
+    syncCategoryAvatarCounts();
+    return HttpResponse.json({
+      data: [...avatarCategories].sort((a, b) => a.display_order - b.display_order),
+    });
+  }),
+  http.patch('*/admin/avatars/categories/:id', async ({ params, request }) => {
+    await wait();
+    const body = (await request.json()) as Partial<AvatarCategoryPayload>;
+    const item = avatarCategories.find((c) => c.id === params.id) ?? avatarCategories[0];
+    Object.assign(item, body);
+    syncCategoryAvatarCounts();
+    return HttpResponse.json({ data: item });
+  }),
+  http.delete('*/admin/avatars/categories/:id', async ({ params }) => {
+    await wait();
+    const id = String(params.id);
+    const count = avatars.filter((a) => a.category_id === id && a.status === 'active').length;
+    if (count > 0) {
+      return HttpResponse.json(
+        { message: `La categoría tiene ${count} avatares. Reasigná o eliminá los avatares primero.` },
+        { status: 409 },
+      );
+    }
+    const index = avatarCategories.findIndex((c) => c.id === id);
+    if (index >= 0) avatarCategories.splice(index, 1);
+    return new HttpResponse(null, { status: 204 });
+  }),
+  http.get('*/admin/avatars/inventory', async ({ request }) => {
+    await wait();
+    const url = new URL(request.url);
+    const avatarId = url.searchParams.get('avatar_id');
+    const playerId = url.searchParams.get('player_id');
+    const playerSearch = url.searchParams.get('player_search')?.toLowerCase();
+    const categoryId = url.searchParams.get('category_id');
+    const unlockedVia = url.searchParams.get('unlocked_via');
+    const from = url.searchParams.get('from');
+    const to = url.searchParams.get('to');
+    const offset = Number(url.searchParams.get('offset') ?? 0);
+    const limit = Math.min(200, Number(url.searchParams.get('limit') ?? 50));
+    let list = [...avatarInventory];
+    if (avatarId) list = list.filter((i) => i.avatar_id === avatarId);
+    if (playerId) list = list.filter((i) => i.player_id === playerId);
+    if (playerSearch) {
+      list = list.filter(
+        (i) =>
+          i.player_id.toLowerCase().includes(playerSearch) ||
+          (i.player_handle?.toLowerCase().includes(playerSearch) ?? false),
+      );
+    }
+    if (categoryId) list = list.filter((i) => i.category_id === categoryId);
+    if (unlockedVia) list = list.filter((i) => i.unlocked_via === unlockedVia);
+    if (from) list = list.filter((i) => i.unlocked_at >= from);
+    if (to) list = list.filter((i) => i.unlocked_at <= `${to}T23:59:59.999Z`);
+    const slice = list.slice(offset, offset + limit);
+    return HttpResponse.json({ data: slice, pagination: { limit, offset, total: list.length } });
+  }),
+  http.get('*/admin/avatars', async ({ request }) => {
+    await wait();
+    const url = new URL(request.url);
+    const categoryId = url.searchParams.get('category_id');
+    const unlockMethod = url.searchParams.get('unlock_method');
+    const status = url.searchParams.get('status') ?? 'active';
+    const isPremium = url.searchParams.get('is_premium');
+    const search = url.searchParams.get('search')?.toLowerCase();
+    let list = [...avatars];
+    if (status !== 'all') list = list.filter((a) => a.status === status);
+    if (categoryId) list = list.filter((a) => a.category_id === categoryId);
+    if (unlockMethod) list = list.filter((a) => a.unlock_method === unlockMethod);
+    if (isPremium === 'true') list = list.filter((a) => a.is_premium);
+    if (isPremium === 'false') list = list.filter((a) => !a.is_premium);
+    if (search) {
+      list = list.filter(
+        (a) => a.name.toLowerCase().includes(search) || a.code.toLowerCase().includes(search),
+      );
+    }
+    syncCategoryAvatarCounts();
+    return HttpResponse.json({
+      data: {
+        items: list,
+        stats: { active_count: activeAvatarCount(), max_active: MAX_ACTIVE_AVATARS },
+      },
+    });
+  }),
+  http.get('*/admin/avatars/:id', async ({ params }) => {
+    await wait();
+    const id = String(params.id);
+    if (id === 'categories' || id === 'inventory') {
+      return HttpResponse.json({ message: 'Not found' }, { status: 404 });
+    }
+    const item = avatars.find((a) => a.id === id) ?? avatars[0];
+    return HttpResponse.json({ data: item });
+  }),
+  http.post('*/admin/avatars', async ({ request }) => {
+    await wait();
+    if (activeAvatarCount() >= MAX_ACTIVE_AVATARS) {
+      return HttpResponse.json(
+        { message: `Límite alcanzado: máximo ${MAX_ACTIVE_AVATARS} avatares activos.` },
+        { status: 422 },
+      );
+    }
+    const body = (await request.json()) as AvatarCreatePayload;
+    if (avatars.some((a) => a.code === body.code && a.status === 'active')) {
+      return HttpResponse.json({ message: 'El code ya existe' }, { status: 409 });
+    }
+    const cat = avatarCategories.find((c) => c.id === body.category_id);
+    const now = new Date().toISOString();
+    const item = {
+      id: `av_${body.code}`,
+      code: body.code,
+      name: body.name,
+      description: body.description,
+      image_url: body.image_url,
+      category_id: body.category_id,
+      category_code: cat?.code,
+      category_name: cat?.name,
+      is_active: body.is_active,
+      is_premium: body.is_premium,
+      unlock_method: body.unlock_method,
+      unlock_config: body.unlock_config,
+      restrictions: body.restrictions,
+      status: 'active' as const,
+      created_at: now,
+      updated_at: now,
+    };
+    avatars.unshift(item);
+    syncCategoryAvatarCounts();
+    return HttpResponse.json({ data: item }, { status: 201 });
+  }),
+  http.patch('*/admin/avatars/:id', async ({ params, request }) => {
+    await wait();
+    const body = (await request.json()) as Partial<AvatarMetadataPayload & { image_url?: string }>;
+    const item = avatars.find((a) => a.id === params.id) ?? avatars[0];
+    Object.assign(item, body, { updated_at: new Date().toISOString() });
+    if (body.category_id) {
+      const cat = avatarCategories.find((c) => c.id === body.category_id);
+      item.category_code = cat?.code;
+      item.category_name = cat?.name;
+    }
+    syncCategoryAvatarCounts();
+    return HttpResponse.json({ data: item });
+  }),
+  http.delete('*/admin/avatars/:id', async ({ params }) => {
+    await wait();
+    const item = avatars.find((a) => a.id === params.id);
+    if (item) {
+      item.status = 'archived';
+      item.is_active = false;
+      item.updated_at = new Date().toISOString();
+    }
+    syncCategoryAvatarCounts();
+    return new HttpResponse(null, { status: 204 });
+  }),
+  http.post('*/admin/avatars/:id/grant-manual', async ({ params, request }) => {
+    await wait();
+    const body = (await request.json()) as { player_id: string; reason?: string };
+    const avatar = avatars.find((a) => a.id === params.id) ?? avatars[0];
+    const cat = avatarCategories.find((c) => c.id === avatar.category_id)!;
+    const handle =
+      [
+        { player_id: 'pl_8821', player_handle: 'crypto_king_88' },
+        { player_id: 'pl_4412', player_handle: 'MariaG_bet' },
+      ].find((p) => p.player_id === body.player_id)?.player_handle ?? body.player_id;
+    const row = {
+      id: `pav_${Date.now()}`,
+      player_id: body.player_id,
+      player_handle: handle,
+      avatar_id: avatar.id,
+      avatar_code: avatar.code,
+      avatar_name: avatar.name,
+      avatar_image_url: avatar.image_url,
+      category_id: avatar.category_id,
+      category_name: cat.name,
+      unlocked_at: new Date().toISOString(),
+      unlocked_via: 'manual_grant' as const,
+      is_active: false,
+    };
+    avatarInventory.unshift(row);
+    return HttpResponse.json({ data: row }, { status: 201 });
+  }),
+);
