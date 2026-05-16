@@ -29,6 +29,7 @@ describe('StreaksPage', () => {
 
   it('tab jugadores', async () => {
     wrap();
+    await screen.findByText('Racha de login 7 días');
     fireEvent.click(screen.getByRole('button', { name: /Jugadores con racha/i }));
     expect(await screen.findByText('crypto_king_88')).toBeInTheDocument();
   });
