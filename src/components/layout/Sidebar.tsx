@@ -69,7 +69,7 @@ const sections = [
   {
     label: 'Operaciones',
     items: [
-      ['/tienda', 'Tienda virtual', ShoppingBag] as const,
+      ['/tienda', 'Tienda', ShoppingBag] as const,
       ['/bandeja-premios', 'Bandeja de premios', Inbox] as const,
       ['/notificaciones', 'Notificaciones', Bell] as const,
       ['/noticias', 'Noticias', Newspaper] as const,
