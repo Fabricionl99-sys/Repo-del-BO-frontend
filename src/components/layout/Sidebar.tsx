@@ -1,8 +1,12 @@
+import { useMemo, useState } from 'react';
 import { NavLink } from 'react-router-dom';
 import {
   Award,
   BarChart3,
   Bell,
+  Boxes,
+  ChevronDown,
+  ChevronRight,
   Coins,
   Flame,
   Inbox,
@@ -18,11 +22,17 @@ import {
   Settings,
   Target,
   Users,
+  Wallet,
   Webhook,
   Zap,
 } from 'lucide-react';
 
-import { isModuleActive, SIDEBAR_MODULE_BY_PATH } from '@/features/billing/moduleCatalog';
+import {
+  isModuleActive,
+  MODULE_NAV_LABELS,
+  SIDEBAR_MODULE_BY_PATH,
+  type ModuleCode,
+} from '@/features/billing/moduleCatalog';
 import { OperatorSelector } from './OperatorSelector';
 import { useAuthStore } from '@/stores/authStore';
 import { useOperatorStore } from '@/stores/operatorStore';
@@ -72,17 +82,30 @@ const sections = [
       ['/equipo', 'Equipo', Users, 'admin'] as const,
       ['/api-keys', 'API keys', KeyRound, 'admin'] as const,
       ['/integraciones', 'Webhooks de premios', Webhook, 'admin'] as const,
+      ['/wallet', 'Mi Wallet', Wallet, 'admin'] as const,
+      ['/modulos', 'Módulos', Boxes, 'admin'] as const,
       ['/configuracion-general', 'Configuración general', Settings, 'admin'] as const,
     ],
   },
 ] as const;
 
+const ALL_MODULE_CODES = [...new Set(Object.values(SIDEBAR_MODULE_BY_PATH).filter((c): c is ModuleCode => c !== null))];
+
 export function Sidebar() {
   const role = useAuthStore((s) => s.user?.role);
   const activeModuleCodes = useOperatorStore((s) => s.activeModuleCodes);
+  const [disponiblesOpen, setDisponiblesOpen] = useState(false);
+
+  const inactiveModules = useMemo(
+    () =>
+      ALL_MODULE_CODES.filter((code) => !isModuleActive(activeModuleCodes, code))
+        .map((code) => ({ code, ...MODULE_NAV_LABELS[code] }))
+        .filter((item): item is { code: ModuleCode; path: string; label: string } => Boolean(item.path && item.label)),
+    [activeModuleCodes],
+  );
 
   return (
-    <aside className="sticky top-0 h-screen overflow-y-auto border-r border-border-subtle bg-bg-secondary py-4">
+    <aside className="sticky top-0 flex h-screen flex-col overflow-y-auto border-r border-border-subtle bg-bg-secondary py-4">
       <div className="mb-4 flex items-center gap-2.5 border-b border-border-subtle px-5 pb-5">
         <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-gradient-to-br from-accent to-cyan text-[13px] font-semibold text-bg-primary">
           N
@@ -90,39 +113,77 @@ export function Sidebar() {
         <span className="text-[15px] font-semibold">niveles</span>
       </div>
       <OperatorSelector />
-      {sections.map((s, i) => (
-        <div key={i} className="mb-2 px-3">
-          {'label' in s && s.label ? <p className="label-section px-3 py-2">{s.label}</p> : null}
-          {s.items
-            .filter((item) => {
-              const roleOk = !item[3] || item[3] === role || item[3] === 'soon';
-              const mod = SIDEBAR_MODULE_BY_PATH[item[0]];
-              return roleOk && isModuleActive(activeModuleCodes, mod);
-            })
-            .map(([to, label, Icon]) => (
+      <div className="flex-1">
+        {sections.map((s, i) => (
+          <div key={i} className="mb-2 px-3">
+            {'label' in s && s.label ? <p className="label-section px-3 py-2">{s.label}</p> : null}
+            {s.items
+              .filter((item) => {
+                const roleOk = !item[3] || item[3] === role || item[3] === 'soon';
+                const mod = SIDEBAR_MODULE_BY_PATH[item[0]];
+                return roleOk && isModuleActive(activeModuleCodes, mod);
+              })
+              .map(([to, label, Icon]) => (
+                <NavLink
+                  key={to}
+                  to={to}
+                  className={({ isActive }) =>
+                    `relative mb-px flex items-center gap-2.5 rounded-md px-3 py-1.5 text-[13px] transition ${
+                      isActive
+                        ? 'bg-accent-subtle font-medium text-accent before:absolute before:-left-3 before:top-1/2 before:h-[18px] before:w-[3px] before:-translate-y-1/2 before:rounded-r before:bg-accent before:content-[""]'
+                        : 'text-text-secondary hover:bg-bg-tertiary hover:text-text-primary'
+                    }`
+                  }
+                >
+                  <Icon size={14} />
+                  <span>{label}</span>
+                  {to === '/feed' ? (
+                    <span className="ml-auto rounded-full bg-warning/10 px-1.5 py-0.5 text-[10px] text-warning">soon</span>
+                  ) : null}
+                  {to === '/reglas-xp' ? (
+                    <span className="ml-auto rounded-full bg-bg-elevated px-1.5 py-0.5 text-[10px] text-text-tertiary">12</span>
+                  ) : null}
+                </NavLink>
+              ))}
+          </div>
+        ))}
+      </div>
+
+      {inactiveModules.length > 0 ? (
+        <div className="mt-auto border-t border-border-subtle px-3 pt-3">
+          <button
+            type="button"
+            onClick={() => setDisponiblesOpen((o) => !o)}
+            className="mb-1 flex w-full items-center gap-2 rounded-md px-3 py-2 text-[12px] font-medium text-text-secondary hover:bg-bg-tertiary hover:text-text-primary"
+          >
+            {disponiblesOpen ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
+            <span>Disponibles</span>
+            <span className="ml-auto rounded-full bg-bg-elevated px-1.5 py-0.5 text-[10px] text-text-tertiary">
+              {inactiveModules.length}
+            </span>
+          </button>
+          {disponiblesOpen ? (
+            <div className="pb-2">
+              {inactiveModules.map((mod) => (
+                <NavLink
+                  key={mod.code}
+                  to={mod.path}
+                  className="mb-px flex items-center gap-2 rounded-md px-3 py-1.5 pl-8 text-[12px] text-text-tertiary hover:bg-bg-tertiary hover:text-text-secondary"
+                >
+                  <span className="h-1.5 w-1.5 rounded-full bg-text-disabled" />
+                  {mod.label}
+                </NavLink>
+              ))}
               <NavLink
-                key={to}
-                to={to}
-                className={({ isActive }) =>
-                  `relative mb-px flex items-center gap-2.5 rounded-md px-3 py-1.5 text-[13px] transition ${
-                    isActive
-                      ? 'bg-accent-subtle font-medium text-accent before:absolute before:-left-3 before:top-1/2 before:h-[18px] before:w-[3px] before:-translate-y-1/2 before:rounded-r before:bg-accent before:content-[""]'
-                      : 'text-text-secondary hover:bg-bg-tertiary hover:text-text-primary'
-                  }`
-                }
+                to="/modulos"
+                className="mt-1 flex items-center gap-2 rounded-md px-3 py-1.5 pl-8 text-[12px] text-accent hover:bg-accent-subtle"
               >
-                <Icon size={14} />
-                <span>{label}</span>
-                {to === '/feed' ? (
-                  <span className="ml-auto rounded-full bg-warning/10 px-1.5 py-0.5 text-[10px] text-warning">soon</span>
-                ) : null}
-                {to === '/reglas-xp' ? (
-                  <span className="ml-auto rounded-full bg-bg-elevated px-1.5 py-0.5 text-[10px] text-text-tertiary">12</span>
-                ) : null}
+                Ver catálogo completo →
               </NavLink>
-            ))}
+            </div>
+          ) : null}
         </div>
-      ))}
+      ) : null}
     </aside>
   );
 }
