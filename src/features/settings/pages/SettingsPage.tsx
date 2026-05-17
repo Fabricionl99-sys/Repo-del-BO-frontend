@@ -27,6 +27,7 @@ import { HolidayModal } from '../components/HolidayModal';
 import { LogoUploadModal } from '../components/LogoUploadModal';
 import { NotificationTestModal } from '../components/NotificationTestModal';
 import {
+  isOperatorConfigApiResponse,
   useOperatorConfig,
   useOperatorCurrencies,
   useOperatorLanguages,
@@ -82,9 +83,18 @@ export default function SettingsPage() {
 
   const saved = configQ.data;
   const config = draft ?? saved;
+  const configReady = isOperatorConfigApiResponse(config);
+
+  useEffect(() => {
+    if (configQ.isFetched && saved !== undefined && !isOperatorConfigApiResponse(saved)) {
+      void configQ.refetch();
+    }
+  }, [configQ, saved]);
 
   const isDirty = useMemo(() => {
-    if (!saved || !draft) return false;
+    if (!saved || !draft || !isOperatorConfigApiResponse(saved) || !isOperatorConfigApiResponse(draft)) {
+      return false;
+    }
     return JSON.stringify(draft) !== JSON.stringify(saved);
   }, [draft, saved]);
 
@@ -154,8 +164,13 @@ export default function SettingsPage() {
     );
   }
 
-  if (mock === 'loading' || configQ.isLoading) return <Loading label="Cargando configuración..." />;
-  if (mock === 'error' || configQ.isError || !config) return <ErrorState onRetry={() => configQ.refetch()} />;
+  const isLoadingConfig =
+    mock === 'loading' || configQ.isLoading || configQ.isPending || (configQ.isFetching && !configReady);
+
+  if (isLoadingConfig) return <Loading label="Cargando configuración..." />;
+  if (mock === 'error' || configQ.isError || !configReady || !config) {
+    return <ErrorState onRetry={() => configQ.refetch()} />;
+  }
 
   const holidayColumns: Column<BusinessHoliday>[] = [
     { key: 'date', header: 'fecha', render: (h) => h.date },
