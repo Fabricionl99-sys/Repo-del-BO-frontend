@@ -86,7 +86,7 @@ const sections = [
       ['/integraciones', 'Webhooks de premios', Webhook, 'admin'] as const,
       ['/wallet', 'Mi Wallet', Wallet, 'admin'] as const,
       ['/modulos', 'Módulos', Boxes, 'admin'] as const,
-      ['/configuracion-general', 'Configuración general', Settings, 'admin'] as const,
+      ['/configuracion', 'Configuración', Settings, 'admin'] as const,
     ],
   },
 ] as const;
