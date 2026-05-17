@@ -460,27 +460,70 @@ handlers.push(
 
 import { operatorPriceForModule } from '@/features/billing/pricing';
 import { activeModules, billingSnapshot, moduleCatalog, walletTransactions } from '@/mocks/data/billing';
-import { markets, operatorConfig, predictionEvents } from '@/mocks/data/expandedTier5';
+import { markets, predictionEvents } from '@/mocks/data/expandedTier5';
+import { legacyGameCatalog, operatorConfigFull } from '@/mocks/data/operatorConfig';
+import { CURRENCY_OPTIONS, LANGUAGE_OPTIONS, TIMEZONE_OPTIONS } from '@/mocks/data/operatorConfigMeta';
+import type { OperatorConfig } from '@/types/operatorConfig';
+
+function deepMerge<T extends Record<string, unknown>>(target: T, source: Partial<T>): T {
+  const out = { ...target };
+  for (const key of Object.keys(source) as Array<keyof T>) {
+    const value = source[key];
+    if (value && typeof value === 'object' && !Array.isArray(value) && typeof target[key] === 'object') {
+      out[key] = deepMerge(target[key] as Record<string, unknown>, value as Record<string, unknown>) as T[keyof T];
+    } else if (value !== undefined) {
+      out[key] = value as T[keyof T];
+    }
+  }
+  return out;
+}
+
+function buildOperatorConfigResponse() {
+  return {
+    ...operatorConfigFull,
+    ...billingSnapshot,
+    game_catalog: { ...legacyGameCatalog },
+  };
+}
+
 handlers.push(
   http.get('*/admin/operator-config', async () => {
     await wait();
-    return HttpResponse.json({
-      data: {
-        ...operatorConfig,
-        ...billingSnapshot,
-      },
-    });
+    return HttpResponse.json({ data: buildOperatorConfigResponse() });
   }),
   http.patch('*/admin/operator-config', async ({ request }) => {
     await wait();
-    const body = (await request.json()) as Record<string, unknown>;
-    Object.assign(operatorConfig, body);
-    Object.assign(billingSnapshot, body);
+    const body = (await request.json()) as Partial<OperatorConfig>;
+    Object.assign(operatorConfigFull, deepMerge(operatorConfigFull as unknown as Record<string, unknown>, body as unknown as Record<string, unknown>));
+    if (body.localization?.timezone) {
+      operatorConfigFull.business_hours.timezone = body.localization.timezone;
+    }
+    return HttpResponse.json({ data: buildOperatorConfigResponse() });
+  }),
+  http.post('*/admin/operator-config/upload-logo', async () => {
+    await wait();
+    const url = 'https://dummyimage.com/256x256/0AF784/0E1116&text=CA';
+    operatorConfigFull.company_info.company_logo_url = url;
+    return HttpResponse.json({ data: { url } });
+  }),
+  http.get('*/admin/operator-config/timezones', async () => {
+    await wait();
+    return HttpResponse.json({ data: TIMEZONE_OPTIONS });
+  }),
+  http.get('*/admin/operator-config/languages', async () => {
+    await wait();
+    return HttpResponse.json({ data: LANGUAGE_OPTIONS });
+  }),
+  http.get('*/admin/operator-config/currencies', async () => {
+    await wait();
+    return HttpResponse.json({ data: CURRENCY_OPTIONS });
+  }),
+  http.post('*/admin/operator-config/test-notifications', async ({ request }) => {
+    await wait();
+    const body = (await request.json()) as { email: string };
+    const ok = body.email.includes('@');
     return HttpResponse.json({
-      data: {
-        ...operatorConfig,
-        ...billingSnapshot,
-      },
+      data: { ok, message: ok ? `Test enviado a ${body.email}` : 'Email inválido' },
     });
   }),
   http.get('*/admin/wallet/balance', async () => {
@@ -501,7 +544,6 @@ handlers.push(
     await wait();
     const body = (await request.json()) as { amount_usd: number; payment_method: string; payment_reference?: string };
     billingSnapshot.wallet_balance_usd += body.amount_usd;
-    operatorConfig.wallet_balance_usd = billingSnapshot.wallet_balance_usd;
     const tx = {
       id: `tx_${Date.now()}`,
       transaction_type: 'topup' as const,
