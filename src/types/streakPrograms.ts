@@ -40,6 +40,7 @@ export type StreakResetPolicyConfig =
 export type StreakRewardConfig =
   | { amount: number }
   | { coin_code: string; amount: number }
+  | { bonus_id: string; amounts_by_currency?: Record<string, number> }
   | { quantity: number; game_id?: string }
   | { amount: number; currency: string }
   | { percentage: number; max_amount?: number }

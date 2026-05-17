@@ -36,7 +36,9 @@ import {
 } from '../operatorConfigApi';
 import { validateOperatorConfig } from '../operatorConfigValidation';
 
-const tabs = ['Empresa', 'Contacto', 'Localización', 'Notificaciones', 'Seguridad', 'Horarios'] as const;
+import { WelcomeChestConfig } from '../components/WelcomeChestConfig';
+
+const tabs = ['Empresa', 'Contacto', 'Localización', 'Notificaciones', 'Seguridad', 'Horarios', 'Cofre bienvenida'] as const;
 type Tab = (typeof tabs)[number];
 
 const weekdays: Array<{ key: Weekday; label: string }> = [
@@ -471,6 +473,8 @@ export default function SettingsPage() {
               </ConfigSection>
             </>
           )}
+
+          {tab === 'Cofre bienvenida' && <WelcomeChestConfig />}
         </ConfiguratorScaffold>
         {formError && <p className="mt-3 text-[15px] text-danger">{formError}</p>}
       </div>

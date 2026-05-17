@@ -68,7 +68,7 @@ export const predictionEvents: PredictionEvent[] = [
     participation_cost: { type: 'paid_with_coins', cost_in_coins: 100 },
     reward_config: {
       reward_type: 'freespin',
-      reward_config: { quantity: 10, game_id: 'book_of_dead' },
+      reward_config: { bonus_id: 'ob_fs_book_dead' },
       currency_mode: 'auto_usd',
     },
     max_predictions_per_player: 1,
@@ -155,7 +155,7 @@ export const predictionEvents: PredictionEvent[] = [
     participation_cost: { type: 'free', cost_in_coins: null },
     reward_config: {
       reward_type: 'freebet',
-      reward_config: { amount: 25, currency: 'USD' },
+      reward_config: { bonus_id: 'ob_fb_sports_25' },
       currency_mode: 'auto_usd',
     },
     max_predictions_per_player: 1,

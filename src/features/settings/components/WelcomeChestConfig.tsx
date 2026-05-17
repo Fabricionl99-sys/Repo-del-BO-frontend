@@ -1,0 +1,45 @@
+import { useState } from 'react';
+
+import { RewardSelector } from '@/components/rewards/RewardSelector';
+import { Button } from '@/components/ui/Button';
+import { ConfigSection } from '@/components/configurator/ConfiguratorScaffold';
+import type { RewardValue } from '@/types/rewards';
+
+const STORAGE_KEY = 'bo_welcome_chest_reward';
+
+function loadSaved(): RewardValue {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (raw) return JSON.parse(raw) as RewardValue;
+  } catch {
+    /* ignore */
+  }
+  return { reward_type: 'chest', reward_config: { chest_type_code: 'bronce', quantity: 1 } };
+}
+
+export function WelcomeChestConfig() {
+  const [reward, setReward] = useState<RewardValue>(loadSaved);
+  const [saved, setSaved] = useState(false);
+
+  return (
+    <ConfigSection icon="🎁" title="Cofre de bienvenida">
+      <p className="mb-4 text-[14px] text-text-secondary">
+        Premio que reciben jugadores nuevos al completar onboarding.
+      </p>
+      <RewardSelector moduleKey="welcome_chest" value={reward} onChange={setReward} />
+      <div className="mt-4 flex items-center gap-3">
+        <Button
+          variant="primary"
+          onClick={() => {
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(reward));
+            setSaved(true);
+            setTimeout(() => setSaved(false), 2000);
+          }}
+        >
+          Guardar cofre de bienvenida
+        </Button>
+        {saved && <span className="text-[13px] text-success">Guardado</span>}
+      </div>
+    </ConfigSection>
+  );
+}

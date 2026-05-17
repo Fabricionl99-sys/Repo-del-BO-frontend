@@ -1,7 +1,9 @@
 import { z } from 'zod';
 
 import { getTriggerDef, type MissionTriggerCode } from '@/features/missions/missionTriggers';
+import { rewardValueSchema } from '@/features/rewards/rewardForm';
 import type { Mission, MissionType } from '@/types/tier3';
+import type { RewardValue } from '@/types/rewards';
 
 export interface MissionTriggerConfig {
   amount_threshold?: number;
@@ -24,6 +26,7 @@ export interface MissionFormValues {
   xpReward: number;
   coinsReward: number;
   coinId: string;
+  primaryReward: RewardValue;
   allPlayers: boolean;
 }
 
@@ -75,6 +78,7 @@ export const missionFormSchema = z
     xpReward: z.number().min(0),
     coinsReward: z.number().min(0),
     coinId: z.string().min(1),
+    primaryReward: rewardValueSchema,
     allPlayers: z.boolean(),
   })
   .superRefine((data, ctx) => {
@@ -105,6 +109,7 @@ export function defaultMissionForm(): MissionFormValues {
     xpReward: 500,
     coinsReward: 0,
     coinId: 'coin_oro',
+    primaryReward: { reward_type: 'xp', reward_config: { amount: 500 } },
     allPlayers: true,
   };
 }
@@ -124,6 +129,11 @@ export function missionToForm(m: Mission): MissionFormValues {
     xpReward: xp?.xpAmount ?? 0,
     coinsReward: coins?.coinsAmount ?? 0,
     coinId: coins?.coinId ?? 'coin_oro',
+    primaryReward: xp
+      ? { reward_type: 'xp', reward_config: { amount: xp.xpAmount ?? 0 } }
+      : coins
+        ? { reward_type: 'coins', reward_config: { amount: coins.coinsAmount ?? 0, currency_code: coins.coinId ?? 'main' } }
+        : { reward_type: 'xp', reward_config: { amount: 0 } },
     allPlayers: m.targeting.allPlayers,
   };
 }
@@ -133,9 +143,35 @@ export function formToMissionPayload(
   opts: { id?: string; status: Mission['status']; daysOfWeek: number[] },
 ): Partial<Mission> {
   const rewards = [];
-  if (values.xpReward > 0) rewards.push({ type: 'xp' as const, xpAmount: values.xpReward });
-  if (values.coinsReward > 0) {
-    rewards.push({ type: 'coins' as const, coinsAmount: values.coinsReward, coinId: values.coinId });
+  const pr = values.primaryReward;
+  if (pr.reward_type === 'xp' && Number(pr.reward_config.amount ?? 0) > 0) {
+    rewards.push({ type: 'xp' as const, xpAmount: Number(pr.reward_config.amount) });
+  } else if (pr.reward_type === 'coins' && Number(pr.reward_config.amount ?? 0) > 0) {
+    rewards.push({
+      type: 'coins' as const,
+      coinsAmount: Number(pr.reward_config.amount),
+      coinId: String(pr.reward_config.currency_code ?? values.coinId),
+    });
+  } else if (pr.reward_type === 'chest') {
+    rewards.push({ type: 'chest' as const, chestId: String(pr.reward_config.chest_type_code ?? '') });
+  } else if (['freespin', 'freebet', 'cashback', 'bonus_deposit'].includes(pr.reward_type)) {
+    const bonusTypeMap = {
+      freespin: 'free_spins',
+      freebet: 'free_bet',
+      cashback: 'deposit_match',
+      bonus_deposit: 'deposit_match',
+    } as const;
+    rewards.push({
+      type: 'bonus' as const,
+      bonusType: bonusTypeMap[pr.reward_type as keyof typeof bonusTypeMap] as 'free_spins' | 'free_bet' | 'deposit_match',
+      bonusConfig: { bonus_id: pr.reward_config.bonus_id },
+    });
+  } else if (pr.reward_type === 'manual') {
+    rewards.push({
+      type: 'bonus' as const,
+      bonusType: 'deposit_match' as const,
+      bonusConfig: { description: String(pr.reward_config.description ?? '') },
+    });
   }
 
   return {

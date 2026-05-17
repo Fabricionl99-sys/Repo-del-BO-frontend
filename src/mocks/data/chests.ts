@@ -37,7 +37,7 @@ export const chestTypes: ChestType[] = [
       {
         id: 'prize_bronce_3',
         reward_type: 'freespin',
-        reward_config: { quantity: 5, game_id: 'book_of_dead' },
+        reward_config: { bonus_id: 'ob_fs_book_dead' },
         probability_percent: 15,
         image_url: 'https://images.unsplash.com/photo-1596838132731-3301c3fd4317?w=200',
         name: '5 Free Spins',
@@ -72,7 +72,7 @@ export const chestTypes: ChestType[] = [
       {
         id: 'prize_plata_2',
         reward_type: 'freebet',
-        reward_config: { amount: 5, currency: 'USD' },
+        reward_config: { bonus_id: 'ob_fb_sports_25' },
         probability_percent: 30,
         image_url: 'https://images.unsplash.com/photo-1607863680198-23d4b2565df0?w=200',
         name: 'Freebet $5',
@@ -81,7 +81,7 @@ export const chestTypes: ChestType[] = [
       {
         id: 'prize_plata_3',
         reward_type: 'freespin',
-        reward_config: { quantity: 15 },
+        reward_config: { bonus_id: 'ob_fs_starburst' },
         probability_percent: 20,
         image_url: 'https://images.unsplash.com/photo-1596838132731-3301c3fd4317?w=200',
         name: '15 Free Spins',
@@ -90,7 +90,7 @@ export const chestTypes: ChestType[] = [
       {
         id: 'prize_plata_4',
         reward_type: 'cashback',
-        reward_config: { percentage: 5, max_amount: 25 },
+        reward_config: { bonus_id: 'ob_cb_weekly' },
         probability_percent: 10,
         image_url: 'https://images.unsplash.com/photo-1511512578047-dfb367046420?w=200',
         name: 'Cashback 5%',
@@ -125,7 +125,7 @@ export const chestTypes: ChestType[] = [
       {
         id: 'prize_oro_2',
         reward_type: 'freebet',
-        reward_config: { amount: 15, currency: 'USD' },
+        reward_config: { bonus_id: 'ob_fb_casino_10' },
         probability_percent: 25,
         image_url: 'https://images.unsplash.com/photo-1607863680198-23d4b2565df0?w=200',
         name: 'Freebet $15',
@@ -134,7 +134,7 @@ export const chestTypes: ChestType[] = [
       {
         id: 'prize_oro_3',
         reward_type: 'bonus_deposit',
-        reward_config: { amount: 50, currency: 'USD' },
+        reward_config: { bonus_id: 'ob_bd_welcome' },
         probability_percent: 25,
         image_url: 'https://images.unsplash.com/photo-1553729459-efe14ef3575c?w=200',
         name: 'Bono $50',
@@ -143,7 +143,7 @@ export const chestTypes: ChestType[] = [
       {
         id: 'prize_oro_4',
         reward_type: 'freespin',
-        reward_config: { quantity: 50, game_id: 'starburst' },
+        reward_config: { bonus_id: 'ob_fs_starburst' },
         probability_percent: 15,
         image_url: 'https://images.unsplash.com/photo-1596838132731-3301c3fd4317?w=200',
         name: '50 Free Spins Starburst',
@@ -178,7 +178,7 @@ export const chestTypes: ChestType[] = [
       {
         id: 'prize_diamante_2',
         reward_type: 'freebet',
-        reward_config: { amount: 25, currency: 'USD' },
+        reward_config: { bonus_id: 'ob_fb_sports_25' },
         probability_percent: 25,
         image_url: 'https://images.unsplash.com/photo-1607863680198-23d4b2565df0?w=200',
         name: 'Freebet $25',
@@ -240,7 +240,7 @@ export const chestTypes: ChestType[] = [
       {
         id: 'prize_legendario_2',
         reward_type: 'bonus_deposit',
-        reward_config: { amount: 100, currency: 'USD' },
+        reward_config: { bonus_id: 'ob_fb_vip' },
         probability_percent: 30,
         image_url: 'https://images.unsplash.com/photo-1553729459-efe14ef3575c?w=200',
         name: 'Bono $100',

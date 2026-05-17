@@ -14,7 +14,6 @@ describe('shopProductFormSchema', () => {
       ...defaultShopProductForm(),
       code: 'freespin_test',
       name: 'Test spins',
-      freespin_quantity: 10,
     };
     const parsed = shopProductFormSchema.safeParse(values);
     expect(parsed.success).toBe(true);
@@ -26,12 +25,12 @@ describe('shopProductFormSchema', () => {
     expect(parsed.success).toBe(false);
   });
 
-  it('rechaza freespin sin cantidad', () => {
+  it('rechaza freespin sin bonus_id', () => {
     const values = {
       ...defaultShopProductForm(),
       code: 'freespin_zero',
       name: 'Test',
-      freespin_quantity: 0,
+      reward: { reward_type: 'freespin' as const, reward_config: {} },
     };
     const parsed = shopProductFormSchema.safeParse(values);
     expect(parsed.success).toBe(false);
@@ -45,7 +44,6 @@ describe('shopProductFormSchema', () => {
       unlimited_stock: false,
       stock: 0,
       is_active: true,
-      freespin_quantity: 5,
     };
     const parsed = shopProductFormSchema.safeParse(values);
     expect(parsed.success).toBe(false);
@@ -53,14 +51,13 @@ describe('shopProductFormSchema', () => {
 });
 
 describe('buildRewardConfig / formToPayload', () => {
-  it('arma reward_config freebet', () => {
+  it('arma reward_config freebet con bonus_id', () => {
     const values = {
       ...defaultShopProductForm(),
       reward_type: 'freebet' as const,
-      freebet_amount: 25,
-      freebet_currency: 'USD',
+      reward: { reward_type: 'freebet' as const, reward_config: { bonus_id: 'ob_fb_sports_25' } },
     };
-    expect(buildRewardConfig(values)).toEqual({ amount: 25, currency: 'USD' });
+    expect(buildRewardConfig(values)).toEqual({ bonus_id: 'ob_fb_sports_25' });
   });
 
   it('payload incluye stock null si ilimitado', () => {
@@ -69,7 +66,6 @@ describe('buildRewardConfig / formToPayload', () => {
       code: 'unlimited_prod',
       name: 'Ilimitado',
       unlimited_stock: true,
-      freespin_quantity: 5,
     });
     expect(payload.stock).toBeNull();
     expect(payload.code).toBe('unlimited_prod');
@@ -82,7 +78,6 @@ describe('validateShopProductForm', () => {
       ...defaultShopProductForm(),
       code: 'existing_code',
       name: 'Duplicado',
-      freespin_quantity: 5,
     };
     const errors = validateShopProductForm(values, ['existing_code']);
     expect(errors.code).toMatch(/ya existe/i);

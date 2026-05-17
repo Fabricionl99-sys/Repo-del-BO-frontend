@@ -17,24 +17,9 @@ export type ShopPurchaseDeliveryStatus =
   | 'delivered_manually'
   | 'manual_pending_operator';
 
-export interface FreespinRewardConfig {
-  quantity: number;
-  game_id?: string;
-}
-
-export interface FreebetRewardConfig {
-  amount: number;
-  currency: string;
-}
-
-export interface CashbackRewardConfig {
-  percentage: number;
-  max_amount: number;
-}
-
-export interface BonusDepositRewardConfig {
-  percentage: number;
-  max_amount: number;
+export interface BonusCatalogRewardConfig {
+  bonus_id: string;
+  amounts_by_currency?: Record<string, number>;
 }
 
 export interface AvatarPackRewardConfig {
@@ -50,10 +35,7 @@ export interface ManualRewardConfig {
 }
 
 export type ShopRewardConfig =
-  | FreespinRewardConfig
-  | FreebetRewardConfig
-  | CashbackRewardConfig
-  | BonusDepositRewardConfig
+  | BonusCatalogRewardConfig
   | AvatarPackRewardConfig
   | ThemeRewardConfig
   | ManualRewardConfig;

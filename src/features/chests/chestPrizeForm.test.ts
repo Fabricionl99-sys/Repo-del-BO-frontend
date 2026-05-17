@@ -1,7 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
 import {
-  buildPrizeRewardConfig,
   chestPrizeFormSchema,
   defaultChestPrizeForm,
   formToPrizePayload,
@@ -14,7 +13,6 @@ describe('chestPrizeFormSchema', () => {
     const values = {
       ...defaultChestPrizeForm(),
       name: '100 monedas',
-      coins_amount: 100,
       probability_percent: 25,
     };
     expect(chestPrizeFormSchema.safeParse(values).success).toBe(true);
@@ -24,34 +22,32 @@ describe('chestPrizeFormSchema', () => {
     const values = {
       ...defaultChestPrizeForm(),
       name: 'Sin monto',
-      coins_amount: 0,
+      reward: { reward_type: 'coins' as const, reward_config: { amount: 0, currency_code: 'main' } },
       probability_percent: 10,
     };
     expect(chestPrizeFormSchema.safeParse(values).success).toBe(false);
   });
 
-  it('rechaza freespin sin cantidad', () => {
+  it('rechaza freespin sin bonus_id', () => {
     const values = {
       ...defaultChestPrizeForm(),
-      reward_type: 'freespin' as const,
       name: 'Spins',
-      freespin_quantity: 0,
+      reward: { reward_type: 'freespin' as const, reward_config: {} },
       probability_percent: 10,
     };
     expect(chestPrizeFormSchema.safeParse(values).success).toBe(false);
   });
 });
 
-describe('buildPrizeRewardConfig / formToPrizePayload', () => {
+describe('formToPrizePayload', () => {
   it('arma reward_config chest anidado', () => {
     const values = {
       ...defaultChestPrizeForm(),
-      reward_type: 'chest' as const,
-      chest_type_code: 'oro',
       name: 'Cofre oro',
       probability_percent: 5,
+      reward: { reward_type: 'chest' as const, reward_config: { chest_type_code: 'oro', quantity: 1 } },
     };
-    expect(buildPrizeRewardConfig(values)).toEqual({ chest_type_code: 'oro' });
+    expect(formToPrizePayload(values).reward_config).toEqual({ chest_type_code: 'oro', quantity: 1 });
     expect(formToPrizePayload(values).reward_type).toBe('chest');
   });
 });

@@ -44,6 +44,7 @@ export interface StreakMilestoneFormRow {
   coin_code: string;
   coin_amount: number;
   chest_id: string;
+  bonus_id: string;
   freespin_quantity: number;
   freespin_game_id: string;
   freebet_amount: number;
@@ -75,6 +76,7 @@ export interface StreakEditorFormValues {
   daily_coin_code: string;
   daily_coin_amount: number;
   daily_chest_id: string;
+  daily_bonus_id: string;
   daily_freespin_quantity: number;
   daily_freespin_game_id: string;
   daily_freebet_amount: number;
@@ -118,6 +120,7 @@ export function emptyMilestoneRow(defaultCoinCode: string): StreakMilestoneFormR
     coin_code: defaultCoinCode,
     coin_amount: 100,
     chest_id: '',
+    bonus_id: '',
     freespin_quantity: 10,
     freespin_game_id: '',
     freebet_amount: 10,
@@ -151,6 +154,7 @@ export function defaultStreakEditorForm(defaultTimezone: string, defaultCoinCode
     daily_coin_code: defaultCoinCode,
     daily_coin_amount: 10,
     daily_chest_id: '',
+    daily_bonus_id: '',
     daily_freespin_quantity: 5,
     daily_freespin_game_id: '',
     daily_freebet_amount: 10,
@@ -229,28 +233,8 @@ function rewardConfigFromRow(kind: StreakRewardKind, row: StreakMilestoneFormRow
     return { coin_code: row.coin_code.trim() || 'main', amount: Math.max(1, Math.round(row.coin_amount)) };
   }
   if (kind === 'chest') return { chest_id: row.chest_id.trim() };
-  if (kind === 'freespin') {
-    const cfg: { quantity: number; game_id?: string } = { quantity: Math.max(1, Math.round(row.freespin_quantity)) };
-    const gid = row.freespin_game_id.trim();
-    if (gid) cfg.game_id = gid;
-    return cfg;
-  }
-  if (kind === 'freebet') {
-    return { amount: Math.max(0.01, row.freebet_amount), currency: row.freebet_currency };
-  }
-  if (kind === 'cashback') {
-    const cfg: { percentage: number; max_amount?: number } = {
-      percentage: Math.min(100, Math.max(0.01, row.cashback_percentage)),
-    };
-    if (row.cashback_max_amount > 0) cfg.max_amount = row.cashback_max_amount;
-    return cfg;
-  }
-  if (kind === 'bonus_deposit') {
-    const cfg: { percentage: number; max_amount?: number } = {
-      percentage: Math.min(500, Math.max(0.01, row.bonus_percentage)),
-    };
-    if (row.bonus_max_amount > 0) cfg.max_amount = row.bonus_max_amount;
-    return cfg;
+  if (kind === 'freespin' || kind === 'freebet' || kind === 'cashback' || kind === 'bonus_deposit') {
+    return { bonus_id: row.bonus_id.trim() };
   }
   return { description: row.manual_description.trim().slice(0, 500) };
 }
@@ -281,28 +265,9 @@ function milestoneRowFromApi(m: StreakMilestone, defaultCoinCode: string): Strea
     base.chest_id = String(cfg.chest_id ?? '');
     return base;
   }
-  if (rt === 'freespin') {
-    base.reward_kind = 'freespin';
-    base.freespin_quantity = Number(cfg.quantity ?? cfg.count ?? 0);
-    base.freespin_game_id = String(cfg.game_id ?? '');
-    return base;
-  }
-  if (rt === 'freebet') {
-    base.reward_kind = 'freebet';
-    base.freebet_amount = Number(cfg.amount ?? 0);
-    base.freebet_currency = String(cfg.currency ?? 'USD');
-    return base;
-  }
-  if (rt === 'cashback') {
-    base.reward_kind = 'cashback';
-    base.cashback_percentage = Number(cfg.percentage ?? cfg.percent ?? 0);
-    base.cashback_max_amount = Number(cfg.max_amount ?? cfg.cap ?? 0);
-    return base;
-  }
-  if (rt === 'bonus_deposit') {
-    base.reward_kind = 'bonus_deposit';
-    base.bonus_percentage = Number(cfg.percentage ?? cfg.percent ?? 0);
-    base.bonus_max_amount = Number(cfg.max_amount ?? cfg.cap_usd ?? cfg.cap ?? 0);
+  if (rt === 'freespin' || rt === 'freebet' || rt === 'cashback' || rt === 'bonus_deposit') {
+    base.reward_kind = rt;
+    base.bonus_id = String(cfg.bonus_id ?? '');
     return base;
   }
   base.reward_kind = 'coins';
@@ -336,21 +301,8 @@ function readDailyFields(dr: StreakDailyMicroReward | Record<string, unknown> | 
     row.daily_coin_code = coinCodeFromLegacy(String(cfg.coin_code ?? cfg.coin_id ?? defaultCoinCode));
   }
   if (kind === 'chest') row.daily_chest_id = String(cfg.chest_id ?? '');
-  if (kind === 'freespin') {
-    row.daily_freespin_quantity = Number(cfg.quantity ?? cfg.count ?? 5);
-    row.daily_freespin_game_id = String(cfg.game_id ?? '');
-  }
-  if (kind === 'freebet') {
-    row.daily_freebet_amount = Number(cfg.amount ?? 10);
-    row.daily_freebet_currency = String(cfg.currency ?? 'USD');
-  }
-  if (kind === 'cashback') {
-    row.daily_cashback_percentage = Number(cfg.percentage ?? cfg.percent ?? 5);
-    row.daily_cashback_max_amount = Number(cfg.max_amount ?? cfg.cap ?? 0);
-  }
-  if (kind === 'bonus_deposit') {
-    row.daily_bonus_percentage = Number(cfg.percentage ?? cfg.percent ?? 50);
-    row.daily_bonus_max_amount = Number(cfg.max_amount ?? cfg.cap_usd ?? cfg.cap ?? 0);
+  if (['freespin', 'freebet', 'cashback', 'bonus_deposit'].includes(kind)) {
+    row.daily_bonus_id = String(cfg.bonus_id ?? '');
   }
 }
 
@@ -423,6 +375,7 @@ function buildDailyMicroReward(f: StreakEditorFormValues): StreakDailyMicroRewar
     coin_code: f.daily_coin_code,
     coin_amount: f.daily_coin_amount,
     chest_id: f.daily_chest_id,
+    bonus_id: f.daily_bonus_id,
     freespin_quantity: f.daily_freespin_quantity,
     freespin_game_id: f.daily_freespin_game_id,
     freebet_amount: f.daily_freebet_amount,
@@ -509,19 +462,8 @@ function validateDailyMicroFields(f: StreakEditorFormValues): Record<string, str
     if (!Number.isFinite(f.daily_coin_amount) || f.daily_coin_amount < 1) e.daily_coin_amount = 'La cantidad debe ser ≥ 1';
   }
   if (k === 'chest' && !f.daily_chest_id.trim()) e.daily_chest_id = 'Elegí un cofre';
-  if (k === 'freespin' && (!Number.isFinite(f.daily_freespin_quantity) || f.daily_freespin_quantity < 1)) {
-    e.daily_freespin_quantity = 'La cantidad de spins debe ser ≥ 1';
-  }
-  if (k === 'freebet' && (!Number.isFinite(f.daily_freebet_amount) || f.daily_freebet_amount < 0.01)) {
-    e.daily_freebet_amount = 'El monto debe ser ≥ 0.01';
-  }
-  if (k === 'cashback') {
-    const p = f.daily_cashback_percentage;
-    if (!Number.isFinite(p) || p < 0.01 || p > 100) e.daily_cashback_percentage = 'El porcentaje debe estar entre 0.01 y 100';
-  }
-  if (k === 'bonus_deposit') {
-    const p = f.daily_bonus_percentage;
-    if (!Number.isFinite(p) || p < 0.01 || p > 500) e.daily_bonus_percentage = 'El match debe estar entre 0.01 y 500';
+  if (['freespin', 'freebet', 'cashback', 'bonus_deposit'].includes(k) && !f.daily_bonus_id.trim()) {
+    e.daily_bonus_id = 'Seleccioná un bono del catálogo';
   }
   return e;
 }
@@ -537,19 +479,8 @@ function validateMilestoneRowFields(i: number, row: StreakMilestoneFormRow): Rec
     if (!Number.isFinite(row.coin_amount) || row.coin_amount < 1) e[`${b}.coin_amount`] = 'La cantidad debe ser ≥ 1';
   }
   if (k === 'chest' && !row.chest_id.trim()) e[`${b}.chest_id`] = 'Elegí un cofre';
-  if (k === 'freespin' && (!Number.isFinite(row.freespin_quantity) || row.freespin_quantity < 1)) {
-    e[`${b}.freespin_quantity`] = 'La cantidad de spins debe ser ≥ 1';
-  }
-  if (k === 'freebet' && (!Number.isFinite(row.freebet_amount) || row.freebet_amount < 0.01)) {
-    e[`${b}.freebet_amount`] = 'El monto debe ser ≥ 0.01';
-  }
-  if (k === 'cashback') {
-    const p = row.cashback_percentage;
-    if (!Number.isFinite(p) || p < 0.01 || p > 100) e[`${b}.cashback_percentage`] = 'El porcentaje debe estar entre 0.01 y 100';
-  }
-  if (k === 'bonus_deposit') {
-    const p = row.bonus_percentage;
-    if (!Number.isFinite(p) || p < 0.01 || p > 500) e[`${b}.bonus_percentage`] = 'El match debe estar entre 0.01 y 500';
+  if (['freespin', 'freebet', 'cashback', 'bonus_deposit'].includes(k) && !row.bonus_id.trim()) {
+    e[`${b}.bonus_id`] = 'Seleccioná un bono del catálogo';
   }
   if (k === 'manual') {
     const d = row.manual_description.trim();

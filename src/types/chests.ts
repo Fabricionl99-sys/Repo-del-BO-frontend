@@ -23,24 +23,9 @@ export interface CoinsRewardConfig {
   currency_code: string;
 }
 
-export interface FreespinRewardConfig {
-  quantity: number;
-  game_id?: string;
-}
-
-export interface FreebetRewardConfig {
-  amount: number;
-  currency: string;
-}
-
-export interface CashbackRewardConfig {
-  percentage: number;
-  max_amount: number;
-}
-
-export interface BonusDepositRewardConfig {
-  amount: number;
-  currency: string;
+export interface BonusCatalogRewardConfig {
+  bonus_id: string;
+  amounts_by_currency?: Record<string, number>;
 }
 
 export interface ChestRewardConfig {
@@ -57,10 +42,7 @@ export interface ManualRewardConfig {
 
 export type ChestPrizeRewardConfig =
   | CoinsRewardConfig
-  | FreespinRewardConfig
-  | FreebetRewardConfig
-  | CashbackRewardConfig
-  | BonusDepositRewardConfig
+  | BonusCatalogRewardConfig
   | ChestRewardConfig
   | AvatarPackRewardConfig
   | ManualRewardConfig;

@@ -37,13 +37,12 @@ export function ChestTypeFormModal({
   open,
   chestType,
   existingCodes,
-  chestTypeOptions,
   onClose,
 }: {
   open: boolean;
   chestType: ChestType | null;
   existingCodes: string[];
-  chestTypeOptions: { code: string; name: string }[];
+  chestTypeOptions?: { code: string; name: string }[];
   onClose: () => void;
 }) {
   const createType = useCreateChestType();
@@ -312,7 +311,6 @@ export function ChestTypeFormModal({
       <ChestPrizeFormModal
         open={prizeEditor !== null}
         prize={prizeEditor === 'new' ? null : prizeEditor}
-        chestTypeOptions={chestTypeOptions}
         onClose={() => setPrizeEditor(null)}
         onSave={handlePrizeSave}
       />

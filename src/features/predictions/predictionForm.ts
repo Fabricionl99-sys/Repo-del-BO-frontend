@@ -1,5 +1,6 @@
 import { z } from 'zod';
 
+import { rewardValueSchema } from '@/features/rewards/rewardForm';
 import type {
   ParticipationCostType,
   PredictionEvent,
@@ -7,6 +8,7 @@ import type {
   PredictionOption,
   PredictionRewardType,
 } from '@/types/predictions';
+import type { RewardValue } from '@/types/rewards';
 
 export const PREDICTION_REWARD_TYPES: PredictionRewardType[] = [
   'coins',
@@ -56,20 +58,7 @@ export interface PredictionFormValues {
   resolves_at: string;
   participation_type: ParticipationCostType;
   cost_in_coins: number;
-  reward_type: PredictionRewardType;
-  currency_mode: 'auto_usd' | 'manual_per_currency';
-  coins_amount: number;
-  coins_currency_code: string;
-  freespin_quantity: number;
-  freespin_game_id: string;
-  freebet_amount: number;
-  freebet_currency: string;
-  cashback_percentage: number;
-  cashback_max_amount: number;
-  bonus_amount: number;
-  bonus_currency: string;
-  chest_type_code: string;
-  manual_description: string;
+  reward: RewardValue;
   max_predictions_per_player: number;
   is_visible_to_players: boolean;
   min_level: number | null;
@@ -102,28 +91,7 @@ export const predictionFormSchema = z
     resolves_at: z.string().min(1, 'Fecha de resolución requerida'),
     participation_type: z.enum(['free', 'paid_with_coins']),
     cost_in_coins: z.number().int().min(0),
-    reward_type: z.enum([
-      'coins',
-      'freespin',
-      'freebet',
-      'cashback',
-      'bonus_deposit',
-      'chest',
-      'manual',
-    ]),
-    currency_mode: z.enum(['auto_usd', 'manual_per_currency']),
-    coins_amount: z.number().int().min(0),
-    coins_currency_code: z.string(),
-    freespin_quantity: z.number().int().min(0),
-    freespin_game_id: z.string(),
-    freebet_amount: z.number().min(0),
-    freebet_currency: z.string(),
-    cashback_percentage: z.number().min(0).max(100),
-    cashback_max_amount: z.number().min(0),
-    bonus_amount: z.number().min(0),
-    bonus_currency: z.string(),
-    chest_type_code: z.string(),
-    manual_description: z.string(),
+    reward: rewardValueSchema,
     max_predictions_per_player: z.number().int().min(1).max(10),
     is_visible_to_players: z.boolean(),
     min_level: z.number().int().min(1).nullable(),
@@ -177,20 +145,7 @@ export function defaultPredictionForm(): PredictionFormValues {
     resolves_at: resolves.toISOString().slice(0, 16),
     participation_type: 'free',
     cost_in_coins: 100,
-    reward_type: 'coins',
-    currency_mode: 'auto_usd',
-    coins_amount: 500,
-    coins_currency_code: 'main',
-    freespin_quantity: 10,
-    freespin_game_id: '',
-    freebet_amount: 25,
-    freebet_currency: 'USD',
-    cashback_percentage: 10,
-    cashback_max_amount: 100,
-    bonus_amount: 50,
-    bonus_currency: 'USD',
-    chest_type_code: '',
-    manual_description: '',
+    reward: { reward_type: 'coins', reward_config: { amount: 500, currency_code: 'main' }, currency_mode: 'auto_usd' },
     max_predictions_per_player: 1,
     is_visible_to_players: true,
     min_level: null,
@@ -199,74 +154,7 @@ export function defaultPredictionForm(): PredictionFormValues {
   };
 }
 
-function rewardConfigFromForm(values: PredictionFormValues): Record<string, unknown> {
-  switch (values.reward_type) {
-    case 'coins':
-      return { amount: values.coins_amount, currency_code: values.coins_currency_code };
-    case 'freespin':
-      return {
-        quantity: values.freespin_quantity,
-        ...(values.freespin_game_id ? { game_id: values.freespin_game_id } : {}),
-      };
-    case 'freebet':
-      return { amount: values.freebet_amount, currency: values.freebet_currency };
-    case 'cashback':
-      return { percentage: values.cashback_percentage, max_amount: values.cashback_max_amount };
-    case 'bonus_deposit':
-      return { amount: values.bonus_amount, currency: values.bonus_currency };
-    case 'chest':
-      return { chest_type_code: values.chest_type_code };
-    case 'manual':
-      return { description: values.manual_description };
-    default:
-      return {};
-  }
-}
-
-function rewardConfigToForm(
-  rewardType: PredictionRewardType,
-  config: Record<string, unknown>,
-): Partial<PredictionFormValues> {
-  switch (rewardType) {
-    case 'coins':
-      return {
-        coins_amount: Number(config.amount ?? 500),
-        coins_currency_code: String(config.currency_code ?? 'main'),
-      };
-    case 'freespin':
-      return {
-        freespin_quantity: Number(config.quantity ?? 10),
-        freespin_game_id: String(config.game_id ?? ''),
-      };
-    case 'freebet':
-      return {
-        freebet_amount: Number(config.amount ?? 25),
-        freebet_currency: String(config.currency ?? 'USD'),
-      };
-    case 'cashback':
-      return {
-        cashback_percentage: Number(config.percentage ?? 10),
-        cashback_max_amount: Number(config.max_amount ?? 100),
-      };
-    case 'bonus_deposit':
-      return {
-        bonus_amount: Number(config.amount ?? 50),
-        bonus_currency: String(config.currency ?? 'USD'),
-      };
-    case 'chest':
-      return { chest_type_code: String(config.chest_type_code ?? '') };
-    case 'manual':
-      return { manual_description: String(config.description ?? '') };
-    default:
-      return {};
-  }
-}
-
 export function predictionToForm(event: PredictionEvent): PredictionFormValues {
-  const rewardFields = rewardConfigToForm(
-    event.reward_config.reward_type,
-    event.reward_config.reward_config,
-  );
   return {
     code: event.code,
     name: event.name,
@@ -285,26 +173,16 @@ export function predictionToForm(event: PredictionEvent): PredictionFormValues {
     resolves_at: event.resolves_at.slice(0, 16),
     participation_type: event.participation_cost.type,
     cost_in_coins: event.participation_cost.cost_in_coins ?? 100,
-    reward_type: event.reward_config.reward_type,
-    currency_mode: event.reward_config.currency_mode,
-    coins_amount: 500,
-    coins_currency_code: 'main',
-    freespin_quantity: 10,
-    freespin_game_id: '',
-    freebet_amount: 25,
-    freebet_currency: 'USD',
-    cashback_percentage: 10,
-    cashback_max_amount: 100,
-    bonus_amount: 50,
-    bonus_currency: 'USD',
-    chest_type_code: '',
-    manual_description: '',
+    reward: {
+      reward_type: event.reward_config.reward_type as RewardValue['reward_type'],
+      reward_config: event.reward_config.reward_config as Record<string, unknown>,
+      currency_mode: event.reward_config.currency_mode,
+    },
     max_predictions_per_player: event.max_predictions_per_player,
     is_visible_to_players: event.is_visible_to_players,
     min_level: event.restrictions.min_level,
     vip_only: event.restrictions.vip_only,
     new_players_only: event.restrictions.new_players_only,
-    ...rewardFields,
   };
 }
 
@@ -329,9 +207,9 @@ export function formToPayload(values: PredictionFormValues): PredictionEventPayl
       cost_in_coins: values.participation_type === 'paid_with_coins' ? values.cost_in_coins : null,
     },
     reward_config: {
-      reward_type: values.reward_type,
-      reward_config: rewardConfigFromForm(values),
-      currency_mode: values.currency_mode,
+      reward_type: values.reward.reward_type as PredictionRewardType,
+      reward_config: values.reward.reward_config,
+      currency_mode: values.reward.currency_mode ?? 'auto_usd',
     },
     max_predictions_per_player: values.max_predictions_per_player,
     is_visible_to_players: values.is_visible_to_players,

@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/Button';
 import { Modal } from '@/components/ui/Modal';
 import { Switch } from '@/components/ui/Switch';
 import { ConfigSection, ConfiguratorScaffold } from '@/components/configurator/ConfiguratorScaffold';
-import { TournamentPrizeConfigFields } from '@/features/tournaments/components/TournamentPrizeConfigFields';
+import { RewardSelectorRhf } from '@/components/rewards/RewardSelectorRhf';
 import { useOperatorGames, useSaveTournament, useUploadTournamentBanner } from '@/features/tournaments/tournamentsApi';
 import {
   ACTIVITY_LABELS,
@@ -22,7 +22,6 @@ import {
   TOURNAMENT_ACTIVITY_TYPES,
   TOURNAMENT_COMPETITION_TYPES,
   TOURNAMENT_PERIOD_TYPES,
-  TOURNAMENT_PRIZE_REWARD_TYPES,
   TOURNAMENT_REGISTRATION_TYPES,
   tournamentFormSchema,
   tournamentToForm,
@@ -327,7 +326,6 @@ export function TournamentFormModal({
           )}
           <div className="space-y-4">
             {prizeFields.map((field, index) => {
-              const prizeType = watch(`prizes.${index}.reward_type`);
               return (
                 <div key={field.id} className="card p-4">
                   <div className="mb-3 flex items-center justify-between">
@@ -364,28 +362,13 @@ export function TournamentFormModal({
                         {...register(`prizes.${index}.position_to`, { valueAsNumber: true })}
                       />
                     </div>
-                    <div>
-                      <label className="mb-1.5 block text-[14px] text-text-secondary">reward_type</label>
-                      <select className="field" {...register(`prizes.${index}.reward_type`)}>
-                        {TOURNAMENT_PRIZE_REWARD_TYPES.map((t) => (
-                          <option key={t} value={t}>
-                            {t}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
-                  </div>
-                  <div className="mt-3 grid gap-3 sm:grid-cols-2">
-                    <div>
-                      <label className="mb-1.5 block text-[14px] text-text-secondary">currency_mode</label>
-                      <select className="field" {...register(`prizes.${index}.currency_mode`)}>
-                        <option value="auto_usd">auto_usd</option>
-                        <option value="manual_per_currency">manual_per_currency</option>
-                      </select>
-                    </div>
                   </div>
                   <div className="mt-3">
-                    <TournamentPrizeConfigFields rewardType={prizeType} register={register} index={index} />
+                    <RewardSelectorRhf
+                      moduleKey="tournaments"
+                      control={control}
+                      name={`prizes.${index}.reward`}
+                    />
                   </div>
                   <p className="mt-2 text-[13px] text-text-tertiary">
                     {summarizePrizeReward(watch(`prizes.${index}`))}
@@ -403,20 +386,7 @@ export function TournamentFormModal({
               appendPrize({
                 position_from: prizeFields.length + 1,
                 position_to: prizeFields.length + 1,
-                reward_type: 'coins',
-                currency_mode: 'auto_usd',
-                coins_amount: 1000,
-                coins_currency_code: 'main',
-                freespin_quantity: 10,
-                freespin_game_id: '',
-                freebet_amount: 25,
-                freebet_currency: 'USD',
-                cashback_percentage: 10,
-                cashback_max_amount: 100,
-                bonus_amount: 50,
-                bonus_currency: 'USD',
-                chest_type_code: '',
-                manual_description: '',
+                reward: { reward_type: 'coins', reward_config: { amount: 1000, currency_code: 'main' }, currency_mode: 'auto_usd' },
               })
             }
           >

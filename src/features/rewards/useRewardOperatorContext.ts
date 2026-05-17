@@ -24,7 +24,7 @@ export function useRewardOperatorContext(): { context: RewardOperatorContext; is
       available_avatars: (avatarsQ.data?.items ?? []).map((a) => ({ id: a.id, name: a.name })),
       available_coins: (coinsQ.data ?? [])
         .filter((c) => c.active)
-        .map((c) => ({ id: c.id, code: c.code ?? c.id, name: c.name })),
+        .map((c) => ({ id: c.id, code: c.id, name: c.name })),
       active_currencies: (currenciesQ.data ?? []).map((c) => c.code),
       activeModuleCodes,
     }),

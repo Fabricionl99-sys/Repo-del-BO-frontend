@@ -1,11 +1,11 @@
 import { useFormContext, useWatch } from 'react-hook-form';
 import type { Path } from 'react-hook-form';
 
+import { RewardSelector } from '@/components/rewards/RewardSelector';
 import { useChestTypeOptions } from '@/features/chests/chestsApi';
 import { useCoins } from '@/features/coinsApi';
 import {
   coinCodeForSelect,
-  FIAT_CURRENCIES,
   type StreakEditorFormValues,
   type StreakRewardKind,
 } from '@/features/streaks/streakEditorForm';
@@ -183,62 +183,9 @@ export function DailyRewardFields() {
           <FieldErr path="daily_chest_id" />
         </div>
       ) : null}
-      {kind === 'freespin' ? (
-        <div className="mt-3 grid max-w-lg grid-cols-2 gap-3">
-          <div>
-            <label className="mb-1 block text-[14px] text-text-secondary">Cantidad de spins</label>
-            <input className="field" type="number" min={1} {...register('daily_freespin_quantity', { valueAsNumber: true })} />
-            <FieldErr path="daily_freespin_quantity" />
-          </div>
-          <div>
-            <label className="mb-1 block text-[14px] text-text-secondary">Game ID (opcional)</label>
-            <input className="field" {...register('daily_freespin_game_id')} />
-          </div>
-        </div>
-      ) : null}
-      {kind === 'freebet' ? (
-        <div className="mt-3 grid max-w-lg grid-cols-2 gap-3">
-          <div>
-            <label className="mb-1 block text-[14px] text-text-secondary">Monto</label>
-            <input className="field" type="number" min={0.01} step={0.01} {...register('daily_freebet_amount', { valueAsNumber: true })} />
-            <FieldErr path="daily_freebet_amount" />
-          </div>
-          <div>
-            <label className="mb-1 block text-[14px] text-text-secondary">Moneda</label>
-            <select className="field" {...register('daily_freebet_currency')}>
-              {FIAT_CURRENCIES.map((c) => (
-                <option key={c} value={c}>
-                  {c}
-                </option>
-              ))}
-            </select>
-          </div>
-        </div>
-      ) : null}
-      {kind === 'cashback' ? (
-        <div className="mt-3 grid max-w-lg grid-cols-2 gap-3">
-          <div>
-            <label className="mb-1 block text-[14px] text-text-secondary">Porcentaje</label>
-            <input className="field" type="number" min={0.01} max={100} step={0.01} {...register('daily_cashback_percentage', { valueAsNumber: true })} />
-            <FieldErr path="daily_cashback_percentage" />
-          </div>
-          <div>
-            <label className="mb-1 block text-[14px] text-text-secondary">Monto máximo (opcional)</label>
-            <input className="field" type="number" min={0} step={0.01} {...register('daily_cashback_max_amount', { valueAsNumber: true })} />
-          </div>
-        </div>
-      ) : null}
-      {kind === 'bonus_deposit' ? (
-        <div className="mt-3 grid max-w-lg grid-cols-2 gap-3">
-          <div>
-            <label className="mb-1 block text-[14px] text-text-secondary">Porcentaje match</label>
-            <input className="field" type="number" min={0.01} max={500} step={0.01} {...register('daily_bonus_percentage', { valueAsNumber: true })} />
-            <FieldErr path="daily_bonus_percentage" />
-          </div>
-          <div>
-            <label className="mb-1 block text-[14px] text-text-secondary">Monto máximo (opcional)</label>
-            <input className="field" type="number" min={0} step={0.01} {...register('daily_bonus_max_amount', { valueAsNumber: true })} />
-          </div>
+      {['freespin', 'freebet', 'cashback', 'bonus_deposit'].includes(kind) ? (
+        <div className="mt-3">
+          <DailyBonusRewardSelector kind={kind as 'freespin' | 'freebet' | 'cashback' | 'bonus_deposit'} />
         </div>
       ) : null}
     </>
@@ -256,7 +203,7 @@ export function MilestoneCard({ index }: { index: number }) {
   const coins = (coinsQ.data ?? []).filter((c) => c.active);
   const chests = chestsQ.data ?? [];
   const kindRaw = useWatch({ control, name: mp(index, 'reward_kind') });
-  const kind = kindRaw ?? 'coins';
+  const kind = (kindRaw ?? 'coins') as StreakRewardKind;
 
   return (
     <div className="rounded-lg border border-border-subtle bg-bg-secondary p-4">
@@ -327,64 +274,49 @@ export function MilestoneCard({ index }: { index: number }) {
           <FieldErr path={mp(index, 'chest_id')} />
         </div>
       ) : null}
-      {kind === 'freespin' ? (
-        <div className="grid max-w-lg grid-cols-2 gap-3">
-          <div>
-            <label className="mb-1 block text-[13px] text-text-secondary">Spins</label>
-            <input className="field" type="number" min={1} {...register(mp(index, 'freespin_quantity'), { valueAsNumber: true })} />
-            <FieldErr path={mp(index, 'freespin_quantity')} />
-          </div>
-          <div>
-            <label className="mb-1 block text-[13px] text-text-secondary">Game ID (opcional)</label>
-            <input className="field" {...register(mp(index, 'freespin_game_id'))} />
-          </div>
-        </div>
-      ) : null}
-      {kind === 'freebet' ? (
-        <div className="grid max-w-lg grid-cols-2 gap-3">
-          <div>
-            <label className="mb-1 block text-[13px] text-text-secondary">Monto</label>
-            <input className="field" type="number" min={0.01} step={0.01} {...register(mp(index, 'freebet_amount'), { valueAsNumber: true })} />
-            <FieldErr path={mp(index, 'freebet_amount')} />
-          </div>
-          <div>
-            <label className="mb-1 block text-[13px] text-text-secondary">Moneda</label>
-            <select className="field" {...register(mp(index, 'freebet_currency'))}>
-              {FIAT_CURRENCIES.map((c) => (
-                <option key={c} value={c}>
-                  {c}
-                </option>
-              ))}
-            </select>
-          </div>
-        </div>
-      ) : null}
-      {kind === 'cashback' ? (
-        <div className="grid max-w-lg grid-cols-2 gap-3">
-          <div>
-            <label className="mb-1 block text-[13px] text-text-secondary">%</label>
-            <input className="field" type="number" min={0.01} max={100} step={0.01} {...register(mp(index, 'cashback_percentage'), { valueAsNumber: true })} />
-            <FieldErr path={mp(index, 'cashback_percentage')} />
-          </div>
-          <div>
-            <label className="mb-1 block text-[13px] text-text-secondary">Tope (opcional)</label>
-            <input className="field" type="number" min={0} step={0.01} {...register(mp(index, 'cashback_max_amount'), { valueAsNumber: true })} />
-          </div>
-        </div>
-      ) : null}
-      {kind === 'bonus_deposit' ? (
-        <div className="grid max-w-lg grid-cols-2 gap-3">
-          <div>
-            <label className="mb-1 block text-[13px] text-text-secondary">% match</label>
-            <input className="field" type="number" min={0.01} max={500} step={0.01} {...register(mp(index, 'bonus_percentage'), { valueAsNumber: true })} />
-            <FieldErr path={mp(index, 'bonus_percentage')} />
-          </div>
-          <div>
-            <label className="mb-1 block text-[13px] text-text-secondary">Tope (opcional)</label>
-            <input className="field" type="number" min={0} step={0.01} {...register(mp(index, 'bonus_max_amount'), { valueAsNumber: true })} />
-          </div>
-        </div>
+      {['freespin', 'freebet', 'cashback', 'bonus_deposit'].includes(kind) ? (
+        <MilestoneBonusRewardSelector index={index} kind={kind as 'freespin' | 'freebet' | 'cashback' | 'bonus_deposit'} />
       ) : null}
     </div>
+  );
+}
+
+function DailyBonusRewardSelector({ kind }: { kind: 'freespin' | 'freebet' | 'cashback' | 'bonus_deposit' }) {
+  const { setValue, watch } = useFormContext<StreakEditorFormValues>();
+  const bonusId = watch('daily_bonus_id') ?? '';
+  return (
+    <>
+      <RewardSelector
+        moduleKey="streaks"
+        availableRewardTypes={[kind]}
+        value={{ reward_type: kind, reward_config: { bonus_id: bonusId } }}
+        onChange={(v) => setValue('daily_bonus_id', String(v.reward_config.bonus_id ?? ''), { shouldValidate: true })}
+      />
+      <FieldErr path="daily_bonus_id" />
+    </>
+  );
+}
+
+function MilestoneBonusRewardSelector({
+  index,
+  kind,
+}: {
+  index: number;
+  kind: 'freespin' | 'freebet' | 'cashback' | 'bonus_deposit';
+}) {
+  const { setValue, watch } = useFormContext<StreakEditorFormValues>();
+  const bonusId = String(watch(`milestones.${index}.bonus_id` as Path<StreakEditorFormValues>) ?? '');
+  return (
+    <>
+      <RewardSelector
+        moduleKey="streaks"
+        availableRewardTypes={[kind]}
+        value={{ reward_type: kind, reward_config: { bonus_id: bonusId } }}
+        onChange={(v) =>
+          setValue(`milestones.${index}.bonus_id` as Path<StreakEditorFormValues>, String(v.reward_config.bonus_id ?? ''), { shouldValidate: true })
+        }
+      />
+      <FieldErr path={`milestones.${index}.bonus_id` as Path<StreakEditorFormValues>} />
+    </>
   );
 }

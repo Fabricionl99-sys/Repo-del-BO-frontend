@@ -23,14 +23,14 @@ describe('validateStreakEditorForm', () => {
     expect(ok.name).toBeUndefined();
   });
 
-  it('freespin milestone requiere quantity ≥ 1', () => {
+  it('freespin milestone requiere bonus_id del catálogo', () => {
     const f = {
       ...base,
       name: 'Test programa',
-      milestones: [{ ...emptyMilestoneRow('main'), day_number: 2, reward_kind: 'freespin' as StreakRewardKind, freespin_quantity: 0 }],
+      milestones: [{ ...emptyMilestoneRow('main'), day_number: 2, reward_kind: 'freespin' as StreakRewardKind, bonus_id: '' }],
     };
     const e = validateStreakEditorForm(f, true);
-    expect(e['milestones.0.freespin_quantity']).toBeDefined();
+    expect(e['milestones.0.bonus_id']).toBeDefined();
   });
 
   it('días únicos en milestones', () => {
@@ -116,16 +116,16 @@ describe('buildProgramPayload + programToEditorForm', () => {
     expect(p.daily_micro_reward).toEqual({ type: 'xp', config: { amount: 50 } });
   });
 
-  it('milestones usan reward_config con coin_code y percentage', () => {
+  it('milestones usan reward_config con coin_code y bonus_id', () => {
     const f = defaultStreakEditorForm('UTC', 'main');
     f.name = 'Hitos';
     f.milestones = [
       { ...emptyMilestoneRow('main'), day_number: 7, reward_kind: 'coins', coin_code: 'main', coin_amount: 20 },
-      { ...emptyMilestoneRow('main'), day_number: 14, reward_kind: 'bonus_deposit', bonus_percentage: 50, bonus_max_amount: 100 },
+      { ...emptyMilestoneRow('main'), day_number: 14, reward_kind: 'bonus_deposit', bonus_id: 'ob_bd_welcome' },
     ];
     const p = buildProgramPayload(f);
     expect(p.milestones?.[0].reward_config).toEqual({ coin_code: 'main', amount: 20 });
-    expect(p.milestones?.[1].reward_config).toEqual({ percentage: 50, max_amount: 100 });
+    expect(p.milestones?.[1].reward_config).toEqual({ bonus_id: 'ob_bd_welcome' });
   });
 
   it('activity_config bet_cumulative', () => {

@@ -2,6 +2,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { useEffect } from 'react';
 import { useForm, useWatch } from 'react-hook-form';
 
+import { RewardSelectorRhf } from '@/components/rewards/RewardSelectorRhf';
 import { Button } from '@/components/ui/Button';
 import { Modal } from '@/components/ui/Modal';
 import { Switch } from '@/components/ui/Switch';
@@ -10,26 +11,22 @@ import {
   findPrizeOverlap,
   formToPrizePayload,
   prizeToForm,
-  RANKING_PRIZE_REWARD_TYPES,
   rankingPrizeFormSchema,
   type RankingPrizeFormValues,
 } from '@/features/rankings/rankingPrizeForm';
 import type { RankingPrize } from '@/types/rankings';
 
-import { RankingPrizeConfigFields } from './RankingPrizeConfigFields';
-
 export function RankingPrizeFormModal({
   open,
   prize,
   existingPrizes,
-  chestTypeOptions,
   onClose,
   onSave,
 }: {
   open: boolean;
   prize: RankingPrize | null;
   existingPrizes: RankingPrize[];
-  chestTypeOptions: { code: string; name: string }[];
+  chestTypeOptions?: { code: string; name: string }[];
   onClose: () => void;
   onSave: (payload: ReturnType<typeof formToPrizePayload>, prizeId?: string) => Promise<void>;
 }) {
@@ -39,7 +36,6 @@ export function RankingPrizeFormModal({
   });
 
   const { register, handleSubmit, reset, setValue, control, setError, formState: { errors } } = form;
-  const rewardType = useWatch({ control, name: 'reward_type' });
   const isActive = useWatch({ control, name: 'is_active' });
 
   useEffect(() => {
@@ -90,15 +86,7 @@ export function RankingPrizeFormModal({
             {errors.position_to && <p className="mt-1 text-[13px] text-danger">{errors.position_to.message}</p>}
           </div>
         </div>
-        <div>
-          <label className="mb-1.5 block text-[14px] text-text-secondary">reward_type</label>
-          <select className="field" {...register('reward_type')}>
-            {RANKING_PRIZE_REWARD_TYPES.map((t) => (
-              <option key={t} value={t}>{t}</option>
-            ))}
-          </select>
-        </div>
-        <RankingPrizeConfigFields rewardType={rewardType} register={register} chestTypeOptions={chestTypeOptions} />
+        <RewardSelectorRhf moduleKey="rankings" control={control} name="reward" />
         <div className="flex items-center justify-between rounded-lg border border-border-subtle bg-bg-tertiary px-3 py-2">
           <span className="text-[14px] text-text-secondary">Premio activo</span>
           <Switch checked={isActive} onChange={(v) => setValue('is_active', v)} />

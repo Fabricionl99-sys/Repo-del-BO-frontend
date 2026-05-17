@@ -8,6 +8,7 @@ import { ErrorState } from '@/components/ui/ErrorState';
 import { Loading } from '@/components/ui/Loading';
 import { PageHeader } from '@/components/ui/PageHeader';
 import { ConfiguratorScaffold, ConfigSection } from '@/components/configurator/ConfiguratorScaffold';
+import { RewardSelectorRhf } from '@/components/rewards/RewardSelectorRhf';
 import { StickyBottomBar } from '@/features/rules/components/RuleBlocks';
 import {
   defaultMissionForm,
@@ -155,17 +156,7 @@ export default function MissionEditorPage() {
           </ConfigSection>
 
           <ConfigSection icon="🎁" title="Recompensas">
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <label className="mb-1.5 block text-[14px] text-text-secondary">XP</label>
-                <input className="field" type="number" min={0} {...register('xpReward', { valueAsNumber: true })} />
-              </div>
-              <div>
-                <label className="mb-1.5 block text-[14px] text-text-secondary">monedas</label>
-                <input className="field" type="number" min={0} {...register('coinsReward', { valueAsNumber: true })} />
-              </div>
-            </div>
-            <input className="field" placeholder="coin_id" {...register('coinId')} />
+            <RewardSelectorRhf moduleKey="missions" control={control} name="primaryReward" />
           </ConfigSection>
 
           <ConfigSection icon="⏰" title="Disponibilidad">

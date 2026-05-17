@@ -372,3 +372,13 @@ export const GATED_MODULE_LABELS: Record<string, string> = {
   chests: 'Cofres',
   avatars: 'Avatares',
 };
+
+export const rewardValueSchema = z
+  .object({
+    reward_type: rewardTypeEnum,
+    reward_config: z.record(z.string(), z.unknown()),
+    currency_mode: z.enum(['auto_usd', 'manual_per_currency']).optional(),
+  })
+  .superRefine((value, ctx) => {
+    validateRewardFormFields(rewardValueToForm(value), ctx);
+  });

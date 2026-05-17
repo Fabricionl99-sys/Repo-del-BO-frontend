@@ -34,10 +34,12 @@ describe('RewardSelector', () => {
       const bonusSelect = selects[selects.length - 1];
       expect(bonusSelect.querySelector('option[value="ob_fs_book_dead"]')).toBeTruthy();
     });
-    const bonusSelect = screen.getAllByRole('combobox').at(-1)!;
+    const comboboxes = screen.getAllByRole('combobox');
+    const bonusSelect = comboboxes[comboboxes.length - 1];
     fireEvent.change(bonusSelect, { target: { value: 'ob_fs_book_dead' } });
     expect(onChange).toHaveBeenCalled();
-    const last = onChange.mock.calls.at(-1)?.[0] as RewardValue;
+    const calls = onChange.mock.calls;
+    const last = calls[calls.length - 1][0] as RewardValue;
     expect(last.reward_config.bonus_id).toBe('ob_fs_book_dead');
   });
 

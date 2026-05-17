@@ -1,5 +1,6 @@
 import { z } from 'zod';
 
+import { rewardValueSchema, summarizeReward } from '@/features/rewards/rewardForm';
 import type {
   Tournament,
   TournamentActivityType,
@@ -114,20 +115,7 @@ export const STATUS_LABELS: Record<string, string> = {
 export interface TournamentPrizeFormValues {
   position_from: number;
   position_to: number;
-  reward_type: TournamentPrizeRewardType;
-  currency_mode: 'auto_usd' | 'manual_per_currency';
-  coins_amount: number;
-  coins_currency_code: string;
-  freespin_quantity: number;
-  freespin_game_id: string;
-  freebet_amount: number;
-  freebet_currency: string;
-  cashback_percentage: number;
-  cashback_max_amount: number;
-  bonus_amount: number;
-  bonus_currency: string;
-  chest_type_code: string;
-  manual_description: string;
+  reward: import('@/types/rewards').RewardValue;
 }
 
 export interface TournamentFormValues {
@@ -165,28 +153,7 @@ const prizeSchema = z
   .object({
     position_from: z.number().int().min(1),
     position_to: z.number().int().min(1),
-    reward_type: z.enum([
-      'coins',
-      'freespin',
-      'freebet',
-      'cashback',
-      'bonus_deposit',
-      'chest',
-      'manual',
-    ]),
-    currency_mode: z.enum(['auto_usd', 'manual_per_currency']),
-    coins_amount: z.number().int().min(0),
-    coins_currency_code: z.string(),
-    freespin_quantity: z.number().int().min(0),
-    freespin_game_id: z.string(),
-    freebet_amount: z.number().min(0),
-    freebet_currency: z.string(),
-    cashback_percentage: z.number().min(0).max(100),
-    cashback_max_amount: z.number().min(0),
-    bonus_amount: z.number().min(0),
-    bonus_currency: z.string(),
-    chest_type_code: z.string(),
-    manual_description: z.string(),
+    reward: rewardValueSchema,
   })
   .superRefine((p, ctx) => {
     if (p.position_from > p.position_to) {
@@ -325,72 +292,16 @@ export function findPrizeOverlapInList(
   return null;
 }
 
-function prizeRewardConfig(values: TournamentPrizeFormValues): Record<string, unknown> {
-  switch (values.reward_type) {
-    case 'coins':
-      return { amount: values.coins_amount, currency_code: values.coins_currency_code };
-    case 'freespin':
-      return {
-        quantity: values.freespin_quantity,
-        ...(values.freespin_game_id ? { game_id: values.freespin_game_id } : {}),
-      };
-    case 'freebet':
-      return { amount: values.freebet_amount, currency: values.freebet_currency };
-    case 'cashback':
-      return { percentage: values.cashback_percentage, max_amount: values.cashback_max_amount };
-    case 'bonus_deposit':
-      return { amount: values.bonus_amount, currency: values.bonus_currency };
-    case 'chest':
-      return { chest_type_code: values.chest_type_code };
-    case 'manual':
-      return { description: values.manual_description };
-    default:
-      return {};
-  }
-}
-
 function prizeToForm(p: TournamentPrize): TournamentPrizeFormValues {
-  const cfg = p.reward_config;
-  const base: TournamentPrizeFormValues = {
+  return {
     position_from: p.position_from,
     position_to: p.position_to,
-    reward_type: p.reward_type,
-    currency_mode: p.currency_mode,
-    coins_amount: 1000,
-    coins_currency_code: 'main',
-    freespin_quantity: 10,
-    freespin_game_id: '',
-    freebet_amount: 25,
-    freebet_currency: 'USD',
-    cashback_percentage: 10,
-    cashback_max_amount: 100,
-    bonus_amount: 50,
-    bonus_currency: 'USD',
-    chest_type_code: '',
-    manual_description: '',
+    reward: {
+      reward_type: p.reward_type as import('@/types/rewards').RewardTypeCode,
+      reward_config: p.reward_config as Record<string, unknown>,
+      currency_mode: p.currency_mode,
+    },
   };
-  switch (p.reward_type) {
-    case 'coins':
-      return { ...base, coins_amount: Number(cfg.amount ?? 1000), coins_currency_code: String(cfg.currency_code ?? 'main') };
-    case 'freespin':
-      return { ...base, freespin_quantity: Number(cfg.quantity ?? 10), freespin_game_id: String(cfg.game_id ?? '') };
-    case 'freebet':
-      return { ...base, freebet_amount: Number(cfg.amount ?? 25), freebet_currency: String(cfg.currency ?? 'USD') };
-    case 'cashback':
-      return {
-        ...base,
-        cashback_percentage: Number(cfg.percentage ?? 10),
-        cashback_max_amount: Number(cfg.max_amount ?? 100),
-      };
-    case 'bonus_deposit':
-      return { ...base, bonus_amount: Number(cfg.amount ?? 50), bonus_currency: String(cfg.currency ?? 'USD') };
-    case 'chest':
-      return { ...base, chest_type_code: String(cfg.chest_type_code ?? '') };
-    case 'manual':
-      return { ...base, manual_description: String(cfg.description ?? '') };
-    default:
-      return base;
-  }
 }
 
 export function defaultTournamentForm(): TournamentFormValues {
@@ -421,20 +332,7 @@ export function defaultTournamentForm(): TournamentFormValues {
       {
         position_from: 1,
         position_to: 1,
-        reward_type: 'coins',
-        currency_mode: 'auto_usd',
-        coins_amount: 5000,
-        coins_currency_code: 'main',
-        freespin_quantity: 10,
-        freespin_game_id: '',
-        freebet_amount: 25,
-        freebet_currency: 'USD',
-        cashback_percentage: 10,
-        cashback_max_amount: 100,
-        bonus_amount: 50,
-        bonus_currency: 'USD',
-        chest_type_code: '',
-        manual_description: '',
+        reward: { reward_type: 'coins', reward_config: { amount: 5000, currency_code: 'main' }, currency_mode: 'auto_usd' },
       },
     ],
     max_visible_positions: 100,
@@ -517,9 +415,9 @@ export function formToPayload(values: TournamentFormValues): TournamentPayload {
     prizes: values.prizes.map((p) => ({
       position_from: p.position_from,
       position_to: p.position_to,
-      reward_type: p.reward_type,
-      reward_config: prizeRewardConfig(p),
-      currency_mode: p.currency_mode,
+      reward_type: p.reward.reward_type as TournamentPrizeRewardType,
+      reward_config: p.reward.reward_config,
+      currency_mode: p.reward.currency_mode ?? 'auto_usd',
     })),
     max_visible_positions: values.max_visible_positions,
     is_active: values.is_active,
@@ -531,22 +429,5 @@ export function formatPositionRange(from: number, to: number): string {
 }
 
 export function summarizePrizeReward(p: TournamentPrizeFormValues): string {
-  switch (p.reward_type) {
-    case 'coins':
-      return `${p.coins_amount} monedas`;
-    case 'freespin':
-      return `${p.freespin_quantity} free spins`;
-    case 'freebet':
-      return `${p.freebet_amount} ${p.freebet_currency}`;
-    case 'cashback':
-      return `${p.cashback_percentage}% (max ${p.cashback_max_amount})`;
-    case 'bonus_deposit':
-      return `${p.bonus_amount} ${p.bonus_currency}`;
-    case 'chest':
-      return `cofre ${p.chest_type_code || '—'}`;
-    case 'manual':
-      return p.manual_description.slice(0, 40) || 'manual';
-    default:
-      return '—';
-  }
+  return summarizeReward(p.reward);
 }

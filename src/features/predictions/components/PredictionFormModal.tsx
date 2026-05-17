@@ -7,15 +7,13 @@ import { Button } from '@/components/ui/Button';
 import { Modal } from '@/components/ui/Modal';
 import { Switch } from '@/components/ui/Switch';
 import { ConfigSection, ConfiguratorScaffold } from '@/components/configurator/ConfiguratorScaffold';
-import { PredictionRewardConfigFields } from '@/features/predictions/components/PredictionRewardConfigFields';
+import { RewardSelectorRhf } from '@/components/rewards/RewardSelectorRhf';
 import { usePredictionCategories, useSavePrediction } from '@/features/predictions/predictionsApi';
 import {
   defaultPredictionForm,
   formToPayload,
-  PREDICTION_REWARD_TYPES,
   predictionFormSchema,
   predictionToForm,
-  REWARD_TYPE_LABELS,
   type PredictionFormValues,
 } from '@/features/predictions/predictionForm';
 import type { PredictionEvent } from '@/types/predictions';
@@ -52,7 +50,6 @@ export function PredictionFormModal({
 
   const { fields, append, remove, move } = useFieldArray({ control, name: 'options' });
   const participationType = useWatch({ control, name: 'participation_type' });
-  const rewardType = useWatch({ control, name: 'reward_type' });
   const categoryValue = watch('category');
 
   useEffect(() => {
@@ -239,28 +236,7 @@ export function PredictionFormModal({
         </ConfigSection>
 
         <ConfigSection icon="🎁" title="Premio para acertadores">
-          <div className="grid gap-3 sm:grid-cols-2">
-            <div>
-              <label className="mb-1.5 block text-[14px] text-text-secondary">reward_type</label>
-              <select className="field" {...register('reward_type')}>
-                {PREDICTION_REWARD_TYPES.map((t) => (
-                  <option key={t} value={t}>
-                    {REWARD_TYPE_LABELS[t]}
-                  </option>
-                ))}
-              </select>
-            </div>
-            <div>
-              <label className="mb-1.5 block text-[14px] text-text-secondary">currency_mode</label>
-              <select className="field" {...register('currency_mode')}>
-                <option value="auto_usd">auto_usd</option>
-                <option value="manual_per_currency">manual_per_currency</option>
-              </select>
-            </div>
-          </div>
-          <div className="mt-3">
-            <PredictionRewardConfigFields rewardType={rewardType} register={register} />
-          </div>
+          <RewardSelectorRhf moduleKey="predictions" control={control} name="reward" />
         </ConfigSection>
 
         <ConfigSection icon="🔒" title="Restricciones">

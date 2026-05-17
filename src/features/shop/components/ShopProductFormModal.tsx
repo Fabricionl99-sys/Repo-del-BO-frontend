@@ -18,7 +18,8 @@ import {
 import { useSaveShopProduct } from '@/features/shop/shopApi';
 import type { ShopProduct } from '@/types/shop';
 
-import { ShopRewardConfigFields } from './ShopRewardConfigFields';
+import { RewardSelectorRhf } from '@/components/rewards/RewardSelectorRhf';
+import type { RewardTypeCode } from '@/types/rewards';
 
 export function ShopProductFormModal({
   open,
@@ -154,7 +155,20 @@ export function ShopProductFormModal({
               ))}
             </select>
           </div>
-          <ShopRewardConfigFields rewardType={rewardType} register={register} />
+          {rewardType === 'theme' ? (
+            <div>
+              <label className="mb-1.5 block text-[14px] text-text-secondary">theme_id</label>
+              <input className="field" {...register('theme_id')} />
+              {errors.theme_id && <p className="mt-1 text-[13px] text-danger">{errors.theme_id.message}</p>}
+            </div>
+          ) : (
+            <RewardSelectorRhf
+              moduleKey="shop"
+              control={control}
+              name="reward"
+              availableRewardTypes={SHOP_REWARD_TYPES.filter((t) => t !== 'theme') as RewardTypeCode[]}
+            />
+          )}
         </ConfigSection>
 
         <ConfigSection title="Restricciones">

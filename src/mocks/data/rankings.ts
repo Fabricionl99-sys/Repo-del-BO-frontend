@@ -59,7 +59,7 @@ export const rankingConfigs: RankingConfig[] = [
         position_from: 4,
         position_to: 10,
         reward_type: 'freespin',
-        reward_config: { quantity: 10, game_id: 'starburst' },
+        reward_config: { bonus_id: 'ob_fs_starburst' },
         is_active: true,
       },
     ],
@@ -86,7 +86,7 @@ export const rankingConfigs: RankingConfig[] = [
         position_from: 1,
         position_to: 1,
         reward_type: 'freebet',
-        reward_config: { amount: 100, currency: 'USD' },
+        reward_config: { bonus_id: 'ob_fb_vip' },
         is_active: true,
       },
       {
@@ -94,7 +94,7 @@ export const rankingConfigs: RankingConfig[] = [
         position_from: 2,
         position_to: 5,
         reward_type: 'cashback',
-        reward_config: { percentage: 10, max_amount: 200 },
+        reward_config: { bonus_id: 'ob_cb_weekly' },
         is_active: true,
       },
       {
@@ -137,7 +137,7 @@ export const rankingConfigs: RankingConfig[] = [
         position_from: 2,
         position_to: 10,
         reward_type: 'bonus_deposit',
-        reward_config: { amount: 100, currency: 'USD' },
+        reward_config: { bonus_id: 'ob_fb_vip' },
         is_active: true,
       },
       {

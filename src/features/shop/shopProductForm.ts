@@ -1,6 +1,8 @@
 import { z } from 'zod';
 
-import type { ShopProduct, ShopProductPayload, ShopRewardConfig, ShopRewardType } from '@/types/shop';
+import { rewardValueSchema } from '@/features/rewards/rewardForm';
+import type { ShopProduct, ShopProductPayload, ShopRewardType } from '@/types/shop';
+import type { RewardValue } from '@/types/rewards';
 
 export const SHOP_REWARD_TYPES: ShopRewardType[] = [
   'freespin',
@@ -24,17 +26,8 @@ export interface ShopProductFormValues {
   unlimited_stock: boolean;
   stock: number;
   reward_type: ShopRewardType;
-  freespin_quantity: number;
-  freespin_game_id: string;
-  freebet_amount: number;
-  freebet_currency: string;
-  cashback_percentage: number;
-  cashback_max_amount: number;
-  bonus_percentage: number;
-  bonus_max_amount: number;
-  avatar_pack_id: string;
+  reward: RewardValue;
   theme_id: string;
-  manual_description: string;
   min_level: number | null;
   vip_only: boolean;
   max_per_player: number | null;
@@ -68,17 +61,8 @@ export const shopProductFormSchema = z
       'theme',
       'manual',
     ]),
-    freespin_quantity: z.number().int().min(0),
-    freespin_game_id: z.string(),
-    freebet_amount: z.number().min(0),
-    freebet_currency: z.string(),
-    cashback_percentage: z.number().min(0).max(100),
-    cashback_max_amount: z.number().min(0),
-    bonus_percentage: z.number().min(0).max(500),
-    bonus_max_amount: z.number().min(0),
-    avatar_pack_id: z.string(),
+    reward: rewardValueSchema,
     theme_id: z.string(),
-    manual_description: z.string(),
     min_level: z.number().int().min(1).nullable(),
     vip_only: z.boolean(),
     max_per_player: z.number().int().min(1).nullable(),
@@ -93,42 +77,8 @@ export const shopProductFormSchema = z
     if (values.valid_from && values.valid_until && values.valid_from > values.valid_until) {
       ctx.addIssue({ code: 'custom', path: ['valid_until'], message: 'Debe ser posterior a valid_from' });
     }
-    switch (values.reward_type) {
-      case 'freespin':
-        if (values.freespin_quantity < 1) {
-          ctx.addIssue({ code: 'custom', path: ['freespin_quantity'], message: 'Cantidad mínima 1' });
-        }
-        break;
-      case 'freebet':
-        if (values.freebet_amount <= 0) {
-          ctx.addIssue({ code: 'custom', path: ['freebet_amount'], message: 'Monto requerido' });
-        }
-        break;
-      case 'cashback':
-        if (values.cashback_percentage <= 0) {
-          ctx.addIssue({ code: 'custom', path: ['cashback_percentage'], message: 'Porcentaje requerido' });
-        }
-        break;
-      case 'bonus_deposit':
-        if (values.bonus_percentage <= 0) {
-          ctx.addIssue({ code: 'custom', path: ['bonus_percentage'], message: 'Porcentaje requerido' });
-        }
-        break;
-      case 'avatar_pack':
-        if (!values.avatar_pack_id.trim()) {
-          ctx.addIssue({ code: 'custom', path: ['avatar_pack_id'], message: 'pack_id requerido' });
-        }
-        break;
-      case 'theme':
-        if (!values.theme_id.trim()) {
-          ctx.addIssue({ code: 'custom', path: ['theme_id'], message: 'theme_id requerido' });
-        }
-        break;
-      case 'manual':
-        if (!values.manual_description.trim()) {
-          ctx.addIssue({ code: 'custom', path: ['manual_description'], message: 'Descripción requerida' });
-        }
-        break;
+    if (values.reward_type === 'theme' && !values.theme_id.trim()) {
+      ctx.addIssue({ code: 'custom', path: ['theme_id'], message: 'theme_id requerido' });
     }
   });
 
@@ -143,17 +93,8 @@ export function defaultShopProductForm(): ShopProductFormValues {
     unlimited_stock: true,
     stock: 0,
     reward_type: 'freespin',
-    freespin_quantity: 10,
-    freespin_game_id: '',
-    freebet_amount: 10,
-    freebet_currency: 'USD',
-    cashback_percentage: 10,
-    cashback_max_amount: 50,
-    bonus_percentage: 50,
-    bonus_max_amount: 100,
-    avatar_pack_id: '',
+    reward: { reward_type: 'freespin', reward_config: { bonus_id: 'ob_fs_book_dead' }, currency_mode: 'auto_usd' },
     theme_id: '',
-    manual_description: '',
     min_level: null,
     vip_only: false,
     max_per_player: null,
@@ -163,28 +104,11 @@ export function defaultShopProductForm(): ShopProductFormValues {
   };
 }
 
-export function buildRewardConfig(values: ShopProductFormValues): ShopRewardConfig {
-  switch (values.reward_type) {
-    case 'freespin':
-      return {
-        quantity: values.freespin_quantity,
-        ...(values.freespin_game_id.trim() ? { game_id: values.freespin_game_id.trim() } : {}),
-      };
-    case 'freebet':
-      return { amount: values.freebet_amount, currency: values.freebet_currency };
-    case 'cashback':
-      return { percentage: values.cashback_percentage, max_amount: values.cashback_max_amount };
-    case 'bonus_deposit':
-      return { percentage: values.bonus_percentage, max_amount: values.bonus_max_amount };
-    case 'avatar_pack':
-      return { pack_id: values.avatar_pack_id.trim() };
-    case 'theme':
-      return { theme_id: values.theme_id.trim() };
-    case 'manual':
-      return { description: values.manual_description.trim() };
-    default:
-      return { description: '' };
+export function buildRewardConfig(values: ShopProductFormValues): ShopProduct['reward_config'] {
+  if (values.reward_type === 'theme') {
+    return { theme_id: values.theme_id.trim() };
   }
+  return values.reward.reward_config as unknown as ShopProduct['reward_config'];
 }
 
 export function productToForm(product: ShopProduct): ShopProductFormValues {
@@ -201,17 +125,15 @@ export function productToForm(product: ShopProduct): ShopProductFormValues {
     unlimited_stock: product.stock === null,
     stock: product.stock ?? 0,
     reward_type: product.reward_type,
-    freespin_quantity: Number(cfg.quantity ?? 10),
-    freespin_game_id: String(cfg.game_id ?? ''),
-    freebet_amount: Number(cfg.amount ?? 10),
-    freebet_currency: String(cfg.currency ?? 'USD'),
-    cashback_percentage: Number(cfg.percentage ?? 10),
-    cashback_max_amount: Number(cfg.max_amount ?? 50),
-    bonus_percentage: Number(cfg.percentage ?? 50),
-    bonus_max_amount: Number(cfg.max_amount ?? 100),
-    avatar_pack_id: String(cfg.pack_id ?? ''),
+    reward:
+      product.reward_type === 'theme'
+        ? base.reward
+        : {
+            reward_type: product.reward_type as RewardValue['reward_type'],
+            reward_config: cfg,
+            currency_mode: 'auto_usd',
+          },
     theme_id: String(cfg.theme_id ?? ''),
-    manual_description: String(cfg.description ?? ''),
     min_level: product.min_level,
     vip_only: product.vip_only,
     max_per_player: product.max_per_player,
@@ -222,6 +144,7 @@ export function productToForm(product: ShopProduct): ShopProductFormValues {
 }
 
 export function formToPayload(values: ShopProductFormValues): ShopProductPayload {
+  const rewardType = values.reward_type === 'theme' ? 'theme' : values.reward.reward_type;
   return {
     code: values.code.trim(),
     name: values.name.trim(),
@@ -230,7 +153,7 @@ export function formToPayload(values: ShopProductFormValues): ShopProductPayload
     cost_in_coins: values.cost_in_coins,
     currency_code: values.currency_code,
     stock: values.unlimited_stock ? null : values.stock,
-    reward_type: values.reward_type,
+    reward_type: rewardType as ShopRewardType,
     reward_config: buildRewardConfig(values),
     min_level: values.min_level,
     vip_only: values.vip_only,
