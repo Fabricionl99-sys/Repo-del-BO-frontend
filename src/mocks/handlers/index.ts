@@ -1734,3 +1734,65 @@ handlers.push(
     });
   }),
 );
+
+import {
+  deleteStorageFile,
+  listStorageFiles,
+  storageFilesByModule,
+} from '@/mocks/data/storage';
+import type { MediaModule } from '@/types/media';
+
+handlers.push(
+  http.post('*/admin/storage/upload', async ({ request }) => {
+    await wait();
+    const form = await request.formData();
+    const file = form.get('file');
+    const module = String(form.get('module') ?? 'shop') as MediaModule;
+    const purpose = String(form.get('purpose') ?? 'main_image');
+    const tenant = String(form.get('tenant_id') ?? 'demo');
+    const filename = file instanceof File ? file.name : `upload_${Date.now()}.png`;
+    const uuid = `upload_${Date.now()}`;
+    const base = `https://mock-cdn.social2game.local/${tenant}/${module}/${uuid}.png`;
+    const item = {
+      id: `${module}_${uuid}`,
+      url: base,
+      filename,
+      module,
+      purpose,
+      size_kb: file instanceof File ? Math.max(1, Math.round(file.size / 1024)) : 120,
+      width: purpose === 'banner' ? 1200 : 512,
+      height: purpose === 'banner' ? 300 : 512,
+      uploaded_at: new Date().toISOString(),
+    };
+    if (!storageFilesByModule[module]) {
+      storageFilesByModule[module] = [];
+    }
+    storageFilesByModule[module].unshift(item as (typeof storageFilesByModule)[MediaModule][number]);
+    return HttpResponse.json({
+      data: {
+        url: base,
+        filename,
+        size_kb: item.size_kb,
+        width: item.width,
+        height: item.height,
+        variants: {
+          thumb_64: `${base.replace('.png', '')}_64.png`,
+          thumb_128: `${base.replace('.png', '')}_128.png`,
+          thumb_256: `${base.replace('.png', '')}_256.png`,
+          full: `${base.replace('.png', '')}_full.png`,
+        },
+      },
+    });
+  }),
+  http.get('*/admin/storage/files', async ({ request }) => {
+    await wait();
+    const url = new URL(request.url);
+    const module = url.searchParams.get('module') as MediaModule | null;
+    return HttpResponse.json({ data: listStorageFiles(module) });
+  }),
+  http.delete('*/admin/storage/files/:id', async ({ params }) => {
+    await wait();
+    deleteStorageFile(String(params.id));
+    return HttpResponse.json({ data: { success: true } });
+  }),
+);
