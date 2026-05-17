@@ -3,10 +3,10 @@ import { useQuery } from '@tanstack/react-query';
 import { apiClient } from '@/api/client';
 import { unwrapData } from '@/api/response';
 import { useOperatorStore } from '@/stores/operatorStore';
-import type { OperatorActiveModulePublic, OperatorBillingSnapshot } from '@/types/billing';
-import type { OperatorConfig } from '@/types/expandedTier5';
+import type { OperatorActiveModulePublic } from '@/types/billing';
+import type { OperatorConfigApiResponse } from '@/types/operatorConfig';
 
-export type OperatorConfigResponse = OperatorConfig & OperatorBillingSnapshot;
+export type OperatorConfigResponse = OperatorConfigApiResponse;
 
 export function useOperatorBillingBootstrap() {
   const setBillingSnapshot = useOperatorStore((s) => s.setBillingSnapshot);
