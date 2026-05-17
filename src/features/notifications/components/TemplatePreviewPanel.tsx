@@ -30,9 +30,9 @@ export function TemplatePreviewPanel({
       <aside className="rounded-xl border border-border-subtle bg-bg-tertiary p-4">
         <p className="label-section mb-2">preview push</p>
         <article className="max-w-sm rounded-xl border border-border-default bg-bg-secondary p-3 shadow-modal">
-          <p className="text-[11px] text-text-tertiary">Casino Astral · ahora</p>
-          <p className="mt-1 text-[13px] font-semibold">{preview.subject}</p>
-          <p className="mt-0.5 text-[12px] text-text-secondary">{preview.body}</p>
+          <p className="text-[13px] text-text-tertiary">Casino Astral · ahora</p>
+          <p className="mt-1 text-[15px] font-semibold">{preview.subject}</p>
+          <p className="mt-0.5 text-[14px] text-text-secondary">{preview.body}</p>
         </article>
       </aside>
     );
@@ -42,7 +42,7 @@ export function TemplatePreviewPanel({
     return (
       <aside className="rounded-xl border border-border-subtle bg-bg-tertiary p-4">
         <p className="label-section mb-2">preview sms</p>
-        <p className="inline-block max-w-xs rounded-2xl rounded-bl-sm bg-accent/20 px-3 py-2 text-[12px]">
+        <p className="inline-block max-w-xs rounded-2xl rounded-bl-sm bg-accent/20 px-3 py-2 text-[14px]">
           {preview.body}
         </p>
       </aside>
@@ -54,11 +54,11 @@ export function TemplatePreviewPanel({
       <aside className="rounded-xl border border-border-subtle bg-bg-tertiary p-4">
         <p className="label-section mb-2">preview email</p>
         <article className="overflow-hidden rounded-lg border border-border-subtle bg-white text-[#111]">
-          <header className="border-b px-4 py-3 text-[12px]">
+          <header className="border-b px-4 py-3 text-[14px]">
             <div className="font-semibold">{preview.subject}</div>
-            <p className="text-[11px] opacity-60">de Casino Astral</p>
+            <p className="text-[13px] opacity-60">de Casino Astral</p>
           </header>
-          <section className="p-4 text-[13px]">
+          <section className="p-4 text-[15px]">
             {preview.body_html ? (
               <div dangerouslySetInnerHTML={{ __html: preview.body_html }} />
             ) : (
@@ -66,7 +66,7 @@ export function TemplatePreviewPanel({
             )}
             {preview.cta_text && (
               <p className="mt-4">
-                <span className="inline-block rounded bg-[#0AF784] px-4 py-2 text-[12px] font-medium text-[#0E1116]">
+                <span className="inline-block rounded bg-accent px-4 py-2 text-[14px] font-medium text-text-onAccent">
                   {preview.cta_text}
                 </span>
               </p>
@@ -81,10 +81,10 @@ export function TemplatePreviewPanel({
     <aside className="rounded-xl border border-border-subtle bg-bg-tertiary p-4">
       <p className="label-section mb-2">preview in-app</p>
       <article className="rounded-lg border border-border-subtle bg-bg-secondary p-4">
-        <p className="text-[13px] font-semibold">{preview.subject ?? values.name}</p>
-        <p className="mt-2 text-[12px] text-text-secondary">{preview.body}</p>
+        <p className="text-[15px] font-semibold">{preview.subject ?? values.name}</p>
+        <p className="mt-2 text-[14px] text-text-secondary">{preview.body}</p>
         {preview.cta_text && (
-          <button type="button" className="mt-3 text-[12px] text-accent">
+          <button type="button" className="mt-3 text-[14px] text-accent">
             {preview.cta_text} →
           </button>
         )}

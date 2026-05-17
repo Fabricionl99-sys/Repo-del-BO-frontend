@@ -36,5 +36,8 @@ afterEach(async () => {
   const { webhooksStore, seedWebhookEndpoints, seedWebhookDeliveries } = await import('@/mocks/data/webhooks');
   webhooksStore.endpoints = [...seedWebhookEndpoints];
   webhooksStore.deliveries = [...seedWebhookDeliveries];
+  const { applyTheme } = await import('@/lib/theme');
+  applyTheme('dark');
+  localStorage.removeItem('niveles_theme_preference_v1');
 });
 afterAll(() => server.close());

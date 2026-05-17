@@ -44,15 +44,15 @@ export function WidgetPreviewMock({
         {config.logo_url ? (
           <img src={config.logo_url} alt="" className="h-8 w-8 rounded-lg object-cover" />
         ) : (
-          <div className="flex h-8 w-8 items-center justify-center rounded-lg text-[12px] font-bold" style={{ background: p.primary_color, color: p.background_color }}>
+          <div className="flex h-8 w-8 items-center justify-center rounded-lg text-[14px] font-bold" style={{ background: p.primary_color, color: p.background_color }}>
             N
           </div>
         )}
         <div>
-          <div className="text-[13px] font-semibold" style={{ fontWeight: config.typography.heading_weight }}>
+          <div className="text-[15px] font-semibold" style={{ fontWeight: config.typography.heading_weight }}>
             Niveles Widget
           </div>
-          <div className="text-[11px] opacity-70" style={{ fontWeight: config.typography.body_weight }}>
+          <div className="text-[13px] opacity-70" style={{ fontWeight: config.typography.body_weight }}>
             {config.welcome_text.slice(0, 48)}
           </div>
         </div>
@@ -63,11 +63,11 @@ export function WidgetPreviewMock({
           className="mb-3 rounded-xl p-3"
           style={{ background: p.secondary_color }}
         >
-          <div className="mb-1 text-[11px] uppercase opacity-60">Nivel 12</div>
+          <div className="mb-1 text-[13px] uppercase opacity-60">Nivel 12</div>
           <div className="text-[22px] font-bold" style={{ color: p.primary_color, fontWeight: config.typography.heading_weight }}>
             4.820 XP
           </div>
-          <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-black/20">
+          <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-text-primary/20">
             <div className="h-full rounded-full" style={{ width: '68%', background: p.accent_color }} />
           </div>
         </div>
@@ -77,7 +77,7 @@ export function WidgetPreviewMock({
             <button
               key={label}
               type="button"
-              className="flex items-center gap-2 rounded-lg px-3 py-2 text-left text-[12px]"
+              className="flex items-center gap-2 rounded-lg px-3 py-2 text-left text-[14px]"
               style={{
                 background: p.secondary_color,
                 fontWeight: config.typography.body_weight,
