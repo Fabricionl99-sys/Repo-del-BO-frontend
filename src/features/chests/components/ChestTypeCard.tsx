@@ -11,6 +11,7 @@ export function ChestTypeCard({
   onEdit: () => void;
 }) {
   const archived = type.status === 'archived';
+  const prizeCount = type.prizes?.length ?? 0;
 
   return (
     <button
@@ -49,7 +50,7 @@ export function ChestTypeCard({
         <p className="mb-1 font-mono text-[12px] text-text-tertiary">{type.code}</p>
         <p className="mb-3 line-clamp-2 text-[13px] text-text-tertiary">{type.description}</p>
         <div className="flex items-center justify-between text-[13px] text-text-secondary">
-          <span>{type.prizes.length} premios</span>
+          <span>{prizeCount} premios</span>
           {type.has_pity_system && <span className="text-accent">pity ×{type.pity_threshold}</span>}
         </div>
         <Button size="sm" variant="ghost" className="mt-3 w-full" onClick={(e) => { e.stopPropagation(); onEdit(); }}>

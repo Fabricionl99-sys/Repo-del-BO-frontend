@@ -13,6 +13,7 @@ export function RankingCard({
   onEdit: () => void;
 }) {
   const archived = ranking.status === 'archived';
+  const prizeCount = ranking.prizes?.length ?? 0;
 
   return (
     <button
@@ -48,7 +49,7 @@ export function RankingCard({
             <span>·</span>
             <span>{PERIOD_LABELS[ranking.period_type]}</span>
             <span>·</span>
-            <span>{ranking.prizes.length} premios</span>
+            <span>{prizeCount} premios</span>
           </div>
         </div>
       </div>

@@ -2,6 +2,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 import { apiClient } from '@/api/client';
 import { unwrapData } from '@/api/response';
+import { normalizeRankingConfig, normalizeRankingConfigs } from '@/features/rankings/rankingShape';
 import { toast } from '@/stores/toastStore';
 import type {
   LeaderboardResponse,
@@ -24,7 +25,7 @@ export function useRankings(filters: RankingsFilters = {}) {
       if (filters.search) sp.set('search', filters.search);
       const qs = sp.toString();
       const res = await apiClient.get(`/admin/rankings${qs ? `?${qs}` : ''}`);
-      return unwrapData<RankingConfig[]>(res.data);
+      return normalizeRankingConfigs(unwrapData<RankingConfig[]>(res.data));
     },
   });
 }
@@ -34,7 +35,9 @@ export function useRanking(code: string | null) {
     queryKey: ['rankings', code],
     enabled: Boolean(code),
     queryFn: () =>
-      apiClient.get(`/admin/rankings/${code}`).then((r) => unwrapData<RankingConfig>(r.data)),
+      apiClient
+        .get(`/admin/rankings/${code}`)
+        .then((r) => normalizeRankingConfig(unwrapData<RankingConfig>(r.data))),
   });
 }
 

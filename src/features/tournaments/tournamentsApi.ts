@@ -2,6 +2,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 import { apiClient } from '@/api/client';
 import { unwrapData } from '@/api/response';
+import { normalizeTournament, normalizeTournaments } from '@/features/tournaments/tournamentShape';
 import { toast } from '@/stores/toastStore';
 import type {
   Tournament,
@@ -42,7 +43,7 @@ export function useTournamentsList(filters: TournamentFiltersQuery = {}) {
     queryKey: ['tournaments', filters],
     queryFn: async () => {
       const res = await apiClient.get(`/admin/tournaments${buildTournamentQuery(filters)}`);
-      return unwrapData<Tournament[]>(res.data);
+      return normalizeTournaments(unwrapData<Tournament[]>(res.data));
     },
   });
 }
@@ -51,7 +52,10 @@ export function useTournamentItem(id: string | null) {
   return useQuery({
     queryKey: ['tournaments', id],
     enabled: Boolean(id),
-    queryFn: () => apiClient.get(`/admin/tournaments/${id}`).then((r) => unwrapData<Tournament>(r.data)),
+    queryFn: () =>
+      apiClient
+        .get(`/admin/tournaments/${id}`)
+        .then((r) => normalizeTournament(unwrapData<Tournament>(r.data))),
   });
 }
 

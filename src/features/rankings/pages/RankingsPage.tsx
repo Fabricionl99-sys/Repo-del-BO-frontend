@@ -141,7 +141,9 @@ export default function RankingsPage() {
       key: 'prize',
       header: 'premio',
       render: (r) => {
-        const prize = selectedRanking ? prizeForPosition(selectedRanking.prizes, r.position) : undefined;
+        const prize = selectedRanking
+          ? prizeForPosition(selectedRanking.prizes ?? [], r.position)
+          : undefined;
         return prize ? (
           <span className="text-[13px] text-text-secondary">
             {prize.reward_type}: {summarizeRankingReward(prize)}
@@ -294,7 +296,9 @@ export default function RankingsPage() {
             <p className="mb-3 text-[14px] text-text-secondary">
               {METRIC_LABELS[selectedRanking.metric_type]} · {PERIOD_LABELS[selectedRanking.period_type]}
               {' · '}
-              premios: {selectedRanking.prizes.map((p) => formatPositionRange(p.position_from, p.position_to)).join(', ')}
+              premios: {(selectedRanking.prizes ?? [])
+                .map((p) => formatPositionRange(p.position_from, p.position_to))
+                .join(', ')}
             </p>
           )}
 

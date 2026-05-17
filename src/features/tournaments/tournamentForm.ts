@@ -1,5 +1,7 @@
 import { z } from 'zod';
 
+import { asArray } from '@/lib/asArray';
+
 import { rewardValueSchema, summarizeReward } from '@/features/rewards/rewardForm';
 import type {
   Tournament,
@@ -362,7 +364,7 @@ export function tournamentToForm(t: Tournament): TournamentFormValues {
     period_starts_at: t.period.starts_at.slice(0, 16),
     period_ends_at: t.period.ends_at.slice(0, 16),
     period_type: t.period.type,
-    prizes: t.prizes.map(prizeToForm),
+    prizes: asArray(t.prizes).map(prizeToForm),
     max_visible_positions: t.max_visible_positions,
     is_active: t.is_active,
   };

@@ -1039,13 +1039,17 @@ handlers.push(
         (t) => t.name.toLowerCase().includes(search) || t.code.toLowerCase().includes(search),
       );
     }
-    return HttpResponse.json({ data: list });
+    return HttpResponse.json({
+      data: list.map((t) => ({ ...t, prizes: Array.isArray(t.prizes) ? t.prizes : [] })),
+    });
   }),
   http.get('*/admin/chests/types/:code', async ({ params }) => {
     await wait();
     const item = findChestType(String(params.code));
     if (!item) return new HttpResponse(null, { status: 404 });
-    return HttpResponse.json({ data: item });
+    return HttpResponse.json({
+      data: { ...item, prizes: Array.isArray(item.prizes) ? item.prizes : [] },
+    });
   }),
   http.post('*/admin/chests/types', async ({ request }) => {
     await wait();
@@ -1082,7 +1086,10 @@ handlers.push(
     if (!item) return new HttpResponse(null, { status: 404 });
     const body = (await request.json()) as Partial<ChestTypeMetadataPayload>;
     Object.assign(item, body, { updated_at: new Date().toISOString() });
-    return HttpResponse.json({ data: item });
+    if (!Array.isArray(item.prizes)) item.prizes = [];
+    return HttpResponse.json({
+      data: { ...item, prizes: item.prizes },
+    });
   }),
   http.delete('*/admin/chests/types/:code', async ({ params }) => {
     await wait();
@@ -1226,13 +1233,17 @@ handlers.push(
         (r) => r.name.toLowerCase().includes(search) || r.code.toLowerCase().includes(search),
       );
     }
-    return HttpResponse.json({ data: list });
+    return HttpResponse.json({
+      data: list.map((r) => ({ ...r, prizes: Array.isArray(r.prizes) ? r.prizes : [] })),
+    });
   }),
   http.get('*/admin/rankings/:code', async ({ params }) => {
     await wait();
     const item = findRanking(String(params.code));
     if (!item) return new HttpResponse(null, { status: 404 });
-    return HttpResponse.json({ data: item });
+    return HttpResponse.json({
+      data: { ...item, prizes: Array.isArray(item.prizes) ? item.prizes : [] },
+    });
   }),
   http.post('*/admin/rankings', async ({ request }) => {
     await wait();
@@ -1277,7 +1288,10 @@ handlers.push(
     const body = (await request.json()) as Partial<RankingMetadataPayload>;
     Object.assign(item, body, { updated_at: new Date().toISOString() });
     if (body.restrictions) item.restrictions = body.restrictions;
-    return HttpResponse.json({ data: item });
+    if (!Array.isArray(item.prizes)) item.prizes = [];
+    return HttpResponse.json({
+      data: { ...item, prizes: item.prizes },
+    });
   }),
   http.delete('*/admin/rankings/:code', async ({ params }) => {
     await wait();

@@ -305,7 +305,7 @@ function buildInventory(): PlayerChestInventoryItem[] {
     const acquiredVia = acquiredViaOptions[idx % acquiredViaOptions.length];
     const opened = idx % 3 !== 0;
     const expired = !opened && idx % 7 === 0;
-    const prize = opened ? type.prizes[0] : null;
+    const prize = opened ? (type.prizes?.[0] ?? null) : null;
     items.push({
       id: `chest_inv_${String(idx + 1).padStart(3, '0')}`,
       player_id: player.player_id,

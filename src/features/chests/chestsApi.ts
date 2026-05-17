@@ -2,6 +2,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 import { apiClient } from '@/api/client';
 import { unwrapData, unwrapPaginatedList } from '@/api/response';
+import { normalizeChestType, normalizeChestTypes } from '@/features/chests/chestTypeShape';
 import { toast } from '@/stores/toastStore';
 import type {
   ChestGrantManualPayload,
@@ -29,7 +30,7 @@ export function useChestTypes(filters: ChestTypesFilters = {}) {
       if (filters.search) sp.set('search', filters.search);
       const qs = sp.toString();
       const res = await apiClient.get(`/admin/chests/types${qs ? `?${qs}` : ''}`);
-      return unwrapData<ChestType[]>(res.data);
+      return normalizeChestTypes(unwrapData<ChestType[]>(res.data));
     },
   });
 }
@@ -39,7 +40,9 @@ export function useChestType(code: string | null) {
     queryKey: ['chest-types', code],
     enabled: Boolean(code),
     queryFn: () =>
-      apiClient.get(`/admin/chests/types/${code}`).then((r) => unwrapData<ChestType>(r.data)),
+      apiClient
+        .get(`/admin/chests/types/${code}`)
+        .then((r) => normalizeChestType(unwrapData<ChestType>(r.data))),
   });
 }
 
@@ -47,7 +50,9 @@ export function useCreateChestType() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: (payload: ChestTypeCreatePayload) =>
-      apiClient.post('/admin/chests/types', payload).then((r) => unwrapData<ChestType>(r.data)),
+      apiClient
+        .post('/admin/chests/types', payload)
+        .then((r) => normalizeChestType(unwrapData<ChestType>(r.data))),
     onSuccess: () => {
       toast.success('Tipo de cofre creado');
       qc.invalidateQueries({ queryKey: ['chest-types'] });
@@ -59,7 +64,9 @@ export function useUpdateChestType() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: ({ code, ...payload }: ChestTypeMetadataPayload & { code: string }) =>
-      apiClient.patch(`/admin/chests/types/${code}`, payload).then((r) => unwrapData<ChestType>(r.data)),
+      apiClient
+        .patch(`/admin/chests/types/${code}`, payload)
+        .then((r) => normalizeChestType(unwrapData<ChestType>(r.data))),
     onSuccess: (_data, vars) => {
       toast.success('Tipo de cofre actualizado');
       qc.invalidateQueries({ queryKey: ['chest-types'] });
