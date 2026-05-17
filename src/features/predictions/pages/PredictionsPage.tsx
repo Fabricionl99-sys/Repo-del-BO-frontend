@@ -1,16 +1,312 @@
-import { Plus } from 'lucide-react';
-import { useState } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { Target, Plus } from 'lucide-react';
+import { useEffect, useMemo, useState } from 'react';
+import { Link, useSearchParams } from 'react-router-dom';
+
 import { Button } from '@/components/ui/Button';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { ErrorState } from '@/components/ui/ErrorState';
+import { FilterPill } from '@/components/ui/FilterPill';
 import { Loading } from '@/components/ui/Loading';
-import { Modal } from '@/components/ui/Modal';
 import { PageHeader } from '@/components/ui/PageHeader';
-import { StatCard } from '@/components/ui/StatCard';
-import { useLoadPredictionResults, usePredictionEvents, usePredictionMarkets, useSavePredictionEvent } from '@/features/predictionsApi';
-import { formatNumber } from '@/lib/format';
-import type { PredictionEvent } from '@/types/expandedTier5';
-export default function PredictionsPage(){const [params]=useSearchParams(); const mock=params.get('mockState'); const [status,setStatus]=useState<'active'|'closed_pending_result'|'past'|'draft'>('active'); const q=usePredictionEvents(status); const markets=usePredictionMarkets(); const save=useSavePredictionEvent(); const [selected,setSelected]=useState<PredictionEvent|null>(null); const [create,setCreate]=useState(false); const events=mock==='empty'?[]:(q.data??[]); if(mock==='empty')return <EmptyState title="No hay predicciones" description="Creá un evento deportivo para que los jugadores participen."/>; if(mock==='loading'||q.isLoading)return <Loading label="Cargando predicciones..."/>; if(mock==='error'||q.isError)return <ErrorState onRetry={()=>q.refetch()}/>; return <><PageHeader title="Predicciones" subtitle="eventos donde jugadores predicen resultados sin cuotas" actions={<Button variant="primary" icon={<Plus size={14}/>} onClick={()=>setCreate(true)}>nuevo evento</Button>}/><div className="mb-7 grid grid-cols-4 gap-4 max-md:grid-cols-2"><StatCard label="eventos activos" value={events.filter(e=>e.status==='active').length}/><StatCard label="jugadores participando" value={formatNumber(events.reduce((s,e)=>s+e.participants_count,0))}/><StatCard label="monedas comprometidas" value={formatNumber(events.reduce((s,e)=>s+e.pool_accumulated,0),{compact:true})}/><StatCard label="pleno histórico" value="2.4%"/></div><div className="mb-5 flex gap-2">{(['active','closed_pending_result','past','draft'] as const).map(s=><Button key={s} variant={status===s?'primary':'secondary'} onClick={()=>setStatus(s)}>{s}</Button>)}</div><div className="space-y-3">{events.map(e=><EventCard key={e.id} event={e} onDetail={()=>setSelected(e)}/>)}</div>{selected&&<EventDetail event={selected} markets={markets.data??[]} onClose={()=>setSelected(null)}/>}<Modal open={create} onClose={()=>setCreate(false)} title="Nuevo evento de predicción"><div className="space-y-3"><input className="field" defaultValue="Evento QA Champions"/><Button variant="primary" onClick={async()=>{await save.mutateAsync({name:'Evento QA Champions',description:'Predicciones QA',sport:'football',status:'draft',closes_at:new Date().toISOString(),entry_cost:0,items:[],grand_prize_amount:1000,participants_count:0,pool_accumulated:0,completion_rate:0});setCreate(false)}}>crear borrador</Button></div></Modal></>}
-function EventCard({event,onDetail}:{event:PredictionEvent;onDetail:()=>void}){return <div className="card grid grid-cols-[140px_1fr_auto] gap-4 p-4 max-md:grid-cols-1"><div className={`flex h-24 items-center justify-center rounded-xl text-4xl ${event.sport==='football'?'bg-success/15':event.sport==='tennis'?'bg-warning/15':'bg-purple/15'}`}>{event.sport==='football'?'⚽':event.sport==='tennis'?'🎾':event.sport==='basketball'?'🏀':'🥊'}</div><div><b>{event.name}</b><p className="text-[14px] text-text-tertiary">{event.description}</p><p className="mt-2 text-[13px] text-text-secondary">{event.items.length} items · {event.sport} · {formatNumber(event.participants_count)} participantes · pool {formatNumber(event.pool_accumulated)}</p></div><Button onClick={onDetail}>Ver detalle</Button></div>}
-function EventDetail({event,markets,onClose}:{event:PredictionEvent;markets:{label:string;id:string;buttons:{value:string;label:string}[]}[];onClose:()=>void}){const load=useLoadPredictionResults();return <div className="mt-6 space-y-5"><div className="flex justify-between"><div><p className="label-section">Vista detalle del evento seleccionado</p><h2 className="text-xl font-semibold">{event.name} · {event.items.length} items</h2><p className="text-[14px] text-text-tertiary">cierra {new Date(event.closes_at).toLocaleString('es-AR')}</p></div><Button onClick={onClose}>Cerrar</Button></div><div className="grid grid-cols-4 gap-4"><StatCard label="items" value={`${event.items.length}/15 max`}/><StatCard label="participantes" value={formatNumber(event.participants_count)}/><StatCard label="pool" value={formatNumber(event.pool_accumulated,{compact:true})}/><StatCard label="completas" value={`${Math.round(event.completion_rate*100)}%`}/></div>{event.items.map(item=><div key={item.id} className="card p-4"><div className="mb-3 flex justify-between"><b>#{item.position} {item.name}</b><span className="rounded bg-bg-tertiary px-2 py-0.5 text-[13px]">{markets.find(m=>m.id===item.market)?.label}</span></div><div className="flex flex-wrap gap-2">{item.predictions_breakdown.map(b=><span key={b.value} className={`rounded-lg px-3 py-2 text-[14px] ${b.percent===Math.max(...item.predictions_breakdown.map(x=>x.percent))?'bg-accent-subtle text-accent':'bg-bg-tertiary text-text-secondary'}`}>{b.value} {b.percent}%</span>)}</div><p className="mt-3 text-[13px] text-text-tertiary">{item.predictions_count} predicciones · premio +{item.prize_amount} monedas</p></div>)}<div className="card border-gold/40 p-5"><h3 className="text-gold">⭐ Premio pleno · acertar todos los items</h3><p className="text-[15px] text-text-secondary">+{event.grand_prize_amount} monedas {event.grand_prize_chest_id&&'+ cofre'}</p></div>{event.status==='closed_pending_result'&&<Button variant="primary" loading={load.isPending} onClick={()=>load.mutate({id:event.id,results:event.items.map(i=>({item_id:i.id,winning_value:i.predictions_breakdown[0]?.value??'option1'}))})}>Calcular y distribuir premios</Button>}<div className="card p-4"><h3 className="section-title mb-3">Mercados disponibles</h3>{markets.map(m=><p key={m.id} className="text-[14px] text-text-secondary">{m.label} · {m.buttons.length} botones</p>)}</div></div>}
+import { SearchInput } from '@/components/ui/SearchInput';
+import { Table, type Column } from '@/components/ui/Table';
+import { Toolbar } from '@/components/ui/Toolbar';
+import { isModuleActive } from '@/features/billing/moduleCatalog';
+import { PredictionFormModal } from '@/features/predictions/components/PredictionFormModal';
+import { PredictionParticipantsModal } from '@/features/predictions/components/PredictionParticipantsModal';
+import { PredictionResolveModal } from '@/features/predictions/components/PredictionResolveModal';
+import { PredictionStatsPanel } from '@/features/predictions/components/PredictionStatsPanel';
+import {
+  useCancelPrediction,
+  useClosePrediction,
+  useOpenPrediction,
+  usePredictionsList,
+  usePredictionStats,
+} from '@/features/predictions/predictionsApi';
+import { STATUS_LABELS } from '@/features/predictions/predictionForm';
+import { useDebounce } from '@/hooks/useDebounce';
+import { cn } from '@/lib/cn';
+import { formatRelativeDate } from '@/lib/format';
+import { useOperatorStore } from '@/stores/operatorStore';
+import type { PredictionEvent, PredictionEventStatus } from '@/types/predictions';
+
+const tabs = ['Eventos', 'Estadísticas'] as const;
+type Tab = (typeof tabs)[number];
+
+const statusFilters: Array<'all' | PredictionEventStatus> = [
+  'all',
+  'draft',
+  'open',
+  'closed',
+  'resolved',
+  'cancelled',
+];
+
+const statusColors: Record<PredictionEventStatus, string> = {
+  draft: 'bg-text-tertiary/15 text-text-tertiary',
+  open: 'bg-success/15 text-success',
+  closed: 'bg-warning/15 text-warning',
+  resolved: 'bg-purple/15 text-purple',
+  cancelled: 'bg-danger/15 text-danger',
+};
+
+export default function PredictionsPage() {
+  const [params, setParams] = useSearchParams();
+  const mock = params.get('mockState');
+  const activeModuleCodes = useOperatorStore((s) => s.activeModuleCodes);
+  const predictionsActive = isModuleActive(activeModuleCodes, 'predictions');
+
+  const [tab, setTab] = useState<Tab>('Eventos');
+  const [statusFilter, setStatusFilter] = useState<'all' | PredictionEventStatus>('all');
+  const [categoryFilter, setCategoryFilter] = useState('all');
+  const [participationFilter, setParticipationFilter] = useState<'all' | 'free' | 'paid'>('all');
+  const [search, setSearch] = useState('');
+  const debouncedSearch = useDebounce(search, 250);
+
+  const [editorEvent, setEditorEvent] = useState<PredictionEvent | null | 'new'>(null);
+  const [resolveEvent, setResolveEvent] = useState<PredictionEvent | null>(null);
+  const [participantsEvent, setParticipantsEvent] = useState<PredictionEvent | null>(null);
+
+  const listQ = usePredictionsList({
+    status: statusFilter,
+    category: categoryFilter,
+    participation: participationFilter,
+    search: debouncedSearch || undefined,
+  });
+  const statsQ = usePredictionStats();
+  const openMut = useOpenPrediction();
+  const closeMut = useClosePrediction();
+  const cancelMut = useCancelPrediction();
+
+  const events = mock === 'empty' ? [] : (listQ.data ?? []);
+  const existingCodes = useMemo(() => events.map((e) => e.code), [events]);
+  const categories = useMemo(
+    () => ['all', ...new Set(events.map((e) => e.category))],
+    [events],
+  );
+
+  useEffect(() => {
+    const create = params.get('create');
+    const editId = params.get('edit');
+    if (create === '1') {
+      setEditorEvent('new');
+      params.delete('create');
+      setParams(params, { replace: true });
+    } else if (editId && listQ.data) {
+      const found = listQ.data.find((e) => e.id === editId);
+      if (found) setEditorEvent(found);
+    }
+  }, [params, setParams, listQ.data]);
+
+  if (!predictionsActive && mock !== 'loading') {
+    return (
+      <>
+        <PageHeader title="Predicciones" subtitle="Eventos donde jugadores predicen resultados" />
+        <EmptyState
+          icon={Target}
+          title="Módulo Predicciones no activo"
+          description="Activá el módulo predictions desde el catálogo para crear eventos de predicción."
+          action={
+            <Link to="/modulos">
+              <Button variant="primary">Activar módulo Predicciones</Button>
+            </Link>
+          }
+        />
+      </>
+    );
+  }
+
+  const catalogLoading = mock !== 'empty' && tab === 'Eventos' && listQ.isLoading;
+  const statsLoading = mock !== 'empty' && tab === 'Estadísticas' && statsQ.isLoading;
+
+  if (mock === 'loading' || catalogLoading || statsLoading) {
+    return <Loading label="Cargando predicciones..." />;
+  }
+
+  if (mock === 'error' || listQ.isError || statsQ.isError) {
+    return (
+      <ErrorState
+        onRetry={() => {
+          listQ.refetch();
+          statsQ.refetch();
+        }}
+      />
+    );
+  }
+
+  const columns: Column<PredictionEvent>[] = [
+    { key: 'code', header: 'Code', render: (e) => <span className="font-mono text-[13px]">{e.code}</span> },
+    { key: 'name', header: 'Nombre', render: (e) => e.name },
+    { key: 'category', header: 'Categoría', render: (e) => e.category },
+    { key: 'type', header: 'Tipo', render: (e) => e.prediction_type },
+    {
+      key: 'status',
+      header: 'Estado',
+      render: (e) => (
+        <span className={cn('rounded-full px-2 py-0.5 text-[13px] font-semibold', statusColors[e.status])}>
+          {STATUS_LABELS[e.status]}
+        </span>
+      ),
+    },
+    { key: 'count', header: 'Predicciones', render: (e) => e.predictions_count },
+    {
+      key: 'closes',
+      header: 'Cierra',
+      render: (e) => formatRelativeDate(e.closes_at),
+    },
+    {
+      key: 'resolves',
+      header: 'Resuelve',
+      render: (e) => formatRelativeDate(e.resolves_at),
+    },
+    {
+      key: 'actions',
+      header: 'Acciones',
+      render: (e) => (
+        <div className="flex flex-wrap gap-1">
+          {e.status === 'draft' && (
+            <Button size="sm" loading={openMut.isPending} onClick={(ev) => { ev.stopPropagation(); openMut.mutate(e.id); }}>
+              Abrir
+            </Button>
+          )}
+          {e.status === 'open' && (
+            <Button size="sm" loading={closeMut.isPending} onClick={(ev) => { ev.stopPropagation(); closeMut.mutate(e.id); }}>
+              Cerrar
+            </Button>
+          )}
+          {e.status === 'closed' && (
+            <Button size="sm" onClick={(ev) => { ev.stopPropagation(); setResolveEvent(e); }}>
+              Resolver
+            </Button>
+          )}
+          {['draft', 'open', 'closed'].includes(e.status) && (
+            <Button size="sm" variant="ghost" loading={cancelMut.isPending} onClick={(ev) => { ev.stopPropagation(); cancelMut.mutate(e.id); }}>
+              Cancelar
+            </Button>
+          )}
+          <Button size="sm" variant="secondary" onClick={(ev) => { ev.stopPropagation(); setParticipantsEvent(e); }}>
+            Participantes
+          </Button>
+        </div>
+      ),
+    },
+  ];
+
+  return (
+    <>
+      <PageHeader
+        title="Predicciones"
+        subtitle="Eventos donde jugadores predicen resultados sin cuotas"
+        actions={
+          tab === 'Eventos' ? (
+            <Button variant="primary" icon={<Plus size={14} />} onClick={() => setEditorEvent('new')}>
+              Nuevo evento
+            </Button>
+          ) : undefined
+        }
+      />
+
+      <div className="mb-4 flex flex-wrap gap-2 border-b border-border-subtle">
+        {tabs.map((t) => (
+          <button
+            key={t}
+            type="button"
+            onClick={() => setTab(t)}
+            className={cn(
+              'px-4 py-2 text-sm font-semibold transition-colors',
+              tab === t ? 'border-b-2 border-accent text-accent' : 'text-text-secondary hover:text-text-primary',
+            )}
+          >
+            {t}
+          </button>
+        ))}
+      </div>
+
+      {tab === 'Eventos' && (
+        <>
+          <Toolbar
+            search={
+              <SearchInput
+                placeholder="Buscar por nombre..."
+                value={search}
+                onChange={(ev) => setSearch(ev.target.value)}
+              />
+            }
+            filters={
+              <>
+                {statusFilters.map((s) => (
+                  <FilterPill
+                    key={s}
+                    active={statusFilter === s}
+                    onClick={() => setStatusFilter(s)}
+                    label={s === 'all' ? 'Todos' : STATUS_LABELS[s]}
+                  />
+                ))}
+                {categories.map((c) => (
+                  <FilterPill
+                    key={c}
+                    active={categoryFilter === c}
+                    onClick={() => setCategoryFilter(c)}
+                    label={c === 'all' ? 'Todas categorías' : c}
+                  />
+                ))}
+                <FilterPill
+                  active={participationFilter === 'all'}
+                  onClick={() => setParticipationFilter('all')}
+                  label="Todos"
+                />
+                <FilterPill
+                  active={participationFilter === 'free'}
+                  onClick={() => setParticipationFilter('free')}
+                  label="Gratis"
+                />
+                <FilterPill
+                  active={participationFilter === 'paid'}
+                  onClick={() => setParticipationFilter('paid')}
+                  label="Pagado"
+                />
+              </>
+            }
+          />
+
+            <Table
+              columns={columns}
+              rows={events}
+              rowKey={(e) => e.id}
+              onRowClick={(e) => setEditorEvent(e)}
+              emptyState={
+                <EmptyState
+                  title="Sin eventos"
+                  description="Creá tu primer evento de predicción para que los jugadores participen."
+                  action={
+                    <Button variant="primary" onClick={() => setEditorEvent('new')}>
+                      Crear primer evento
+                    </Button>
+                  }
+                />
+              }
+            />
+        </>
+      )}
+
+      {tab === 'Estadísticas' && <PredictionStatsPanel />}
+
+      <PredictionFormModal
+        open={editorEvent !== null}
+        event={editorEvent === 'new' ? null : editorEvent}
+        existingCodes={existingCodes}
+        onClose={() => setEditorEvent(null)}
+      />
+      <PredictionResolveModal
+        open={resolveEvent !== null}
+        event={resolveEvent}
+        onClose={() => setResolveEvent(null)}
+      />
+      <PredictionParticipantsModal
+        open={participantsEvent !== null}
+        event={participantsEvent}
+        onClose={() => setParticipantsEvent(null)}
+      />
+    </>
+  );
+}

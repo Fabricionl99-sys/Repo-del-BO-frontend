@@ -40,6 +40,10 @@ afterEach(async () => {
   resetNewsStore();
   const { resetMissionsStore } = await import('@/mocks/data/tier3');
   resetMissionsStore();
+  const { resetPredictionsStore } = await import('@/mocks/data/predictions');
+  resetPredictionsStore();
+  const { resetTournamentsStore } = await import('@/mocks/data/tournaments');
+  resetTournamentsStore();
   const { applyTheme } = await import('@/lib/theme');
   applyTheme('dark');
   localStorage.removeItem('niveles_theme_preference_v1');

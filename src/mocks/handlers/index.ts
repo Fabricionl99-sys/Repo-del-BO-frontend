@@ -94,7 +94,7 @@ handlers.push(
   http.post('*/admin/levels/badge-upload', async () => { await wait(); return HttpResponse.json({ url: 'https://images.unsplash.com/photo-1529626455594-4ff0802cfb7e?w=64&h=64&fit=crop' }); }),
 );
 
-import { missions, tournaments } from '@/mocks/data/tier3';
+import { missions } from '@/mocks/data/tier3';
 import { streakPrograms } from '@/mocks/data/streakPrograms';
 import { playerStreakDetails, playerStreakSummaries } from '@/mocks/data/playerStreaks';
 import { pendingDeliveries } from '@/mocks/data/deliveries';
@@ -109,6 +109,19 @@ function crudHandlers<T extends { id: string }>(key: string, path: string, data:
   );
 }
 crudHandlers('mission', 'missions', missions);
+handlers.push(
+  http.post('*/admin/missions/:id/duplicate', async ({ params }) => {
+    await wait();
+    const item = missions.find((m) => m.id === params.id) ?? missions[0];
+    const copy = { ...item, id: `mission_copy_${Date.now()}`, name: `${item.name} copia`, status: 'draft' as const };
+    missions.unshift(copy);
+    return HttpResponse.json(copy, { status: 201 });
+  }),
+  http.get('*/admin/missions/:id/progress', async () => {
+    await wait();
+    return HttpResponse.json({ started: 4821, completed: 1847, percent: 38.3 });
+  }),
+);
 // streak-programs: shapes con wrapper { data } (api-shapes.md §5)
 handlers.push(
   http.get('*/admin/streak-programs', async () => {
@@ -147,11 +160,6 @@ handlers.push(
     if (index >= 0) streakPrograms.splice(index, 1);
     return new HttpResponse(null, { status: 204 });
   }),
-);
-crudHandlers('tournament', 'tournaments', tournaments);
-handlers.push(
-  http.post('*/admin/missions/:id/duplicate', async ({ params }) => { await wait(); const item = missions.find((m) => m.id === params.id) ?? missions[0]; const copy = { ...item, id: `mission_copy_${Date.now()}`, name: `${item.name} copia`, status: 'draft' as const }; missions.unshift(copy); return HttpResponse.json(copy, { status: 201 }); }),
-  http.get('*/admin/missions/:id/progress', async () => { await wait(); return HttpResponse.json({ started: 4821, completed: 1847, percent: 38.3 }); }),
   http.post('*/admin/streak-programs/:id/activate', async ({ params }) => {
     await wait();
     const item = streakPrograms.find((p) => p.id === params.id) ?? streakPrograms[0];
@@ -223,9 +231,6 @@ handlers.push(
   http.get('*/admin/deliveries/:id', async ({ params }) => { await wait(); const item = pendingDeliveries.find((d) => d.id === params.id) ?? pendingDeliveries[0]; return HttpResponse.json(item); }),
   http.post('*/admin/deliveries/:id/retry', async ({ params }) => { await wait(); const item = pendingDeliveries.find((d) => d.id === params.id) ?? pendingDeliveries[0]; item.status = 'in_flight'; item.attempts.push({ id: `at_${Date.now()}`, attempted_at: new Date().toISOString(), status: 'success' }); return HttpResponse.json(item); }),
   http.post('*/admin/deliveries/:id/mark-manual', async ({ params, request }) => { await wait(); const body = (await request.json()) as { reason: string; manual_reference?: string }; const item = pendingDeliveries.find((d) => d.id === params.id) ?? pendingDeliveries[0]; item.status = 'delivered_manually'; item.attempts.push({ id: `at_${Date.now()}`, attempted_at: new Date().toISOString(), status: 'success', message: `manual: ${body.reason.slice(0, 40)}` }); return HttpResponse.json(item); }),
-  http.post('*/admin/tournaments/:id/start', async ({ params }) => { await wait(); const item = tournaments.find((t) => t.id === params.id) ?? tournaments[0]; item.status = 'live'; return HttpResponse.json(item); }),
-  http.post('*/admin/tournaments/:id/end', async ({ params }) => { await wait(); const item = tournaments.find((t) => t.id === params.id) ?? tournaments[0]; item.status = 'finished'; return HttpResponse.json(item); }),
-  http.get('*/admin/tournaments/:id/leaderboard', async () => { await wait(); return HttpResponse.json([{ rank: 1, player: 'crypto_king_88', score: 128470 }, { rank: 2, player: 'MariaG_bet', score: 98200 }]); }),
 );
 
 import { newsItems, computeNewsStats } from '@/mocks/data/news';
@@ -563,7 +568,14 @@ handlers.push(
 
 import { operatorPriceForModule } from '@/features/billing/pricing';
 import { activeModules, billingSnapshot, moduleCatalog, walletTransactions } from '@/mocks/data/billing';
-import { markets, predictionEvents } from '@/mocks/data/expandedTier5';
+import {
+  computePredictionStats,
+  filterPredictionEvents,
+  getUsedCategories,
+  playerPredictions,
+  predictionEvents,
+} from '@/mocks/data/predictions';
+import type { PredictionEventPayload } from '@/types/predictions';
 import { legacyGameCatalog, operatorConfigFull } from '@/mocks/data/operatorConfig';
 import { CURRENCY_OPTIONS, LANGUAGE_OPTIONS, TIMEZONE_OPTIONS } from '@/mocks/data/operatorConfigMeta';
 import type { OperatorConfig } from '@/types/operatorConfig';
@@ -697,13 +709,204 @@ handlers.push(
     }
     return HttpResponse.json({ data: mod ?? { code, pending_deactivation: true } });
   }),
-  http.get('*/admin/predictions/events', async ({ request }) => { await wait(); const status = new URL(request.url).searchParams.get('status'); return HttpResponse.json(predictionEvents.filter(e=>!status||e.status===status)); }),
-  http.get('*/admin/predictions/events/:id', async ({ params }) => { await wait(); return HttpResponse.json(predictionEvents.find(e=>e.id===params.id)??predictionEvents[0]); }),
-  http.post('*/admin/predictions/events', async ({ request }) => { await wait(); const body = await request.json() as Partial<typeof predictionEvents[number]>; const item = { ...predictionEvents[0], ...body, id:`evt_${Date.now()}`, status:'draft' as const }; predictionEvents.unshift(item); return HttpResponse.json(item,{status:201}); }),
-  http.patch('*/admin/predictions/events/:id', async ({ params, request }) => { await wait(); const item = predictionEvents.find(e=>e.id===params.id)??predictionEvents[0]; Object.assign(item, await request.json()); return HttpResponse.json(item); }),
-  http.post('*/admin/predictions/events/:id/publish', async ({ params }) => { await wait(); const item = predictionEvents.find(e=>e.id===params.id)??predictionEvents[0]; item.status='active'; return HttpResponse.json(item); }),
-  http.post('*/admin/predictions/events/:id/load-results', async ({ params }) => { await wait(); const item = predictionEvents.find(e=>e.id===params.id)??predictionEvents[0]; item.status='past'; return HttpResponse.json({ total_distributed:247000, winners_count:1234, grand_prize_winners:44, status:'past' }); }),
-  http.get('*/admin/predictions/markets', async () => { await wait(); return HttpResponse.json(markets); }),
+  http.get('*/admin/predictions', async ({ request }) => {
+    await wait();
+    return HttpResponse.json({ data: filterPredictionEvents(new URL(request.url).searchParams) });
+  }),
+  http.get('*/admin/predictions/stats', async () => {
+    await wait();
+    return HttpResponse.json({ data: computePredictionStats(predictionEvents) });
+  }),
+  http.get('*/admin/predictions/categories', async () => {
+    await wait();
+    return HttpResponse.json({ data: getUsedCategories() });
+  }),
+  http.get('*/admin/predictions/:id/players', async ({ params }) => {
+    await wait();
+    const list = playerPredictions.filter((p) => p.event_id === params.id);
+    return HttpResponse.json({ data: list });
+  }),
+  http.get('*/admin/predictions/:id', async ({ params }) => {
+    await wait();
+    if (params.id === 'stats') return HttpResponse.json({ data: computePredictionStats(predictionEvents) });
+    const item = predictionEvents.find((e) => e.id === params.id);
+    if (!item) return HttpResponse.json({ message: 'Not found' }, { status: 404 });
+    return HttpResponse.json({ data: item });
+  }),
+  http.post('*/admin/predictions', async ({ request }) => {
+    await wait();
+    const body = (await request.json()) as PredictionEventPayload;
+    const options = body.options.map((o, i) => ({
+      ...o,
+      id: `opt_${Date.now()}_${i}`,
+    }));
+    const item = {
+      ...predictionEvents[0],
+      ...body,
+      id: `pred_${Date.now()}`,
+      options,
+      status: 'draft' as const,
+      winning_option_id: null,
+      predictions_count: 0,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    };
+    predictionEvents.unshift(item);
+    return HttpResponse.json({ data: item }, { status: 201 });
+  }),
+  http.patch('*/admin/predictions/:id', async ({ params, request }) => {
+    await wait();
+    const body = (await request.json()) as Partial<PredictionEventPayload>;
+    const item = predictionEvents.find((e) => e.id === params.id);
+    if (!item) return HttpResponse.json({ message: 'Not found' }, { status: 404 });
+    if (body.options) {
+      item.options = body.options.map((o, i) => ({
+        ...o,
+        id: item.options[i]?.id ?? `opt_${Date.now()}_${i}`,
+      }));
+    }
+    Object.assign(item, { ...body, options: item.options, updated_at: new Date().toISOString() });
+    return HttpResponse.json({ data: item });
+  }),
+  http.delete('*/admin/predictions/:id', async ({ params }) => {
+    await wait();
+    const idx = predictionEvents.findIndex((e) => e.id === params.id);
+    if (idx >= 0) predictionEvents.splice(idx, 1);
+    return new HttpResponse(null, { status: 204 });
+  }),
+  http.post('*/admin/predictions/:id/open', async ({ params }) => {
+    await wait();
+    const item = predictionEvents.find((e) => e.id === params.id);
+    if (!item) return HttpResponse.json({ message: 'Not found' }, { status: 404 });
+    item.status = 'open';
+    item.updated_at = new Date().toISOString();
+    return HttpResponse.json({ data: item });
+  }),
+  http.post('*/admin/predictions/:id/close', async ({ params }) => {
+    await wait();
+    const item = predictionEvents.find((e) => e.id === params.id);
+    if (!item) return HttpResponse.json({ message: 'Not found' }, { status: 404 });
+    item.status = 'closed';
+    item.updated_at = new Date().toISOString();
+    return HttpResponse.json({ data: item });
+  }),
+  http.post('*/admin/predictions/:id/resolve', async ({ params, request }) => {
+    await wait();
+    const body = (await request.json()) as { winning_option_id: string };
+    const item = predictionEvents.find((e) => e.id === params.id);
+    if (!item) return HttpResponse.json({ message: 'Not found' }, { status: 404 });
+    if (item.status !== 'closed') {
+      return HttpResponse.json({ message: 'Solo eventos cerrados pueden resolverse' }, { status: 400 });
+    }
+    item.status = 'resolved';
+    item.winning_option_id = body.winning_option_id;
+    item.updated_at = new Date().toISOString();
+    for (const pp of playerPredictions) {
+      if (pp.event_id === item.id) {
+        pp.is_winner = pp.option_id === body.winning_option_id;
+        if (pp.is_winner) pp.reward_delivered_at = new Date().toISOString();
+      }
+    }
+    return HttpResponse.json({ data: item });
+  }),
+  http.post('*/admin/predictions/:id/cancel', async ({ params }) => {
+    await wait();
+    const item = predictionEvents.find((e) => e.id === params.id);
+    if (!item) return HttpResponse.json({ message: 'Not found' }, { status: 404 });
+    item.status = 'cancelled';
+    item.updated_at = new Date().toISOString();
+    return HttpResponse.json({ data: item });
+  }),
+);
+
+import {
+  filterRegistrations,
+  filterTournaments,
+  operatorGames,
+  tournamentLeaderboards,
+  tournamentRegistrations,
+  tournaments,
+} from '@/mocks/data/tournaments';
+import type { TournamentPayload } from '@/types/tournaments';
+
+handlers.push(
+  http.get('*/admin/tournaments', async ({ request }) => {
+    await wait();
+    return HttpResponse.json({ data: filterTournaments(new URL(request.url).searchParams) });
+  }),
+  http.get('*/admin/tournaments/registrations', async ({ request }) => {
+    await wait();
+    return HttpResponse.json({ data: filterRegistrations(new URL(request.url).searchParams) });
+  }),
+  http.get('*/admin/tournaments/games', async () => {
+    await wait();
+    return HttpResponse.json({ data: operatorGames });
+  }),
+  http.get('*/admin/tournaments/:id/leaderboard', async ({ params }) => {
+    await wait();
+    const list = tournamentLeaderboards[params.id as string] ?? [];
+    return HttpResponse.json({ data: list });
+  }),
+  http.get('*/admin/tournaments/:id', async ({ params }) => {
+    await wait();
+    if (params.id === 'registrations' || params.id === 'games') {
+      return HttpResponse.json({ data: [] });
+    }
+    const item = tournaments.find((t) => t.id === params.id);
+    if (!item) return HttpResponse.json({ message: 'Not found' }, { status: 404 });
+    return HttpResponse.json({ data: item });
+  }),
+  http.post('*/admin/tournaments', async ({ request }) => {
+    await wait();
+    const body = (await request.json()) as TournamentPayload;
+    const prizes = body.prizes.map((p, i) => ({ ...p, id: `prize_${Date.now()}_${i}` }));
+    const item = {
+      ...tournaments[0],
+      ...body,
+      id: `tourn_${Date.now()}`,
+      prizes,
+      status: 'draft' as const,
+      participants_count: 0,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    };
+    tournaments.unshift(item);
+    return HttpResponse.json({ data: item }, { status: 201 });
+  }),
+  http.patch('*/admin/tournaments/:id', async ({ params, request }) => {
+    await wait();
+    const body = (await request.json()) as Partial<TournamentPayload>;
+    const item = tournaments.find((t) => t.id === params.id);
+    if (!item) return HttpResponse.json({ message: 'Not found' }, { status: 404 });
+    if (body.prizes) {
+      item.prizes = body.prizes.map((p, i) => ({
+        ...p,
+        id: item.prizes[i]?.id ?? `prize_${Date.now()}_${i}`,
+      }));
+    }
+    Object.assign(item, { ...body, prizes: item.prizes, updated_at: new Date().toISOString() });
+    return HttpResponse.json({ data: item });
+  }),
+  http.delete('*/admin/tournaments/:id', async ({ params }) => {
+    await wait();
+    const idx = tournaments.findIndex((t) => t.id === params.id);
+    if (idx >= 0) tournaments.splice(idx, 1);
+    return new HttpResponse(null, { status: 204 });
+  }),
+  http.post('*/admin/tournaments/upload-banner', async () => {
+    await wait();
+    return HttpResponse.json({
+      uploadUrl: 'https://uploads.preview.niveles.io/mock-tournament-banner',
+      finalUrl: 'https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=800',
+    });
+  }),
+  http.post('*/admin/tournaments/registrations/:id/invalidate', async ({ params }) => {
+    await wait();
+    const reg = tournamentRegistrations.find((r) => r.id === params.id);
+    if (!reg) return HttpResponse.json({ message: 'Not found' }, { status: 404 });
+    reg.status = 'invalidated';
+    return HttpResponse.json({ data: reg });
+  }),
 );
 
 import { shopProducts, shopPurchases } from '@/mocks/data/shop';
