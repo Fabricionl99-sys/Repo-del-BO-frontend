@@ -18,7 +18,7 @@ const MissionEditorPage = lazy(() => import('@/features/missions/pages/MissionEd
 const ChestsPage = lazy(() => import('@/features/chests/pages/ChestsPage'));
 const StreaksPage = lazy(() => import('@/features/streaks/pages/StreaksPage'));
 const StreakProgramEditorPage = lazy(() => import('@/features/streaks/pages/StreakProgramEditorPage'));
-const WebhooksPage = lazy(() => import('@/features/integrations/pages/WebhooksPage'));
+const WebhooksPage = lazy(() => import('@/features/webhooks/pages/WebhooksPage'));
 const DeliveriesPage = lazy(() => import('@/features/deliveries/pages/DeliveriesPage'));
 const TournamentsPage = lazy(() => import('@/features/tournaments/pages/TournamentsPage'));
 const TournamentEditorPage = lazy(() => import('@/features/tournaments/pages/TournamentEditorPage'));
@@ -101,9 +101,10 @@ export const router = createBrowserRouter([
       { path: 'moderacion', element: wrap(<ModerationPage />) },
       { path: 'metricas', element: wrap(<MetricsPage />) },
       {
-        path: 'integraciones',
+        path: 'webhooks',
         element: <ProtectedRoute roles={['admin']}>{wrap(<WebhooksPage />)}</ProtectedRoute>,
       },
+      { path: 'integraciones', element: <Navigate to="/webhooks" replace /> },
       { path: 'bandeja-premios', element: wrap(<DeliveriesPage />) },
       { path: 'configuracion', element: <ProtectedRoute roles={['admin']}>{wrap(<SettingsPage />)}</ProtectedRoute> },
       { path: 'configuracion-general', element: <Navigate to="/configuracion" replace /> },

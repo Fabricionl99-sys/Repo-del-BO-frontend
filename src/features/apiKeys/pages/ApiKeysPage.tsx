@@ -415,7 +415,7 @@ function QuickStartTab({ onPing, onGoKeys }: { onPing: () => void; onGoKeys: () 
       <ConfigSection title="paso 3 · webhook de premios">
         <p className="text-[13px] text-text-secondary">
           Configurá el endpoint que recibirá premios en{' '}
-          <Link to="/integraciones" className="text-accent hover:underline">
+          <Link to="/webhooks" className="text-accent hover:underline">
             Webhooks de premios
           </Link>
           .

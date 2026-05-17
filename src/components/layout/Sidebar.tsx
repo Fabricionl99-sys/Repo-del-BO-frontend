@@ -79,14 +79,16 @@ const sections = [
   },
   {
     label: 'Developers',
-    items: [['/api-keys', 'API Keys', KeyRound, 'admin'] as const],
+    items: [
+      ['/api-keys', 'API Keys', KeyRound, 'admin'] as const,
+      ['/webhooks', 'Webhooks', Webhook, 'admin'] as const,
+    ],
   },
   {
     label: 'Configuración',
     items: [
       ['/branding', 'Branding', Palette, 'admin'] as const,
       ['/equipo', 'Equipo', Users, 'admin'] as const,
-      ['/integraciones', 'Webhooks de premios', Webhook, 'admin'] as const,
       ['/wallet', 'Mi Wallet', Wallet, 'admin'] as const,
       ['/modulos', 'Módulos', Boxes, 'admin'] as const,
       ['/configuracion', 'Configuración', Settings, 'admin'] as const,
