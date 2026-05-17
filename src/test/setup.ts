@@ -33,5 +33,8 @@ afterEach(async () => {
   const { apiKeysStore, seedApiKeys, seedRequestLogs } = await import('@/mocks/data/apiKeys');
   apiKeysStore.keys = [...seedApiKeys];
   apiKeysStore.logs = [...seedRequestLogs];
+  const { webhooksStore, seedWebhookEndpoints, seedWebhookDeliveries } = await import('@/mocks/data/webhooks');
+  webhooksStore.endpoints = [...seedWebhookEndpoints];
+  webhooksStore.deliveries = [...seedWebhookDeliveries];
 });
 afterAll(() => server.close());
