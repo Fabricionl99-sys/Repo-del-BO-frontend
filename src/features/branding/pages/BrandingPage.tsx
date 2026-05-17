@@ -25,6 +25,7 @@ import type { BrandingConfig, BrandingFontFamily, ColorPalette, WidgetPosition, 
 import { BRANDING_FONT_OPTIONS, WELCOME_TEXT_MAX } from '@/types/branding';
 
 import {
+  isBrandingConfig,
   useBrandingConfig,
   usePreviewBranding,
   useResetBranding,
@@ -98,9 +99,16 @@ export default function BrandingPage() {
 
   const saved = configQ.data;
   const config = draft ?? saved;
+  const configReady = isBrandingConfig(config);
 
   useEffect(() => {
-    if (saved && !draft) {
+    if (configQ.isFetched && saved !== undefined && !isBrandingConfig(saved)) {
+      void configQ.refetch();
+    }
+  }, [configQ, saved]);
+
+  useEffect(() => {
+    if (saved && isBrandingConfig(saved) && !draft) {
       setCustomMode(saved.palette_preset === 'custom');
     }
   }, [saved, draft]);
@@ -137,8 +145,13 @@ export default function BrandingPage() {
     );
   }
 
-  if (mock === 'loading' || configQ.isLoading) return <Loading label="Cargando branding..." />;
-  if (mock === 'error' || configQ.isError || !config) return <ErrorState onRetry={() => configQ.refetch()} />;
+  const isLoadingConfig =
+    mock === 'loading' || configQ.isLoading || configQ.isPending || (configQ.isFetching && !configReady);
+
+  if (isLoadingConfig) return <Loading label="Cargando branding..." />;
+  if (mock === 'error' || configQ.isError || !configReady || !config) {
+    return <ErrorState onRetry={() => configQ.refetch()} />;
+  }
 
   const patch = (partial: Partial<BrandingConfig>) => setDraft({ ...config, ...partial });
 

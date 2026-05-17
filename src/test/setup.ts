@@ -21,4 +21,14 @@ if (typeof globalThis.ProgressEvent === 'undefined') {
     }
   } as typeof ProgressEvent;
 }
-beforeAll(()=>server.listen({onUnhandledRequest:'error'})); afterEach(()=>{cleanup(); server.resetHandlers();}); afterAll(()=>server.close());
+import { queryClient } from '@/api/queryClient';
+import { sanitizeBoPersistentState } from '@/lib/sanitizeBoPersistentState';
+
+beforeAll(() => server.listen({ onUnhandledRequest: 'error' }));
+afterEach(() => {
+  cleanup();
+  server.resetHandlers();
+  localStorage.clear();
+  sanitizeBoPersistentState(queryClient);
+});
+afterAll(() => server.close());

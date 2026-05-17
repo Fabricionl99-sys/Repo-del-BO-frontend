@@ -3,6 +3,8 @@ import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-li
 import { createMemoryRouter, RouterProvider } from 'react-router-dom';
 import { describe, expect, it, vi } from 'vitest';
 
+import { BO_LOCAL_STORAGE_KEYS } from '@/lib/boLocalStorage';
+
 import SettingsPage from './SettingsPage';
 
 vi.stubGlobal(
@@ -19,7 +21,10 @@ vi.stubGlobal(
 
 function wrap(route = '/configuracion') {
   cleanup();
-  localStorage.removeItem('niveles_operator_config_v2');
+  localStorage.removeItem(BO_LOCAL_STORAGE_KEYS.operatorConfig);
+  localStorage.removeItem(BO_LOCAL_STORAGE_KEYS.operatorConfigLegacy);
+  localStorage.removeItem(BO_LOCAL_STORAGE_KEYS.brandingConfig);
+  localStorage.removeItem(BO_LOCAL_STORAGE_KEYS.brandingConfigLegacy);
   const router = createMemoryRouter([{ path: '/configuracion', element: <SettingsPage /> }], {
     initialEntries: [route],
   });
