@@ -134,7 +134,7 @@ export function AvatarFormModal({
       }
     >
       {atLimit && (
-        <p className="mb-4 rounded-lg border border-danger/30 bg-danger/10 px-3 py-2 text-[12px] text-danger">
+        <p className="mb-4 rounded-lg border border-danger/30 bg-danger/10 px-3 py-2 text-[14px] text-danger">
           Límite alcanzado: máximo {MAX_ACTIVE_AVATARS} avatares activos.
         </p>
       )}
@@ -159,39 +159,39 @@ export function AvatarFormModal({
         <ConfigSection title="Datos">
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="mb-1 block text-[12px] text-text-secondary">code</label>
+              <label className="mb-1 block text-[14px] text-text-secondary">code</label>
               <input className="field font-mono" disabled={isEdit} {...register('code')} />
-              {errors.code && <p className="mt-1 text-[11px] text-danger">{errors.code.message}</p>}
+              {errors.code && <p className="mt-1 text-[13px] text-danger">{errors.code.message}</p>}
             </div>
             <div>
-              <label className="mb-1 block text-[12px] text-text-secondary">nombre</label>
+              <label className="mb-1 block text-[14px] text-text-secondary">nombre</label>
               <input className="field" {...register('name')} />
-              {errors.name && <p className="mt-1 text-[11px] text-danger">{errors.name.message}</p>}
+              {errors.name && <p className="mt-1 text-[13px] text-danger">{errors.name.message}</p>}
             </div>
           </div>
           <div className="mt-3">
-            <label className="mb-1 block text-[12px] text-text-secondary">descripción</label>
+            <label className="mb-1 block text-[14px] text-text-secondary">descripción</label>
             <textarea className="field min-h-16" {...register('description')} />
           </div>
           <div className="mt-3 grid grid-cols-2 gap-3">
             <div>
-              <label className="mb-1 block text-[12px] text-text-secondary">categoría</label>
+              <label className="mb-1 block text-[14px] text-text-secondary">categoría</label>
               <select className="field" {...register('category_id')}>
                 <option value="">Elegí…</option>
                 {categories.filter((c) => c.is_active).map((c) => (
                   <option key={c.id} value={c.id}>{c.name}</option>
                 ))}
               </select>
-              {errors.category_id && <p className="mt-1 text-[11px] text-danger">{errors.category_id.message}</p>}
+              {errors.category_id && <p className="mt-1 text-[13px] text-danger">{errors.category_id.message}</p>}
             </div>
             <div className="flex items-end gap-4 pb-1">
               <div className="flex items-center gap-2">
                 <Switch checked={isActive} onChange={(v) => setValue('is_active', v)} aria-label="activo" />
-                <span className="text-[12px] text-text-secondary">activo</span>
+                <span className="text-[14px] text-text-secondary">activo</span>
               </div>
               <div className="flex items-center gap-2">
                 <Switch checked={isPremium} onChange={(v) => setValue('is_premium', v)} aria-label="premium" />
-                <span className="text-[12px] text-text-secondary">premium</span>
+                <span className="text-[14px] text-text-secondary">premium</span>
               </div>
             </div>
           </div>

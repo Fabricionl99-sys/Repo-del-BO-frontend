@@ -205,7 +205,7 @@ export default function SettingsPage() {
       <PageHeader title="Configuración" subtitle="Empresa, contacto, localización, notificaciones, seguridad y horarios" />
 
       {isDirty && (
-        <p className="mb-4 rounded-lg border border-warning/30 bg-warning/10 px-3 py-2 text-[12px] text-warning">
+        <p className="mb-4 rounded-lg border border-warning/30 bg-warning/10 px-3 py-2 text-[14px] text-warning">
           Tenés cambios sin guardar
         </p>
       )}
@@ -235,7 +235,7 @@ export default function SettingsPage() {
                   <Field label="razón social" value={config.company_info.legal_name} onChange={(v) => patch({ company_info: { legal_name: v } })} />
                   <Field label="nombre comercial" value={config.company_info.commercial_name} onChange={(v) => patch({ company_info: { commercial_name: v } })} />
                   <label className="col-span-2 block max-md:col-span-1">
-                    <span className="mb-1 block text-[12px] text-text-secondary">logo</span>
+                    <span className="mb-1 block text-[14px] text-text-secondary">logo</span>
                     <div className="flex items-center gap-3">
                       {config.company_info.company_logo_url && (
                         <img src={config.company_info.company_logo_url} alt="" className="h-14 w-14 rounded-lg object-cover" />
@@ -246,7 +246,7 @@ export default function SettingsPage() {
                     </div>
                   </label>
                   <label className="col-span-2 block max-md:col-span-1">
-                    <span className="mb-1 block text-[12px] text-text-secondary">descripción</span>
+                    <span className="mb-1 block text-[14px] text-text-secondary">descripción</span>
                     <textarea className="field min-h-20" value={config.company_info.description} onChange={(e) => patch({ company_info: { description: e.target.value } })} />
                   </label>
                   <SelectField label="país" value={config.company_info.country} options={COUNTRY_OPTIONS} onChange={(v) => patch({ company_info: { country: v } })} />
@@ -283,7 +283,7 @@ export default function SettingsPage() {
             <ConfigSection title="localización">
               <div className="grid grid-cols-2 gap-3 max-md:grid-cols-1">
                 <label className="block">
-                  <span className="mb-1 block text-[12px] text-text-secondary">timezone</span>
+                  <span className="mb-1 block text-[14px] text-text-secondary">timezone</span>
                   <select
                     className="field"
                     value={config.localization.timezone}
@@ -308,10 +308,10 @@ export default function SettingsPage() {
                   onChange={(v) => patch({ localization: { primary_language: v } })}
                 />
                 <label className="col-span-2 block max-md:col-span-1">
-                  <span className="mb-1 block text-[12px] text-text-secondary">idiomas soportados</span>
+                  <span className="mb-1 block text-[14px] text-text-secondary">idiomas soportados</span>
                   <div className="flex flex-wrap gap-2">
                     {(languagesQ.data ?? []).map((lang) => (
-                      <label key={lang.code} className="flex items-center gap-2 text-[12px]">
+                      <label key={lang.code} className="flex items-center gap-2 text-[14px]">
                         <input
                           type="checkbox"
                           checked={config.localization.supported_languages.includes(lang.code)}
@@ -370,7 +370,7 @@ export default function SettingsPage() {
                   ['weekly_summary', 'Resumen semanal'],
                 ].map(([key, label]) => (
                   <label key={key} className="flex items-center justify-between rounded-lg border border-border-subtle px-3 py-2">
-                    <span className="text-[13px]">{label}</span>
+                    <span className="text-[15px]">{label}</span>
                     <Switch
                       checked={config.notifications_preferences[key as keyof typeof config.notifications_preferences] as boolean}
                       onChange={(v) =>
@@ -396,7 +396,7 @@ export default function SettingsPage() {
           {tab === 'Seguridad' && (
             <ConfigSection title="seguridad">
               <label className="mb-4 flex items-center justify-between rounded-lg border border-border-subtle px-3 py-2">
-                <span className="text-[13px]">Requerir 2FA</span>
+                <span className="text-[15px]">Requerir 2FA</span>
                 <Switch checked={config.security.require_2fa} onChange={(v) => patch({ security: { require_2fa: v } })} />
               </label>
               <p className="label-section mb-2">timeout de sesión (minutos)</p>
@@ -407,7 +407,7 @@ export default function SettingsPage() {
                     type="button"
                     onClick={() => patch({ security: { session_timeout_minutes: m } })}
                     className={cn(
-                      'rounded-lg border px-3 py-1.5 text-[12px]',
+                      'rounded-lg border px-3 py-1.5 text-[14px]',
                       config.security.session_timeout_minutes === m
                         ? 'border-accent bg-accent/10 text-accent'
                         : 'border-border-subtle',
@@ -418,9 +418,9 @@ export default function SettingsPage() {
                 ))}
               </div>
               <label className="block">
-                <span className="mb-1 block text-[12px] text-text-secondary">IP whitelist (una por línea)</span>
+                <span className="mb-1 block text-[14px] text-text-secondary">IP whitelist (una por línea)</span>
                 <textarea
-                  className="field min-h-24 font-mono text-[12px]"
+                  className="field min-h-24 font-mono text-[14px]"
                   value={config.security.ip_whitelist.join('\n')}
                   onChange={(e) =>
                     patch({
@@ -440,14 +440,14 @@ export default function SettingsPage() {
           {tab === 'Horarios' && (
             <>
               <ConfigSection title="horarios de atención">
-                <p className="mb-3 text-[12px] text-text-tertiary">Timezone: {config.business_hours.timezone}</p>
+                <p className="mb-3 text-[14px] text-text-tertiary">Timezone: {config.business_hours.timezone}</p>
                 <div className="space-y-2">
                   {weekdays.map(({ key, label }) => {
                     const day = config.business_hours[key];
                     return (
                       <div key={key} className="flex flex-wrap items-center gap-3 rounded-lg border border-border-subtle px-3 py-2">
                         <Switch checked={day.enabled} onChange={(v) => patchDay(key, { enabled: v })} aria-label={label} />
-                        <span className="w-24 text-[12px] font-medium">{label}</span>
+                        <span className="w-24 text-[14px] font-medium">{label}</span>
                         <input type="time" className="field w-auto py-1" value={day.open} disabled={!day.enabled} onChange={(e) => patchDay(key, { open: e.target.value })} />
                         <span className="text-text-tertiary">—</span>
                         <input type="time" className="field w-auto py-1" value={day.close} disabled={!day.enabled} onChange={(e) => patchDay(key, { close: e.target.value })} />
@@ -466,13 +466,13 @@ export default function SettingsPage() {
                   columns={holidayColumns}
                   rows={config.business_hours.holidays}
                   rowKey={(h) => h.id}
-                  emptyState={<p className="text-[13px] text-text-tertiary">Sin feriados configurados</p>}
+                  emptyState={<p className="text-[15px] text-text-tertiary">Sin feriados configurados</p>}
                 />
               </ConfigSection>
             </>
           )}
         </ConfiguratorScaffold>
-        {formError && <p className="mt-3 text-[13px] text-danger">{formError}</p>}
+        {formError && <p className="mt-3 text-[15px] text-danger">{formError}</p>}
       </div>
 
       <div className="fixed bottom-0 left-[240px] right-0 z-20 border-t border-border-subtle bg-bg-primary/95 px-6 py-4 backdrop-blur max-md:left-0">
@@ -526,7 +526,7 @@ function Field({
 }) {
   return (
     <label className={cn('block', className)}>
-      <span className="mb-1 block text-[12px] text-text-secondary">{label}</span>
+      <span className="mb-1 block text-[14px] text-text-secondary">{label}</span>
       <input className="field" value={value} onChange={(e) => onChange(e.target.value)} />
     </label>
   );
@@ -545,7 +545,7 @@ function SelectField({
 }) {
   return (
     <label className="block">
-      <span className="mb-1 block text-[12px] text-text-secondary">{label}</span>
+      <span className="mb-1 block text-[14px] text-text-secondary">{label}</span>
       <select className="field" value={value} onChange={(e) => onChange(e.target.value)}>
         {options.map((o) => (
           <option key={o.code} value={o.code}>
@@ -578,7 +578,7 @@ function RadioGroup({
             type="button"
             onClick={() => onChange(v)}
             className={cn(
-              'rounded-lg border px-3 py-2 text-left text-[12px]',
+              'rounded-lg border px-3 py-2 text-left text-[14px]',
               value === v ? 'border-accent bg-accent/10 text-accent' : 'border-border-subtle',
             )}
           >

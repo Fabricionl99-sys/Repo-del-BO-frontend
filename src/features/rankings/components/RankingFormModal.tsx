@@ -161,23 +161,23 @@ export function RankingFormModal({
             <h3 className="label-section mb-3">Datos básicos</h3>
             <div className="grid gap-3 sm:grid-cols-2">
               <div>
-                <label className="mb-1.5 block text-[12px] text-text-secondary">code</label>
-                <input className="field font-mono text-[12px]" disabled={Boolean(ranking)} {...register('code')} />
-                {errors.code && <p className="mt-1 text-[11px] text-danger">{errors.code.message}</p>}
+                <label className="mb-1.5 block text-[14px] text-text-secondary">code</label>
+                <input className="field font-mono text-[14px]" disabled={Boolean(ranking)} {...register('code')} />
+                {errors.code && <p className="mt-1 text-[13px] text-danger">{errors.code.message}</p>}
               </div>
               <div>
-                <label className="mb-1.5 block text-[12px] text-text-secondary">name</label>
+                <label className="mb-1.5 block text-[14px] text-text-secondary">name</label>
                 <input className="field" {...register('name')} />
-                {errors.name && <p className="mt-1 text-[11px] text-danger">{errors.name.message}</p>}
+                {errors.name && <p className="mt-1 text-[13px] text-danger">{errors.name.message}</p>}
               </div>
             </div>
             <div className="mt-3">
-              <label className="mb-1.5 block text-[12px] text-text-secondary">description</label>
+              <label className="mb-1.5 block text-[14px] text-text-secondary">description</label>
               <textarea className="field min-h-16" {...register('description')} />
             </div>
             <div className="mt-3 grid gap-3 sm:grid-cols-2">
               <div>
-                <label className="mb-1.5 block text-[12px] text-text-secondary">metric_type</label>
+                <label className="mb-1.5 block text-[14px] text-text-secondary">metric_type</label>
                 <select className="field" {...register('metric_type')}>
                   {RANKING_METRIC_TYPES.map((m) => (
                     <option key={m} value={m}>{METRIC_LABELS[m]}</option>
@@ -185,7 +185,7 @@ export function RankingFormModal({
                 </select>
               </div>
               <div>
-                <label className="mb-1.5 block text-[12px] text-text-secondary">period_type</label>
+                <label className="mb-1.5 block text-[14px] text-text-secondary">period_type</label>
                 <select className="field" {...register('period_type')}>
                   {RANKING_PERIOD_TYPES.map((p) => (
                     <option key={p} value={p}>{PERIOD_LABELS[p]}</option>
@@ -197,7 +197,7 @@ export function RankingFormModal({
               <div className="mt-3 grid gap-3 sm:grid-cols-3">
                 {periodType === 'weekly' && (
                   <div>
-                    <label className="mb-1.5 block text-[12px] text-text-secondary">día reset</label>
+                    <label className="mb-1.5 block text-[14px] text-text-secondary">día reset</label>
                     <select className="field" {...register('reset_weekday')}>
                       {WEEKDAY_OPTIONS.map((d) => (
                         <option key={d.value} value={d.value}>{d.label}</option>
@@ -207,28 +207,28 @@ export function RankingFormModal({
                 )}
                 {periodType === 'monthly' && (
                   <div>
-                    <label className="mb-1.5 block text-[12px] text-text-secondary">día del mes</label>
+                    <label className="mb-1.5 block text-[14px] text-text-secondary">día del mes</label>
                     <input type="number" min={1} max={28} className="field" {...register('reset_day_of_month', { valueAsNumber: true })} />
                   </div>
                 )}
                 <div>
-                  <label className="mb-1.5 block text-[12px] text-text-secondary">hora reset (UTC)</label>
+                  <label className="mb-1.5 block text-[14px] text-text-secondary">hora reset (UTC)</label>
                   <input type="time" className="field" {...register('reset_time')} />
-                  {errors.reset_time && <p className="mt-1 text-[11px] text-danger">{errors.reset_time.message}</p>}
+                  {errors.reset_time && <p className="mt-1 text-[13px] text-danger">{errors.reset_time.message}</p>}
                 </div>
               </div>
             )}
             <div className="mt-3 grid gap-3 sm:grid-cols-3">
               <div className="flex items-center justify-between rounded-lg border border-border-subtle bg-bg-tertiary px-3 py-2">
-                <span className="text-[12px] text-text-secondary">Activo</span>
+                <span className="text-[14px] text-text-secondary">Activo</span>
                 <Switch checked={isActive} onChange={(v) => setValue('is_active', v)} />
               </div>
               <div className="flex items-center justify-between rounded-lg border border-border-subtle bg-bg-tertiary px-3 py-2">
-                <span className="text-[12px] text-text-secondary">Visible jugadores</span>
+                <span className="text-[14px] text-text-secondary">Visible jugadores</span>
                 <Switch checked={isVisible} onChange={(v) => setValue('is_visible_to_players', v)} />
               </div>
               <div>
-                <label className="mb-1.5 block text-[12px] text-text-secondary">max_visible_positions</label>
+                <label className="mb-1.5 block text-[14px] text-text-secondary">max_visible_positions</label>
                 <input type="number" min={1} max={500} className="field" {...register('max_visible_positions', { valueAsNumber: true })} />
               </div>
             </div>
@@ -238,7 +238,7 @@ export function RankingFormModal({
             <h3 className="label-section mb-3">Restricciones</h3>
             <div className="grid gap-3 sm:grid-cols-3">
               <div>
-                <label className="mb-1.5 block text-[12px] text-text-secondary">min_level</label>
+                <label className="mb-1.5 block text-[14px] text-text-secondary">min_level</label>
                 <input
                   type="number"
                   min={1}
@@ -248,11 +248,11 @@ export function RankingFormModal({
                   })}
                 />
               </div>
-              <label className="flex items-end gap-2 pb-2 text-[12px] text-text-secondary">
+              <label className="flex items-end gap-2 pb-2 text-[14px] text-text-secondary">
                 <input type="checkbox" {...register('vip_only')} />
                 vip_only
               </label>
-              <label className="flex items-end gap-2 pb-2 text-[12px] text-text-secondary" title="Solo jugadores con menos de 30 días">
+              <label className="flex items-end gap-2 pb-2 text-[14px] text-text-secondary" title="Solo jugadores con menos de 30 días">
                 <input type="checkbox" {...register('new_players_only')} />
                 new_players_only
               </label>
@@ -267,7 +267,7 @@ export function RankingFormModal({
               </Button>
             </div>
             <div className="overflow-x-auto rounded-lg border border-border-subtle">
-              <table className="w-full text-[12px]">
+              <table className="w-full text-[14px]">
                 <thead className="bg-bg-tertiary text-left text-text-tertiary">
                   <tr>
                     <th className="px-3 py-2">posición</th>

@@ -24,15 +24,15 @@ export function DeliveryActionModal({
 
   return (
     <Modal open={open} onClose={onClose} title={title} size="sm">
-      <p className="mb-3 text-[13px] text-text-secondary">
+      <p className="mb-3 text-[15px] text-text-secondary">
         {mode === 'retry'
           ? `Se programará un nuevo intento para ${delivery?.event_id}.`
           : `La entrega ${delivery?.event_id} quedará cancelada.`}
       </p>
-      <label className="mb-4 block text-[12px]">
+      <label className="mb-4 block text-[14px]">
         <span className="label-section mb-1 block">Razón (opcional, audit log)</span>
         <textarea
-          className="w-full rounded-lg border border-border-subtle bg-bg-tertiary px-3 py-2 text-[13px]"
+          className="w-full rounded-lg border border-border-subtle bg-bg-tertiary px-3 py-2 text-[15px]"
           rows={2}
           value={reason}
           onChange={(e) => setReason(e.target.value)}

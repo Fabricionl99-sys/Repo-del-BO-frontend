@@ -48,13 +48,13 @@ export default function StreaksPage() {
         </button>
       ),
     },
-    { key: 'activity', header: 'actividad', render: (p) => <span className="font-mono text-[11px]">{p.activity_type}</span> },
-    { key: 'tz', header: 'timezone', render: (p) => <span className="text-[11px] text-text-tertiary">{p.timezone}</span> },
-    { key: 'policy', header: 'reset', render: (p) => <span className="text-[11px]">{p.reset_policy}</span> },
+    { key: 'activity', header: 'actividad', render: (p) => <span className="font-mono text-[13px]">{p.activity_type}</span> },
+    { key: 'tz', header: 'timezone', render: (p) => <span className="text-[13px] text-text-tertiary">{p.timezone}</span> },
+    { key: 'policy', header: 'reset', render: (p) => <span className="text-[13px]">{p.reset_policy}</span> },
     {
       key: 'milestones',
       header: 'hitos',
-      render: (p) => <span className="text-[12px] text-text-secondary">{p.milestones?.length ?? 0}</span>,
+      render: (p) => <span className="text-[14px] text-text-secondary">{p.milestones?.length ?? 0}</span>,
     },
     {
       key: 'active',
@@ -89,8 +89,8 @@ export default function StreaksPage() {
   ];
 
   const playerColumns: Column<PlayerStreakSummary>[] = [
-    { key: 'h', header: 'jugador', render: (r) => <span className="font-mono text-[12px]">{r.external_player_id}</span> },
-    { key: 'p', header: 'programa', render: (r) => <span className="text-[12px]">{r.streak_program_name}</span> },
+    { key: 'h', header: 'jugador', render: (r) => <span className="font-mono text-[14px]">{r.external_player_id}</span> },
+    { key: 'p', header: 'programa', render: (r) => <span className="text-[14px]">{r.streak_program_name}</span> },
     { key: 'd', header: 'día actual', render: (r) => <span>{r.current_day}</span> },
     {
       key: 'status',
@@ -131,14 +131,14 @@ export default function StreaksPage() {
       <div className="mb-5 inline-flex rounded-lg border border-border-subtle bg-bg-secondary p-0.5">
         <button
           type="button"
-          className={`rounded-md px-4 py-2 text-[12px] font-medium ${tab === 'programs' ? 'bg-bg-tertiary text-text-primary' : 'text-text-tertiary'}`}
+          className={`rounded-md px-4 py-2 text-[14px] font-medium ${tab === 'programs' ? 'bg-bg-tertiary text-text-primary' : 'text-text-tertiary'}`}
           onClick={() => setTab('programs')}
         >
           Programas
         </button>
         <button
           type="button"
-          className={`rounded-md px-4 py-2 text-[12px] font-medium ${tab === 'players' ? 'bg-bg-tertiary text-text-primary' : 'text-text-tertiary'}`}
+          className={`rounded-md px-4 py-2 text-[14px] font-medium ${tab === 'players' ? 'bg-bg-tertiary text-text-primary' : 'text-text-tertiary'}`}
           onClick={() => setTab('players')}
         >
           Jugadores con racha
@@ -154,7 +154,7 @@ export default function StreaksPage() {
               <Button variant="primary" onClick={() => nav('/rachas/nueva')}>
                 Crear primer programa
               </Button>
-              <button type="button" className="inline-flex items-center gap-1.5 text-[13px] text-accent hover:underline" onClick={() => setDocOpen(true)}>
+              <button type="button" className="inline-flex items-center gap-1.5 text-[15px] text-accent hover:underline" onClick={() => setDocOpen(true)}>
                 <BookOpen size={14} />
                 Ver documentación
               </button>
@@ -177,7 +177,7 @@ export default function StreaksPage() {
                 <Button variant="primary" onClick={() => nav('/rachas/nueva')}>
                   Crear primer programa
                 </Button>
-                <button type="button" className="inline-flex items-center gap-1.5 text-[13px] text-accent hover:underline" onClick={() => setDocOpen(true)}>
+                <button type="button" className="inline-flex items-center gap-1.5 text-[15px] text-accent hover:underline" onClick={() => setDocOpen(true)}>
                   <BookOpen size={14} />
                   Ver documentación
                 </button>
@@ -209,12 +209,12 @@ function PlayerHistoryModal({ playerId, onClose }: { playerId: string | null; on
     <Modal open={!!playerId} onClose={onClose} title="Historial de racha" size="md">
       {q.isLoading ? <Loading label="Cargando..." /> : null}
       {q.data ? (
-        <ul className="space-y-2 text-[13px]">
+        <ul className="space-y-2 text-[15px]">
           {q.data.completed_days.map((d) => (
             <li key={d.day_number} className="flex justify-between rounded-lg border border-border-subtle px-3 py-2">
               <span>Día {d.day_number}</span>
               <span className="text-text-tertiary">{d.completed_at}</span>
-              <span className="text-[11px] text-text-secondary">
+              <span className="text-[13px] text-text-secondary">
                 {d.milestone_reward_id ? 'hito' : d.micro_reward_id ? 'micro' : '—'}
               </span>
             </li>

@@ -15,11 +15,11 @@ export function RequestLogDetailModal({
 
   return (
     <Modal open={open} onClose={onClose} title="Detalle de request" size="lg">
-      <div className="space-y-4 text-[13px]">
+      <div className="space-y-4 text-[15px]">
         <div className="grid grid-cols-2 gap-3 max-md:grid-cols-1">
           <div>
             <p className="label-section">endpoint</p>
-            <code className="font-mono text-[12px]">
+            <code className="font-mono text-[14px]">
               {log.method} {log.endpoint}
             </code>
           </div>
@@ -37,7 +37,7 @@ export function RequestLogDetailModal({
           </div>
           <div>
             <p className="label-section">IP</p>
-            <code className="font-mono text-[12px]">{log.ip_address}</code>
+            <code className="font-mono text-[14px]">{log.ip_address}</code>
           </div>
           <div>
             <p className="label-section">user agent</p>
@@ -49,19 +49,19 @@ export function RequestLogDetailModal({
         )}
         <div>
           <p className="label-section mb-2">request headers</p>
-          <pre className="overflow-x-auto rounded-lg border border-border-subtle bg-bg-tertiary p-3 font-mono text-[11px]">
+          <pre className="overflow-x-auto rounded-lg border border-border-subtle bg-bg-tertiary p-3 font-mono text-[13px]">
             {JSON.stringify(log.request_headers ?? {}, null, 2)}
           </pre>
         </div>
         <div>
           <p className="label-section mb-2">response headers</p>
-          <pre className="overflow-x-auto rounded-lg border border-border-subtle bg-bg-tertiary p-3 font-mono text-[11px]">
+          <pre className="overflow-x-auto rounded-lg border border-border-subtle bg-bg-tertiary p-3 font-mono text-[13px]">
             {JSON.stringify(log.response_headers ?? {}, null, 2)}
           </pre>
         </div>
         <div>
           <p className="label-section mb-2">body snippet</p>
-          <pre className="overflow-x-auto rounded-lg border border-border-subtle bg-bg-tertiary p-3 font-mono text-[11px]">
+          <pre className="overflow-x-auto rounded-lg border border-border-subtle bg-bg-tertiary p-3 font-mono text-[13px]">
             {log.request_body_snippet}
           </pre>
         </div>

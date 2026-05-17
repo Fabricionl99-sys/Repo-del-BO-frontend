@@ -63,7 +63,7 @@ function PeriodSelector({ value, onChange }: { value: Period; onChange: (period:
         <button
           key={period}
           onClick={() => onChange(period)}
-          className={`rounded-md px-3 py-1 text-[12px] transition ${
+          className={`rounded-md px-3 py-1 text-[14px] transition ${
             value === period
               ? 'bg-bg-tertiary font-medium text-text-primary'
               : 'text-text-tertiary hover:text-text-primary'
@@ -159,8 +159,8 @@ function QuickActions({ onNavigate }: { onNavigate: (path: string) => void }) {
             <Icon size={18} />
           </div>
           <div>
-            <div className="mb-0.5 text-[13px] font-medium">{title}</div>
-            <div className="text-[11px] text-text-tertiary">{description}</div>
+            <div className="mb-0.5 text-[15px] font-medium">{title}</div>
+            <div className="text-[13px] text-text-tertiary">{description}</div>
           </div>
         </button>
       ))}
@@ -179,7 +179,7 @@ function ActivityFeedCard({
     <div className="card">
       <header className="section-head">
         <h2 className="label-section">actividad reciente</h2>
-        <button className="text-[12px] text-accent">ver todo →</button>
+        <button className="text-[14px] text-accent">ver todo →</button>
       </header>
       <div className="p-2">
         {(mockState === 'empty' || query.data?.length === 0) && (
@@ -213,8 +213,8 @@ function ActivityItemRow({ item }: { item: NonNullable<ReturnType<typeof useActi
         <Icon size={14} />
       </div>
       <div>
-        <div className="text-[13px]">{item.title}</div>
-        <div className="mt-1 flex gap-2 text-[11px] text-text-tertiary">
+        <div className="text-[15px]">{item.title}</div>
+        <div className="mt-1 flex gap-2 text-[13px] text-text-tertiary">
           <span>{item.actor?.role ?? 'sistema'}</span>
           <span>·</span>
           <span>{formatRelativeDate(item.createdAt)}</span>
@@ -237,7 +237,7 @@ function SystemStatusCard({
     <div className="card">
       <header className="section-head">
         <h2 className="label-section">estado del sistema</h2>
-        <button onClick={onDetails} className="text-[12px] text-accent">
+        <button onClick={onDetails} className="text-[14px] text-accent">
           detalles →
         </button>
       </header>
@@ -250,17 +250,17 @@ function SystemStatusCard({
         <div className="space-y-3 p-5">
           {query.data.services.map((service) => (
             <div key={service.name} className="flex items-center justify-between">
-              <div className="flex items-center gap-2 text-[13px]">
+              <div className="flex items-center gap-2 text-[15px]">
                 <span className={`h-1.5 w-1.5 rounded-full ${service.status === 'healthy' ? 'bg-success' : 'animate-pulse-dot bg-warning'}`} />
                 {service.name}
               </div>
-              <span className="text-[12px] text-text-tertiary">{service.metric}</span>
+              <span className="text-[14px] text-text-tertiary">{service.metric}</span>
             </div>
           ))}
           {query.data.planUsage.eventsLimit > 0 && (
             <div className="mt-4 border-t border-border-subtle pt-4">
               <p className="label-section mb-2.5">consumo del plan</p>
-              <div className="mb-1.5 flex justify-between text-[13px]">
+              <div className="mb-1.5 flex justify-between text-[15px]">
                 <span>eventos este mes</span>
                 <span className="text-text-tertiary">
                   {formatNumber(query.data.planUsage.eventsThisMonth, { compact: true })} /{' '}
@@ -276,7 +276,7 @@ function SystemStatusCard({
                 />
               </div>
               {query.data.planUsage.daysToReset > 0 && (
-                <p className="mt-2 text-[11px] font-light italic text-text-tertiary">
+                <p className="mt-2 text-[13px] font-light italic text-text-tertiary">
                   faltan {query.data.planUsage.daysToReset} días para que se renueve
                 </p>
               )}

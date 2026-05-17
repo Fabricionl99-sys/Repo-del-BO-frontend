@@ -23,12 +23,12 @@ export function PingTestModal({ open, onClose }: { open: boolean; onClose: () =>
       }
     >
       {ping.data && (
-        <p className={`text-[13px] ${ping.data.ok ? 'text-success' : 'text-danger'}`}>
+        <p className={`text-[15px] ${ping.data.ok ? 'text-success' : 'text-danger'}`}>
           {ping.data.message} · {ping.data.latency_ms}ms
         </p>
       )}
       {!ping.data && !ping.isPending && (
-        <p className="text-[13px] text-text-tertiary">Ejecutá un ping para validar tu integración.</p>
+        <p className="text-[15px] text-text-tertiary">Ejecutá un ping para validar tu integración.</p>
       )}
     </Modal>
   );

@@ -154,14 +154,14 @@ export default function NotificationsPage() {
       render: (t) => (
         <button type="button" className="text-left" onClick={() => setTemplateEditor(t)}>
           <b>{t.name}</b>
-          <div className="font-mono text-[10px] text-text-tertiary">{t.code}</div>
+          <div className="font-mono text-[12px] text-text-tertiary">{t.code}</div>
         </button>
       ),
     },
     {
       key: 'trigger',
       header: 'trigger',
-      render: (t) => <span className="text-[12px]">{TRIGGER_EVENT_LABELS[t.trigger_event]}</span>,
+      render: (t) => <span className="text-[14px]">{TRIGGER_EVENT_LABELS[t.trigger_event]}</span>,
     },
     {
       key: 'channels',
@@ -169,7 +169,7 @@ export default function NotificationsPage() {
       render: (t) => (
         <div className="flex flex-wrap gap-1">
           {t.channels.map((c) => (
-            <span key={c} className="rounded bg-bg-tertiary px-2 py-0.5 text-[10px]">
+            <span key={c} className="rounded bg-bg-tertiary px-2 py-0.5 text-[12px]">
               {CHANNEL_LABELS[c]}
             </span>
           ))}
@@ -180,7 +180,7 @@ export default function NotificationsPage() {
       key: 'active',
       header: 'estado',
       render: (t) => (
-        <span className={cn('text-[11px]', t.is_active ? 'text-success' : 'text-text-tertiary')}>
+        <span className={cn('text-[13px]', t.is_active ? 'text-success' : 'text-text-tertiary')}>
           {t.is_active ? 'activo' : 'archivado'}
         </span>
       ),
@@ -208,12 +208,12 @@ export default function NotificationsPage() {
     {
       key: 'status',
       header: 'status',
-      render: (h) => <span className="text-[12px]">{h.delivery_status}</span>,
+      render: (h) => <span className="text-[14px]">{h.delivery_status}</span>,
     },
     {
       key: 'sent',
       header: 'enviado',
-      render: (h) => <span className="text-[11px] text-text-tertiary">{formatRelativeDate(h.sent_at)}</span>,
+      render: (h) => <span className="text-[13px] text-text-tertiary">{formatRelativeDate(h.sent_at)}</span>,
     },
   ];
 
@@ -369,7 +369,7 @@ export default function NotificationsPage() {
         <section className="card max-w-2xl p-6">
           <p className="label-section mb-4">enviar a un jugador</p>
           <label className="mb-3 block">
-            <span className="mb-1 block text-[12px] text-text-secondary">jugador</span>
+            <span className="mb-1 block text-[14px] text-text-secondary">jugador</span>
             <SearchInput
               placeholder="handle o id (mín. 2 chars)..."
               value={manualPlayerQuery}
@@ -382,21 +382,21 @@ export default function NotificationsPage() {
                 <li key={p.player_id}>
                   <button
                     type="button"
-                    className="w-full px-3 py-2 text-left text-[12px] hover:bg-bg-tertiary"
+                    className="w-full px-3 py-2 text-left text-[14px] hover:bg-bg-tertiary"
                     onClick={() => {
                       setManualPlayerId(p.player_id);
                       setManualPlayerQuery(p.player_handle);
                     }}
                   >
                     {p.player_handle}
-                    <span className="ml-2 font-mono text-[10px] text-text-tertiary">{p.player_id}</span>
+                    <span className="ml-2 font-mono text-[12px] text-text-tertiary">{p.player_id}</span>
                   </button>
                 </li>
               ))}
             </ul>
           )}
           <label className="mb-3 block">
-            <span className="mb-1 block text-[12px] text-text-secondary">template</span>
+            <span className="mb-1 block text-[14px] text-text-secondary">template</span>
             <select className="field" value={manualTemplateId || selectedManualTpl?.id} onChange={(e) => setManualTemplateId(e.target.value)}>
               {manualTemplates.map((t) => (
                 <option key={t.id} value={t.id}>{t.name}</option>
@@ -404,7 +404,7 @@ export default function NotificationsPage() {
             </select>
           </label>
           {manualPreview && (
-            <pre className="mb-4 rounded-lg border border-border-subtle bg-bg-tertiary p-3 text-[12px] whitespace-pre-wrap">
+            <pre className="mb-4 rounded-lg border border-border-subtle bg-bg-tertiary p-3 text-[14px] whitespace-pre-wrap">
               {manualPreview.body}
             </pre>
           )}

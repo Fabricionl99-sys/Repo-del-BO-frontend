@@ -55,7 +55,7 @@ function CoinsGlobalSection() {
         <p className="section-help">Aplica a todas las monedas en modo &quot;Por XP&quot;.</p>
       </div>
       <label className="block max-w-xs">
-        <span className="mb-1.5 block text-[12px] text-text-secondary">Cada cuántos XP se otorga 1 coin</span>
+        <span className="mb-1.5 block text-[14px] text-text-secondary">Cada cuántos XP se otorga 1 coin</span>
         <input
           type="number"
           min={1}
@@ -128,12 +128,12 @@ export default function RulesListPage() {
           <div className="flex items-center gap-2">
             <span className="font-medium">{r.name}</span>
             {isBoostActive(r) && (
-              <span className="rounded-full bg-purple/15 px-2 py-0.5 text-[10px] font-semibold text-purple">
+              <span className="rounded-full bg-purple/15 px-2 py-0.5 text-[12px] font-semibold text-purple">
                 x{boostLabel(r.boost?.multiplier ?? 1)} activo
               </span>
             )}
           </div>
-          <div className="text-[11px] text-text-tertiary">{r.description}</div>
+          <div className="text-[13px] text-text-tertiary">{r.description}</div>
         </button>
       ),
     },
@@ -141,7 +141,7 @@ export default function RulesListPage() {
       key: 'cat',
       header: 'categoría',
       render: (r) => (
-        <span className={`rounded-full px-2 py-0.5 text-[10px] font-medium ${category[r.category].color}`}>
+        <span className={`rounded-full px-2 py-0.5 text-[12px] font-medium ${category[r.category].color}`}>
           {category[r.category].label}
         </span>
       ),
@@ -152,7 +152,7 @@ export default function RulesListPage() {
       render: (r) => (
         <span>
           <b>{r.xpDisplay.value}</b>{' '}
-          {r.xpDisplay.perUnit && <span className="text-[11px] text-text-tertiary">{r.xpDisplay.perUnit}</span>}
+          {r.xpDisplay.perUnit && <span className="text-[13px] text-text-tertiary">{r.xpDisplay.perUnit}</span>}
         </span>
       ),
     },
@@ -170,7 +170,7 @@ export default function RulesListPage() {
     {
       key: 'updated',
       header: 'actualizada',
-      render: (r) => <span className="text-[12px] text-text-secondary">{formatRelativeDate(r.updatedAt)}</span>,
+      render: (r) => <span className="text-[14px] text-text-secondary">{formatRelativeDate(r.updatedAt)}</span>,
     },
     {
       key: 'actions',
@@ -271,7 +271,7 @@ export default function RulesListPage() {
         />
       )}
       <CoinsGlobalSection />
-      <p className="mt-5 text-center text-[12px] font-light italic text-text-tertiary">
+      <p className="mt-5 text-center text-[14px] font-light italic text-text-tertiary">
         Una regla activa por categoría · evento bet_placed · coins por XP según configuración general
       </p>
       <NewRuleModal open={newRuleOpen} onClose={() => setNewRuleOpen(false)} />

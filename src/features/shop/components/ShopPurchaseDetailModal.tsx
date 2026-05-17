@@ -37,7 +37,7 @@ export function ShopPurchaseDetailModal({
     >
       {q.isLoading && <Loading label="Cargando compra..." />}
       {purchase && (
-        <dl className="space-y-3 text-[13px]">
+        <dl className="space-y-3 text-[15px]">
           <div>
             <dt className="text-text-tertiary">Jugador</dt>
             <dd>{purchase.player_handle ?? purchase.player_id}</dd>
@@ -46,7 +46,7 @@ export function ShopPurchaseDetailModal({
             <dt className="text-text-tertiary">Producto</dt>
             <dd>
               {purchase.product_name}{' '}
-              <span className="font-mono text-[11px] text-text-tertiary">({purchase.product_code})</span>
+              <span className="font-mono text-[13px] text-text-tertiary">({purchase.product_code})</span>
             </dd>
           </div>
           <div>
@@ -70,7 +70,7 @@ export function ShopPurchaseDetailModal({
           <div>
             <dt className="text-text-tertiary">reward_snapshot</dt>
             <dd>
-              <pre className="mt-1 overflow-x-auto rounded-lg bg-bg-tertiary p-2 text-[11px]">
+              <pre className="mt-1 overflow-x-auto rounded-lg bg-bg-tertiary p-2 text-[13px]">
                 {JSON.stringify(purchase.reward_snapshot, null, 2)}
               </pre>
             </dd>

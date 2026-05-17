@@ -35,10 +35,10 @@ export function TestPingModal({
 
   return (
     <Modal open={open} onClose={onClose} title="Test ping" size="lg">
-      <div className="space-y-4 text-[13px]">
+      <div className="space-y-4 text-[15px]">
         <div>
           <p className="label-section mb-1">Endpoint</p>
-          <p className="font-mono text-[12px] text-text-secondary">{endpoint?.url}</p>
+          <p className="font-mono text-[14px] text-text-secondary">{endpoint?.url}</p>
         </div>
         <label className="block">
           <span className="label-section mb-1">event_type</span>
@@ -57,7 +57,7 @@ export function TestPingModal({
         <label className="block">
           <span className="label-section mb-1">Payload preview (editable)</span>
           <textarea
-            className="w-full rounded-lg border border-border-subtle bg-bg-tertiary px-3 py-2 font-mono text-[11px]"
+            className="w-full rounded-lg border border-border-subtle bg-bg-tertiary px-3 py-2 font-mono text-[13px]"
             rows={5}
             value={payloadPreview}
             onChange={(e) => setPayloadPreview(e.target.value)}
@@ -69,10 +69,10 @@ export function TestPingModal({
         {result && (
           <div className={`rounded-lg border p-3 ${result.ok ? 'border-success/30 bg-success/10' : 'border-danger/30 bg-danger/10'}`}>
             <p className="font-medium">{result.message}</p>
-            <p className="text-mono text-[12px]">
+            <p className="text-mono text-[14px]">
               HTTP {result.status_code} · {result.latency_ms}ms
             </p>
-            <pre className="mt-2 overflow-x-auto font-mono text-[11px]">{result.response_body}</pre>
+            <pre className="mt-2 overflow-x-auto font-mono text-[13px]">{result.response_body}</pre>
           </div>
         )}
       </div>

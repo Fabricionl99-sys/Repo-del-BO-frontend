@@ -16,7 +16,7 @@ export function RuleUsdPerXpField() {
   return (
     <div>
       <label>
-        <span className="mb-1.5 block text-[12px] text-text-secondary">Cuánto se apuesta para 1 XP (USD)</span>
+        <span className="mb-1.5 block text-[14px] text-text-secondary">Cuánto se apuesta para 1 XP (USD)</span>
         <input
           type="number"
           min={0.01}
@@ -25,7 +25,7 @@ export function RuleUsdPerXpField() {
           {...register('usd_per_xp', { valueAsNumber: true })}
         />
       </label>
-      <p className="mt-2 rounded-lg border border-info/25 bg-info/10 p-3 text-[12px] text-text-secondary">
+      <p className="mt-2 rounded-lg border border-info/25 bg-info/10 p-3 text-[14px] text-text-secondary">
         Ej.: si ponés 10, cada $10 apostados en esta categoría dan 1 XP al jugador.
       </p>
     </div>
@@ -50,23 +50,23 @@ export function RuleBoostSection({ enabledCategories }: { enabledCategories: Gam
           onChange={(checked) => setValue('boost', checked ? boostDefaults(category) : undefined, { shouldDirty: true })}
         />
         <div>
-          <div className="text-[13px] font-medium">¿Aplicar boost temporal?</div>
-          <p className="text-[11px] text-text-tertiary">Multiplica XP solo durante el período configurado.</p>
+          <div className="text-[15px] font-medium">¿Aplicar boost temporal?</div>
+          <p className="text-[13px] text-text-tertiary">Multiplica XP solo durante el período configurado.</p>
         </div>
       </div>
       {enabled && (
         <div className="space-y-4 rounded-lg border border-border-subtle bg-bg-tertiary p-4">
           <div>
-            <span className="mb-2 block text-[12px] text-text-secondary">Multiplicador</span>
+            <span className="mb-2 block text-[14px] text-text-secondary">Multiplicador</span>
             <div className="flex flex-wrap gap-2">
               {([1.5, 2, 3, 5] as const).map((value) => (
                 <button
                   key={value}
                   type="button"
                   onClick={() => setValue('boost.multiplier', value, { shouldDirty: true })}
-                  className={`rounded-full border px-3 py-1 text-[12px] font-semibold transition ${
+                  className={`rounded-full border px-3 py-1 text-[14px] font-semibold transition ${
                     multiplier === value
-                      ? 'border-accent bg-accent text-bg-primary'
+                      ? 'border-accent bg-accent text-text-onAccent'
                       : 'border-border-default bg-bg-elevated text-text-secondary hover:text-text-primary'
                   }`}
                 >
@@ -76,9 +76,9 @@ export function RuleBoostSection({ enabledCategories }: { enabledCategories: Gam
             </div>
           </div>
           <div>
-            <span className="mb-2 block text-[12px] text-text-secondary">Aplica a</span>
+            <span className="mb-2 block text-[14px] text-text-secondary">Aplica a</span>
             <div className="flex flex-col gap-2">
-              <label className="flex items-center gap-2 text-[13px]">
+              <label className="flex items-center gap-2 text-[15px]">
                 <input
                   type="radio"
                   name="boost-scope"
@@ -90,7 +90,7 @@ export function RuleBoostSection({ enabledCategories }: { enabledCategories: Gam
                 />
                 Solo esta categoría
               </label>
-              <label className="flex items-center gap-2 text-[13px]">
+              <label className="flex items-center gap-2 text-[15px]">
                 <input
                   type="radio"
                   name="boost-scope"
@@ -105,7 +105,7 @@ export function RuleBoostSection({ enabledCategories }: { enabledCategories: Gam
             </div>
             {scope === 'category' ? (
               <label className="mt-3 block">
-                <span className="mb-1.5 block text-[12px] text-text-secondary">Categoría del boost</span>
+                <span className="mb-1.5 block text-[14px] text-text-secondary">Categoría del boost</span>
                 <select aria-label="categoría del boost" className="field" {...register('boost.category_code')}>
                   <option value="">Elegí una categoría</option>
                   {enabledCategories.map((c) => (
@@ -118,16 +118,16 @@ export function RuleBoostSection({ enabledCategories }: { enabledCategories: Gam
             ) : null}
             {(() => {
               const msg = (errors.boost as { category_code?: { message?: string } } | undefined)?.category_code?.message;
-              return msg ? <p className="mt-2 text-[11px] text-danger">{msg}</p> : null;
+              return msg ? <p className="mt-2 text-[13px] text-danger">{msg}</p> : null;
             })()}
           </div>
           <div className="grid gap-3 md:grid-cols-2">
             <label>
-              <span className="mb-1.5 block text-[12px] text-text-secondary">Desde</span>
+              <span className="mb-1.5 block text-[14px] text-text-secondary">Desde</span>
               <input aria-label="Desde" type="datetime-local" className="field" {...register('boost.starts_at')} />
             </label>
             <label>
-              <span className="mb-1.5 block text-[12px] text-text-secondary">Hasta</span>
+              <span className="mb-1.5 block text-[14px] text-text-secondary">Hasta</span>
               <input aria-label="Hasta" type="datetime-local" className="field" {...register('boost.ends_at')} />
             </label>
           </div>

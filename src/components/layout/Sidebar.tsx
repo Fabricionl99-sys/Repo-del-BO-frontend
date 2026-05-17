@@ -114,10 +114,10 @@ export function Sidebar() {
   return (
     <aside className="sticky top-0 flex h-screen flex-col overflow-y-auto border-r border-border-subtle bg-bg-secondary py-4">
       <div className="mb-4 flex items-center gap-2.5 border-b border-border-subtle px-5 pb-5">
-        <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-gradient-to-br from-accent to-cyan text-[13px] font-semibold text-bg-primary">
+        <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-gradient-to-br from-accent to-cyan text-[15px] font-semibold text-text-onAccent">
           N
         </div>
-        <span className="text-[15px] font-semibold">niveles</span>
+        <span className="text-[16px] font-semibold">niveles</span>
       </div>
       <OperatorSelector />
       <div className="flex-1">
@@ -135,7 +135,7 @@ export function Sidebar() {
                   key={to}
                   to={to}
                   className={({ isActive }) =>
-                    `relative mb-px flex items-center gap-2.5 rounded-md px-3 py-1.5 text-[13px] transition ${
+                    `relative mb-px flex items-center gap-2.5 rounded-md px-3 py-1.5 text-[15px] transition ${
                       isActive
                         ? 'bg-accent-subtle font-medium text-accent before:absolute before:-left-3 before:top-1/2 before:h-[18px] before:w-[3px] before:-translate-y-1/2 before:rounded-r before:bg-accent before:content-[""]'
                         : 'text-text-secondary hover:bg-bg-tertiary hover:text-text-primary'
@@ -145,10 +145,10 @@ export function Sidebar() {
                   <Icon size={14} />
                   <span>{label}</span>
                   {to === '/feed' ? (
-                    <span className="ml-auto rounded-full bg-warning/10 px-1.5 py-0.5 text-[10px] text-warning">soon</span>
+                    <span className="ml-auto rounded-full bg-warning/10 px-1.5 py-0.5 text-[12px] text-warning">soon</span>
                   ) : null}
                   {to === '/reglas-xp' ? (
-                    <span className="ml-auto rounded-full bg-bg-elevated px-1.5 py-0.5 text-[10px] text-text-tertiary">12</span>
+                    <span className="ml-auto rounded-full bg-bg-elevated px-1.5 py-0.5 text-[12px] text-text-tertiary">12</span>
                   ) : null}
                 </NavLink>
               ))}
@@ -161,11 +161,11 @@ export function Sidebar() {
           <button
             type="button"
             onClick={() => setDisponiblesOpen((o) => !o)}
-            className="mb-1 flex w-full items-center gap-2 rounded-md px-3 py-2 text-[12px] font-medium text-text-secondary hover:bg-bg-tertiary hover:text-text-primary"
+            className="mb-1 flex w-full items-center gap-2 rounded-md px-3 py-2 text-[14px] font-medium text-text-secondary hover:bg-bg-tertiary hover:text-text-primary"
           >
             {disponiblesOpen ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
             <span>Disponibles</span>
-            <span className="ml-auto rounded-full bg-bg-elevated px-1.5 py-0.5 text-[10px] text-text-tertiary">
+            <span className="ml-auto rounded-full bg-bg-elevated px-1.5 py-0.5 text-[12px] text-text-tertiary">
               {inactiveModules.length}
             </span>
           </button>
@@ -175,7 +175,7 @@ export function Sidebar() {
                 <NavLink
                   key={mod.code}
                   to={mod.path}
-                  className="mb-px flex items-center gap-2 rounded-md px-3 py-1.5 pl-8 text-[12px] text-text-tertiary hover:bg-bg-tertiary hover:text-text-secondary"
+                  className="mb-px flex items-center gap-2 rounded-md px-3 py-1.5 pl-8 text-[14px] text-text-tertiary hover:bg-bg-tertiary hover:text-text-secondary"
                 >
                   <span className="h-1.5 w-1.5 rounded-full bg-text-disabled" />
                   {mod.label}
@@ -183,7 +183,7 @@ export function Sidebar() {
               ))}
               <NavLink
                 to="/modulos"
-                className="mt-1 flex items-center gap-2 rounded-md px-3 py-1.5 pl-8 text-[12px] text-accent hover:bg-accent-subtle"
+                className="mt-1 flex items-center gap-2 rounded-md px-3 py-1.5 pl-8 text-[14px] text-accent hover:bg-accent-subtle"
               >
                 Ver catálogo completo →
               </NavLink>

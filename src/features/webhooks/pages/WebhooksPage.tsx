@@ -85,11 +85,11 @@ export default function WebhooksPage() {
       {
         key: 'ts',
         header: 'timestamp',
-        render: (r) => <span className="text-[12px]">{formatRelativeDate(r.created_at)}</span>,
+        render: (r) => <span className="text-[14px]">{formatRelativeDate(r.created_at)}</span>,
       },
       { key: 'ep', header: 'endpoint', render: (r) => r.reward_endpoint_name ?? r.reward_endpoint_id },
-      { key: 'ev', header: 'event', render: (r) => <span className="font-mono text-[11px]">{r.event_type}</span> },
-      { key: 'pl', header: 'player', render: (r) => <span className="font-mono text-[11px]">{r.player_id}</span> },
+      { key: 'ev', header: 'event', render: (r) => <span className="font-mono text-[13px]">{r.event_type}</span> },
+      { key: 'pl', header: 'player', render: (r) => <span className="font-mono text-[13px]">{r.player_id}</span> },
       { key: 'st', header: 'status', render: (r) => r.status },
       { key: 'at', header: 'attempts', render: (r) => r.attempt_count },
       { key: 'dur', header: 'duration', render: (r) => (r.duration_ms != null ? `${r.duration_ms}ms` : '—') },
@@ -137,7 +137,7 @@ export default function WebhooksPage() {
             type="button"
             onClick={() => switchTab(t)}
             className={cn(
-              'border-b-2 px-3 py-2 text-[13px] font-medium transition-colors',
+              'border-b-2 px-3 py-2 text-[15px] font-medium transition-colors',
               tab === t ? 'border-accent text-text-primary' : 'border-transparent text-text-tertiary hover:text-text-secondary',
             )}
           >
@@ -187,7 +187,7 @@ export default function WebhooksPage() {
             search={
               <input
                 placeholder="player_id o event_id"
-                className="w-full rounded-lg border border-border-subtle bg-bg-tertiary px-3 py-1.5 text-[12px]"
+                className="w-full rounded-lg border border-border-subtle bg-bg-tertiary px-3 py-1.5 text-[14px]"
                 value={searchQ}
                 onChange={(e) => setSearchQ(e.target.value)}
               />
@@ -195,7 +195,7 @@ export default function WebhooksPage() {
             filters={
               <>
                 <select
-                  className="rounded-lg border border-border-subtle bg-bg-tertiary px-2 py-1.5 text-[12px]"
+                  className="rounded-lg border border-border-subtle bg-bg-tertiary px-2 py-1.5 text-[14px]"
                   value={endpointFilter}
                   onChange={(e) => setEndpointFilter(e.target.value)}
                 >
@@ -215,7 +215,7 @@ export default function WebhooksPage() {
                   />
                 ))}
                 <select
-                  className="rounded-lg border border-border-subtle bg-bg-tertiary px-2 py-1.5 text-[12px]"
+                  className="rounded-lg border border-border-subtle bg-bg-tertiary px-2 py-1.5 text-[14px]"
                   value={eventFilter}
                   onChange={(e) => setEventFilter(e.target.value)}
                 >
@@ -287,7 +287,7 @@ export default function WebhooksPage() {
       {tab === 'Estadísticas' && (
         <div className="space-y-5">
           <select
-            className="rounded-lg border border-border-subtle bg-bg-tertiary px-3 py-2 text-[13px]"
+            className="rounded-lg border border-border-subtle bg-bg-tertiary px-3 py-2 text-[15px]"
             value={statsEndpointId}
             onChange={(e) => setStatsEndpointId(e.target.value)}
           >
@@ -309,7 +309,7 @@ export default function WebhooksPage() {
                 ].map(([label, value]) => (
                   <div key={String(label)} className="rounded-lg border border-border-subtle bg-bg-secondary p-4">
                     <p className="label-section mb-1">{label}</p>
-                    <p className="text-mono text-[18px] font-semibold">{value}</p>
+                    <p className="text-mono text-[19px] font-semibold">{value}</p>
                   </div>
                 ))}
               </div>
@@ -337,7 +337,7 @@ export default function WebhooksPage() {
                 <p className="label-section mb-2">Eventos más frecuentes</p>
                 <div className="space-y-2">
                   {statsQ.data.events_by_type.map((e) => (
-                    <div key={e.event_type} className="flex items-center gap-2 text-[12px]">
+                    <div key={e.event_type} className="flex items-center gap-2 text-[14px]">
                       <span className="w-48 font-mono">{e.event_type}</span>
                       <div className="h-2 flex-1 rounded bg-bg-tertiary">
                         <div
@@ -365,21 +365,21 @@ export default function WebhooksPage() {
       )}
 
       {tab === 'Guía de integración' && (
-        <article className="prose-sm max-w-3xl space-y-6 text-[13px] text-text-secondary">
+        <article className="prose-sm max-w-3xl space-y-6 text-[15px] text-text-secondary">
           <p>
             Los webhooks notifican a tu backend cuando ocurren premios o eventos de jugadores. Firmá cada payload con
             HMAC SHA-256 usando el secret que generamos al crear el endpoint.
           </p>
           <section>
             <h3 className="text-[14px] font-semibold text-text-primary">Verificar firma HMAC</h3>
-            <pre className="overflow-x-auto rounded-lg border border-border-subtle bg-bg-tertiary p-3 font-mono text-[11px]">{`const crypto = require('crypto');
+            <pre className="overflow-x-auto rounded-lg border border-border-subtle bg-bg-tertiary p-3 font-mono text-[13px]">{`const crypto = require('crypto');
 const sig = req.headers['x-niveles-signature'];
 const expected = crypto.createHmac('sha256', SECRET).update(rawBody).digest('hex');
 if (sig !== \`sha256=\${expected}\`) throw new Error('Invalid signature');`}</pre>
           </section>
           <section>
             <h3 className="text-[14px] font-semibold text-text-primary">Payload</h3>
-            <pre className="overflow-x-auto rounded-lg border border-border-subtle bg-bg-tertiary p-3 font-mono text-[11px]">{`{
+            <pre className="overflow-x-auto rounded-lg border border-border-subtle bg-bg-tertiary p-3 font-mono text-[13px]">{`{
   "event_type": "reward.granted",
   "event_id": "evt_…",
   "player_id": "pl_…",

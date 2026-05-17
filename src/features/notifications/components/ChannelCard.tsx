@@ -38,7 +38,7 @@ export function ChannelCard({
         <span className="flex h-11 w-11 items-center justify-center rounded-lg bg-bg-tertiary text-text-secondary">
           <Icon size={20} />
         </span>
-        <span className="flex flex-col items-end gap-1 text-[10px]">
+        <span className="flex flex-col items-end gap-1 text-[12px]">
           <span className={cn(channel.is_enabled ? 'text-success' : 'text-text-tertiary')}>
             {channel.is_enabled ? 'habilitado' : 'deshabilitado'}
           </span>
@@ -48,9 +48,9 @@ export function ChannelCard({
         </span>
       </header>
       <h3 className="mb-1 text-[14px] font-semibold">{m.label}</h3>
-      <p className="mb-3 text-[11px] text-text-tertiary">{m.subtitle}</p>
+      <p className="mb-3 text-[13px] text-text-tertiary">{m.subtitle}</p>
       {channel.last_tested_at && (
-        <p className="mb-3 text-[11px] text-text-secondary">
+        <p className="mb-3 text-[13px] text-text-secondary">
           último test:{' '}
           <span className={channel.last_test_status === 'success' ? 'text-success' : 'text-danger'}>
             {channel.last_test_status ?? '—'}
@@ -58,7 +58,7 @@ export function ChannelCard({
         </p>
       )}
       {needsConfig && (
-        <p className="mb-3 text-[11px] text-warning">Configurá credenciales para habilitar envíos.</p>
+        <p className="mb-3 text-[13px] text-warning">Configurá credenciales para habilitar envíos.</p>
       )}
       <footer className="flex gap-2">
         <Button variant="secondary" size="sm" className="flex-1" onClick={onConfigure}>

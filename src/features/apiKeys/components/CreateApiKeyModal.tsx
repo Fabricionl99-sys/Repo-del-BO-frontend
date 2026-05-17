@@ -82,18 +82,18 @@ export function CreateApiKeyModal({
       ) : (
         <div className="space-y-4">
           <label className="block">
-            <span className="mb-1 block text-[12px] text-text-secondary">nombre / alias</span>
+            <span className="mb-1 block text-[14px] text-text-secondary">nombre / alias</span>
             <input className="field" value={name} onChange={(e) => setName(e.target.value)} placeholder="Backend Servidor 1" />
           </label>
           <div>
-            <span className="mb-2 block text-[12px] text-text-secondary">permisos</span>
+            <span className="mb-2 block text-[14px] text-text-secondary">permisos</span>
             <div className="flex flex-wrap gap-2">
               {API_KEY_PERMISSIONS.map((p) => (
                 <button
                   key={p.value}
                   type="button"
                   onClick={() => togglePerm(p.value)}
-                  className={`rounded-full border px-2.5 py-1 text-[11px] ${
+                  className={`rounded-full border px-2.5 py-1 text-[13px] ${
                     permissions.includes(p.value)
                       ? 'border-accent bg-accent/10 text-accent'
                       : 'border-border-subtle text-text-secondary'
@@ -105,10 +105,10 @@ export function CreateApiKeyModal({
             </div>
           </div>
           <label className="block">
-            <span className="mb-1 block text-[12px] text-text-secondary">expira (opcional)</span>
+            <span className="mb-1 block text-[14px] text-text-secondary">expira (opcional)</span>
             <input type="date" className="field" value={expiresAt} onChange={(e) => setExpiresAt(e.target.value)} />
           </label>
-          {error && <p className="text-[13px] text-danger">{error}</p>}
+          {error && <p className="text-[15px] text-danger">{error}</p>}
         </div>
       )}
     </Modal>

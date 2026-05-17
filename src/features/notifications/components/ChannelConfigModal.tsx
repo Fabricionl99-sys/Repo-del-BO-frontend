@@ -57,12 +57,12 @@ export function ChannelConfigModal({
       }
     >
       <label className="mb-4 flex items-center justify-between rounded-lg border border-border-subtle px-3 py-2">
-        <span className="text-[13px]">Canal habilitado</span>
+        <span className="text-[15px]">Canal habilitado</span>
         <Switch checked={enabled} onChange={setEnabled} />
       </label>
 
       {channel.channel_type === 'in_app' && (
-        <p className="text-[13px] text-text-secondary">
+        <p className="text-[15px] text-text-secondary">
           In-app no requiere credenciales externas. Solo podés habilitar o deshabilitar el canal.
         </p>
       )}
@@ -93,7 +93,7 @@ function Field({
 }) {
   return (
     <label className="block">
-      <span className="mb-1 block text-[12px] text-text-secondary">{label}</span>
+      <span className="mb-1 block text-[14px] text-text-secondary">{label}</span>
       <input className="field" type={type} value={value} onChange={(e) => onChange(e.target.value)} />
     </label>
   );
@@ -131,7 +131,7 @@ function PushFields({
   return (
     <section className="space-y-3">
       <label className="block">
-        <span className="mb-1 block text-[12px] text-text-secondary">provider</span>
+        <span className="mb-1 block text-[14px] text-text-secondary">provider</span>
         <select
           className="field"
           value={c.provider ?? 'firebase'}
@@ -158,7 +158,7 @@ function SmsFields({
   return (
     <section className="space-y-3">
       <label className="block">
-        <span className="mb-1 block text-[12px] text-text-secondary">provider</span>
+        <span className="mb-1 block text-[14px] text-text-secondary">provider</span>
         <select
           className="field"
           value={c.provider ?? 'twilio'}

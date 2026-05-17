@@ -175,39 +175,39 @@ export function ChestTypeFormModal({
             <h3 className="label-section mb-3">Datos básicos</h3>
             <div className="grid gap-3 sm:grid-cols-2">
               <div>
-                <label className="mb-1.5 block text-[12px] text-text-secondary">code</label>
-                <input className="field font-mono text-[12px]" disabled={Boolean(chestType)} {...register('code')} />
-                {errors.code && <p className="mt-1 text-[11px] text-danger">{errors.code.message}</p>}
+                <label className="mb-1.5 block text-[14px] text-text-secondary">code</label>
+                <input className="field font-mono text-[14px]" disabled={Boolean(chestType)} {...register('code')} />
+                {errors.code && <p className="mt-1 text-[13px] text-danger">{errors.code.message}</p>}
               </div>
               <div>
-                <label className="mb-1.5 block text-[12px] text-text-secondary">name</label>
+                <label className="mb-1.5 block text-[14px] text-text-secondary">name</label>
                 <input className="field" {...register('name')} />
-                {errors.name && <p className="mt-1 text-[11px] text-danger">{errors.name.message}</p>}
+                {errors.name && <p className="mt-1 text-[13px] text-danger">{errors.name.message}</p>}
               </div>
             </div>
             <div className="mt-3">
-              <label className="mb-1.5 block text-[12px] text-text-secondary">description</label>
+              <label className="mb-1.5 block text-[14px] text-text-secondary">description</label>
               <textarea className="field min-h-16" {...register('description')} />
             </div>
             <div className="mt-3">
-              <label className="mb-1.5 block text-[12px] text-text-secondary">image_url</label>
+              <label className="mb-1.5 block text-[14px] text-text-secondary">image_url</label>
               <input className="field" placeholder="https://..." {...register('image_url')} />
               {imageUrl && (
                 <img src={imageUrl} alt="preview" className="mt-2 h-24 rounded-lg border border-border-subtle object-cover" />
               )}
             </div>
             <div className="mt-3">
-              <label className="mb-1.5 block text-[12px] text-text-secondary">color_theme</label>
+              <label className="mb-1.5 block text-[14px] text-text-secondary">color_theme</label>
               <ColorThemePicker value={colorTheme} onChange={(v) => setValue('color_theme', v)} />
-              {errors.color_theme && <p className="mt-1 text-[11px] text-danger">{errors.color_theme.message}</p>}
+              {errors.color_theme && <p className="mt-1 text-[13px] text-danger">{errors.color_theme.message}</p>}
             </div>
             <div className="mt-3 grid gap-3 sm:grid-cols-2">
               <div className="flex items-center justify-between rounded-lg border border-border-subtle bg-bg-tertiary px-3 py-2">
-                <span className="text-[12px] text-text-secondary">Activo</span>
+                <span className="text-[14px] text-text-secondary">Activo</span>
                 <Switch checked={isActive} onChange={(v) => setValue('is_active', v)} />
               </div>
               <div>
-                <label className="mb-1 flex items-center gap-2 text-[12px] text-text-secondary">
+                <label className="mb-1 flex items-center gap-2 text-[14px] text-text-secondary">
                   <input type="checkbox" {...register('no_expiration')} />
                   Sin expiración
                 </label>
@@ -227,17 +227,17 @@ export function ChestTypeFormModal({
           <section>
             <h3 className="label-section mb-3">Sistema de Pity</h3>
             <div className="flex items-center justify-between rounded-lg border border-border-subtle bg-bg-tertiary px-3 py-2">
-              <span className="text-[12px] text-text-secondary">has_pity_system</span>
+              <span className="text-[14px] text-text-secondary">has_pity_system</span>
               <Switch checked={hasPity} onChange={(v) => setValue('has_pity_system', v)} />
             </div>
             {hasPity && (
               <div className="mt-3 grid gap-3 sm:grid-cols-2">
                 <div>
-                  <label className="mb-1.5 block text-[12px] text-text-secondary">pity_threshold</label>
+                  <label className="mb-1.5 block text-[14px] text-text-secondary">pity_threshold</label>
                   <input type="number" min={1} className="field" {...register('pity_threshold', { valueAsNumber: true })} />
                 </div>
                 <div>
-                  <label className="mb-1.5 block text-[12px] text-text-secondary">pity_guaranteed_prize_id</label>
+                  <label className="mb-1.5 block text-[14px] text-text-secondary">pity_guaranteed_prize_id</label>
                   <select className="field" {...register('pity_guaranteed_prize_id')}>
                     <option value="">Elegí premio raro…</option>
                     {rarePrizes.map((p) => (
@@ -245,7 +245,7 @@ export function ChestTypeFormModal({
                     ))}
                   </select>
                   {errors.pity_guaranteed_prize_id && (
-                    <p className="mt-1 text-[11px] text-danger">{errors.pity_guaranteed_prize_id.message}</p>
+                    <p className="mt-1 text-[13px] text-danger">{errors.pity_guaranteed_prize_id.message}</p>
                   )}
                 </div>
               </div>
@@ -260,9 +260,9 @@ export function ChestTypeFormModal({
               </Button>
             </div>
             <ProbabilityBar prizes={prizes} />
-            {probabilityError && <p className="mt-2 text-[11px] text-danger">{probabilityError}</p>}
+            {probabilityError && <p className="mt-2 text-[13px] text-danger">{probabilityError}</p>}
             <div className="mt-3 overflow-x-auto rounded-lg border border-border-subtle">
-              <table className="w-full text-[12px]">
+              <table className="w-full text-[14px]">
                 <thead className="bg-bg-tertiary text-left text-text-tertiary">
                   <tr>
                     <th className="px-3 py-2">img</th>
@@ -283,7 +283,7 @@ export function ChestTypeFormModal({
                         ) : '—'}
                       </td>
                       <td className="px-3 py-2">{prize.name}</td>
-                      <td className="px-3 py-2 font-mono text-[10px]">{prize.reward_type}</td>
+                      <td className="px-3 py-2 font-mono text-[12px]">{prize.reward_type}</td>
                       <td className="px-3 py-2 text-text-secondary">{summarizeRewardConfig(prize)}</td>
                       <td className="px-3 py-2 font-mono">{prize.probability_percent.toFixed(2)}</td>
                       <td className="px-3 py-2">{prize.is_rare ? '★' : '—'}</td>

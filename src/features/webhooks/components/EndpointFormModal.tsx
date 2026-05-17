@@ -115,7 +115,7 @@ export function EndpointFormModal({
 
   return (
     <Modal open={open} onClose={onClose} title={isEdit ? 'Editar endpoint' : 'Nuevo endpoint'} size="lg">
-      <div className="max-h-[70vh] space-y-5 overflow-y-auto pr-1 text-[13px]">
+      <div className="max-h-[70vh] space-y-5 overflow-y-auto pr-1 text-[15px]">
         <section>
           <h4 className="label-section mb-3">Datos básicos</h4>
           <div className="grid gap-3">
@@ -130,7 +130,7 @@ export function EndpointFormModal({
             <label>
               <span className="label-section mb-1 block">URL (HTTPS)</span>
               <input
-                className="w-full rounded-lg border border-border-subtle bg-bg-tertiary px-3 py-2 font-mono text-[12px]"
+                className="w-full rounded-lg border border-border-subtle bg-bg-tertiary px-3 py-2 font-mono text-[14px]"
                 value={form.url}
                 onChange={(e) => setForm({ ...form, url: e.target.value })}
               />
@@ -186,8 +186,8 @@ export function EndpointFormModal({
                   onChange={() => toggleEvent(o.value)}
                 />
                 <span>
-                  <span className="font-mono text-[12px]">{o.label}</span>
-                  <span className="block text-[11px] text-text-tertiary">{o.description}</span>
+                  <span className="font-mono text-[14px]">{o.label}</span>
+                  <span className="block text-[13px] text-text-tertiary">{o.description}</span>
                 </span>
               </label>
             ))}
@@ -255,7 +255,7 @@ export function EndpointFormModal({
               </label>
             ))}
           </fieldset>
-          <p className="mt-2 text-[11px] text-text-tertiary">
+          <p className="mt-2 text-[13px] text-text-tertiary">
             Si falla, reintentará: {backoffPreview.join(', ')}
             {form.retry_config.max_retries > backoffPreview.length ? '…' : ''}
           </p>
@@ -272,7 +272,7 @@ export function EndpointFormModal({
             value={form.timeout_seconds}
             onChange={(e) => setForm({ ...form, timeout_seconds: Number(e.target.value) })}
           />
-          <p className="mt-1 text-[11px] text-text-tertiary">Tiempo máximo de espera por respuesta (5–60s)</p>
+          <p className="mt-1 text-[13px] text-text-tertiary">Tiempo máximo de espera por respuesta (5–60s)</p>
         </section>
 
         <section>
@@ -319,8 +319,8 @@ export function EndpointFormModal({
         {isEdit && endpoint && (
           <section>
             <h4 className="label-section mb-2">HMAC</h4>
-            <p className="font-mono text-[12px]">{endpoint.hmac_secret_prefix}…</p>
-            <p className="text-[11px] text-text-tertiary">Usá &quot;Rotar HMAC&quot; desde la card para un nuevo secret.</p>
+            <p className="font-mono text-[14px]">{endpoint.hmac_secret_prefix}…</p>
+            <p className="text-[13px] text-text-tertiary">Usá &quot;Rotar HMAC&quot; desde la card para un nuevo secret.</p>
           </section>
         )}
 
@@ -337,7 +337,7 @@ export function EndpointFormModal({
             <Button variant="secondary" onClick={() => void runTest()} disabled={test.isPending}>
               Test ping
             </Button>
-            {pingResult && <p className="mt-2 text-[12px] text-text-secondary">{pingResult}</p>}
+            {pingResult && <p className="mt-2 text-[14px] text-text-secondary">{pingResult}</p>}
           </section>
         )}
 

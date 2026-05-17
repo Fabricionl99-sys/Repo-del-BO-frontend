@@ -232,7 +232,7 @@ export default function BrandingPage() {
                       ))}
                     </div>
                     <div className="text-[14px] font-semibold">{preset.name}</div>
-                    <p className="mt-1 text-[11px] text-text-tertiary">{preset.description}</p>
+                    <p className="mt-1 text-[13px] text-text-tertiary">{preset.description}</p>
                   </button>
                 ))}
               </div>
@@ -245,7 +245,7 @@ export default function BrandingPage() {
                   <div className="grid grid-cols-2 gap-3 max-md:grid-cols-1">
                     {colorKeys.map((key) => (
                       <label key={key} className="rounded-lg border border-border-subtle bg-bg-tertiary p-3">
-                        <span className="mb-1 block text-[11px] text-text-tertiary">{colorLabels[key]}</span>
+                        <span className="mb-1 block text-[13px] text-text-tertiary">{colorLabels[key]}</span>
                         <div className="flex gap-2">
                           <input
                             type="color"
@@ -258,7 +258,7 @@ export default function BrandingPage() {
                             }
                           />
                           <input
-                            className="field py-1 font-mono text-[12px]"
+                            className="field py-1 font-mono text-[14px]"
                             value={config.color_palette[key]}
                             onChange={(e) =>
                               patch({
@@ -280,7 +280,7 @@ export default function BrandingPage() {
             <ConfigSection icon={<Type size={16} />} title="tipografía">
               <div className="grid grid-cols-2 gap-3 max-md:grid-cols-1">
                 <div>
-                  <label className="mb-1 block text-[12px] text-text-secondary">fuente</label>
+                  <label className="mb-1 block text-[14px] text-text-secondary">fuente</label>
                   <select
                     className="field"
                     value={config.typography.font_family}
@@ -296,7 +296,7 @@ export default function BrandingPage() {
                   </select>
                 </div>
                 <div>
-                  <label className="mb-1 block text-[12px] text-text-secondary">peso títulos</label>
+                  <label className="mb-1 block text-[14px] text-text-secondary">peso títulos</label>
                   <select
                     className="field"
                     value={config.typography.heading_weight}
@@ -315,7 +315,7 @@ export default function BrandingPage() {
                   </select>
                 </div>
                 <div>
-                  <label className="mb-1 block text-[12px] text-text-secondary">peso cuerpo</label>
+                  <label className="mb-1 block text-[14px] text-text-secondary">peso cuerpo</label>
                   <select
                     className="field"
                     value={config.typography.body_weight}
@@ -338,7 +338,7 @@ export default function BrandingPage() {
                 className="mt-4 rounded-xl border border-border-subtle p-4"
                 style={{ fontFamily: config.typography.font_family }}
               >
-                <div style={{ fontWeight: config.typography.heading_weight }} className="text-[20px]">
+                <div style={{ fontWeight: config.typography.heading_weight }} className="text-[21px]">
                   Título del widget
                 </div>
                 <div style={{ fontWeight: config.typography.body_weight }} className="mt-2 text-[14px] text-text-secondary">
@@ -385,7 +385,7 @@ export default function BrandingPage() {
                   />
                   <div className="mt-2 flex items-center gap-2 rounded-lg border border-border-subtle bg-bg-tertiary px-3 py-2">
                     {config.favicon_url && <img src={config.favicon_url} alt="" className="h-4 w-4" />}
-                    <span className="text-[11px] text-text-tertiary">preview tab simulada</span>
+                    <span className="text-[13px] text-text-tertiary">preview tab simulada</span>
                   </div>
                 </div>
               </div>
@@ -418,7 +418,7 @@ export default function BrandingPage() {
                     <label
                       key={value}
                       className={cn(
-                        'flex cursor-pointer items-center gap-2 rounded-lg border px-3 py-2 text-[12px]',
+                        'flex cursor-pointer items-center gap-2 rounded-lg border px-3 py-2 text-[14px]',
                         config.widget_position === value ? 'border-accent bg-accent/5' : 'border-border-subtle',
                       )}
                     >
@@ -441,7 +441,7 @@ export default function BrandingPage() {
                     <label
                       key={size}
                       className={cn(
-                        'cursor-pointer rounded-lg border px-4 py-2 text-[12px] capitalize',
+                        'cursor-pointer rounded-lg border px-4 py-2 text-[14px] capitalize',
                         config.widget_size === size ? 'border-accent bg-accent/5' : 'border-border-subtle',
                       )}
                     >
@@ -457,14 +457,14 @@ export default function BrandingPage() {
                 </div>
               </div>
               <div>
-                <label className="mb-1 block text-[12px] text-text-secondary">texto de bienvenida</label>
+                <label className="mb-1 block text-[14px] text-text-secondary">texto de bienvenida</label>
                 <textarea
                   className="field min-h-20"
                   maxLength={WELCOME_TEXT_MAX}
                   value={config.welcome_text}
                   onChange={(e) => patch({ welcome_text: e.target.value })}
                 />
-                <p className="mt-1 text-[11px] text-text-tertiary">
+                <p className="mt-1 text-[13px] text-text-tertiary">
                   {config.welcome_text.length}/{WELCOME_TEXT_MAX}
                 </p>
               </div>
@@ -473,11 +473,11 @@ export default function BrandingPage() {
 
           {tab === 'Avanzado' && (
             <ConfigSection title="developers">
-              <p className="mb-3 rounded-lg border border-warning/30 bg-warning/10 px-3 py-2 text-[12px] text-warning">
+              <p className="mb-3 rounded-lg border border-warning/30 bg-warning/10 px-3 py-2 text-[14px] text-warning">
                 Cambios avanzados · usar con cuidado. CSS inválido puede romper el widget.
               </p>
               <textarea
-                className="field min-h-40 font-mono text-[12px]"
+                className="field min-h-40 font-mono text-[14px]"
                 placeholder=".widget-header { border-radius: 12px; }"
                 value={config.custom_css ?? ''}
                 onChange={(e) => {
@@ -485,7 +485,7 @@ export default function BrandingPage() {
                   patch({ custom_css: e.target.value || null });
                 }}
               />
-              {cssError && <p className="mt-1 text-[12px] text-danger">{cssError}</p>}
+              {cssError && <p className="mt-1 text-[14px] text-danger">{cssError}</p>}
               <Button
                 variant="ghost"
                 className="mt-2"

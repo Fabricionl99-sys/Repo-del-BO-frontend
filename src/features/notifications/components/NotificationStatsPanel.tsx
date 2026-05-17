@@ -34,12 +34,12 @@ export function NotificationStatsPanel({ stats }: { stats: NotificationStats }) 
                   <span className="bg-purple/50" style={{ height: `${(day.push / total) * 100}%` }} />
                   <span className="bg-warning/50" style={{ height: `${(day.sms / total) * 100}%` }} />
                 </div>
-                <span className="text-[9px] text-text-tertiary">{day.date.slice(5)}</span>
+                <span className="text-[11px] text-text-tertiary">{day.date.slice(5)}</span>
               </div>
             );
           })}
         </div>
-        <div className="mt-3 flex flex-wrap gap-3 text-[11px] text-text-tertiary">
+        <div className="mt-3 flex flex-wrap gap-3 text-[13px] text-text-tertiary">
           <span className="flex items-center gap-1"><span className="h-2 w-2 rounded-sm bg-accent/80" /> in-app</span>
           <span className="flex items-center gap-1"><span className="h-2 w-2 rounded-sm bg-info/60" /> email</span>
           <span className="flex items-center gap-1"><span className="h-2 w-2 rounded-sm bg-purple/50" /> push</span>

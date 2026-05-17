@@ -128,7 +128,7 @@ export default function RankingsPage() {
       render: (r) => (
         <span className={cn(r.is_current_player && 'font-semibold text-accent')}>
           {r.player_username}
-          {r.is_current_player && <span className="ml-1 text-[10px] text-accent">(tú)</span>}
+          {r.is_current_player && <span className="ml-1 text-[12px] text-accent">(tú)</span>}
         </span>
       ),
     },
@@ -143,7 +143,7 @@ export default function RankingsPage() {
       render: (r) => {
         const prize = selectedRanking ? prizeForPosition(selectedRanking.prizes, r.position) : undefined;
         return prize ? (
-          <span className="text-[11px] text-text-secondary">
+          <span className="text-[13px] text-text-secondary">
             {prize.reward_type}: {summarizeRankingReward(prize)}
           </span>
         ) : (
@@ -263,9 +263,9 @@ export default function RankingsPage() {
         <>
           <div className="mb-4 flex flex-wrap items-end gap-3">
             <div className="min-w-[240px]">
-              <label className="mb-1 block text-[11px] text-text-tertiary">ranking activo</label>
+              <label className="mb-1 block text-[13px] text-text-tertiary">ranking activo</label>
               <select
-                className="field py-1.5 text-[12px]"
+                className="field py-1.5 text-[14px]"
                 value={leaderboardCode}
                 onChange={(e) => setSelectedCode(e.target.value)}
               >
@@ -284,14 +284,14 @@ export default function RankingsPage() {
               Recalcular ahora
             </Button>
             {leaderboardQ.data?.updated_at && (
-              <p className="text-[12px] text-text-tertiary">
+              <p className="text-[14px] text-text-tertiary">
                 Última actualización: {formatRelativeDate(leaderboardQ.data.updated_at)}
               </p>
             )}
           </div>
 
           {selectedRanking && (
-            <p className="mb-3 text-[12px] text-text-secondary">
+            <p className="mb-3 text-[14px] text-text-secondary">
               {METRIC_LABELS[selectedRanking.metric_type]} · {PERIOD_LABELS[selectedRanking.period_type]}
               {' · '}
               premios: {selectedRanking.prizes.map((p) => formatPositionRange(p.position_from, p.position_to)).join(', ')}

@@ -109,20 +109,20 @@ export function CurrencyEditorModal({ open, onClose, initial }: Props) {
     >
       <div className="grid max-h-[70vh] gap-4 overflow-y-auto pr-1">
         <label>
-          <span className="mb-1.5 block text-[12px] text-text-secondary">Nombre</span>
+          <span className="mb-1.5 block text-[14px] text-text-secondary">Nombre</span>
           <input className="field" value={name} onChange={(e) => setName(e.target.value)} placeholder="Ruby, Esmeralda…" />
         </label>
         <label>
-          <span className="mb-1.5 block text-[12px] text-text-secondary">Símbolo</span>
+          <span className="mb-1.5 block text-[14px] text-text-secondary">Símbolo</span>
           <input className="field" value={symbol} onChange={(e) => setSymbol(e.target.value)} maxLength={6} />
         </label>
         <div>
-          <span className="mb-1.5 block text-[12px] text-text-secondary">Imagen</span>
+          <span className="mb-1.5 block text-[14px] text-text-secondary">Imagen</span>
           <div className="flex flex-wrap items-center gap-3">
             {imageUrl ? (
               <img src={imageUrl} alt="" className="h-16 w-16 rounded-lg border border-border-subtle object-cover" />
             ) : null}
-            <label className="cursor-pointer rounded-lg border border-border-default bg-bg-tertiary px-3 py-2 text-[12px] hover:border-accent/40">
+            <label className="cursor-pointer rounded-lg border border-border-default bg-bg-tertiary px-3 py-2 text-[14px] hover:border-accent/40">
               <input
                 type="file"
                 accept="image/png,image/svg+xml"
@@ -138,13 +138,13 @@ export function CurrencyEditorModal({ open, onClose, initial }: Props) {
               Subir archivo
             </label>
           </div>
-          <p className="mt-1 text-[11px] text-text-tertiary">Formato: PNG/SVG, 64×64px recomendado, máx. 100KB</p>
+          <p className="mt-1 text-[13px] text-text-tertiary">Formato: PNG/SVG, 64×64px recomendado, máx. 100KB</p>
         </div>
 
         <div className="border-t border-border-subtle pt-4">
-          <p className="mb-2 text-[12px] font-medium text-text-primary">Modo de entrega</p>
+          <p className="mb-2 text-[14px] font-medium text-text-primary">Modo de entrega</p>
           <div className="space-y-2">
-            <label className="flex items-center gap-2 text-[13px]">
+            <label className="flex items-center gap-2 text-[15px]">
               <input
                 type="radio"
                 name="delivery"
@@ -153,7 +153,7 @@ export function CurrencyEditorModal({ open, onClose, initial }: Props) {
               />
               Por XP (automática)
             </label>
-            <label className="flex items-center gap-2 text-[13px]">
+            <label className="flex items-center gap-2 text-[15px]">
               <input
                 type="radio"
                 name="delivery"
@@ -165,7 +165,7 @@ export function CurrencyEditorModal({ open, onClose, initial }: Props) {
           </div>
           {deliveryMode === 'auto_xp' ? (
             <label className="mt-3 block">
-              <span className="mb-1.5 block text-[12px] text-text-secondary">Cada cuántos XP se otorga 1</span>
+              <span className="mb-1.5 block text-[14px] text-text-secondary">Cada cuántos XP se otorga 1</span>
               <input
                 type="number"
                 min={1}
@@ -173,19 +173,19 @@ export function CurrencyEditorModal({ open, onClose, initial }: Props) {
                 value={xpPerUnit}
                 onChange={(e) => setXpPerUnit(Number(e.target.value) || 1)}
               />
-              <p className="mt-1 text-[11px] text-text-tertiary">
+              <p className="mt-1 text-[13px] text-text-tertiary">
                 El jugador acumula 1 unidad cada vez que gana este XP.
               </p>
             </label>
           ) : (
-            <p className="mt-3 rounded-lg border border-info/25 bg-info/10 p-3 text-[12px] text-text-secondary">
+            <p className="mt-3 rounded-lg border border-info/25 bg-info/10 p-3 text-[14px] text-text-secondary">
               Esta moneda solo se entrega como premio de torneos, eventos especiales o regalos. No se acredita por XP.
             </p>
           )}
         </div>
 
         <div className="border-t border-border-subtle pt-4">
-          <p className="mb-2 text-[12px] font-medium text-text-primary">Reglas de la moneda (límites anti-abuso)</p>
+          <p className="mb-2 text-[14px] font-medium text-text-primary">Reglas de la moneda (límites anti-abuso)</p>
           <div className="grid gap-3 md:grid-cols-2">
             <CapInput label="Cap diario por jugador" value={caps.dailyPerPlayer} onChange={(v) => setCap('dailyPerPlayer', v)} />
             <CapInput label="Cap semanal por jugador" value={caps.weeklyPerPlayer} onChange={(v) => setCap('weeklyPerPlayer', v)} />
@@ -198,7 +198,7 @@ export function CurrencyEditorModal({ open, onClose, initial }: Props) {
         <div className="border-t border-border-subtle pt-4">
           <div className="mb-3 flex items-center gap-3">
             <Switch checked={p2p.enabled} onChange={(checked) => setP2pField('enabled', checked)} />
-            <span className="text-[13px]">Permitir transferencias P2P</span>
+            <span className="text-[15px]">Permitir transferencias P2P</span>
           </div>
           {p2p.enabled ? (
             <div className="grid gap-3 md:grid-cols-2">
@@ -207,7 +207,7 @@ export function CurrencyEditorModal({ open, onClose, initial }: Props) {
               <P2pNum label="Máximo mensual" value={p2p.maxMonthlyPerPlayer} onChange={(v) => setP2pField('maxMonthlyPerPlayer', v)} />
               <P2pNum label="Cooldown entre envíos (min)" value={p2p.cooldownMinutes} onChange={(v) => setP2pField('cooldownMinutes', v)} />
               <P2pNum label="Días mínimos antigüedad" value={p2p.minAccountAgeDays} onChange={(v) => setP2pField('minAccountAgeDays', v)} />
-              <label className="flex items-center gap-2 text-[13px] md:col-span-2">
+              <label className="flex items-center gap-2 text-[15px] md:col-span-2">
                 <Switch checked={!!p2p.vipPlusOnly} onChange={(c) => setP2pField('vipPlusOnly', c)} />
                 Solo VIP+
               </label>
@@ -231,7 +231,7 @@ function CapInput({
 }) {
   return (
     <label>
-      <span className="mb-1.5 block text-[12px] text-text-secondary">{label} (opcional)</span>
+      <span className="mb-1.5 block text-[14px] text-text-secondary">{label} (opcional)</span>
       <input className="field" type="number" min={0} value={value ?? ''} onChange={(e) => onChange(e.target.value)} />
     </label>
   );
@@ -248,7 +248,7 @@ function P2pNum({
 }) {
   return (
     <label>
-      <span className="mb-1.5 block text-[12px] text-text-secondary">{label}</span>
+      <span className="mb-1.5 block text-[14px] text-text-secondary">{label}</span>
       <input
         className="field"
         type="number"

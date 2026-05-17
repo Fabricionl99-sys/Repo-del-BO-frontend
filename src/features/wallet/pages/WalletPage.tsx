@@ -105,7 +105,7 @@ export default function WalletPage() {
       key: 'transaction_type',
       header: 'Tipo',
       render: (r) => (
-        <span className="rounded-full bg-bg-tertiary px-2 py-0.5 text-[11px] capitalize">{r.transaction_type}</span>
+        <span className="rounded-full bg-bg-tertiary px-2 py-0.5 text-[13px] capitalize">{r.transaction_type}</span>
       ),
     },
     { key: 'reason', header: 'Concepto', render: (r) => r.reason },
@@ -124,7 +124,7 @@ export default function WalletPage() {
       key: 'balance_after_usd',
       header: 'Saldo',
       align: 'right',
-      render: (r) => <span className="font-mono text-[12px]">{formatUsd(r.balance_after_usd)}</span>,
+      render: (r) => <span className="font-mono text-[14px]">{formatUsd(r.balance_after_usd)}</span>,
     },
   ];
 
@@ -158,14 +158,14 @@ export default function WalletPage() {
 
       <div className="mb-6 grid gap-4 md:grid-cols-[1fr_auto]">
         <div className="rounded-xl border border-border-subtle bg-bg-secondary p-6">
-          <p className="text-[12px] uppercase tracking-wide text-text-tertiary">Saldo disponible</p>
+          <p className="text-[14px] uppercase tracking-wide text-text-tertiary">Saldo disponible</p>
           <p className="mt-2 text-[36px] font-semibold tabular-nums">{formatUsd(balance.wallet_balance_usd)}</p>
           <div className="mt-3 flex flex-wrap gap-2">
-            <span className="rounded-full bg-accent-subtle px-2.5 py-1 text-[11px] font-medium text-accent">
+            <span className="rounded-full bg-accent-subtle px-2.5 py-1 text-[13px] font-medium text-accent">
               {billingModeLabels[balance.billing_mode]}
             </span>
             <span
-              className={`rounded-full px-2.5 py-1 text-[11px] font-medium ${
+              className={`rounded-full px-2.5 py-1 text-[13px] font-medium ${
                 balance.status === 'active'
                   ? 'bg-success/15 text-success'
                   : balance.status === 'suspended'
@@ -177,10 +177,10 @@ export default function WalletPage() {
             </span>
           </div>
         </div>
-        <div className="rounded-xl border border-border-subtle bg-bg-secondary p-6 text-[13px] text-text-secondary">
+        <div className="rounded-xl border border-border-subtle bg-bg-secondary p-6 text-[15px] text-text-secondary">
           <p className="font-medium text-text-primary">Umbral de alerta</p>
           <p className="mt-1">{formatUsd(balance.wallet_low_balance_threshold_usd)} USD</p>
-          <p className="mt-3 text-[12px] text-text-tertiary">
+          <p className="mt-3 text-[14px] text-text-tertiary">
             {formatNumber(rows.length)} movimientos recientes
           </p>
         </div>
@@ -190,8 +190,8 @@ export default function WalletPage() {
         <div className="mb-6 flex items-start gap-3 rounded-xl border border-warning/30 bg-warning/10 p-4">
           <AlertTriangle size={18} className="mt-0.5 shrink-0 text-warning" />
           <div>
-            <p className="text-[13px] font-medium text-warning">Saldo bajo</p>
-            <p className="mt-1 text-[12px] text-text-secondary">
+            <p className="text-[15px] font-medium text-warning">Saldo bajo</p>
+            <p className="mt-1 text-[14px] text-text-secondary">
               Tu saldo está por debajo de {formatUsd(balance.wallet_low_balance_threshold_usd)}. Recargá para evitar
               suspensión de módulos.
             </p>
@@ -238,7 +238,7 @@ export default function WalletPage() {
       >
         <div className="space-y-4">
           <div>
-            <label className="mb-1.5 block text-[12px] text-text-secondary">Monto (USD)</label>
+            <label className="mb-1.5 block text-[14px] text-text-secondary">Monto (USD)</label>
             <input
               className="field w-full"
               type="number"
@@ -249,14 +249,14 @@ export default function WalletPage() {
             />
           </div>
           <div>
-            <label className="mb-1.5 block text-[12px] text-text-secondary">Método de pago</label>
+            <label className="mb-1.5 block text-[14px] text-text-secondary">Método de pago</label>
             <div className="flex flex-wrap gap-2">
               {PAYMENT_METHODS.map((m) => (
                 <button
                   key={m.value}
                   type="button"
                   onClick={() => setPaymentMethod(m.value)}
-                  className={`rounded-lg border px-3 py-2 text-[12px] ${
+                  className={`rounded-lg border px-3 py-2 text-[14px] ${
                     paymentMethod === m.value
                       ? 'border-accent bg-accent-subtle text-accent'
                       : 'border-border-subtle bg-bg-tertiary text-text-secondary'
@@ -268,7 +268,7 @@ export default function WalletPage() {
             </div>
           </div>
           <div>
-            <label className="mb-1.5 block text-[12px] text-text-secondary">Referencia (opcional)</label>
+            <label className="mb-1.5 block text-[14px] text-text-secondary">Referencia (opcional)</label>
             <input
               className="field w-full font-mono"
               placeholder="Hash, comprobante, últimos 4 dígitos…"

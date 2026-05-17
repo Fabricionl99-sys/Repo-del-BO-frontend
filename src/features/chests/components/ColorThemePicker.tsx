@@ -33,7 +33,7 @@ export function ColorThemePicker({
           className="h-9 w-12 cursor-pointer rounded border border-border-subtle bg-transparent"
         />
         <input
-          className="field font-mono text-[12px]"
+          className="field font-mono text-[14px]"
           value={value}
           onChange={(e) => onChange(e.target.value)}
           placeholder="#CD7F32"

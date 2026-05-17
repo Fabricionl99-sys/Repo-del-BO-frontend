@@ -58,20 +58,20 @@ export default function WebhooksPage() {
   if (mock === 'error' || q.isError) return <ErrorState onRetry={() => q.refetch()} />;
 
   const columns: Column<RewardEndpoint>[] = [
-    { key: 'type', header: 'tipo', render: (r) => <span className="font-mono text-[12px]">{r.reward_type_code}</span> },
-    { key: 'url', header: 'URL', render: (r) => <span className="line-clamp-2 text-[12px] text-text-secondary">{r.url}</span> },
+    { key: 'type', header: 'tipo', render: (r) => <span className="font-mono text-[14px]">{r.reward_type_code}</span> },
+    { key: 'url', header: 'URL', render: (r) => <span className="line-clamp-2 text-[14px] text-text-secondary">{r.url}</span> },
     {
       key: 'status',
       header: 'estado',
       render: (r) => (
         <div className="flex flex-col gap-1">
           <span
-            className={`inline-flex w-fit items-center rounded-full px-2 py-0.5 text-[11px] font-medium ${r.is_enabled ? 'bg-success/15 text-success' : 'bg-danger/15 text-danger'}`}
+            className={`inline-flex w-fit items-center rounded-full px-2 py-0.5 text-[13px] font-medium ${r.is_enabled ? 'bg-success/15 text-success' : 'bg-danger/15 text-danger'}`}
           >
             {r.is_enabled ? 'activo' : 'desactivado'}
           </span>
           {r.last_ping_status === 'error' || (!r.is_enabled && r.last_ping_message) ? (
-            <span className="text-[10px] text-danger">Endpoint desactivado por fallo</span>
+            <span className="text-[12px] text-danger">Endpoint desactivado por fallo</span>
           ) : null}
         </div>
       ),
@@ -80,7 +80,7 @@ export default function WebhooksPage() {
       key: 'ping',
       header: 'último ping',
       render: (r) => (
-        <div className="text-[11px] text-text-tertiary">
+        <div className="text-[13px] text-text-tertiary">
           {r.last_ping_at ? new Date(r.last_ping_at).toLocaleString('es-AR') : '—'}
           <div className={r.last_ping_status === 'ok' ? 'text-success' : r.last_ping_status === 'error' ? 'text-danger' : ''}>
             {r.last_ping_message ?? ''}
@@ -88,7 +88,7 @@ export default function WebhooksPage() {
         </div>
       ),
     },
-    { key: 'sec', header: 'secret', render: (r) => <span className="font-mono text-[11px]">…{r.hmac_secret_last4 ?? '----'}</span> },
+    { key: 'sec', header: 'secret', render: (r) => <span className="font-mono text-[13px]">…{r.hmac_secret_last4 ?? '----'}</span> },
     {
       key: 'actions',
       header: '',
@@ -132,7 +132,7 @@ export default function WebhooksPage() {
           </Button>
         }
       />
-      <div className="mb-5 flex items-start gap-3 rounded-xl border border-warning/30 bg-warning/10 p-4 text-[12px] text-warning">
+      <div className="mb-5 flex items-start gap-3 rounded-xl border border-warning/30 bg-warning/10 p-4 text-[14px] text-warning">
         <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
         <div>
           <p className="font-semibold">Secret de un solo uso</p>
@@ -149,8 +149,8 @@ export default function WebhooksPage() {
       <CreateModal open={createOpen} onClose={() => setCreateOpen(false)} onCreated={(secret) => setSecretModal(secret)} create={create} />
       <Modal open={!!secretModal} onClose={() => setSecretModal(null)} title="Guardá este secret ahora">
         <div className="space-y-3">
-          <p className="text-[12px] text-danger">No se volverá a mostrar completo.</p>
-          <pre className="overflow-x-auto rounded-lg bg-bg-tertiary p-3 font-mono text-[12px] text-accent">{secretModal}</pre>
+          <p className="text-[14px] text-danger">No se volverá a mostrar completo.</p>
+          <pre className="overflow-x-auto rounded-lg bg-bg-tertiary p-3 font-mono text-[14px] text-accent">{secretModal}</pre>
           <Button variant="primary" onClick={() => void navigator.clipboard.writeText(secretModal ?? '').then(() => setSecretModal(null))}>
             copiar y cerrar
           </Button>
@@ -161,7 +161,7 @@ export default function WebhooksPage() {
           {pingResult?.ok ? <Zap className="text-success" /> : <AlertTriangle className="text-danger" />}
           <span>{pingResult?.ok ? 'OK' : 'Error'}</span>
         </div>
-        <p className="mt-2 text-[12px] text-text-secondary">{pingResult?.message}</p>
+        <p className="mt-2 text-[14px] text-text-secondary">{pingResult?.message}</p>
         <Button className="mt-4" variant="secondary" onClick={() => setPingResult(null)}>
           cerrar
         </Button>
@@ -186,7 +186,7 @@ function CreateModal({
   return (
     <Modal open={open} onClose={onClose} title="Nuevo webhook">
       <div className="space-y-3">
-        <label className="block text-[12px] text-text-secondary">tipo de premio</label>
+        <label className="block text-[14px] text-text-secondary">tipo de premio</label>
         <select className="field" value={code} onChange={(e) => setCode(e.target.value as RewardTypeCode)}>
           {codes.map((c) => (
             <option key={c} value={c}>
@@ -194,7 +194,7 @@ function CreateModal({
             </option>
           ))}
         </select>
-        <label className="block text-[12px] text-text-secondary">URL HTTPS</label>
+        <label className="block text-[14px] text-text-secondary">URL HTTPS</label>
         <input className="field" value={url} onChange={(e) => setUrl(e.target.value)} />
         <Button
           variant="primary"

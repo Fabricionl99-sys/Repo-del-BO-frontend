@@ -154,7 +154,7 @@ export default function ChestsPage() {
       render: (r) => (
         <span>
           {r.chest_type_name}
-          <span className="ml-1 font-mono text-[10px] text-text-tertiary">{r.chest_type_code}</span>
+          <span className="ml-1 font-mono text-[12px] text-text-tertiary">{r.chest_type_code}</span>
         </span>
       ),
     },
@@ -166,7 +166,7 @@ export default function ChestsPage() {
     {
       key: 'date',
       header: 'adquirido',
-      render: (r) => <span className="text-[12px] text-text-secondary">{formatRelativeDate(r.acquired_at)}</span>,
+      render: (r) => <span className="text-[14px] text-text-secondary">{formatRelativeDate(r.acquired_at)}</span>,
     },
     {
       key: 'status',
@@ -174,7 +174,7 @@ export default function ChestsPage() {
       render: (r) => (
         <span
           className={cn(
-            'rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase',
+            'rounded-full px-2 py-0.5 text-[12px] font-semibold uppercase',
             r.status === 'opened'
               ? 'bg-success/15 text-success'
               : r.status === 'expired'
@@ -306,9 +306,9 @@ export default function ChestsPage() {
         <>
           <div className="mb-4 flex flex-wrap items-end gap-3">
             <div>
-              <label className="mb-1 block text-[11px] text-text-tertiary">tipo cofre</label>
+              <label className="mb-1 block text-[13px] text-text-tertiary">tipo cofre</label>
               <select
-                className="field py-1.5 text-[12px]"
+                className="field py-1.5 text-[14px]"
                 value={invTypeCode}
                 onChange={(e) => setInvTypeCode(e.target.value)}
               >
@@ -319,9 +319,9 @@ export default function ChestsPage() {
               </select>
             </div>
             <div>
-              <label className="mb-1 block text-[11px] text-text-tertiary">status</label>
+              <label className="mb-1 block text-[13px] text-text-tertiary">status</label>
               <select
-                className="field py-1.5 text-[12px]"
+                className="field py-1.5 text-[14px]"
                 value={invStatus}
                 onChange={(e) => setInvStatus(e.target.value as ChestInventoryStatus | 'all')}
               >
@@ -332,9 +332,9 @@ export default function ChestsPage() {
               </select>
             </div>
             <div>
-              <label className="mb-1 block text-[11px] text-text-tertiary">trigger</label>
+              <label className="mb-1 block text-[13px] text-text-tertiary">trigger</label>
               <select
-                className="field py-1.5 text-[12px]"
+                className="field py-1.5 text-[14px]"
                 value={invVia}
                 onChange={(e) => setInvVia(e.target.value as ChestAcquiredVia | 'all')}
               >
@@ -345,7 +345,7 @@ export default function ChestsPage() {
               </select>
             </div>
             <div>
-              <label className="mb-1 block text-[11px] text-text-tertiary">jugador</label>
+              <label className="mb-1 block text-[13px] text-text-tertiary">jugador</label>
               <SearchInput
                 placeholder="handle o id..."
                 value={invPlayerSearch}
@@ -353,12 +353,12 @@ export default function ChestsPage() {
               />
             </div>
             <div>
-              <label className="mb-1 block text-[11px] text-text-tertiary">desde</label>
-              <input type="date" className="field py-1.5 text-[12px]" value={invFrom} onChange={(e) => setInvFrom(e.target.value)} />
+              <label className="mb-1 block text-[13px] text-text-tertiary">desde</label>
+              <input type="date" className="field py-1.5 text-[14px]" value={invFrom} onChange={(e) => setInvFrom(e.target.value)} />
             </div>
             <div>
-              <label className="mb-1 block text-[11px] text-text-tertiary">hasta</label>
-              <input type="date" className="field py-1.5 text-[12px]" value={invTo} onChange={(e) => setInvTo(e.target.value)} />
+              <label className="mb-1 block text-[13px] text-text-tertiary">hasta</label>
+              <input type="date" className="field py-1.5 text-[14px]" value={invTo} onChange={(e) => setInvTo(e.target.value)} />
             </div>
           </div>
 
@@ -380,7 +380,7 @@ export default function ChestsPage() {
       {tab === 'Entregar manual' && (
         <div className="max-w-lg space-y-4 rounded-xl border border-border-subtle bg-bg-secondary p-6">
           <div>
-            <label className="mb-1.5 block text-[12px] text-text-secondary">Buscar jugador</label>
+            <label className="mb-1.5 block text-[14px] text-text-secondary">Buscar jugador</label>
             <SearchInput
               placeholder="handle o id (mín. 2 chars)..."
               value={grantPlayerQuery}
@@ -392,14 +392,14 @@ export default function ChestsPage() {
                   <li key={p.player_id}>
                     <button
                       type="button"
-                      className="w-full px-3 py-2 text-left text-[12px] hover:bg-bg-tertiary"
+                      className="w-full px-3 py-2 text-left text-[14px] hover:bg-bg-tertiary"
                       onClick={() => {
                         setGrantPlayerId(p.player_id);
                         setGrantPlayerQuery(p.player_handle);
                       }}
                     >
                       {p.player_handle}
-                      <span className="ml-2 font-mono text-[10px] text-text-tertiary">{p.player_id}</span>
+                      <span className="ml-2 font-mono text-[12px] text-text-tertiary">{p.player_id}</span>
                     </button>
                   </li>
                 ))}
@@ -407,11 +407,11 @@ export default function ChestsPage() {
             )}
           </div>
           <div>
-            <label className="mb-1.5 block text-[12px] text-text-secondary">player_id seleccionado</label>
-            <input className="field font-mono text-[12px]" value={grantPlayerId} onChange={(e) => setGrantPlayerId(e.target.value)} />
+            <label className="mb-1.5 block text-[14px] text-text-secondary">player_id seleccionado</label>
+            <input className="field font-mono text-[14px]" value={grantPlayerId} onChange={(e) => setGrantPlayerId(e.target.value)} />
           </div>
           <div>
-            <label className="mb-1.5 block text-[12px] text-text-secondary">Tipo de cofre</label>
+            <label className="mb-1.5 block text-[14px] text-text-secondary">Tipo de cofre</label>
             <select className="field" value={grantChestCode} onChange={(e) => setGrantChestCode(e.target.value)}>
               <option value="">Elegí…</option>
               {chestTypeOptions.map((t) => (
@@ -420,7 +420,7 @@ export default function ChestsPage() {
             </select>
           </div>
           <div>
-            <label className="mb-1.5 block text-[12px] text-text-secondary">Observaciones (opcional)</label>
+            <label className="mb-1.5 block text-[14px] text-text-secondary">Observaciones (opcional)</label>
             <textarea className="field min-h-16" value={grantNotes} onChange={(e) => setGrantNotes(e.target.value)} />
           </div>
           <Button

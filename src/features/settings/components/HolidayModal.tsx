@@ -52,15 +52,15 @@ export function HolidayModal({
     >
       <div className="space-y-4">
         <label className="block">
-          <span className="mb-1 block text-[12px] text-text-secondary">fecha</span>
+          <span className="mb-1 block text-[14px] text-text-secondary">fecha</span>
           <input type="date" className="field" value={date} onChange={(e) => setDate(e.target.value)} />
         </label>
         <label className="block">
-          <span className="mb-1 block text-[12px] text-text-secondary">descripción</span>
+          <span className="mb-1 block text-[14px] text-text-secondary">descripción</span>
           <input className="field" value={description} onChange={(e) => setDescription(e.target.value)} />
         </label>
         <label className="flex items-center justify-between rounded-lg border border-border-subtle px-3 py-2">
-          <span className="text-[13px]">Repetir cada año</span>
+          <span className="text-[15px]">Repetir cada año</span>
           <Switch checked={repeatYearly} onChange={setRepeatYearly} />
         </label>
       </div>

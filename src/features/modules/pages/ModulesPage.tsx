@@ -105,7 +105,7 @@ export default function ModulesPage() {
       />
 
       {manualMode ? (
-        <div className="mb-6 rounded-xl border border-border-subtle bg-bg-secondary p-4 text-[13px] text-text-secondary">
+        <div className="mb-6 rounded-xl border border-border-subtle bg-bg-secondary p-4 text-[15px] text-text-secondary">
           Tu operador tiene facturación manual. Contactá a tu account manager de Social2Game para cambios de módulos.
         </div>
       ) : null}
@@ -118,24 +118,24 @@ export default function ModulesPage() {
               subtitle={mod.description}
               actions={
                 mod.active ? (
-                  <span className="inline-flex items-center gap-1 rounded-full bg-success/15 px-2 py-0.5 text-[11px] font-medium text-success">
+                  <span className="inline-flex items-center gap-1 rounded-full bg-success/15 px-2 py-0.5 text-[13px] font-medium text-success">
                     <Check size={12} /> Activo
                   </span>
                 ) : (
-                  <span className="rounded-full bg-bg-tertiary px-2 py-0.5 text-[11px] text-text-tertiary">Inactivo</span>
+                  <span className="rounded-full bg-bg-tertiary px-2 py-0.5 text-[13px] text-text-tertiary">Inactivo</span>
                 )
               }
             />
             <div className="mt-auto space-y-3 px-4 pb-4">
               <div className="flex items-baseline justify-between">
-                <span className="text-[12px] text-text-tertiary">Precio operador</span>
-                <span className="text-[15px] font-semibold">{formatUsd(mod.operatorPrice)}<span className="text-[11px] font-normal text-text-tertiary">/mes</span></span>
+                <span className="text-[14px] text-text-tertiary">Precio operador</span>
+                <span className="text-[16px] font-semibold">{formatUsd(mod.operatorPrice)}<span className="text-[13px] font-normal text-text-tertiary">/mes</span></span>
               </div>
               {mod.price_usd_monthly !== mod.operatorPrice ? (
-                <p className="text-[11px] text-text-tertiary line-through">Catálogo: {formatUsd(mod.price_usd_monthly)}/mes</p>
+                <p className="text-[13px] text-text-tertiary line-through">Catálogo: {formatUsd(mod.price_usd_monthly)}/mes</p>
               ) : null}
               {mod.pendingDeactivation ? (
-                <div className="flex items-center gap-2 rounded-lg border border-warning/30 bg-warning/10 px-3 py-2 text-[11px] text-warning">
+                <div className="flex items-center gap-2 rounded-lg border border-warning/30 bg-warning/10 px-3 py-2 text-[13px] text-warning">
                   <Clock size={14} />
                   Desactivación pendiente
                   {mod.pendingDeactivationAt
@@ -205,7 +205,7 @@ export default function ModulesPage() {
         }
       >
         {selected ? (
-          <p className="text-[13px] text-text-secondary">
+          <p className="text-[15px] text-text-secondary">
             {confirmAction === 'activate'
               ? `Se activará ${selected.name} con un cargo mensual de ${formatUsd(selected.operatorPrice)} USD.`
               : `${selected.name} seguirá activo hasta el fin del período facturado y luego se desactivará.`}

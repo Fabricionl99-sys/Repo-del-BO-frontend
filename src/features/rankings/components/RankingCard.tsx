@@ -29,21 +29,21 @@ export function RankingCard({
         </div>
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-2">
-            <h4 className="text-[15px] font-semibold">{ranking.name}</h4>
+            <h4 className="text-[16px] font-semibold">{ranking.name}</h4>
             {archived ? (
-              <span className="rounded-full bg-bg-tertiary px-2 py-0.5 text-[10px] uppercase">archivado</span>
+              <span className="rounded-full bg-bg-tertiary px-2 py-0.5 text-[12px] uppercase">archivado</span>
             ) : ranking.is_active ? (
-              <span className="rounded-full bg-success/15 px-2 py-0.5 text-[10px] text-success">activo</span>
+              <span className="rounded-full bg-success/15 px-2 py-0.5 text-[12px] text-success">activo</span>
             ) : (
-              <span className="rounded-full bg-warning/15 px-2 py-0.5 text-[10px] text-warning">inactivo</span>
+              <span className="rounded-full bg-warning/15 px-2 py-0.5 text-[12px] text-warning">inactivo</span>
             )}
             {!ranking.is_visible_to_players && (
-              <span className="rounded-full bg-bg-tertiary px-2 py-0.5 text-[10px] text-text-tertiary">solo operador</span>
+              <span className="rounded-full bg-bg-tertiary px-2 py-0.5 text-[12px] text-text-tertiary">solo operador</span>
             )}
           </div>
-          <p className="mb-1 font-mono text-[10px] text-text-tertiary">{ranking.code}</p>
-          <p className="line-clamp-2 text-[11px] text-text-tertiary">{ranking.description}</p>
-          <div className="mt-2 flex flex-wrap gap-2 text-[11px] text-text-secondary">
+          <p className="mb-1 font-mono text-[12px] text-text-tertiary">{ranking.code}</p>
+          <p className="line-clamp-2 text-[13px] text-text-tertiary">{ranking.description}</p>
+          <div className="mt-2 flex flex-wrap gap-2 text-[13px] text-text-secondary">
             <span>{METRIC_LABELS[ranking.metric_type]}</span>
             <span>·</span>
             <span>{PERIOD_LABELS[ranking.period_type]}</span>

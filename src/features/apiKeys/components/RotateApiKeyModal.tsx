@@ -55,7 +55,7 @@ export function RotateApiKeyModal({
       {plainText ? (
         <PlainKeyReveal plainText={plainText} onDone={close} />
       ) : (
-        <ul className="space-y-2 text-[13px] text-text-secondary">
+        <ul className="space-y-2 text-[15px] text-text-secondary">
           <li>• La key actual se revocará de inmediato</li>
           <li>• Actualizá tus integraciones con la nueva key</li>
           <li>• Esta acción queda registrada en el audit log</li>

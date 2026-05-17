@@ -34,21 +34,21 @@ export function ChestTypeCard({
           style={{ backgroundColor: type.color_theme }}
         />
         {archived && (
-          <span className="absolute right-2 top-2 rounded bg-bg-primary/80 px-2 py-0.5 text-[10px] font-semibold uppercase">
+          <span className="absolute right-2 top-2 rounded bg-bg-primary/80 px-2 py-0.5 text-[12px] font-semibold uppercase">
             archivado
           </span>
         )}
         {!archived && !type.is_active && (
-          <span className="absolute right-2 top-2 rounded bg-warning/90 px-2 py-0.5 text-[10px] font-semibold text-bg-primary">
+          <span className="absolute right-2 top-2 rounded bg-warning/90 px-2 py-0.5 text-[12px] font-semibold text-text-onAccent">
             inactivo
           </span>
         )}
       </div>
       <div className="p-4">
-        <h4 className="text-[15px] font-semibold">{type.name}</h4>
-        <p className="mb-1 font-mono text-[10px] text-text-tertiary">{type.code}</p>
-        <p className="mb-3 line-clamp-2 text-[11px] text-text-tertiary">{type.description}</p>
-        <div className="flex items-center justify-between text-[11px] text-text-secondary">
+        <h4 className="text-[16px] font-semibold">{type.name}</h4>
+        <p className="mb-1 font-mono text-[12px] text-text-tertiary">{type.code}</p>
+        <p className="mb-3 line-clamp-2 text-[13px] text-text-tertiary">{type.description}</p>
+        <div className="flex items-center justify-between text-[13px] text-text-secondary">
           <span>{type.prizes.length} premios</span>
           {type.has_pity_system && <span className="text-accent">pity ×{type.pity_threshold}</span>}
         </div>

@@ -94,7 +94,7 @@ export default function ApiKeysPage() {
 
       <div className="mb-4 flex items-start gap-2.5 rounded-lg border border-info/25 bg-info/10 p-3">
         <Shield size={16} className="mt-0.5 shrink-0 text-info" />
-        <p className="flex-1 text-[12px] text-text-secondary">
+        <p className="flex-1 text-[14px] text-text-secondary">
           Nunca expongas las API keys en el frontend. Usalas solo desde tu backend. Empezá siempre con keys de{' '}
           <strong className="text-text-primary">test</strong>.
         </p>
@@ -110,7 +110,7 @@ export default function ApiKeysPage() {
           ].map(([label, value]) => (
             <div key={label} className="rounded-lg border border-border-subtle bg-bg-secondary p-4">
               <p className="label-section mb-1">{label}</p>
-              <p className="text-mono text-[20px] font-semibold">{value}</p>
+              <p className="text-mono text-[21px] font-semibold">{value}</p>
             </div>
           ))}
         </div>
@@ -207,7 +207,7 @@ function KeysTab({
           {testKeys.map((k) => (
             <ApiKeyCard key={k.id} apiKey={k} onViewLogs={() => onViewLogs(k.id)} onRotate={() => onRotate(k)} onRevoke={() => onRevoke(k)} />
           ))}
-          {testKeys.length === 0 && <p className="text-[13px] text-text-tertiary">Sin keys de test.</p>}
+          {testKeys.length === 0 && <p className="text-[15px] text-text-tertiary">Sin keys de test.</p>}
         </div>
       </ConfigSection>
       <ConfigSection title="producción">
@@ -220,7 +220,7 @@ function KeysTab({
           {prodKeys.map((k) => (
             <ApiKeyCard key={k.id} apiKey={k} onViewLogs={() => onViewLogs(k.id)} onRotate={() => onRotate(k)} onRevoke={() => onRevoke(k)} />
           ))}
-          {prodKeys.length === 0 && <p className="text-[13px] text-text-tertiary">Sin keys de producción.</p>}
+          {prodKeys.length === 0 && <p className="text-[15px] text-text-tertiary">Sin keys de producción.</p>}
         </div>
       </ConfigSection>
     </ConfiguratorScaffold>
@@ -266,29 +266,29 @@ function LogsTab({
       key: 'method',
       header: 'método',
       render: (r) => (
-        <span className="rounded bg-info/15 px-2 py-0.5 text-[10px] font-semibold text-info">{r.method}</span>
+        <span className="rounded bg-info/15 px-2 py-0.5 text-[12px] font-semibold text-info">{r.method}</span>
       ),
     },
-    { key: 'endpoint', header: 'endpoint', render: (r) => <code className="font-mono text-[12px]">{r.endpoint}</code> },
+    { key: 'endpoint', header: 'endpoint', render: (r) => <code className="font-mono text-[14px]">{r.endpoint}</code> },
     {
       key: 'status',
       header: 'status',
       render: (r) => <span className={r.status_code >= 400 ? 'text-danger' : 'text-success'}>{r.status_code}</span>,
     },
-    { key: 'duration', header: 'duración', render: (r) => <span className="text-mono text-[12px]">{r.duration_ms}ms</span> },
-    { key: 'ip', header: 'IP', render: (r) => <code className="font-mono text-[12px]">{r.ip_address}</code> },
+    { key: 'duration', header: 'duración', render: (r) => <span className="text-mono text-[14px]">{r.duration_ms}ms</span> },
+    { key: 'ip', header: 'IP', render: (r) => <code className="font-mono text-[14px]">{r.ip_address}</code> },
     {
       key: 'ts',
       header: 'timestamp',
       align: 'right',
-      render: (r) => <span className="text-[12px] text-text-tertiary">{formatRelativeDate(r.created_at)}</span>,
+      render: (r) => <span className="text-[14px] text-text-tertiary">{formatRelativeDate(r.created_at)}</span>,
     },
   ];
 
   return (
     <>
       {keyFilter && (
-        <div className="mb-3 flex items-center gap-2 text-[12px] text-text-secondary">
+        <div className="mb-3 flex items-center gap-2 text-[14px] text-text-secondary">
           Filtrado por key: <strong>{keyName ?? keyFilter}</strong>
           <Button size="sm" variant="ghost" onClick={onClearKeyFilter}>
             Quitar filtro
@@ -307,7 +307,7 @@ function LogsTab({
         filters={
           <>
             <select
-              className="field py-1.5 text-[12px]"
+              className="field py-1.5 text-[14px]"
               value={keyFilter ?? ''}
               onChange={(e) => onKeyFilterChange(e.target.value || undefined)}
             >
@@ -353,7 +353,7 @@ function IpsTab({ mock }: { mock: string | null }) {
       key: 'ip',
       header: 'IP',
       render: (r) => (
-        <span className="font-mono text-[13px]">
+        <span className="font-mono text-[15px]">
           {countryFlag(r.country_code)} {r.ip_address}
         </span>
       ),
@@ -398,22 +398,22 @@ function QuickStartTab({ onPing, onGoKeys }: { onPing: () => void; onGoKeys: () 
         )}
       </ConfigSection>
       <ConfigSection title="paso 1 · obtener tu API key">
-        <p className="mb-3 text-[13px] text-text-secondary">Creá una key de test desde la pestaña Claves.</p>
+        <p className="mb-3 text-[15px] text-text-secondary">Creá una key de test desde la pestaña Claves.</p>
         <Button variant="secondary" onClick={onGoKeys}>
           Ir a Claves
         </Button>
-        <pre className="mt-3 overflow-x-auto rounded-lg border border-border-subtle bg-bg-tertiary p-3 font-mono text-[12px]">
+        <pre className="mt-3 overflow-x-auto rounded-lg border border-border-subtle bg-bg-tertiary p-3 font-mono text-[14px]">
           export NIVELES_API_KEY=&quot;wgpk_test_your_key_here&quot;
         </pre>
       </ConfigSection>
       <ConfigSection title="paso 2 · primer request">
-        <pre className="overflow-x-auto rounded-lg border border-border-subtle bg-bg-tertiary p-3 font-mono text-[11px] text-text-primary">{`curl -X POST https://api.social2game.com/v1/events \\
+        <pre className="overflow-x-auto rounded-lg border border-border-subtle bg-bg-tertiary p-3 font-mono text-[13px] text-text-primary">{`curl -X POST https://api.social2game.com/v1/events \\
   -H "Authorization: Bearer YOUR_API_KEY" \\
   -H "Content-Type: application/json" \\
   -d '{"event_type": "login", "player_id": "pl_123"}'`}</pre>
       </ConfigSection>
       <ConfigSection title="paso 3 · webhook de premios">
-        <p className="text-[13px] text-text-secondary">
+        <p className="text-[15px] text-text-secondary">
           Configurá el endpoint que recibirá premios en{' '}
           <Link to="/webhooks" className="text-accent hover:underline">
             Webhooks de premios
@@ -427,7 +427,7 @@ function QuickStartTab({ onPing, onGoKeys }: { onPing: () => void; onGoKeys: () 
         </Button>
       </ConfigSection>
       <ConfigSection title="paso 5 · pasar a producción">
-        <ul className="list-inside list-disc space-y-1 text-[13px] text-text-secondary">
+        <ul className="list-inside list-disc space-y-1 text-[15px] text-text-secondary">
           <li>Probá flujos críticos en test</li>
           <li>Configurá rate limits y monitoreo</li>
           <li>Generá key de producción y rotá credenciales</li>
@@ -466,7 +466,7 @@ function ReferenceTab() {
               setTryResponse(null);
             }}
             className={cn(
-              'block w-full rounded-md px-3 py-2 text-left text-[13px]',
+              'block w-full rounded-md px-3 py-2 text-left text-[15px]',
               categoryId === c.id ? 'bg-accent/10 font-medium text-accent' : 'text-text-secondary hover:bg-bg-tertiary',
             )}
           >
@@ -475,10 +475,10 @@ function ReferenceTab() {
         ))}
       </nav>
       <div>
-        <p className="mb-4 text-[12px] text-text-tertiary">Base URL: {refQ.data.base_url}</p>
+        <p className="mb-4 text-[14px] text-text-tertiary">Base URL: {refQ.data.base_url}</p>
         {category && <CategoryEndpoints category={category} onTry={(res) => setTryResponse(res)} />}
         {tryResponse && (
-          <pre className="mt-4 overflow-x-auto rounded-lg border border-border-subtle bg-bg-tertiary p-3 font-mono text-[11px]">
+          <pre className="mt-4 overflow-x-auto rounded-lg border border-border-subtle bg-bg-tertiary p-3 font-mono text-[13px]">
             {tryResponse}
           </pre>
         )}
@@ -499,18 +499,18 @@ function CategoryEndpoints({
       {category.endpoints.map((ep) => (
         <div key={`${ep.method}-${ep.path}`} className="rounded-xl border border-border-subtle bg-bg-secondary p-4">
           <div className="mb-2 flex flex-wrap items-center gap-2">
-            <span className="rounded bg-info/15 px-2 py-0.5 text-[10px] font-semibold text-info">{ep.method}</span>
-            <code className="font-mono text-[12px]">{ep.path}</code>
+            <span className="rounded bg-info/15 px-2 py-0.5 text-[12px] font-semibold text-info">{ep.method}</span>
+            <code className="font-mono text-[14px]">{ep.path}</code>
           </div>
-          <p className="mb-2 text-[13px] font-medium">{ep.summary}</p>
-          <p className="mb-3 text-[12px] text-text-tertiary">{ep.description}</p>
+          <p className="mb-2 text-[15px] font-medium">{ep.summary}</p>
+          <p className="mb-3 text-[14px] text-text-tertiary">{ep.description}</p>
           {ep.request_body && (
-            <pre className="mb-3 overflow-x-auto rounded-lg bg-bg-tertiary p-2 font-mono text-[11px]">
+            <pre className="mb-3 overflow-x-auto rounded-lg bg-bg-tertiary p-2 font-mono text-[13px]">
               {JSON.stringify(ep.request_body, null, 2)}
             </pre>
           )}
           {ep.response_example && (
-            <pre className="mb-3 overflow-x-auto rounded-lg bg-bg-tertiary p-2 font-mono text-[11px] text-success/90">
+            <pre className="mb-3 overflow-x-auto rounded-lg bg-bg-tertiary p-2 font-mono text-[13px] text-success/90">
               {JSON.stringify(ep.response_example, null, 2)}
             </pre>
           )}

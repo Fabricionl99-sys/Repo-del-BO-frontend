@@ -67,11 +67,11 @@ export function AvatarImageUploadZone({
             <ImagePlus size={24} />
           </div>
         )}
-        <div className="flex items-center gap-2 text-[13px] text-text-secondary">
+        <div className="flex items-center gap-2 text-[15px] text-text-secondary">
           <Upload size={14} />
           Arrastrá una imagen o hacé click para subir
         </div>
-        <p className="mt-2 text-center text-[11px] text-text-tertiary">
+        <p className="mt-2 text-center text-[13px] text-text-tertiary">
           500 KB max · {AVATAR_MIN_DIMENSION}-{AVATAR_MAX_DIMENSION} px · PNG/JPG/WebP · cuadrado
         </p>
       </div>
@@ -82,9 +82,9 @@ export function AvatarImageUploadZone({
         className="hidden"
         onChange={(e) => void handleFile(e.target.files?.[0])}
       />
-      {(error || localError) && <p className="mt-2 text-[12px] text-danger">{error || localError}</p>}
+      {(error || localError) && <p className="mt-2 text-[14px] text-danger">{error || localError}</p>}
       {previewUrl && (
-        <button type="button" className="mt-2 text-[12px] text-accent" onClick={onClear}>
+        <button type="button" className="mt-2 text-[14px] text-accent" onClick={onClear}>
           quitar imagen
         </button>
       )}

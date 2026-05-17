@@ -27,31 +27,31 @@ export function AvatarCard({ avatar, onEdit }: { avatar: Avatar; onEdit: () => v
           </div>
         )}
         {archived && (
-          <span className="absolute right-2 top-2 rounded bg-bg-primary/80 px-2 py-0.5 text-[10px] font-semibold uppercase">
+          <span className="absolute right-2 top-2 rounded bg-bg-primary/80 px-2 py-0.5 text-[12px] font-semibold uppercase">
             archivado
           </span>
         )}
         {!archived && !avatar.is_active && (
-          <span className="absolute right-2 top-2 rounded bg-warning/90 px-2 py-0.5 text-[10px] font-semibold text-bg-primary">
+          <span className="absolute right-2 top-2 rounded bg-warning/90 px-2 py-0.5 text-[12px] font-semibold text-text-onAccent">
             inactivo
           </span>
         )}
         {avatar.is_premium && (
-          <span className="absolute left-2 top-2 rounded bg-accent/90 px-2 py-0.5 text-[10px] font-semibold text-bg-primary">
+          <span className="absolute left-2 top-2 rounded bg-accent/90 px-2 py-0.5 text-[12px] font-semibold text-text-onAccent">
             premium
           </span>
         )}
       </div>
       <div className="p-4">
-        <h4 className="text-[15px] font-semibold">{avatar.name}</h4>
-        <p className="mb-2 font-mono text-[10px] text-text-tertiary">{avatar.code}</p>
+        <h4 className="text-[16px] font-semibold">{avatar.name}</h4>
+        <p className="mb-2 font-mono text-[12px] text-text-tertiary">{avatar.code}</p>
         <div className="mb-3 flex flex-wrap gap-1.5">
           {avatar.category_name && (
-            <span className="rounded-full bg-bg-tertiary px-2 py-0.5 text-[10px] text-text-secondary">
+            <span className="rounded-full bg-bg-tertiary px-2 py-0.5 text-[12px] text-text-secondary">
               {avatar.category_name}
             </span>
           )}
-          <span className="rounded-full bg-accent/10 px-2 py-0.5 text-[10px] text-accent">
+          <span className="rounded-full bg-accent/10 px-2 py-0.5 text-[12px] text-accent">
             {unlockMethodLabel(avatar.unlock_method)}
           </span>
         </div>

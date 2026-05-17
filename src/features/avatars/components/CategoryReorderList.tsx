@@ -57,11 +57,11 @@ export function CategoryReorderList({
             <div className="flex items-center gap-2">
               <h4 className="text-[14px] font-semibold">{category.name}</h4>
               {!category.is_active && (
-                <span className="rounded bg-warning/15 px-2 py-0.5 text-[10px] text-warning">inactiva</span>
+                <span className="rounded bg-warning/15 px-2 py-0.5 text-[12px] text-warning">inactiva</span>
               )}
             </div>
-            <p className="font-mono text-[10px] text-text-tertiary">{category.code}</p>
-            <p className="mt-1 text-[11px] text-text-secondary">
+            <p className="font-mono text-[12px] text-text-tertiary">{category.code}</p>
+            <p className="mt-1 text-[13px] text-text-secondary">
               {category.avatar_count ?? 0} avatares
               {category.restrictions.vip_only && ' · VIP'}
               {category.restrictions.min_level && ` · lvl ${category.restrictions.min_level}+`}

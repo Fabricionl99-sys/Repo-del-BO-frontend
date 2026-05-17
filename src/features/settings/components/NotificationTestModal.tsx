@@ -39,7 +39,7 @@ export function NotificationTestModal({
       }
     >
       <label className="block">
-        <span className="mb-1 block text-[12px] text-text-secondary">email destino</span>
+        <span className="mb-1 block text-[14px] text-text-secondary">email destino</span>
         <input className="field" list="notification-emails-list" value={email} onChange={(e) => setEmail(e.target.value)} />
         <datalist id="notification-emails-list">
           {defaultEmails.map((e) => (
@@ -48,7 +48,7 @@ export function NotificationTestModal({
         </datalist>
       </label>
       {result && (
-        <p className={`mt-3 text-[13px] ${result.ok ? 'text-success' : 'text-danger'}`}>{result.message}</p>
+        <p className={`mt-3 text-[15px] ${result.ok ? 'text-success' : 'text-danger'}`}>{result.message}</p>
       )}
     </Modal>
   );

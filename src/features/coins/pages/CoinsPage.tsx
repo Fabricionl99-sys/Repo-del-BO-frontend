@@ -65,7 +65,7 @@ export default function CoinsPage() {
     {
       key: 'circ',
       header: 'En circulación',
-      render: (c) => <span className="text-mono text-[13px]">{formatNumber(c.totalInCirculation, { compact: true })}</span>,
+      render: (c) => <span className="text-mono text-[15px]">{formatNumber(c.totalInCirculation, { compact: true })}</span>,
     },
     {
       key: 'actions',

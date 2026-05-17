@@ -128,7 +128,7 @@ export default function ShopPage() {
       render: (r) => (
         <span>
           {r.product_name}
-          <span className="ml-1 font-mono text-[10px] text-text-tertiary">{r.product_code}</span>
+          <span className="ml-1 font-mono text-[12px] text-text-tertiary">{r.product_code}</span>
         </span>
       ),
     },
@@ -144,7 +144,7 @@ export default function ShopPage() {
     {
       key: 'date',
       header: 'fecha',
-      render: (r) => <span className="text-[12px] text-text-secondary">{formatRelativeDate(r.purchased_at)}</span>,
+      render: (r) => <span className="text-[14px] text-text-secondary">{formatRelativeDate(r.purchased_at)}</span>,
     },
     {
       key: 'status',
@@ -152,7 +152,7 @@ export default function ShopPage() {
       render: (r) => (
         <span
           className={cn(
-            'rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase',
+            'rounded-full px-2 py-0.5 text-[12px] font-semibold uppercase',
             r.delivery_status === 'delivered' || r.delivery_status === 'delivered_manually'
               ? 'bg-success/15 text-success'
               : r.delivery_status === 'failed_exhausted'
@@ -286,9 +286,9 @@ export default function ShopPage() {
         <>
           <div className="mb-4 flex flex-wrap items-end gap-3">
             <div>
-              <label className="mb-1 block text-[11px] text-text-tertiary">status entrega</label>
+              <label className="mb-1 block text-[13px] text-text-tertiary">status entrega</label>
               <select
-                className="field py-1.5 text-[12px]"
+                className="field py-1.5 text-[14px]"
                 value={purchaseStatus}
                 onChange={(e) => setPurchaseStatus(e.target.value as ShopPurchaseDeliveryStatus | 'all')}
               >
@@ -301,9 +301,9 @@ export default function ShopPage() {
               </select>
             </div>
             <div>
-              <label className="mb-1 block text-[11px] text-text-tertiary">producto</label>
+              <label className="mb-1 block text-[13px] text-text-tertiary">producto</label>
               <select
-                className="field py-1.5 text-[12px]"
+                className="field py-1.5 text-[14px]"
                 value={purchaseProductId}
                 onChange={(e) => setPurchaseProductId(e.target.value)}
               >
@@ -316,7 +316,7 @@ export default function ShopPage() {
               </select>
             </div>
             <div>
-              <label className="mb-1 block text-[11px] text-text-tertiary">jugador</label>
+              <label className="mb-1 block text-[13px] text-text-tertiary">jugador</label>
               <SearchInput
                 placeholder="handle o id..."
                 value={purchasePlayerSearch}
@@ -324,12 +324,12 @@ export default function ShopPage() {
               />
             </div>
             <div>
-              <label className="mb-1 block text-[11px] text-text-tertiary">desde</label>
-              <input type="date" className="field py-1.5 text-[12px]" value={purchaseFrom} onChange={(e) => setPurchaseFrom(e.target.value)} />
+              <label className="mb-1 block text-[13px] text-text-tertiary">desde</label>
+              <input type="date" className="field py-1.5 text-[14px]" value={purchaseFrom} onChange={(e) => setPurchaseFrom(e.target.value)} />
             </div>
             <div>
-              <label className="mb-1 block text-[11px] text-text-tertiary">hasta</label>
-              <input type="date" className="field py-1.5 text-[12px]" value={purchaseTo} onChange={(e) => setPurchaseTo(e.target.value)} />
+              <label className="mb-1 block text-[13px] text-text-tertiary">hasta</label>
+              <input type="date" className="field py-1.5 text-[14px]" value={purchaseTo} onChange={(e) => setPurchaseTo(e.target.value)} />
             </div>
           </div>
 

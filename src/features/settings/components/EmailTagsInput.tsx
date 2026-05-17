@@ -36,7 +36,7 @@ export function EmailTagsInput({
         {emails.map((email) => (
           <span
             key={email}
-            className="inline-flex items-center gap-1 rounded-full border border-border-subtle bg-bg-tertiary px-2 py-1 text-[11px]"
+            className="inline-flex items-center gap-1 rounded-full border border-border-subtle bg-bg-tertiary px-2 py-1 text-[13px]"
           >
             {email}
             <button type="button" aria-label={`quitar ${email}`} onClick={() => onChange(emails.filter((e) => e !== email))}>
@@ -58,11 +58,11 @@ export function EmailTagsInput({
             }
           }}
         />
-        <button type="button" className="rounded-lg border border-border-subtle px-3 py-2 text-[12px]" onClick={add}>
+        <button type="button" className="rounded-lg border border-border-subtle px-3 py-2 text-[14px]" onClick={add}>
           Agregar
         </button>
       </div>
-      {error && <p className="text-[12px] text-danger">{error}</p>}
+      {error && <p className="text-[14px] text-danger">{error}</p>}
     </div>
   );
 }

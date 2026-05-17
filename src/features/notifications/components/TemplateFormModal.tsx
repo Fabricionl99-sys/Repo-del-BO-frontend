@@ -136,20 +136,20 @@ export function TemplateFormModal({
             <p className="label-section mb-3">datos básicos</p>
             <div className="grid grid-cols-2 gap-3 max-md:grid-cols-1">
               <label className="block">
-                <span className="mb-1 block text-[12px] text-text-secondary">code</span>
-                <input className="field font-mono text-[12px]" disabled={!!template} {...register('code')} />
-                {errors.code && <p className="mt-1 text-[12px] text-danger">{errors.code.message}</p>}
+                <span className="mb-1 block text-[14px] text-text-secondary">code</span>
+                <input className="field font-mono text-[14px]" disabled={!!template} {...register('code')} />
+                {errors.code && <p className="mt-1 text-[14px] text-danger">{errors.code.message}</p>}
               </label>
               <label className="block">
-                <span className="mb-1 block text-[12px] text-text-secondary">nombre</span>
+                <span className="mb-1 block text-[14px] text-text-secondary">nombre</span>
                 <input className="field" {...register('name')} />
               </label>
               <label className="col-span-2 block max-md:col-span-1">
-                <span className="mb-1 block text-[12px] text-text-secondary">descripción</span>
+                <span className="mb-1 block text-[14px] text-text-secondary">descripción</span>
                 <input className="field" {...register('description')} />
               </label>
               <label className="block">
-                <span className="mb-1 block text-[12px] text-text-secondary">trigger</span>
+                <span className="mb-1 block text-[14px] text-text-secondary">trigger</span>
                 <select className="field" {...register('trigger_event')}>
                   {Object.entries(TRIGGER_EVENT_LABELS).map(([k, label]) => (
                     <option key={k} value={k}>{label}</option>
@@ -157,7 +157,7 @@ export function TemplateFormModal({
                 </select>
               </label>
               <label className="block">
-                <span className="mb-1 block text-[12px] text-text-secondary">idioma</span>
+                <span className="mb-1 block text-[14px] text-text-secondary">idioma</span>
                 <select className="field" {...register('language')}>
                   <option value="es">es</option>
                   <option value="en">en</option>
@@ -165,7 +165,7 @@ export function TemplateFormModal({
                 </select>
               </label>
               <label className="col-span-2 flex items-center justify-between rounded-lg border border-border-subtle px-3 py-2 max-md:col-span-1">
-                <span className="text-[13px]">activo</span>
+                <span className="text-[15px]">activo</span>
                 <Switch checked={isActive} onChange={(v) => setValue('is_active', v)} />
               </label>
             </div>
@@ -180,7 +180,7 @@ export function TemplateFormModal({
                   type="button"
                   onClick={() => toggleChannel(ch)}
                   className={cn(
-                    'rounded-lg border px-3 py-1.5 text-[12px]',
+                    'rounded-lg border px-3 py-1.5 text-[14px]',
                     channels.includes(ch) ? 'border-accent bg-accent/10 text-accent' : 'border-border-subtle',
                   )}
                 >
@@ -188,10 +188,10 @@ export function TemplateFormModal({
                 </button>
               ))}
             </div>
-            {errors.channels && <p className="mt-1 text-[12px] text-danger">{errors.channels.message}</p>}
+            {errors.channels && <p className="mt-1 text-[14px] text-danger">{errors.channels.message}</p>}
             {channels.includes('email') && (
               <label className="mt-3 block">
-                <span className="mb-1 block text-[12px] text-text-secondary">subject (email) *</span>
+                <span className="mb-1 block text-[14px] text-text-secondary">subject (email) *</span>
                 <input className="field" {...register('subject')} />
               </label>
             )}
@@ -200,9 +200,9 @@ export function TemplateFormModal({
           <section>
             <p className="label-section mb-3">mensaje</p>
             <label className="block">
-              <span className="mb-1 block text-[12px] text-text-secondary">body</span>
+              <span className="mb-1 block text-[14px] text-text-secondary">body</span>
               <textarea
-                className="field min-h-28 font-mono text-[12px]"
+                className="field min-h-28 font-mono text-[14px]"
                 {...bodyField}
                 ref={(el) => {
                   bodyField.ref(el);
@@ -212,21 +212,21 @@ export function TemplateFormModal({
             </label>
             {channels.includes('email') && (
               <label className="mt-3 block">
-                <span className="mb-1 block text-[12px] text-text-secondary">body HTML (opcional)</span>
-                <textarea className="field min-h-20 font-mono text-[12px]" {...register('body_html')} />
+                <span className="mb-1 block text-[14px] text-text-secondary">body HTML (opcional)</span>
+                <textarea className="field min-h-20 font-mono text-[14px]" {...register('body_html')} />
               </label>
             )}
             <div className="mt-3 grid grid-cols-2 gap-3 max-md:grid-cols-1">
               <label className="block">
-                <span className="mb-1 block text-[12px] text-text-secondary">cta_text</span>
+                <span className="mb-1 block text-[14px] text-text-secondary">cta_text</span>
                 <input className="field" {...register('cta_text')} />
               </label>
               <label className="block">
-                <span className="mb-1 block text-[12px] text-text-secondary">cta_url</span>
+                <span className="mb-1 block text-[14px] text-text-secondary">cta_url</span>
                 <input className="field" {...register('cta_url')} placeholder="https://..." />
               </label>
             </div>
-            {formError && <p className="mt-2 text-[12px] text-danger">{formError}</p>}
+            {formError && <p className="mt-2 text-[14px] text-danger">{formError}</p>}
           </section>
         </div>
 
@@ -238,7 +238,7 @@ export function TemplateFormModal({
                 <li key={v}>
                   <button
                     type="button"
-                    className="rounded bg-bg-tertiary px-2 py-0.5 font-mono text-[10px] text-accent"
+                    className="rounded bg-bg-tertiary px-2 py-0.5 font-mono text-[12px] text-accent"
                     onClick={() => insertVariable(v)}
                   >
                     {`{{${v}}}`}
@@ -248,7 +248,7 @@ export function TemplateFormModal({
             </ul>
           </section>
           <label className="block">
-            <span className="mb-1 block text-[12px] text-text-secondary">preview canal</span>
+            <span className="mb-1 block text-[14px] text-text-secondary">preview canal</span>
             <select
               className="field"
               value={previewChannel}

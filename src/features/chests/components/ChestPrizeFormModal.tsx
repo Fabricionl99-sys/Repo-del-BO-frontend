@@ -65,7 +65,7 @@ export function ChestPrizeFormModal({
     >
       <div className="space-y-4">
         <div>
-          <label className="mb-1.5 block text-[12px] text-text-secondary">reward_type</label>
+          <label className="mb-1.5 block text-[14px] text-text-secondary">reward_type</label>
           <select className="field" {...register('reward_type')}>
             {CHEST_PRIZE_REWARD_TYPES.map((t) => (
               <option key={t} value={t}>{t}</option>
@@ -73,18 +73,18 @@ export function ChestPrizeFormModal({
           </select>
         </div>
         <div>
-          <label className="mb-1.5 block text-[12px] text-text-secondary">name (visible al jugador)</label>
+          <label className="mb-1.5 block text-[14px] text-text-secondary">name (visible al jugador)</label>
           <input className="field" {...register('name')} />
-          {errors.name && <p className="mt-1 text-[11px] text-danger">{errors.name.message}</p>}
+          {errors.name && <p className="mt-1 text-[13px] text-danger">{errors.name.message}</p>}
         </div>
         <div>
-          <label className="mb-1.5 block text-[12px] text-text-secondary">image_url</label>
+          <label className="mb-1.5 block text-[14px] text-text-secondary">image_url</label>
           <input className="field" placeholder="https://..." {...register('image_url')} />
-          {errors.image_url && <p className="mt-1 text-[11px] text-danger">{errors.image_url.message}</p>}
+          {errors.image_url && <p className="mt-1 text-[13px] text-danger">{errors.image_url.message}</p>}
         </div>
         <ChestPrizeConfigFields rewardType={rewardType} register={register} chestTypeOptions={chestTypeOptions} />
         <div>
-          <label className="mb-1.5 block text-[12px] text-text-secondary">probability_percent</label>
+          <label className="mb-1.5 block text-[14px] text-text-secondary">probability_percent</label>
           <input
             type="number"
             min={0}
@@ -94,11 +94,11 @@ export function ChestPrizeFormModal({
             {...register('probability_percent', { valueAsNumber: true })}
           />
           {errors.probability_percent && (
-            <p className="mt-1 text-[11px] text-danger">{errors.probability_percent.message}</p>
+            <p className="mt-1 text-[13px] text-danger">{errors.probability_percent.message}</p>
           )}
         </div>
         <div className="flex items-center justify-between rounded-lg border border-border-subtle bg-bg-tertiary px-3 py-2">
-          <span className="text-[12px] text-text-secondary">Premio raro (pity)</span>
+          <span className="text-[14px] text-text-secondary">Premio raro (pity)</span>
           <Switch checked={isRare} onChange={(v) => setValue('is_rare', v)} />
         </div>
       </div>

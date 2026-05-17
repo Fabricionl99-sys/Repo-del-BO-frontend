@@ -13,11 +13,11 @@ export function ShopRewardConfigFields({
       return (
         <div className="grid gap-3 sm:grid-cols-2">
           <div>
-            <label className="mb-1.5 block text-[12px] text-text-secondary">Cantidad</label>
+            <label className="mb-1.5 block text-[14px] text-text-secondary">Cantidad</label>
             <input type="number" min={1} className="field" {...register('freespin_quantity', { valueAsNumber: true })} />
           </div>
           <div>
-            <label className="mb-1.5 block text-[12px] text-text-secondary">game_id (opcional)</label>
+            <label className="mb-1.5 block text-[14px] text-text-secondary">game_id (opcional)</label>
             <input className="field" placeholder="book_of_dead" {...register('freespin_game_id')} />
           </div>
         </div>
@@ -26,11 +26,11 @@ export function ShopRewardConfigFields({
       return (
         <div className="grid gap-3 sm:grid-cols-2">
           <div>
-            <label className="mb-1.5 block text-[12px] text-text-secondary">Monto</label>
+            <label className="mb-1.5 block text-[14px] text-text-secondary">Monto</label>
             <input type="number" min={0} step="0.01" className="field" {...register('freebet_amount', { valueAsNumber: true })} />
           </div>
           <div>
-            <label className="mb-1.5 block text-[12px] text-text-secondary">Moneda fiat</label>
+            <label className="mb-1.5 block text-[14px] text-text-secondary">Moneda fiat</label>
             <input className="field" {...register('freebet_currency')} />
           </div>
         </div>
@@ -39,11 +39,11 @@ export function ShopRewardConfigFields({
       return (
         <div className="grid gap-3 sm:grid-cols-2">
           <div>
-            <label className="mb-1.5 block text-[12px] text-text-secondary">Porcentaje</label>
+            <label className="mb-1.5 block text-[14px] text-text-secondary">Porcentaje</label>
             <input type="number" min={0} max={100} className="field" {...register('cashback_percentage', { valueAsNumber: true })} />
           </div>
           <div>
-            <label className="mb-1.5 block text-[12px] text-text-secondary">Tope (max_amount)</label>
+            <label className="mb-1.5 block text-[14px] text-text-secondary">Tope (max_amount)</label>
             <input type="number" min={0} className="field" {...register('cashback_max_amount', { valueAsNumber: true })} />
           </div>
         </div>
@@ -52,11 +52,11 @@ export function ShopRewardConfigFields({
       return (
         <div className="grid gap-3 sm:grid-cols-2">
           <div>
-            <label className="mb-1.5 block text-[12px] text-text-secondary">Porcentaje bono</label>
+            <label className="mb-1.5 block text-[14px] text-text-secondary">Porcentaje bono</label>
             <input type="number" min={0} className="field" {...register('bonus_percentage', { valueAsNumber: true })} />
           </div>
           <div>
-            <label className="mb-1.5 block text-[12px] text-text-secondary">Tope (max_amount)</label>
+            <label className="mb-1.5 block text-[14px] text-text-secondary">Tope (max_amount)</label>
             <input type="number" min={0} className="field" {...register('bonus_max_amount', { valueAsNumber: true })} />
           </div>
         </div>
@@ -64,21 +64,21 @@ export function ShopRewardConfigFields({
     case 'avatar_pack':
       return (
         <div>
-          <label className="mb-1.5 block text-[12px] text-text-secondary">pack_id</label>
+          <label className="mb-1.5 block text-[14px] text-text-secondary">pack_id</label>
           <input className="field" {...register('avatar_pack_id')} />
         </div>
       );
     case 'theme':
       return (
         <div>
-          <label className="mb-1.5 block text-[12px] text-text-secondary">theme_id</label>
+          <label className="mb-1.5 block text-[14px] text-text-secondary">theme_id</label>
           <input className="field" {...register('theme_id')} />
         </div>
       );
     case 'manual':
       return (
         <div>
-          <label className="mb-1.5 block text-[12px] text-text-secondary">Descripción operador</label>
+          <label className="mb-1.5 block text-[14px] text-text-secondary">Descripción operador</label>
           <textarea className="field min-h-20" {...register('manual_description')} />
         </div>
       );

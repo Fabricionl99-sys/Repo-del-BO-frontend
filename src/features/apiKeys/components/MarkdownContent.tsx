@@ -3,7 +3,7 @@ export function MarkdownContent({ source }: { source: string }) {
   const blocks = source.split(/\n\n+/);
 
   return (
-    <div className="space-y-4 text-[13px] text-text-secondary">
+    <div className="space-y-4 text-[15px] text-text-secondary">
       {blocks.map((block, i) => {
         const trimmed = block.trim();
         if (!trimmed) return null;
@@ -12,7 +12,7 @@ export function MarkdownContent({ source }: { source: string }) {
           return (
             <pre
               key={i}
-              className="overflow-x-auto rounded-lg border border-border-subtle bg-bg-tertiary p-3 font-mono text-[12px] text-text-primary"
+              className="overflow-x-auto rounded-lg border border-border-subtle bg-bg-tertiary p-3 font-mono text-[14px] text-text-primary"
             >
               <code>{code}</code>
             </pre>
@@ -20,14 +20,14 @@ export function MarkdownContent({ source }: { source: string }) {
         }
         if (trimmed.startsWith('# ')) {
           return (
-            <h2 key={i} className="text-[18px] font-semibold text-text-primary">
+            <h2 key={i} className="text-[19px] font-semibold text-text-primary">
               {trimmed.slice(2)}
             </h2>
           );
         }
         if (trimmed.startsWith('## ')) {
           return (
-            <h3 key={i} className="text-[15px] font-semibold text-text-primary">
+            <h3 key={i} className="text-[16px] font-semibold text-text-primary">
               {trimmed.slice(3)}
             </h3>
           );
@@ -45,7 +45,7 @@ export function MarkdownContent({ source }: { source: string }) {
           <p key={i} className="leading-relaxed">
             {trimmed.split(/(`[^`]+`)/).map((part, j) =>
               part.startsWith('`') && part.endsWith('`') ? (
-                <code key={j} className="rounded bg-bg-tertiary px-1 py-0.5 font-mono text-[12px] text-accent">
+                <code key={j} className="rounded bg-bg-tertiary px-1 py-0.5 font-mono text-[14px] text-accent">
                   {part.slice(1, -1)}
                 </code>
               ) : (

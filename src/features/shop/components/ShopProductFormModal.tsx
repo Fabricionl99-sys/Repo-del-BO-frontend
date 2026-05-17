@@ -87,36 +87,36 @@ export function ShopProductFormModal({
         <ConfigSection title="Identificación">
           <div className="grid gap-3 sm:grid-cols-2">
             <div>
-              <label className="mb-1.5 block text-[12px] text-text-secondary">code</label>
-              <input className="field font-mono text-[12px]" disabled={Boolean(product)} {...register('code')} />
-              {errors.code && <p className="mt-1 text-[11px] text-danger">{errors.code.message}</p>}
+              <label className="mb-1.5 block text-[14px] text-text-secondary">code</label>
+              <input className="field font-mono text-[14px]" disabled={Boolean(product)} {...register('code')} />
+              {errors.code && <p className="mt-1 text-[13px] text-danger">{errors.code.message}</p>}
             </div>
             <div>
-              <label className="mb-1.5 block text-[12px] text-text-secondary">nombre</label>
+              <label className="mb-1.5 block text-[14px] text-text-secondary">nombre</label>
               <input className="field" {...register('name')} />
-              {errors.name && <p className="mt-1 text-[11px] text-danger">{errors.name.message}</p>}
+              {errors.name && <p className="mt-1 text-[13px] text-danger">{errors.name.message}</p>}
             </div>
           </div>
           <div className="mt-3">
-            <label className="mb-1.5 block text-[12px] text-text-secondary">descripción</label>
+            <label className="mb-1.5 block text-[14px] text-text-secondary">descripción</label>
             <textarea className="field min-h-16" {...register('description')} />
           </div>
           <div className="mt-3">
-            <label className="mb-1.5 block text-[12px] text-text-secondary">image_url</label>
+            <label className="mb-1.5 block text-[14px] text-text-secondary">image_url</label>
             <input className="field" placeholder="https://..." {...register('image_url')} />
-            {errors.image_url && <p className="mt-1 text-[11px] text-danger">{errors.image_url.message}</p>}
+            {errors.image_url && <p className="mt-1 text-[13px] text-danger">{errors.image_url.message}</p>}
           </div>
         </ConfigSection>
 
         <ConfigSection title="Precio y stock">
           <div className="grid gap-3 sm:grid-cols-3">
             <div>
-              <label className="mb-1.5 block text-[12px] text-text-secondary">cost_in_coins</label>
+              <label className="mb-1.5 block text-[14px] text-text-secondary">cost_in_coins</label>
               <input type="number" min={1} className="field text-mono" {...register('cost_in_coins', { valueAsNumber: true })} />
-              {errors.cost_in_coins && <p className="mt-1 text-[11px] text-danger">{errors.cost_in_coins.message}</p>}
+              {errors.cost_in_coins && <p className="mt-1 text-[13px] text-danger">{errors.cost_in_coins.message}</p>}
             </div>
             <div>
-              <label className="mb-1.5 block text-[12px] text-text-secondary">currency_code</label>
+              <label className="mb-1.5 block text-[14px] text-text-secondary">currency_code</label>
               <select className="field" {...register('currency_code')}>
                 {SHOP_CURRENCY_CODES.map((c) => (
                   <option key={c} value={c}>
@@ -126,7 +126,7 @@ export function ShopProductFormModal({
               </select>
             </div>
             <div>
-              <label className="mb-1.5 block text-[12px] text-text-secondary">stock</label>
+              <label className="mb-1.5 block text-[14px] text-text-secondary">stock</label>
               <input
                 type="number"
                 min={0}
@@ -134,10 +134,10 @@ export function ShopProductFormModal({
                 disabled={unlimitedStock}
                 {...register('stock', { valueAsNumber: true })}
               />
-              {errors.stock && <p className="mt-1 text-[11px] text-danger">{errors.stock.message}</p>}
+              {errors.stock && <p className="mt-1 text-[13px] text-danger">{errors.stock.message}</p>}
             </div>
           </div>
-          <label className="mt-3 flex items-center gap-2 text-[12px] text-text-secondary">
+          <label className="mt-3 flex items-center gap-2 text-[14px] text-text-secondary">
             <input type="checkbox" {...register('unlimited_stock')} />
             Stock ilimitado
           </label>
@@ -145,7 +145,7 @@ export function ShopProductFormModal({
 
         <ConfigSection title="Premio (reward_config)">
           <div className="mb-3">
-            <label className="mb-1.5 block text-[12px] text-text-secondary">reward_type</label>
+            <label className="mb-1.5 block text-[14px] text-text-secondary">reward_type</label>
             <select className="field" {...register('reward_type')}>
               {SHOP_REWARD_TYPES.map((t) => (
                 <option key={t} value={t}>
@@ -160,7 +160,7 @@ export function ShopProductFormModal({
         <ConfigSection title="Restricciones">
           <div className="grid gap-3 sm:grid-cols-3">
             <div>
-              <label className="mb-1.5 block text-[12px] text-text-secondary">min_level</label>
+              <label className="mb-1.5 block text-[14px] text-text-secondary">min_level</label>
               <input
                 type="number"
                 min={1}
@@ -171,7 +171,7 @@ export function ShopProductFormModal({
               />
             </div>
             <div>
-              <label className="mb-1.5 block text-[12px] text-text-secondary">max_per_player</label>
+              <label className="mb-1.5 block text-[14px] text-text-secondary">max_per_player</label>
               <input
                 type="number"
                 min={1}
@@ -182,7 +182,7 @@ export function ShopProductFormModal({
               />
             </div>
             <div className="flex items-end pb-1">
-              <label className="flex items-center gap-2 text-[12px] text-text-secondary">
+              <label className="flex items-center gap-2 text-[14px] text-text-secondary">
                 <input type="checkbox" {...register('vip_only')} />
                 vip_only
               </label>
@@ -190,17 +190,17 @@ export function ShopProductFormModal({
           </div>
           <div className="mt-3 grid gap-3 sm:grid-cols-2">
             <div>
-              <label className="mb-1.5 block text-[12px] text-text-secondary">valid_from</label>
+              <label className="mb-1.5 block text-[14px] text-text-secondary">valid_from</label>
               <input type="date" className="field" {...register('valid_from')} />
             </div>
             <div>
-              <label className="mb-1.5 block text-[12px] text-text-secondary">valid_until</label>
+              <label className="mb-1.5 block text-[14px] text-text-secondary">valid_until</label>
               <input type="date" className="field" {...register('valid_until')} />
-              {errors.valid_until && <p className="mt-1 text-[11px] text-danger">{errors.valid_until.message}</p>}
+              {errors.valid_until && <p className="mt-1 text-[13px] text-danger">{errors.valid_until.message}</p>}
             </div>
           </div>
           <div className="mt-4 flex items-center justify-between rounded-lg border border-border-subtle bg-bg-tertiary px-3 py-2">
-            <span className="text-[12px] text-text-secondary">Producto activo</span>
+            <span className="text-[14px] text-text-secondary">Producto activo</span>
             <Switch checked={isActive} onChange={(v) => setValue('is_active', v)} />
           </div>
         </ConfigSection>

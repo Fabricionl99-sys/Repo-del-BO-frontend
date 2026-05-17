@@ -114,14 +114,14 @@ export default function LevelsPage() {
         }
       />
 
-      <p className="mb-4 max-w-3xl text-[13px] text-text-secondary">
+      <p className="mb-4 max-w-3xl text-[15px] text-text-secondary">
         Configurá los niveles que tendrán tus jugadores. Cada nivel requiere XP acumulado para desbloquearse.
       </p>
 
       <div className="card overflow-x-auto p-5">
         <table className="w-full min-w-[720px] border-collapse text-left">
           <thead>
-            <tr className="border-b border-border-default text-[11px] font-semibold uppercase tracking-wide text-text-tertiary">
+            <tr className="border-b border-border-default text-[13px] font-semibold uppercase tracking-wide text-text-tertiary">
               <th className="pb-3 pr-2">Nivel</th>
               <th className="pb-3 pr-2">Nombre opc.</th>
               <th className="pb-3 pr-2">Insignia</th>
@@ -146,7 +146,7 @@ export default function LevelsPage() {
           </tbody>
         </table>
         <AddLevelButton nextLevel={current.levels.length + 1} onClick={addLevel} />
-        {invalidMsg ? <p className="mt-3 text-[13px] text-danger">{invalidMsg}</p> : null}
+        {invalidMsg ? <p className="mt-3 text-[15px] text-danger">{invalidMsg}</p> : null}
       </div>
 
       <StickyBottomBar

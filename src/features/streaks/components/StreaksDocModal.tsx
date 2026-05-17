@@ -14,7 +14,7 @@ Cuando llegue la documentación oficial (api-shapes), los campos se alinearán a
 export function StreaksDocModal({ open, onClose }: { open: boolean; onClose: () => void }) {
   return (
     <Modal open={open} onClose={onClose} title="Programas de racha" size="md">
-      <p className="whitespace-pre-line text-[13px] leading-relaxed text-text-secondary">{body}</p>
+      <p className="whitespace-pre-line text-[15px] leading-relaxed text-text-secondary">{body}</p>
       <div className="mt-5 flex justify-end">
         <Button variant="primary" onClick={onClose}>
           Entendido

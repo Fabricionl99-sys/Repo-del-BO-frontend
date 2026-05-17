@@ -15,11 +15,11 @@ export function ChestPrizeConfigFields({
       return (
         <div className="grid gap-3 sm:grid-cols-2">
           <div>
-            <label className="mb-1.5 block text-[12px] text-text-secondary">amount</label>
+            <label className="mb-1.5 block text-[14px] text-text-secondary">amount</label>
             <input type="number" min={1} className="field" {...register('coins_amount', { valueAsNumber: true })} />
           </div>
           <div>
-            <label className="mb-1.5 block text-[12px] text-text-secondary">currency_code</label>
+            <label className="mb-1.5 block text-[14px] text-text-secondary">currency_code</label>
             <select className="field" {...register('coins_currency_code')}>
               <option value="main">main</option>
               <option value="vip">vip</option>
@@ -31,11 +31,11 @@ export function ChestPrizeConfigFields({
       return (
         <div className="grid gap-3 sm:grid-cols-2">
           <div>
-            <label className="mb-1.5 block text-[12px] text-text-secondary">quantity</label>
+            <label className="mb-1.5 block text-[14px] text-text-secondary">quantity</label>
             <input type="number" min={1} className="field" {...register('freespin_quantity', { valueAsNumber: true })} />
           </div>
           <div>
-            <label className="mb-1.5 block text-[12px] text-text-secondary">game_id (opcional)</label>
+            <label className="mb-1.5 block text-[14px] text-text-secondary">game_id (opcional)</label>
             <input className="field" placeholder="book_of_dead" {...register('freespin_game_id')} />
           </div>
         </div>
@@ -44,11 +44,11 @@ export function ChestPrizeConfigFields({
       return (
         <div className="grid gap-3 sm:grid-cols-2">
           <div>
-            <label className="mb-1.5 block text-[12px] text-text-secondary">amount</label>
+            <label className="mb-1.5 block text-[14px] text-text-secondary">amount</label>
             <input type="number" min={0} step="0.01" className="field" {...register('freebet_amount', { valueAsNumber: true })} />
           </div>
           <div>
-            <label className="mb-1.5 block text-[12px] text-text-secondary">currency</label>
+            <label className="mb-1.5 block text-[14px] text-text-secondary">currency</label>
             <input className="field" {...register('freebet_currency')} />
           </div>
         </div>
@@ -57,11 +57,11 @@ export function ChestPrizeConfigFields({
       return (
         <div className="grid gap-3 sm:grid-cols-2">
           <div>
-            <label className="mb-1.5 block text-[12px] text-text-secondary">percentage</label>
+            <label className="mb-1.5 block text-[14px] text-text-secondary">percentage</label>
             <input type="number" min={0} max={100} className="field" {...register('cashback_percentage', { valueAsNumber: true })} />
           </div>
           <div>
-            <label className="mb-1.5 block text-[12px] text-text-secondary">max_amount</label>
+            <label className="mb-1.5 block text-[14px] text-text-secondary">max_amount</label>
             <input type="number" min={0} className="field" {...register('cashback_max_amount', { valueAsNumber: true })} />
           </div>
         </div>
@@ -70,11 +70,11 @@ export function ChestPrizeConfigFields({
       return (
         <div className="grid gap-3 sm:grid-cols-2">
           <div>
-            <label className="mb-1.5 block text-[12px] text-text-secondary">amount</label>
+            <label className="mb-1.5 block text-[14px] text-text-secondary">amount</label>
             <input type="number" min={0} className="field" {...register('bonus_amount', { valueAsNumber: true })} />
           </div>
           <div>
-            <label className="mb-1.5 block text-[12px] text-text-secondary">currency</label>
+            <label className="mb-1.5 block text-[14px] text-text-secondary">currency</label>
             <input className="field" {...register('bonus_currency')} />
           </div>
         </div>
@@ -82,7 +82,7 @@ export function ChestPrizeConfigFields({
     case 'chest':
       return (
         <div>
-          <label className="mb-1.5 block text-[12px] text-text-secondary">chest_type_code</label>
+          <label className="mb-1.5 block text-[14px] text-text-secondary">chest_type_code</label>
           <select className="field" {...register('chest_type_code')}>
             <option value="">Elegí…</option>
             {chestTypeOptions.map((t) => (
@@ -96,14 +96,14 @@ export function ChestPrizeConfigFields({
     case 'avatar_pack':
       return (
         <div>
-          <label className="mb-1.5 block text-[12px] text-text-secondary">avatar_ids (comma separated)</label>
+          <label className="mb-1.5 block text-[14px] text-text-secondary">avatar_ids (comma separated)</label>
           <input className="field" placeholder="avatar_neon, avatar_gold" {...register('avatar_ids')} />
         </div>
       );
     case 'manual':
       return (
         <div>
-          <label className="mb-1.5 block text-[12px] text-text-secondary">description</label>
+          <label className="mb-1.5 block text-[14px] text-text-secondary">description</label>
           <textarea className="field min-h-20" {...register('manual_description')} />
         </div>
       );

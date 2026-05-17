@@ -18,10 +18,10 @@ export function ConfigSection({
   return (
     <section className="card">
       <header className="flex items-center gap-3 border-b border-border-subtle px-5 py-4">
-        {icon && <span className="text-[18px]">{icon}</span>}
+        {icon && <span className="text-[19px]">{icon}</span>}
         <div>
           <h3 className="text-[14px] font-semibold">{title}</h3>
-          {description && <p className="mt-0.5 text-[11px] text-text-tertiary">{description}</p>}
+          {description && <p className="mt-0.5 text-[13px] text-text-tertiary">{description}</p>}
         </div>
       </header>
       <div className="space-y-4 p-5">{children}</div>

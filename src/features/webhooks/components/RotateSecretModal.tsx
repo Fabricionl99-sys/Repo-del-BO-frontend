@@ -35,7 +35,7 @@ export function RotateSecretModal({
       {secret ? (
         <HmacSecretReveal plainText={secret} onDone={close} />
       ) : (
-        <div className="space-y-4 text-[13px]">
+        <div className="space-y-4 text-[15px]">
           <p className="text-text-secondary">
             El secret actual (<code className="font-mono">{endpoint?.hmac_secret_prefix}…</code>) seguirá
             funcionando durante <strong className="text-text-primary">24 horas</strong> después de rotar.

@@ -39,9 +39,9 @@ export function RevokeApiKeyModal({
         </>
       }
     >
-      <p className="text-[13px] text-text-secondary">
+      <p className="text-[15px] text-text-secondary">
         Estás por revocar <strong className="text-text-primary">{apiKey.name}</strong> (
-        <code className="font-mono text-[12px]">{apiKey.prefix}...XXX</code>). Esta acción no se puede deshacer.
+        <code className="font-mono text-[14px]">{apiKey.prefix}...XXX</code>). Esta acción no se puede deshacer.
       </p>
     </Modal>
   );

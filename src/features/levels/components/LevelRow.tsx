@@ -20,7 +20,7 @@ export function LevelRow({ row, prevXp, onChange, onPickBadge }: Props) {
   const milestoneOn = row.milestoneEnabled;
 
   return (
-    <tr className="border-b border-border-subtle text-[13px]">
+    <tr className="border-b border-border-subtle text-[15px]">
       <td className="py-3 pr-2 align-middle font-mono text-text-secondary">{row.level}</td>
       <td className="py-3 pr-2 align-middle">
         <input
@@ -41,7 +41,7 @@ export function LevelRow({ row, prevXp, onChange, onPickBadge }: Props) {
               —
             </span>
           )}
-          <label className="cursor-pointer text-[11px] text-accent hover:underline">
+          <label className="cursor-pointer text-[13px] text-accent hover:underline">
             <input
               type="file"
               accept="image/png,image/svg+xml"
@@ -68,7 +68,7 @@ export function LevelRow({ row, prevXp, onChange, onPickBadge }: Props) {
           aria-label={`XP nivel ${row.level}`}
         />
         {prevXp !== null && row.xpRequired <= prevXp ? (
-          <p className="mt-1 text-[11px] text-danger">Debe ser mayor que el nivel anterior</p>
+          <p className="mt-1 text-[13px] text-danger">Debe ser mayor que el nivel anterior</p>
         ) : null}
       </td>
       <td className="py-3 align-middle">
@@ -89,7 +89,7 @@ export function LevelRow({ row, prevXp, onChange, onPickBadge }: Props) {
           </div>
           {milestoneOn ? (
             <select
-              className="field max-w-[220px] text-[12px]"
+              className="field max-w-[220px] text-[14px]"
               value={row.milestoneUnlock ?? 'avatar_pack_1'}
               onChange={(e) =>
                 onChange({ ...row, milestoneUnlock: e.target.value as MilestoneUnlock })

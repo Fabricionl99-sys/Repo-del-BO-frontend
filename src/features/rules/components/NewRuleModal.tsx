@@ -69,7 +69,7 @@ export function NewRuleModal({ open, onClose }: Props) {
             <RuleUsdPerXpField />
           </div>
           <div className="border-t border-border-subtle pt-4">
-            <h3 className="mb-3 text-[13px] font-semibold text-text-primary">Boost temporal</h3>
+            <h3 className="mb-3 text-[15px] font-semibold text-text-primary">Boost temporal</h3>
             <RuleBoostSection enabledCategories={cats} />
           </div>
         </div>

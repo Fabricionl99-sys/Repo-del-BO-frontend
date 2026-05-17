@@ -24,11 +24,11 @@ export function ApiKeyCard({
       <div className="mb-3 flex items-start justify-between gap-3">
         <div>
           <h3 className="text-[14px] font-semibold text-text-primary">{apiKey.name}</h3>
-          <code className="mt-1 block font-mono text-[12px] text-text-secondary">{formatMaskedKey(apiKey)}</code>
+          <code className="mt-1 block font-mono text-[14px] text-text-secondary">{formatMaskedKey(apiKey)}</code>
         </div>
         <StatusPill status={status} label={apiKey.is_active ? 'activa' : 'revocada'} />
       </div>
-      <p className="mb-3 text-[11px] text-text-tertiary">
+      <p className="mb-3 text-[13px] text-text-tertiary">
         Último uso:{' '}
         <span className="text-text-secondary">
           {apiKey.last_used_at ? formatRelativeDate(apiKey.last_used_at) : 'sin uso'}
@@ -36,7 +36,7 @@ export function ApiKeyCard({
       </p>
       <div className="mb-4 flex flex-wrap gap-1.5">
         {apiKey.permissions.map((p) => (
-          <span key={p} className="rounded-full border border-border-subtle bg-bg-tertiary px-2 py-0.5 text-[10px] text-text-secondary">
+          <span key={p} className="rounded-full border border-border-subtle bg-bg-tertiary px-2 py-0.5 text-[12px] text-text-secondary">
             {p}
           </span>
         ))}

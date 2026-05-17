@@ -66,7 +66,7 @@ export function CurveChart({
               return <circle key={level.level} cx={x} cy={y} r="4" fill="var(--accent)" />;
             })}
         </svg>
-        <div className="mt-4 flex gap-6 text-[11px] text-text-tertiary">
+        <div className="mt-4 flex gap-6 text-[13px] text-text-tertiary">
           <span>— curva nueva</span>
           <span>- - curva actual</span>
           <span className="ml-auto font-light italic">pasá el mouse sobre el gráfico para ver detalles</span>

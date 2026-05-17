@@ -32,7 +32,7 @@ export function HistoryDetailModal({
       description={`${item.player_handle} · ${formatRelativeDate(item.sent_at)}`}
       footer={<Button variant="ghost" onClick={onClose}>Cerrar</Button>}
     >
-      <dl className="grid grid-cols-2 gap-3 text-[13px] max-md:grid-cols-1">
+      <dl className="grid grid-cols-2 gap-3 text-[15px] max-md:grid-cols-1">
         <div>
           <dt className="text-text-tertiary">jugador</dt>
           <dd>{item.player_handle}</dd>
@@ -55,16 +55,16 @@ export function HistoryDetailModal({
         </div>
       </dl>
       {item.subject_snapshot && (
-        <p className="mt-4 text-[12px]">
+        <p className="mt-4 text-[14px]">
           <span className="text-text-tertiary">subject: </span>
           {item.subject_snapshot}
         </p>
       )}
-      <pre className="mt-3 max-h-48 overflow-auto rounded-lg border border-border-subtle bg-bg-tertiary p-3 text-[12px] whitespace-pre-wrap">
+      <pre className="mt-3 max-h-48 overflow-auto rounded-lg border border-border-subtle bg-bg-tertiary p-3 text-[14px] whitespace-pre-wrap">
         {item.body_snapshot}
       </pre>
       {item.error_message && (
-        <p className="mt-3 rounded-lg border border-danger/30 bg-danger/10 px-3 py-2 text-[12px] text-danger">
+        <p className="mt-3 rounded-lg border border-danger/30 bg-danger/10 px-3 py-2 text-[14px] text-danger">
           {item.error_message}
         </p>
       )}

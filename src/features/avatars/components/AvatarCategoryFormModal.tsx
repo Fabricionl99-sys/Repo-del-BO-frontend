@@ -102,22 +102,22 @@ export function AvatarCategoryFormModal({
       <div className="space-y-4">
         <div className="grid grid-cols-2 gap-3">
           <div>
-            <label htmlFor="avatar-category-code" className="mb-1 block text-[12px] text-text-secondary">code</label>
+            <label htmlFor="avatar-category-code" className="mb-1 block text-[14px] text-text-secondary">code</label>
             <input id="avatar-category-code" className="field font-mono" disabled={Boolean(category)} {...register('code')} />
-            {errors.code && <p className="mt-1 text-[11px] text-danger">{errors.code.message}</p>}
+            {errors.code && <p className="mt-1 text-[13px] text-danger">{errors.code.message}</p>}
           </div>
           <div>
-            <label htmlFor="avatar-category-name" className="mb-1 block text-[12px] text-text-secondary">nombre</label>
+            <label htmlFor="avatar-category-name" className="mb-1 block text-[14px] text-text-secondary">nombre</label>
             <input id="avatar-category-name" className="field" {...register('name')} />
-            {errors.name && <p className="mt-1 text-[11px] text-danger">{errors.name.message}</p>}
+            {errors.name && <p className="mt-1 text-[13px] text-danger">{errors.name.message}</p>}
           </div>
         </div>
         <div>
-          <label className="mb-1 block text-[12px] text-text-secondary">descripción</label>
+          <label className="mb-1 block text-[14px] text-text-secondary">descripción</label>
           <textarea className="field min-h-16" {...register('description')} />
         </div>
         <div>
-          <label className="mb-2 block text-[12px] text-text-secondary">ícono</label>
+          <label className="mb-2 block text-[14px] text-text-secondary">ícono</label>
           <div className="flex flex-wrap gap-2">
             {AVATAR_ICON_PRESETS.map((preset) => (
               <button
@@ -136,17 +136,17 @@ export function AvatarCategoryFormModal({
         </div>
         <div className="grid grid-cols-2 gap-3">
           <div>
-            <label className="mb-1 block text-[12px] text-text-secondary">orden</label>
+            <label className="mb-1 block text-[14px] text-text-secondary">orden</label>
             <input type="number" className="field" {...register('display_order', { valueAsNumber: true })} />
           </div>
           <div className="flex items-end gap-2 pb-1">
             <Switch checked={isActive} onChange={(v) => setValue('is_active', v)} aria-label="activa" />
-            <span className="text-[12px] text-text-secondary">activa</span>
+            <span className="text-[14px] text-text-secondary">activa</span>
           </div>
         </div>
         <div className="grid grid-cols-3 gap-3 border-t border-border-subtle pt-4">
           <div>
-            <label className="mb-1 block text-[12px] text-text-secondary">nivel mínimo</label>
+            <label className="mb-1 block text-[14px] text-text-secondary">nivel mínimo</label>
             <input
               type="number"
               className="field"
@@ -158,7 +158,7 @@ export function AvatarCategoryFormModal({
           </div>
           <div className="flex items-end gap-2 pb-1">
             <Switch checked={vipOnly} onChange={(v) => setValue('restrictions.vip_only', v)} aria-label="solo VIP" />
-            <span className="text-[12px] text-text-secondary">solo VIP</span>
+            <span className="text-[14px] text-text-secondary">solo VIP</span>
           </div>
           <div className="flex items-end gap-2 pb-1">
             <Switch
@@ -166,7 +166,7 @@ export function AvatarCategoryFormModal({
               onChange={(v) => setValue('restrictions.new_players_only', v)}
               aria-label="solo nuevos"
             />
-            <span className="text-[12px] text-text-secondary">solo nuevos</span>
+            <span className="text-[14px] text-text-secondary">solo nuevos</span>
           </div>
         </div>
       </div>

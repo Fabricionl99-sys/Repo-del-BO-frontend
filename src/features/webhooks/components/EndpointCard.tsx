@@ -37,7 +37,7 @@ export function EndpointCard({
           <h3 className="text-[14px] font-semibold text-text-primary">{endpoint.name}</h3>
           <div className="mt-1 flex items-center gap-2">
             <span
-              className={`rounded-full px-2 py-0.5 text-[10px] font-medium uppercase ${
+              className={`rounded-full px-2 py-0.5 text-[12px] font-medium uppercase ${
                 endpoint.environment === 'production'
                   ? 'bg-accent/15 text-accent'
                   : 'bg-info/15 text-info'
@@ -52,10 +52,10 @@ export function EndpointCard({
           <Copy size={14} />
         </button>
       </div>
-      <p className="mb-2 truncate font-mono text-[11px] text-text-secondary" title={endpoint.url}>
+      <p className="mb-2 truncate font-mono text-[13px] text-text-secondary" title={endpoint.url}>
         {endpoint.url}
       </p>
-      <p className="mb-3 text-[11px] text-text-tertiary">
+      <p className="mb-3 text-[13px] text-text-tertiary">
         Última actividad: <span className="text-text-secondary">{formatRelativeDate(lastActivity)}</span>
       </p>
       {endpoint.stats && (
@@ -66,15 +66,15 @@ export function EndpointCard({
             ['24h', String(endpoint.stats.deliveries_24h)],
           ].map(([label, value]) => (
             <div key={label} className="rounded-lg border border-border-subtle bg-bg-tertiary px-2 py-1.5">
-              <p className="text-[9px] uppercase text-text-tertiary">{label}</p>
-              <p className="text-mono text-[12px] font-semibold">{value}</p>
+              <p className="text-[11px] uppercase text-text-tertiary">{label}</p>
+              <p className="text-mono text-[14px] font-semibold">{value}</p>
             </div>
           ))}
         </div>
       )}
       <div className="mb-4 flex flex-wrap gap-1">
         {endpoint.subscribed_events.map((ev) => (
-          <span key={ev} className="rounded-full border border-border-subtle bg-bg-tertiary px-2 py-0.5 text-[10px] text-text-secondary">
+          <span key={ev} className="rounded-full border border-border-subtle bg-bg-tertiary px-2 py-0.5 text-[12px] text-text-secondary">
             {ev}
           </span>
         ))}

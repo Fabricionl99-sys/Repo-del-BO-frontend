@@ -33,7 +33,7 @@ export function DeliveryDetailModal({
 
   return (
     <Modal open={open} onClose={onClose} title="Detalle de delivery" size="lg">
-      <div className="mb-4 grid grid-cols-2 gap-3 text-[12px] max-md:grid-cols-1">
+      <div className="mb-4 grid grid-cols-2 gap-3 text-[14px] max-md:grid-cols-1">
         <div>
           <p className="label-section">event_id</p>
           <code className="font-mono">{delivery.event_id}</code>
@@ -57,35 +57,35 @@ export function DeliveryDetailModal({
             key={t}
             type="button"
             onClick={() => setTab(t)}
-            className={`border-b-2 px-3 py-2 text-[12px] ${tab === t ? 'border-accent text-text-primary' : 'border-transparent text-text-tertiary'}`}
+            className={`border-b-2 px-3 py-2 text-[14px] ${tab === t ? 'border-accent text-text-primary' : 'border-transparent text-text-tertiary'}`}
           >
             {t}
           </button>
         ))}
       </div>
       {tab === 'Payload' && (
-        <pre className="max-h-64 overflow-auto rounded-lg border border-border-subtle bg-bg-tertiary p-3 font-mono text-[11px]">
+        <pre className="max-h-64 overflow-auto rounded-lg border border-border-subtle bg-bg-tertiary p-3 font-mono text-[13px]">
           {JSON.stringify(delivery.payload, null, 2)}
         </pre>
       )}
       {tab === 'Request' && (
-        <pre className="max-h-64 overflow-auto rounded-lg border border-border-subtle bg-bg-tertiary p-3 font-mono text-[11px]">
+        <pre className="max-h-64 overflow-auto rounded-lg border border-border-subtle bg-bg-tertiary p-3 font-mono text-[13px]">
           {JSON.stringify(delivery.request_headers ?? {}, null, 2)}
         </pre>
       )}
       {tab === 'Response' && (
         <div className="space-y-3">
-          <pre className="overflow-auto rounded-lg border border-border-subtle bg-bg-tertiary p-3 font-mono text-[11px]">
+          <pre className="overflow-auto rounded-lg border border-border-subtle bg-bg-tertiary p-3 font-mono text-[13px]">
             {JSON.stringify(delivery.response_headers, null, 2)}
           </pre>
-          <pre className="overflow-auto rounded-lg border border-border-subtle bg-bg-tertiary p-3 font-mono text-[11px]">
+          <pre className="overflow-auto rounded-lg border border-border-subtle bg-bg-tertiary p-3 font-mono text-[13px]">
             {delivery.response_body_snippet}
           </pre>
           {delivery.error_message && <p className="text-danger">{delivery.error_message}</p>}
         </div>
       )}
       {tab === 'Intentos' && (
-        <ul className="space-y-2 text-[12px]">
+        <ul className="space-y-2 text-[14px]">
           {(delivery.attempts_history ?? []).map((a) => (
             <li key={a.id} className="rounded-lg border border-border-subtle bg-bg-tertiary p-2">
               {formatRelativeDate(a.attempted_at)} · HTTP {a.status_code ?? '—'} · {a.duration_ms}ms

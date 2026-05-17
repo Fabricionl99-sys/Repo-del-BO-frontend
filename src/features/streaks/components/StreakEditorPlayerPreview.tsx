@@ -46,7 +46,7 @@ export function StreakEditorPlayerPreview({ values, formErrors }: { values: Stre
     <section className="mt-8 rounded-xl border border-border-subtle bg-bg-secondary">
       <button
         type="button"
-        className="flex w-full items-center justify-between gap-3 px-4 py-3 text-left text-[13px] font-medium hover:bg-bg-tertiary"
+        className="flex w-full items-center justify-between gap-3 px-4 py-3 text-left text-[15px] font-medium hover:bg-bg-tertiary"
         onClick={() => setOpen((o) => !o)}
       >
         <span>Preview del jugador</span>
@@ -54,7 +54,7 @@ export function StreakEditorPlayerPreview({ values, formErrors }: { values: Stre
       </button>
       {open ? (
         <div className="border-t border-border-subtle px-4 py-4">
-          <div className="rounded-lg border border-border-default bg-bg-primary p-4 font-sans text-[13px] shadow-sm">
+          <div className="rounded-lg border border-border-default bg-bg-primary p-4 font-sans text-[15px] shadow-sm">
             <p className="mb-1 font-medium text-text-primary">Tu racha actual: Día 0 (no iniciada)</p>
             <p className="mb-4 text-text-secondary">
               Próximo milestone: <span className="text-accent">{nextLabel}</span>
@@ -63,7 +63,7 @@ export function StreakEditorPlayerPreview({ values, formErrors }: { values: Stre
               {chips.map(({ d, label, hit }) => (
                 <span
                   key={d}
-                  className={`rounded-md border px-2.5 py-1 text-[11px] ${
+                  className={`rounded-md border px-2.5 py-1 text-[13px] ${
                     hit ? 'border-accent/40 bg-accent-subtle text-text-primary' : 'border-border-subtle bg-bg-tertiary text-text-tertiary'
                   }`}
                 >
@@ -73,11 +73,11 @@ export function StreakEditorPlayerPreview({ values, formErrors }: { values: Stre
               ))}
             </div>
             {sorted.length > 14 ? (
-              <p className="mt-3 text-[11px] text-text-tertiary">…y más días hasta el día {sorted[sorted.length - 1]?.day_number}</p>
+              <p className="mt-3 text-[13px] text-text-tertiary">…y más días hasta el día {sorted[sorted.length - 1]?.day_number}</p>
             ) : null}
           </div>
           {getErr(formErrors, 'milestones.0.day_number') ? (
-            <p className="mt-2 text-[11px] text-danger">Corregí los errores del formulario para un preview fiel.</p>
+            <p className="mt-2 text-[13px] text-danger">Corregí los errores del formulario para un preview fiel.</p>
           ) : null}
         </div>
       ) : null}

@@ -9,7 +9,7 @@ export function ProbabilityBar({ prizes }: { prizes: Pick<ChestPrize, 'probabili
 
   return (
     <div className="rounded-lg border border-border-subtle bg-bg-tertiary p-3">
-      <div className="mb-2 flex items-center justify-between text-[12px]">
+      <div className="mb-2 flex items-center justify-between text-[14px]">
         <span className="text-text-secondary">Suma de probabilidades</span>
         <span className={cn('font-mono font-semibold', valid ? 'text-success' : 'text-danger')}>
           {total.toFixed(2)}%
@@ -22,7 +22,7 @@ export function ProbabilityBar({ prizes }: { prizes: Pick<ChestPrize, 'probabili
         />
       </div>
       {!valid && (
-        <p className="mt-2 text-[11px] text-danger">
+        <p className="mt-2 text-[13px] text-danger">
           La suma debe ser exactamente 100.00% para guardar el tipo de cofre.
         </p>
       )}

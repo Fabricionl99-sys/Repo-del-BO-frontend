@@ -38,14 +38,14 @@ export function BlockConditions() {
     <Block num={2} kind="condition" kindLabel="si · condiciones" title="¿qué condiciones tiene que cumplir?">
       <div className="mb-4 grid grid-cols-[110px_1fr] gap-3">
         <select
-          className="field py-1.5 text-[11px]"
+          className="field py-1.5 text-[13px]"
           value={logic}
           onChange={(event) => setValue('conditionsLogic', event.target.value as 'all' | 'any')}
         >
           <option value="all">si TODAS</option>
           <option value="any">si ALGUNA</option>
         </select>
-        <p className="text-[11px] font-light italic text-text-tertiary">
+        <p className="text-[13px] font-light italic text-text-tertiary">
           se {logic === 'all' ? 'cumplen' : 'cumple alguna de'} estas condiciones
         </p>
       </div>

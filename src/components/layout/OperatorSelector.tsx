@@ -22,7 +22,7 @@ export function OperatorSelector() {
       aria-label="operador"
       value={current?.id ?? ''}
       onChange={(event) => handleChange(event.target.value)}
-      className="mx-3 mb-4 w-[calc(100%-24px)] appearance-none rounded-xl border border-border-subtle bg-bg-tertiary px-3 py-3 text-[12px] text-text-primary"
+      className="mx-3 mb-4 w-[calc(100%-24px)] appearance-none rounded-xl border border-border-subtle bg-bg-tertiary px-3 py-3 text-[14px] text-text-primary"
     >
       {available.length === 0 && <option value="">Casino Astral · growth · es-AR</option>}
       {available.map((operator) => (

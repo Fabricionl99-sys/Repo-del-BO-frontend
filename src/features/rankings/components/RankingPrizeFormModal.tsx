@@ -80,18 +80,18 @@ export function RankingPrizeFormModal({
       <div className="space-y-4">
         <div className="grid gap-3 sm:grid-cols-2">
           <div>
-            <label className="mb-1.5 block text-[12px] text-text-secondary">position_from</label>
+            <label className="mb-1.5 block text-[14px] text-text-secondary">position_from</label>
             <input type="number" min={1} className="field" {...register('position_from', { valueAsNumber: true })} />
-            {errors.position_from && <p className="mt-1 text-[11px] text-danger">{errors.position_from.message}</p>}
+            {errors.position_from && <p className="mt-1 text-[13px] text-danger">{errors.position_from.message}</p>}
           </div>
           <div>
-            <label className="mb-1.5 block text-[12px] text-text-secondary">position_to</label>
+            <label className="mb-1.5 block text-[14px] text-text-secondary">position_to</label>
             <input type="number" min={1} className="field" {...register('position_to', { valueAsNumber: true })} />
-            {errors.position_to && <p className="mt-1 text-[11px] text-danger">{errors.position_to.message}</p>}
+            {errors.position_to && <p className="mt-1 text-[13px] text-danger">{errors.position_to.message}</p>}
           </div>
         </div>
         <div>
-          <label className="mb-1.5 block text-[12px] text-text-secondary">reward_type</label>
+          <label className="mb-1.5 block text-[14px] text-text-secondary">reward_type</label>
           <select className="field" {...register('reward_type')}>
             {RANKING_PRIZE_REWARD_TYPES.map((t) => (
               <option key={t} value={t}>{t}</option>
@@ -100,7 +100,7 @@ export function RankingPrizeFormModal({
         </div>
         <RankingPrizeConfigFields rewardType={rewardType} register={register} chestTypeOptions={chestTypeOptions} />
         <div className="flex items-center justify-between rounded-lg border border-border-subtle bg-bg-tertiary px-3 py-2">
-          <span className="text-[12px] text-text-secondary">Premio activo</span>
+          <span className="text-[14px] text-text-secondary">Premio activo</span>
           <Switch checked={isActive} onChange={(v) => setValue('is_active', v)} />
         </div>
       </div>

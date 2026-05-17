@@ -134,7 +134,7 @@ export default function StreakProgramEditorPage() {
           <input className="field" placeholder="Ej. Racha de login 7 días" {...form.register('name')} />
           <FieldErr path="name" />
           {debouncedName.trim().length >= 3 && nameQ.isFetching ? (
-            <p className="mt-1 text-[12px] text-text-tertiary">Comprobando que el nombre esté disponible…</p>
+            <p className="mt-1 text-[14px] text-text-tertiary">Comprobando que el nombre esté disponible…</p>
           ) : null}
         </ConfigSection>
 
@@ -157,7 +157,7 @@ export default function StreakProgramEditorPage() {
               <option key={t.value} value={t.value} label={t.label} />
             ))}
           </datalist>
-          <p className="mt-2 text-[12px] text-text-secondary">{timezoneFriendlyLabel(form.watch('timezone'))}</p>
+          <p className="mt-2 text-[14px] text-text-secondary">{timezoneFriendlyLabel(form.watch('timezone'))}</p>
           <FieldErr path="timezone" />
         </ConfigSection>
 
@@ -173,24 +173,24 @@ export default function StreakProgramEditorPage() {
           {resetPolicy === 'grace' ? (
             <div className="mt-4 space-y-4">
               <div>
-                <label className="mb-1 block text-[12px] text-text-secondary">Días de gracia permitidos en 30 días rolling</label>
+                <label className="mb-1 block text-[14px] text-text-secondary">Días de gracia permitidos en 30 días rolling</label>
                 <input className="field max-w-xs" type="number" min={1} max={10} {...form.register('grace_days_rolling', { valueAsNumber: true })} />
                 <FieldErr path="grace_days_rolling" />
               </div>
               <div>
-                <p className="mb-2 text-[12px] text-text-secondary">Después de los días de gracia, ¿qué pasa?</p>
-                <label className="mr-4 inline-flex items-center gap-2 text-[13px]">
+                <p className="mb-2 text-[14px] text-text-secondary">Después de los días de gracia, ¿qué pasa?</p>
+                <label className="mr-4 inline-flex items-center gap-2 text-[15px]">
                   <input type="radio" value="reset_to_zero" {...form.register('grace_after_action')} />
                   Reset a 0
                 </label>
-                <label className="inline-flex items-center gap-2 text-[13px]">
+                <label className="inline-flex items-center gap-2 text-[15px]">
                   <input type="radio" value="lose_days" {...form.register('grace_after_action')} />
                   Pierde X días
                 </label>
               </div>
               {form.watch('grace_after_action') === 'lose_days' ? (
                 <div>
-                  <label className="mb-1 block text-[12px] text-text-secondary">Cuántos días pierde (máx. según tus hitos)</label>
+                  <label className="mb-1 block text-[14px] text-text-secondary">Cuántos días pierde (máx. según tus hitos)</label>
                   <input className="field max-w-xs" type="number" min={1} {...form.register('grace_days_lost', { valueAsNumber: true })} />
                   <FieldErr path="grace_days_lost" />
                 </div>
@@ -199,7 +199,7 @@ export default function StreakProgramEditorPage() {
           ) : null}
           {resetPolicy === 'soft_reset' ? (
             <div className="mt-4">
-              <label className="mb-1 block text-[12px] text-text-secondary">Días que pierde al romper racha</label>
+              <label className="mb-1 block text-[14px] text-text-secondary">Días que pierde al romper racha</label>
               <input
                 className="field max-w-xs"
                 type="number"
@@ -208,13 +208,13 @@ export default function StreakProgramEditorPage() {
                 title="Si el jugador rompe la racha en día 10, pasa al día 7 (ejemplo con 3 días perdidos)."
                 {...form.register('soft_days_lost_on_break', { valueAsNumber: true })}
               />
-              <p className="mt-2 text-[11px] text-text-tertiary" title="Ejemplo ilustrativo">
+              <p className="mt-2 text-[13px] text-text-tertiary" title="Ejemplo ilustrativo">
                 Tip: si rompe en día 10 y acá ponés 3, el jugador retoma visualmente cerca del día 7.
               </p>
               <FieldErr path="soft_days_lost_on_break" />
             </div>
           ) : null}
-          {resetPolicy === 'strict' ? <p className="mt-2 text-[12px] text-text-tertiary">Sin parámetros adicionales.</p> : null}
+          {resetPolicy === 'strict' ? <p className="mt-2 text-[14px] text-text-tertiary">Sin parámetros adicionales.</p> : null}
         </ConfigSection>
 
         <ConfigSection icon="🎁" title="Micro recompensa diaria">
@@ -222,8 +222,8 @@ export default function StreakProgramEditorPage() {
         </ConfigSection>
 
         <ConfigSection icon="🏁" title="Milestones">
-          {milestoneListError ? <p className="mb-2 text-[12px] text-danger">{milestoneListError}</p> : null}
-          <p className="mb-3 text-[12px] text-text-tertiary">Hasta 20 hitos · días únicos entre 1 y 365 · se ordenan al guardar.</p>
+          {milestoneListError ? <p className="mb-2 text-[14px] text-danger">{milestoneListError}</p> : null}
+          <p className="mb-3 text-[14px] text-text-tertiary">Hasta 20 hitos · días únicos entre 1 y 365 · se ordenan al guardar.</p>
           <div className="space-y-3">
             {milestoneOrder.map((i) => (
               <div key={fields[i]?.id ?? i} className="relative">
@@ -240,7 +240,7 @@ export default function StreakProgramEditorPage() {
             <Button type="button" variant="secondary" disabled={!canAddMilestone} onClick={() => append(emptyMilestoneRow(defaultCoin))}>
               + Agregar milestone
             </Button>
-            {!canAddMilestone ? <span className="ml-2 text-[12px] text-text-tertiary">Límite 20 hitos</span> : null}
+            {!canAddMilestone ? <span className="ml-2 text-[14px] text-text-tertiary">Límite 20 hitos</span> : null}
           </div>
         </ConfigSection>
       </ConfiguratorScaffold>

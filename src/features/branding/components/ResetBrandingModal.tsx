@@ -27,7 +27,7 @@ export function ResetBrandingModal({
         </>
       }
     >
-      <ul className="list-disc space-y-1 pl-5 text-[13px] text-text-secondary">
+      <ul className="list-disc space-y-1 pl-5 text-[15px] text-text-secondary">
         <li>Paleta Dark Neon predefinida</li>
         <li>Tipografía Inter · pesos default</li>
         <li>Logo y favicon de ejemplo</li>

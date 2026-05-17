@@ -54,15 +54,15 @@ export default function DeliveriesPage() {
   if (mock === 'error' || listQ.isError) return <ErrorState onRetry={() => listQ.refetch()} />;
 
   const columns: Column<PendingDelivery>[] = [
-    { key: 'id', header: 'ID', render: (r) => <span className="font-mono text-[11px]">{r.id}</span> },
+    { key: 'id', header: 'ID', render: (r) => <span className="font-mono text-[13px]">{r.id}</span> },
     { key: 'player', header: 'jugador', render: (r) => <span>{r.player_handle ?? r.player_id}</span> },
-    { key: 'type', header: 'premio', render: (r) => <span className="text-[12px]">{r.reward_type}</span> },
+    { key: 'type', header: 'premio', render: (r) => <span className="text-[14px]">{r.reward_type}</span> },
     {
       key: 'status',
       header: 'estado',
       render: (r) => (
         <span
-          className={`rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase ${
+          className={`rounded-full px-2 py-0.5 text-[12px] font-semibold uppercase ${
             r.status === 'manual_pending_operator'
               ? 'bg-warning/20 text-warning'
               : problemStatuses.includes(r.status)
@@ -108,17 +108,17 @@ export default function DeliveriesPage() {
       />
       <div className="mb-5 flex flex-wrap gap-2">
         {Array.from(counts.entries()).map(([st, n]) => (
-          <span key={st} className="rounded-full border border-border-subtle bg-bg-tertiary px-3 py-1 text-[11px]">
+          <span key={st} className="rounded-full border border-border-subtle bg-bg-tertiary px-3 py-1 text-[13px]">
             {statusLabels[st] ?? st}: <b>{n}</b>
           </span>
         ))}
         {trayQ.data ? (
-          <span className="rounded-full border border-danger/30 bg-danger/10 px-3 py-1 text-[11px] text-danger">
+          <span className="rounded-full border border-danger/30 bg-danger/10 px-3 py-1 text-[13px] text-danger">
             bandeja crítica: <b>{trayQ.data.total}</b>
           </span>
         ) : null}
       </div>
-      <div className="mb-4 flex items-start gap-2 rounded-lg border border-border-subtle bg-bg-tertiary/50 p-3 text-[11px] text-text-secondary">
+      <div className="mb-4 flex items-start gap-2 rounded-lg border border-border-subtle bg-bg-tertiary/50 p-3 text-[13px] text-text-secondary">
         <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-warning" />
         <p>
           <strong>Marcar manual:</strong> el operador debe contactar al jugador y entregar el premio fuera de WINGOAT. Acá solo queda registro y auditoría.
@@ -131,7 +131,7 @@ export default function DeliveriesPage() {
       )}
       <DetailModal id={detailId} onClose={() => setDetailId(null)} />
       <Modal open={!!retryId} onClose={() => setRetryId(null)} title="Reintentar entrega">
-        <p className="text-[13px] text-text-secondary">Se encolará un nuevo intento HTTP hacia tu webhook.</p>
+        <p className="text-[15px] text-text-secondary">Se encolará un nuevo intento HTTP hacia tu webhook.</p>
         <div className="mt-4 flex gap-2">
           <Button variant="secondary" onClick={() => setRetryId(null)}>
             cancelar
@@ -163,7 +163,7 @@ function DetailModal({ id, onClose }: { id: string | null; onClose: () => void }
       {q.isLoading ? (
         <Loading label="Cargando..." />
       ) : q.data ? (
-        <div className="space-y-3 text-[13px]">
+        <div className="space-y-3 text-[15px]">
           <p>
             <span className="text-text-tertiary">jugador:</span> {q.data.player_handle ?? q.data.player_id}
           </p>
@@ -176,7 +176,7 @@ function DetailModal({ id, onClose }: { id: string | null; onClose: () => void }
           <h3 className="label-section mt-4">intentos</h3>
           <ul className="space-y-2">
             {q.data.attempts.map((a) => (
-              <li key={a.id} className="rounded-lg border border-border-subtle bg-bg-tertiary p-2 font-mono text-[11px]">
+              <li key={a.id} className="rounded-lg border border-border-subtle bg-bg-tertiary p-2 font-mono text-[13px]">
                 {a.attempted_at} · {a.status} {a.http_status != null ? `· HTTP ${a.http_status}` : ''}
                 <div className="text-text-secondary">{a.message}</div>
               </li>
@@ -204,12 +204,12 @@ function MarkManualModal({
   const ok = reason.trim().length >= 10 && reason.trim().length <= 1000;
   return (
     <Modal open={!!id} onClose={onClose} title="Marcar entregado manualmente">
-      <div className="mb-3 rounded-lg border border-warning/30 bg-warning/10 p-3 text-[11px] text-warning">
+      <div className="mb-3 rounded-lg border border-warning/30 bg-warning/10 p-3 text-[13px] text-warning">
         Confirmá que ya contactaste al jugador y entregaste el premio por tu canal (email, CRM, mesa de ayuda, etc.).
       </div>
-      <label className="text-[12px] text-text-secondary">motivo (10–1000 caracteres)</label>
+      <label className="text-[14px] text-text-secondary">motivo (10–1000 caracteres)</label>
       <textarea className="field mt-1 min-h-24" value={reason} onChange={(e) => setReason(e.target.value)} />
-      <label className="mt-3 block text-[12px] text-text-secondary">referencia interna (opcional)</label>
+      <label className="mt-3 block text-[14px] text-text-secondary">referencia interna (opcional)</label>
       <input className="field mt-1" value={ref} onChange={(e) => setRef(e.target.value)} placeholder="ej. ticket #4521" />
       <div className="mt-4 flex gap-2">
         <Button variant="secondary" onClick={onClose}>

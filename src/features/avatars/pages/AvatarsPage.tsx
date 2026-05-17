@@ -179,13 +179,13 @@ export default function AvatarsPage() {
     {
       key: 'date',
       header: 'fecha',
-      render: (r) => <span className="text-[12px] text-text-secondary">{formatRelativeDate(r.unlocked_at)}</span>,
+      render: (r) => <span className="text-[14px] text-text-secondary">{formatRelativeDate(r.unlocked_at)}</span>,
     },
     {
       key: 'active',
       header: 'en uso',
       render: (r) => (
-        <span className={cn('text-[11px]', r.is_active ? 'text-success' : 'text-text-tertiary')}>
+        <span className={cn('text-[13px]', r.is_active ? 'text-success' : 'text-text-tertiary')}>
           {r.is_active ? 'sí' : 'no'}
         </span>
       ),
@@ -248,10 +248,10 @@ export default function AvatarsPage() {
       {tab === 'Catálogo' && (
         <>
           <div className="mb-4 flex items-center justify-between gap-3">
-            <p className="text-[12px] text-text-secondary">
+            <p className="text-[14px] text-text-secondary">
               {stats.active_count} / {stats.max_active} avatares creados
             </p>
-            {atLimit && <span className="text-[12px] text-danger">Límite alcanzado</span>}
+            {atLimit && <span className="text-[14px] text-danger">Límite alcanzado</span>}
           </div>
 
           <Toolbar
@@ -273,7 +273,7 @@ export default function AvatarsPage() {
                   />
                 ))}
                 <select
-                  className="field py-1.5 text-[12px]"
+                  className="field py-1.5 text-[14px]"
                   value={categoryFilter}
                   onChange={(e) => setCategoryFilter(e.target.value)}
                 >
@@ -283,7 +283,7 @@ export default function AvatarsPage() {
                   ))}
                 </select>
                 <select
-                  className="field py-1.5 text-[12px]"
+                  className="field py-1.5 text-[14px]"
                   value={methodFilter}
                   onChange={(e) => setMethodFilter(e.target.value as AvatarUnlockMethod | 'all')}
                 >
@@ -378,8 +378,8 @@ export default function AvatarsPage() {
         <>
           <div className="mb-4 flex flex-wrap items-end gap-3">
             <div>
-              <label className="mb-1 block text-[11px] text-text-tertiary">avatar</label>
-              <select className="field py-1.5 text-[12px]" value={invAvatarId} onChange={(e) => setInvAvatarId(e.target.value)}>
+              <label className="mb-1 block text-[13px] text-text-tertiary">avatar</label>
+              <select className="field py-1.5 text-[14px]" value={invAvatarId} onChange={(e) => setInvAvatarId(e.target.value)}>
                 <option value="all">todos</option>
                 {activeAvatars.map((a) => (
                   <option key={a.id} value={a.id}>{a.name}</option>
@@ -387,8 +387,8 @@ export default function AvatarsPage() {
               </select>
             </div>
             <div>
-              <label className="mb-1 block text-[11px] text-text-tertiary">categoría</label>
-              <select className="field py-1.5 text-[12px]" value={invCategoryId} onChange={(e) => setInvCategoryId(e.target.value)}>
+              <label className="mb-1 block text-[13px] text-text-tertiary">categoría</label>
+              <select className="field py-1.5 text-[14px]" value={invCategoryId} onChange={(e) => setInvCategoryId(e.target.value)}>
                 <option value="all">todas</option>
                 {categories.map((c) => (
                   <option key={c.id} value={c.id}>{c.name}</option>
@@ -396,8 +396,8 @@ export default function AvatarsPage() {
               </select>
             </div>
             <div>
-              <label className="mb-1 block text-[11px] text-text-tertiary">desbloqueo</label>
-              <select className="field py-1.5 text-[12px]" value={invVia} onChange={(e) => setInvVia(e.target.value as AvatarUnlockedVia | 'all')}>
+              <label className="mb-1 block text-[13px] text-text-tertiary">desbloqueo</label>
+              <select className="field py-1.5 text-[14px]" value={invVia} onChange={(e) => setInvVia(e.target.value as AvatarUnlockedVia | 'all')}>
                 <option value="all">todos</option>
                 {(Object.keys(viaLabels) as AvatarUnlockedVia[]).map((v) => (
                   <option key={v} value={v}>{viaLabels[v]}</option>
@@ -405,16 +405,16 @@ export default function AvatarsPage() {
               </select>
             </div>
             <div>
-              <label className="mb-1 block text-[11px] text-text-tertiary">jugador</label>
+              <label className="mb-1 block text-[13px] text-text-tertiary">jugador</label>
               <SearchInput placeholder="handle o id..." value={invPlayerSearch} onChange={(e) => setInvPlayerSearch(e.target.value)} />
             </div>
             <div>
-              <label className="mb-1 block text-[11px] text-text-tertiary">desde</label>
-              <input type="date" className="field py-1.5 text-[12px]" value={invFrom} onChange={(e) => setInvFrom(e.target.value)} />
+              <label className="mb-1 block text-[13px] text-text-tertiary">desde</label>
+              <input type="date" className="field py-1.5 text-[14px]" value={invFrom} onChange={(e) => setInvFrom(e.target.value)} />
             </div>
             <div>
-              <label className="mb-1 block text-[11px] text-text-tertiary">hasta</label>
-              <input type="date" className="field py-1.5 text-[12px]" value={invTo} onChange={(e) => setInvTo(e.target.value)} />
+              <label className="mb-1 block text-[13px] text-text-tertiary">hasta</label>
+              <input type="date" className="field py-1.5 text-[14px]" value={invTo} onChange={(e) => setInvTo(e.target.value)} />
             </div>
           </div>
 
@@ -435,7 +435,7 @@ export default function AvatarsPage() {
       {tab === 'Asignación manual' && (
         <div className="max-w-lg space-y-4 rounded-xl border border-border-subtle bg-bg-secondary p-6">
           <div>
-            <label className="mb-1.5 block text-[12px] text-text-secondary">Buscar jugador</label>
+            <label className="mb-1.5 block text-[14px] text-text-secondary">Buscar jugador</label>
             <SearchInput
               placeholder="handle o id (mín. 2 chars)..."
               value={grantPlayerQuery}
@@ -447,14 +447,14 @@ export default function AvatarsPage() {
                   <li key={p.player_id}>
                     <button
                       type="button"
-                      className="w-full px-3 py-2 text-left text-[12px] hover:bg-bg-tertiary"
+                      className="w-full px-3 py-2 text-left text-[14px] hover:bg-bg-tertiary"
                       onClick={() => {
                         setGrantPlayerId(p.player_id);
                         setGrantPlayerQuery(p.player_handle);
                       }}
                     >
                       {p.player_handle}
-                      <span className="ml-2 font-mono text-[10px] text-text-tertiary">{p.player_id}</span>
+                      <span className="ml-2 font-mono text-[12px] text-text-tertiary">{p.player_id}</span>
                     </button>
                   </li>
                 ))}
@@ -462,11 +462,11 @@ export default function AvatarsPage() {
             )}
           </div>
           <div>
-            <label className="mb-1.5 block text-[12px] text-text-secondary">player_id seleccionado</label>
-            <input className="field font-mono text-[12px]" value={grantPlayerId} onChange={(e) => setGrantPlayerId(e.target.value)} />
+            <label className="mb-1.5 block text-[14px] text-text-secondary">player_id seleccionado</label>
+            <input className="field font-mono text-[14px]" value={grantPlayerId} onChange={(e) => setGrantPlayerId(e.target.value)} />
           </div>
           <div>
-            <label className="mb-1.5 block text-[12px] text-text-secondary">Avatar</label>
+            <label className="mb-1.5 block text-[14px] text-text-secondary">Avatar</label>
             <select className="field" value={grantAvatarId} onChange={(e) => setGrantAvatarId(e.target.value)}>
               <option value="">Elegí…</option>
               {activeAvatars.map((a) => (
@@ -475,7 +475,7 @@ export default function AvatarsPage() {
             </select>
           </div>
           <div>
-            <label className="mb-1.5 block text-[12px] text-text-secondary">Razón (opcional)</label>
+            <label className="mb-1.5 block text-[14px] text-text-secondary">Razón (opcional)</label>
             <textarea className="field min-h-16" value={grantReason} onChange={(e) => setGrantReason(e.target.value)} />
           </div>
           <Button

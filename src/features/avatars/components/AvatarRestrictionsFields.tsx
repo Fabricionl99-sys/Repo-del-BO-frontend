@@ -20,7 +20,7 @@ export function AvatarRestrictionsFields({
   return (
     <div className="grid grid-cols-3 gap-3">
       <div>
-        <label className="mb-1 block text-[12px] text-text-secondary">nivel mínimo</label>
+        <label className="mb-1 block text-[14px] text-text-secondary">nivel mínimo</label>
         <input
           type="number"
           className="field"
@@ -32,7 +32,7 @@ export function AvatarRestrictionsFields({
       </div>
       <div className="flex items-end gap-2 pb-1">
         <Switch checked={vipOnly} onChange={(v) => setValue('restrictions.vip_only', v)} aria-label="solo VIP" />
-        <span className="text-[12px] text-text-secondary">solo VIP</span>
+        <span className="text-[14px] text-text-secondary">solo VIP</span>
       </div>
       <div className="flex items-end gap-2 pb-1">
         <Switch
@@ -40,7 +40,7 @@ export function AvatarRestrictionsFields({
           onChange={(v) => setValue('restrictions.new_players_only', v)}
           aria-label="solo jugadores nuevos"
         />
-        <span className="text-[12px] text-text-secondary">solo jugadores nuevos</span>
+        <span className="text-[14px] text-text-secondary">solo jugadores nuevos</span>
       </div>
     </div>
   );
