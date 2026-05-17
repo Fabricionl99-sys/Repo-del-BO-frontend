@@ -36,6 +36,7 @@ const PredictionsPage = lazy(() => import('@/features/predictions/pages/Predicti
 const FeedPlaceholderPage = lazy(() => import('@/features/feed/pages/FeedPlaceholderPage'));
 const WalletPage = lazy(() => import('@/features/wallet/pages/WalletPage'));
 const ModulesPage = lazy(() => import('@/features/modules/pages/ModulesPage'));
+const BonusesPage = lazy(() => import('@/features/operatorBonuses/pages/BonusesPage'));
 const ComingSoonPage = lazy(() => import('@/pages/ComingSoonPage'));
 const NotFoundPage = lazy(() => import('@/pages/NotFoundPage'));
 
@@ -89,6 +90,7 @@ export const router = createBrowserRouter([
       { path: 'torneos', element: wrap(<TournamentsPage />) },
       { path: 'torneos/nuevo', element: wrap(<TournamentEditorPage />) },
       { path: 'torneos/:id', element: wrap(<TournamentEditorPage />) },
+      { path: 'bonos', element: wrap(<BonusesPage />) },
       { path: 'tienda', element: wrap(<ShopPage />) },
       { path: 'tienda/nuevo', element: wrap(<ShopPage />) },
       { path: 'tienda/:id', element: wrap(<ShopPage />) },

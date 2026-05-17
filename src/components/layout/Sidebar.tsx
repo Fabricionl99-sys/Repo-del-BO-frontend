@@ -9,6 +9,7 @@ import {
   ChevronRight,
   Coins,
   Flame,
+  Gift,
   Inbox,
   KeyRound,
   LayoutGrid,
@@ -71,6 +72,7 @@ const sections = [
   {
     label: 'Operaciones',
     items: [
+      ['/bonos', 'Bonos', Gift] as const,
       ['/tienda', 'Tienda', ShoppingBag] as const,
       ['/bandeja-premios', 'Bandeja de premios', Inbox] as const,
       ['/notificaciones', 'Notificaciones', Bell] as const,
