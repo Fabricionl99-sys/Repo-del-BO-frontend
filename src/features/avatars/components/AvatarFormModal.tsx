@@ -2,6 +2,8 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { useEffect, useState } from 'react';
 import { useForm, useWatch } from 'react-hook-form';
 
+import { MediaUploader } from '@/components/media/MediaUploader';
+import { mediaValueFromUrl } from '@/components/media/mediaUrl';
 import { Button } from '@/components/ui/Button';
 import { Modal } from '@/components/ui/Modal';
 import { Switch } from '@/components/ui/Switch';
@@ -18,7 +20,6 @@ import {
   formToMetadataPayload,
   type AvatarFormValues,
 } from '../avatarForm';
-import { AvatarImageUploadZone, fileToDataUrl } from './AvatarImageUploadZone';
 import { AvatarRestrictionsFields } from './AvatarRestrictionsFields';
 import { AvatarUnlockConfigFields } from './AvatarUnlockConfigFields';
 
@@ -41,8 +42,7 @@ export function AvatarFormModal({
   const updateAvatar = useUpdateAvatar();
   const archiveAvatar = useArchiveAvatar();
 
-  const [uploadFile, setUploadFile] = useState<File | null>(null);
-  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [imageUrl, setImageUrl] = useState('');
   const [imageError, setImageError] = useState<string | undefined>();
 
   const form = useForm<AvatarFormValues>({
@@ -68,8 +68,7 @@ export function AvatarFormModal({
   useEffect(() => {
     if (!open) return;
     reset(avatar ? avatarToForm(avatar) : defaultAvatarForm());
-    setUploadFile(null);
-    setPreviewUrl(avatar?.image_url ?? null);
+    setImageUrl(avatar?.image_url ?? '');
     setImageError(undefined);
   }, [open, avatar, reset]);
 
@@ -78,24 +77,19 @@ export function AvatarFormModal({
       setError('code', { message: 'El code ya existe' });
       return;
     }
-    if (!isEdit && !uploadFile && !previewUrl) {
+    if (!imageUrl.trim()) {
       setImageError('Subí una imagen para el avatar');
       return;
     }
 
     if (isEdit && avatar) {
-      let image_url: string | undefined;
-      if (uploadFile) {
-        image_url = await fileToDataUrl(uploadFile);
-      }
       await updateAvatar.mutateAsync({
         id: avatar.id,
         ...formToMetadataPayload(values),
-        ...(image_url ? { image_url } : {}),
+        ...(imageUrl !== avatar.image_url ? { image_url: imageUrl } : {}),
       });
     } else {
-      const image_url = uploadFile ? await fileToDataUrl(uploadFile) : previewUrl!;
-      await createAvatar.mutateAsync(formToCreatePayload(values, image_url));
+      await createAvatar.mutateAsync(formToCreatePayload(values, imageUrl));
     }
     onClose();
   });
@@ -141,18 +135,15 @@ export function AvatarFormModal({
 
       <ConfiguratorScaffold>
         <ConfigSection title="Imagen">
-          <AvatarImageUploadZone
-            previewUrl={previewUrl}
-            error={imageError}
-            onValidated={(file, url) => {
-              setUploadFile(file);
-              setPreviewUrl(url);
+          <MediaUploader
+            value={mediaValueFromUrl(imageUrl)}
+            onChange={(v) => {
+              setImageUrl(v?.url ?? '');
               setImageError(undefined);
             }}
-            onClear={() => {
-              setUploadFile(null);
-              setPreviewUrl(null);
-            }}
+            context={{ module: 'avatars', purpose: 'main_image' }}
+            required={!isEdit}
+            error={imageError}
           />
         </ConfigSection>
 

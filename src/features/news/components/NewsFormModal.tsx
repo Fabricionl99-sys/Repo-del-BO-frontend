@@ -3,6 +3,7 @@ import { Monitor, Smartphone } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useForm, useWatch } from 'react-hook-form';
 
+import { MediaUploaderRhf } from '@/components/media/MediaUploaderRhf';
 import { Button } from '@/components/ui/Button';
 import { Modal } from '@/components/ui/Modal';
 import { Switch } from '@/components/ui/Switch';
@@ -10,14 +11,11 @@ import { ConfigSection, ConfiguratorScaffold } from '@/components/configurator/C
 import { MarkdownContent } from '@/features/apiKeys/components/MarkdownContent';
 import { usePlayerSearch } from '@/features/chests/chestsApi';
 import { NewsWidgetPreview } from '@/features/news/components/NewsCard';
-import { NewsUploadZone } from '@/features/news/components/NewsUploadZone';
 import {
   usePreviewNews,
   usePublishNews,
   useSaveNews,
   useUnpublishNews,
-  useUploadNewsBanner,
-  useUploadNewsThumbnail,
 } from '@/features/news/newsApi';
 import {
   CATEGORY_LABELS,
@@ -33,7 +31,6 @@ import {
   TARGET_AUDIENCE_LABELS,
   type NewsFormValues,
 } from '@/features/news/newsForm';
-import { validateNewsImage } from '@/features/news/newsUploadValidation';
 import { useDebounce } from '@/hooks/useDebounce';
 import { cn } from '@/lib/cn';
 import type { NewsItem } from '@/types/news';
@@ -53,9 +50,6 @@ export function NewsFormModal({
   const publish = usePublishNews();
   const unpublish = useUnpublishNews();
   const previewMut = usePreviewNews();
-  const uploadBanner = useUploadNewsBanner();
-  const uploadThumb = useUploadNewsThumbnail();
-
   const [previewMobile, setPreviewMobile] = useState(false);
   const [playerQuery, setPlayerQuery] = useState('');
   const debouncedPlayerQuery = useDebounce(playerQuery, 250);
@@ -125,16 +119,6 @@ export function NewsFormModal({
     await previewMut.mutateAsync(formToPayload(form.getValues()));
   };
 
-  const handleBannerUpload = async (previewUrl: string) => {
-    const res = await uploadBanner.mutateAsync();
-    setValue('banner_image_url', res.finalUrl || previewUrl, { shouldValidate: true });
-  };
-
-  const handleThumbUpload = async (previewUrl: string) => {
-    const res = await uploadThumb.mutateAsync();
-    setValue('thumbnail_url', res.finalUrl || previewUrl, { shouldValidate: true });
-  };
-
   return (
     <Modal
       open={open}
@@ -185,26 +169,22 @@ export function NewsFormModal({
                 {errors.body_text && <p className="mt-1 text-[13px] text-danger">{errors.body_text.message}</p>}
               </div>
               <div>
-                <label className="mb-1.5 block text-[14px] text-text-secondary">banner (1200×300 recomendado, 1 MB)</label>
-                <NewsUploadZone
-                  previewUrl={bannerUrl || null}
-                  hint="JPG o PNG · arrastrá la imagen del banner"
-                  validate={(f) => validateNewsImage(f, { maxMb: 1, recommended: '1200x300' })}
-                  onValidated={(url) => void handleBannerUpload(url)}
-                  onClear={() => setValue('banner_image_url', '', { shouldValidate: true })}
-                  previewClassName="h-24 w-full"
+                <label className="mb-1.5 block text-[14px] text-text-secondary">Banner</label>
+                <MediaUploaderRhf
+                  control={control}
+                  name="banner_image_url"
+                  context={{ module: 'news', purpose: 'banner' }}
                   error={errors.banner_image_url?.message}
+                  required
                 />
               </div>
               <div>
-                <label className="mb-1.5 block text-[14px] text-text-secondary">thumbnail (opcional, 200×200)</label>
-                <NewsUploadZone
-                  previewUrl={watch('thumbnail_url') || null}
-                  hint="Miniatura para el catálogo"
-                  validate={(f) => validateNewsImage(f, { maxMb: 1, recommended: '200x200' })}
-                  onValidated={(url) => void handleThumbUpload(url)}
-                  onClear={() => setValue('thumbnail_url', '')}
-                  previewClassName="h-20 w-20"
+                <label className="mb-1.5 block text-[14px] text-text-secondary">Thumbnail (opcional)</label>
+                <MediaUploaderRhf
+                  control={control}
+                  name="thumbnail_url"
+                  context={{ module: 'news', purpose: 'thumbnail' }}
+                  error={errors.thumbnail_url?.message}
                 />
               </div>
               <div className="grid grid-cols-2 gap-3 max-md:grid-cols-1">

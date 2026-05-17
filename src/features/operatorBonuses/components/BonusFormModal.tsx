@@ -3,6 +3,7 @@ import { CheckCircle2, Loader2, XCircle } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 
+import { MediaUploaderRhf } from '@/components/media/MediaUploaderRhf';
 import { Button } from '@/components/ui/Button';
 import { Modal } from '@/components/ui/Modal';
 import { Switch } from '@/components/ui/Switch';
@@ -10,7 +11,6 @@ import { ConfigSection, ConfiguratorScaffold } from '@/components/configurator/C
 import {
   useReactivateOperatorBonus,
   useSaveOperatorBonus,
-  useUploadBonusImage,
   useValidateBonusId,
   useVerifyOperatorBonus,
 } from '@/features/operatorBonuses/operatorBonusesApi';
@@ -38,7 +38,6 @@ export function BonusFormModal({
   const validate = useValidateBonusId();
   const verify = useVerifyOperatorBonus();
   const reactivate = useReactivateOperatorBonus();
-  const upload = useUploadBonusImage();
 
   const [validationState, setValidationState] = useState<'idle' | 'loading' | 'valid' | 'invalid'>('idle');
 
@@ -47,7 +46,7 @@ export function BonusFormModal({
     defaultValues: defaultOperatorBonusForm(),
   });
 
-  const { register, handleSubmit, reset, setValue, watch, formState: { errors } } = form;
+  const { register, handleSubmit, reset, setValue, watch, control, formState: { errors } } = form;
   const externalId = watch('external_id');
   const isActive = watch('is_active');
 
@@ -78,11 +77,6 @@ export function BonusFormModal({
     await save.mutateAsync({ id: bonus?.id, ...formToBonusPayload(values) });
     onClose();
   });
-
-  const handleUpload = async () => {
-    const res = await upload.mutateAsync();
-    setValue('image_url', res.finalUrl);
-  };
 
   return (
     <Modal
@@ -157,14 +151,14 @@ export function BonusFormModal({
             <label className="mb-1.5 block text-[14px] text-text-secondary">Descripción interna</label>
             <textarea className="field min-h-[80px]" {...register('description')} />
           </div>
-          <div className="mt-3 flex flex-wrap items-end gap-3">
-            <div className="min-w-0 flex-1">
-              <label className="mb-1.5 block text-[14px] text-text-secondary">image_url</label>
-              <input className="field" {...register('image_url')} />
-            </div>
-            <Button variant="secondary" size="sm" loading={upload.isPending} onClick={handleUpload}>
-              Subir imagen
-            </Button>
+          <div className="mt-3">
+            <label className="mb-1.5 block text-[14px] text-text-secondary">Imagen del bono</label>
+            <MediaUploaderRhf
+              control={control}
+              name="image_url"
+              context={{ module: 'bonuses', purpose: 'thumbnail' }}
+              error={errors.image_url?.message}
+            />
           </div>
           <div className="mt-3 max-w-xs">
             <label className="mb-1.5 block text-[14px] text-text-secondary">default_value_usd</label>

@@ -2,6 +2,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { useEffect } from 'react';
 import { useForm, useWatch } from 'react-hook-form';
 
+import { MediaUploaderRhf } from '@/components/media/MediaUploaderRhf';
 import { RewardSelectorRhf } from '@/components/rewards/RewardSelectorRhf';
 import { Button } from '@/components/ui/Button';
 import { Modal } from '@/components/ui/Modal';
@@ -65,9 +66,14 @@ export function ChestPrizeFormModal({
           {errors.name && <p className="mt-1 text-[13px] text-danger">{errors.name.message}</p>}
         </div>
         <div>
-          <label className="mb-1.5 block text-[14px] text-text-secondary">image_url</label>
-          <input className="field" placeholder="https://..." {...register('image_url')} />
-          {errors.image_url && <p className="mt-1 text-[13px] text-danger">{errors.image_url.message}</p>}
+          <label className="mb-1.5 block text-[14px] text-text-secondary">Imagen del premio</label>
+          <MediaUploaderRhf
+            control={control}
+            name="image_url"
+            context={{ module: 'chests', purpose: 'thumbnail' }}
+            error={errors.image_url?.message}
+            compact
+          />
         </div>
         <RewardSelectorRhf moduleKey="chests" control={control} name="reward" />
         <div>

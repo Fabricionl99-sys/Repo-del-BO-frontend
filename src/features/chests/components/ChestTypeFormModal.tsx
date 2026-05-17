@@ -3,6 +3,7 @@ import { Plus, Trash2 } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import { useForm, useWatch } from 'react-hook-form';
 
+import { MediaUploaderRhf } from '@/components/media/MediaUploaderRhf';
 import { Button } from '@/components/ui/Button';
 import { Modal } from '@/components/ui/Modal';
 import { Switch } from '@/components/ui/Switch';
@@ -70,7 +71,6 @@ export function ChestTypeFormModal({
     formState: { errors },
   } = form;
 
-  const imageUrl = useWatch({ control, name: 'image_url' });
   const colorTheme = useWatch({ control, name: 'color_theme' });
   const isActive = useWatch({ control, name: 'is_active' });
   const noExpiration = useWatch({ control, name: 'no_expiration' });
@@ -189,11 +189,13 @@ export function ChestTypeFormModal({
               <textarea className="field min-h-16" {...register('description')} />
             </div>
             <div className="mt-3">
-              <label className="mb-1.5 block text-[14px] text-text-secondary">image_url</label>
-              <input className="field" placeholder="https://..." {...register('image_url')} />
-              {imageUrl && (
-                <img src={imageUrl} alt="preview" className="mt-2 h-24 rounded-lg border border-border-subtle object-cover" />
-              )}
+              <label className="mb-1.5 block text-[14px] text-text-secondary">Imagen del cofre</label>
+              <MediaUploaderRhf
+                control={control}
+                name="image_url"
+                context={{ module: 'chests', purpose: 'main_image' }}
+                error={errors.image_url?.message}
+              />
             </div>
             <div className="mt-3">
               <label className="mb-1.5 block text-[14px] text-text-secondary">color_theme</label>

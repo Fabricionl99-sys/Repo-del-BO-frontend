@@ -3,12 +3,13 @@ import { Plus, Trash2 } from 'lucide-react';
 import { useEffect } from 'react';
 import { useFieldArray, useForm, useWatch } from 'react-hook-form';
 
+import { MediaUploaderRhf } from '@/components/media/MediaUploaderRhf';
 import { Button } from '@/components/ui/Button';
 import { Modal } from '@/components/ui/Modal';
 import { Switch } from '@/components/ui/Switch';
 import { ConfigSection, ConfiguratorScaffold } from '@/components/configurator/ConfiguratorScaffold';
 import { RewardSelectorRhf } from '@/components/rewards/RewardSelectorRhf';
-import { useOperatorGames, useSaveTournament, useUploadTournamentBanner } from '@/features/tournaments/tournamentsApi';
+import { useOperatorGames, useSaveTournament } from '@/features/tournaments/tournamentsApi';
 import {
   ACTIVITY_LABELS,
   AUDIENCE_LABELS,
@@ -42,7 +43,6 @@ export function TournamentFormModal({
   onClose: () => void;
 }) {
   const save = useSaveTournament();
-  const uploadBanner = useUploadTournamentBanner();
   const gamesQ = useOperatorGames();
   const games = gamesQ.data ?? [];
 
@@ -100,11 +100,6 @@ export function TournamentFormModal({
     onClose();
   });
 
-  const handleUploadBanner = async () => {
-    const res = await uploadBanner.mutateAsync();
-    setValue('image_url', res.finalUrl);
-  };
-
   return (
     <Modal
       open={open}
@@ -139,14 +134,14 @@ export function TournamentFormModal({
             <label className="mb-1.5 block text-[14px] text-text-secondary">Descripción</label>
             <textarea className="field min-h-[80px]" {...register('description')} />
           </div>
-          <div className="flex flex-wrap items-end gap-3">
-            <div className="min-w-0 flex-1">
-              <label className="mb-1.5 block text-[14px] text-text-secondary">Banner URL</label>
-              <input className="field" {...register('image_url')} />
-            </div>
-            <Button variant="secondary" size="sm" loading={uploadBanner.isPending} onClick={handleUploadBanner}>
-              Subir banner
-            </Button>
+          <div>
+            <label className="mb-1.5 block text-[14px] text-text-secondary">Banner del torneo</label>
+            <MediaUploaderRhf
+              control={control}
+              name="image_url"
+              context={{ module: 'tournaments', purpose: 'banner' }}
+              error={errors.image_url?.message}
+            />
           </div>
           <div className="grid gap-3 sm:grid-cols-3">
             <div>

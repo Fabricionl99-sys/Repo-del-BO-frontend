@@ -3,6 +3,7 @@ import { ArrowDown, ArrowUp, Plus, Trash2 } from 'lucide-react';
 import { useEffect } from 'react';
 import { useFieldArray, useForm, useWatch } from 'react-hook-form';
 
+import { MediaUploaderRhf } from '@/components/media/MediaUploaderRhf';
 import { Button } from '@/components/ui/Button';
 import { Modal } from '@/components/ui/Modal';
 import { Switch } from '@/components/ui/Switch';
@@ -164,8 +165,13 @@ export function PredictionFormModal({
                     <input className="field" {...register(`options.${index}.text`)} />
                   </div>
                   <div>
-                    <label className="mb-1.5 block text-[14px] text-text-secondary">image_url (opcional)</label>
-                    <input className="field" {...register(`options.${index}.image_url`)} />
+                    <label className="mb-1.5 block text-[14px] text-text-secondary">Imagen (opcional)</label>
+                    <MediaUploaderRhf
+                      control={control}
+                      name={`options.${index}.image_url`}
+                      context={{ module: 'predictions', purpose: 'thumbnail' }}
+                      compact
+                    />
                   </div>
                 </div>
                 <div className="mt-3">

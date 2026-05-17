@@ -18,6 +18,7 @@ import {
 import { useSaveShopProduct } from '@/features/shop/shopApi';
 import type { ShopProduct } from '@/types/shop';
 
+import { MediaUploaderRhf } from '@/components/media/MediaUploaderRhf';
 import { RewardSelectorRhf } from '@/components/rewards/RewardSelectorRhf';
 import type { RewardTypeCode } from '@/types/rewards';
 
@@ -103,9 +104,13 @@ export function ShopProductFormModal({
             <textarea className="field min-h-16" {...register('description')} />
           </div>
           <div className="mt-3">
-            <label className="mb-1.5 block text-[14px] text-text-secondary">image_url</label>
-            <input className="field" placeholder="https://..." {...register('image_url')} />
-            {errors.image_url && <p className="mt-1 text-[13px] text-danger">{errors.image_url.message}</p>}
+            <label className="mb-1.5 block text-[14px] text-text-secondary">Imagen del producto</label>
+            <MediaUploaderRhf
+              control={control}
+              name="image_url"
+              context={{ module: 'shop', purpose: 'main_image' }}
+              error={errors.image_url?.message}
+            />
           </div>
         </ConfigSection>
 
