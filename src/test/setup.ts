@@ -25,10 +25,13 @@ import { queryClient } from '@/api/queryClient';
 import { sanitizeBoPersistentState } from '@/lib/sanitizeBoPersistentState';
 
 beforeAll(() => server.listen({ onUnhandledRequest: 'error' }));
-afterEach(() => {
+afterEach(async () => {
   cleanup();
   server.resetHandlers();
   localStorage.clear();
   sanitizeBoPersistentState(queryClient);
+  const { apiKeysStore, seedApiKeys, seedRequestLogs } = await import('@/mocks/data/apiKeys');
+  apiKeysStore.keys = [...seedApiKeys];
+  apiKeysStore.logs = [...seedRequestLogs];
 });
 afterAll(() => server.close());
