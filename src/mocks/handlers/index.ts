@@ -238,19 +238,13 @@ handlers.push(
   http.get('*/admin/tournaments/:id/leaderboard', async () => { await wait(); return HttpResponse.json([{ rank: 1, player: 'crypto_king_88', score: 128470 }, { rank: 2, player: 'MariaG_bet', score: 98200 }]); }),
 );
 
-import { channels, news, products, templates } from '@/mocks/data/tier4';
+import { news, products } from '@/mocks/data/tier4';
 crudHandlers('product', 'products', products);
-crudHandlers('template', 'notifications/templates', templates);
 crudHandlers('news', 'news', news);
 handlers.push(
   http.post('*/admin/products/upload-url', async () => { await wait(); return HttpResponse.json({ uploadUrl: 'https://uploads.preview.niveles.io/mock-product', finalUrl: 'https://images.unsplash.com/photo-1511512578047-dfb367046420?w=500' }); }),
   http.post('*/admin/products/import', async () => { await wait(); return HttpResponse.json({ imported: 3 }); }),
   http.get('*/admin/products/:id/redemptions', async () => { await wait(); return HttpResponse.json([{ id: 'red_1', player: 'crypto_king_88', redeemedAt: new Date().toISOString() }]); }),
-  http.get('*/admin/notifications/channels', async () => { await wait(); return HttpResponse.json(channels); }),
-  http.get('*/admin/notifications/channels/:kind', async ({ params }) => { await wait(); return HttpResponse.json(channels.find((channel) => channel.kind === params.kind) ?? channels[0]); }),
-  http.patch('*/admin/notifications/channels/:kind', async ({ params, request }) => { await wait(); const channel = channels.find((item) => item.kind === params.kind) ?? channels[0]; Object.assign(channel, await request.json()); return HttpResponse.json(channel); }),
-  http.post('*/admin/notifications/channels/:kind/test', async () => { await wait(); return HttpResponse.json({ ok: true }); }),
-  http.post('*/admin/notifications/templates/:id/send', async () => { await wait(); return HttpResponse.json({ sent: 1284 }); }),
   http.patch('*/admin/news/:id/pin', async ({ params }) => { await wait(); const item = news.find((entry) => entry.id === params.id) ?? news[0]; item.pinned = !item.pinned; return HttpResponse.json(item); }),
   http.post('*/admin/news/:id/publish', async ({ params }) => { await wait(); const item = news.find((entry) => entry.id === params.id) ?? news[0]; item.status = 'published'; item.publishedAt = new Date().toISOString(); return HttpResponse.json(item); }),
   http.post('*/admin/news/:id/unpublish', async ({ params }) => { await wait(); const item = news.find((entry) => entry.id === params.id) ?? news[0]; item.status = 'unpublished'; return HttpResponse.json(item); }),
@@ -320,6 +314,147 @@ handlers.push(
     return HttpResponse.json({
       data: { url: 'https://images.unsplash.com/photo-1542751371-adc38448a05e?w=1920' },
     });
+  }),
+);
+
+import {
+  maskChannelConfig,
+  notificationChannels,
+  notificationHistory,
+  notificationStats,
+  notificationTemplates,
+} from '@/mocks/data/notifications';
+import type {
+  ChannelPatchPayload,
+  ChannelType,
+  ManualSendPayload,
+  NotificationTemplatePayload,
+  TemplatePreviewPayload,
+} from '@/types/notifications';
+import { buildPreviewFromTemplate } from '@/features/notifications/notificationPreview';
+
+handlers.push(
+  http.get('*/admin/notifications/channels', async () => {
+    await wait();
+    return HttpResponse.json({ data: notificationChannels.map(maskChannelConfig) });
+  }),
+  http.patch('*/admin/notifications/channels/:type', async ({ params, request }) => {
+    await wait();
+    const type = String(params.type) as ChannelType;
+    const body = (await request.json()) as ChannelPatchPayload;
+    const channel = notificationChannels.find((c) => c.channel_type === type) ?? notificationChannels[0];
+    if (body.is_enabled !== undefined) channel.is_enabled = body.is_enabled;
+    if (body.config) {
+      const cfg = body.config as Record<string, unknown>;
+      const current = channel.config as unknown as Record<string, unknown>;
+      Object.entries(cfg).forEach(([k, v]) => {
+        if (typeof v === 'string' && v.includes('••••')) return;
+        current[k] = v;
+      });
+      if (type !== 'in_app') channel.is_configured = true;
+    }
+    return HttpResponse.json({ data: maskChannelConfig(channel) });
+  }),
+  http.post('*/admin/notifications/channels/:type/test', async ({ params }) => {
+    await wait();
+    const type = String(params.type) as ChannelType;
+    const channel = notificationChannels.find((c) => c.channel_type === type) ?? notificationChannels[0];
+    channel.last_tested_at = new Date().toISOString();
+    channel.last_test_status = channel.is_configured || type === 'in_app' ? 'success' : 'failed';
+    return HttpResponse.json({ data: { ok: channel.last_test_status === 'success' } });
+  }),
+  http.get('*/admin/notifications/templates', async ({ request }) => {
+    await wait();
+    const url = new URL(request.url);
+    const trigger = url.searchParams.get('trigger_event');
+    const channel = url.searchParams.get('channel');
+    const status = url.searchParams.get('status');
+    const search = (url.searchParams.get('search') ?? '').toLowerCase();
+    let list = [...notificationTemplates];
+    if (trigger) list = list.filter((t) => t.trigger_event === trigger);
+    if (channel) list = list.filter((t) => t.channels.includes(channel as ChannelType));
+    if (status === 'active') list = list.filter((t) => t.is_active);
+    if (status === 'archived') list = list.filter((t) => !t.is_active);
+    if (search) {
+      list = list.filter(
+        (t) => t.name.toLowerCase().includes(search) || t.code.toLowerCase().includes(search),
+      );
+    }
+    return HttpResponse.json({ data: list });
+  }),
+  http.get('*/admin/notifications/templates/:id', async ({ params }) => {
+    await wait();
+    const id = String(params.id);
+    const item = notificationTemplates.find((t) => t.id === id) ?? notificationTemplates[0];
+    return HttpResponse.json({ data: item });
+  }),
+  http.post('*/admin/notifications/templates', async ({ request }) => {
+    await wait();
+    const body = (await request.json()) as NotificationTemplatePayload;
+    if (notificationTemplates.some((t) => t.code === body.code)) {
+      return HttpResponse.json({ message: 'code duplicado' }, { status: 409 });
+    }
+    const item = { ...body, id: `ntpl_${Date.now()}` };
+    notificationTemplates.unshift(item);
+    return HttpResponse.json({ data: item }, { status: 201 });
+  }),
+  http.patch('*/admin/notifications/templates/:id', async ({ params, request }) => {
+    await wait();
+    const body = (await request.json()) as Partial<NotificationTemplatePayload>;
+    const item = notificationTemplates.find((t) => t.id === params.id) ?? notificationTemplates[0];
+    Object.assign(item, body);
+    return HttpResponse.json({ data: item });
+  }),
+  http.delete('*/admin/notifications/templates/:id', async ({ params }) => {
+    await wait();
+    const item = notificationTemplates.find((t) => t.id === params.id);
+    if (item) item.is_active = false;
+    return new HttpResponse(null, { status: 204 });
+  }),
+  http.post('*/admin/notifications/templates/:id/preview', async ({ params, request }) => {
+    await wait();
+    const body = (await request.json()) as TemplatePreviewPayload;
+    const item = notificationTemplates.find((t) => t.id === params.id) ?? notificationTemplates[0];
+    const preview = buildPreviewFromTemplate(item, body.channel_type, body.variable_overrides ?? {});
+    return HttpResponse.json({ data: preview });
+  }),
+  http.get('*/admin/notifications/history', async ({ request }) => {
+    await wait();
+    const url = new URL(request.url);
+    const playerId = url.searchParams.get('player_id');
+    const templateCode = url.searchParams.get('template_code');
+    const status = url.searchParams.get('delivery_status');
+    const channelType = url.searchParams.get('channel_type');
+    let list = [...notificationHistory];
+    if (playerId) list = list.filter((h) => h.player_id === playerId);
+    if (templateCode) list = list.filter((h) => h.template_code === templateCode);
+    if (status) list = list.filter((h) => h.delivery_status === status);
+    if (channelType) list = list.filter((h) => h.channel_type === channelType);
+    return HttpResponse.json({ data: list.slice(0, 100) });
+  }),
+  http.post('*/admin/notifications/send-manual', async ({ request }) => {
+    await wait();
+    const body = (await request.json()) as ManualSendPayload;
+    const tpl = notificationTemplates.find((t) => t.id === body.template_id) ?? notificationTemplates[0];
+    notificationHistory.unshift({
+      id: `nh_${Date.now()}`,
+      player_id: body.player_id,
+      player_handle: body.player_id,
+      template_code: tpl.code,
+      template_name: tpl.name,
+      channel_type: tpl.channels[0] ?? 'in_app',
+      trigger_event: 'manual',
+      sent_at: new Date().toISOString(),
+      delivery_status: 'sent',
+      error_message: null,
+      subject_snapshot: tpl.subject,
+      body_snapshot: tpl.body,
+    });
+    return HttpResponse.json({ data: { ok: true } });
+  }),
+  http.get('*/admin/notifications/stats', async () => {
+    await wait();
+    return HttpResponse.json({ data: notificationStats });
   }),
 );
 
