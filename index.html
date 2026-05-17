@@ -1,1 +1,24 @@
-<!doctype html><html lang="es"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><title>niveles · Backoffice</title></head><body><div id="root"></div><script type="module" src="/src/main.tsx"></script></body></html>
+<!doctype html>
+<html lang="es" class="dark">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>niveles · Backoffice</title>
+    <script>
+      (function () {
+        var key = 'niveles_theme_preference_v1';
+        var theme = 'dark';
+        try {
+          var stored = localStorage.getItem(key);
+          if (stored === 'light') theme = 'light';
+        } catch (e) {}
+        document.documentElement.classList.remove('dark', 'light');
+        document.documentElement.classList.add(theme);
+      })();
+    </script>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>
