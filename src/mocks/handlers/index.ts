@@ -2,6 +2,7 @@ import { delay, http, HttpResponse } from 'msw';
 import { metricsByPeriod, activity, systemStatus } from '@/mocks/data/dashboard';
 import { teamMembers } from '@/mocks/data/team';
 import { apiKeysHandlers } from '@/mocks/handlers/apiKeysHandlers';
+import { webhooksHandlers } from '@/mocks/handlers/webhooksHandlers';
 const wait = () =>
   import.meta.env.MODE === 'test' ? Promise.resolve() : delay(200 + Math.random() * 600);
 export const handlers=[
@@ -16,6 +17,7 @@ http.post('*/admin/team/invitations/:id/resend',async()=>{await wait(); return H
 ];
 
 handlers.push(...apiKeysHandlers);
+handlers.push(...webhooksHandlers);
 
 import { coins, coinsConfig, coinsGlobalRules, levelsCurve, ruleListItems, xpRules } from '@/mocks/data/tier2';
 
@@ -95,9 +97,7 @@ handlers.push(
 import { missions, tournaments } from '@/mocks/data/tier3';
 import { streakPrograms } from '@/mocks/data/streakPrograms';
 import { playerStreakDetails, playerStreakSummaries } from '@/mocks/data/playerStreaks';
-import { rewardEndpoints } from '@/mocks/data/rewardEndpoints';
 import { pendingDeliveries } from '@/mocks/data/deliveries';
-import type { RewardEndpointPingStatus, RewardTypeCode } from '@/types/rewardEndpoints';
 
 function crudHandlers<T extends { id: string }>(key: string, path: string, data: T[]) {
   handlers.push(
@@ -218,13 +218,6 @@ handlers.push(
     };
     return HttpResponse.json({ data: detail });
   }),
-  http.get('*/admin/reward-endpoints', async () => { await wait(); return HttpResponse.json(rewardEndpoints.map((e) => { const o = { ...e }; delete o.hmac_secret; return o; })); }),
-  http.get('*/admin/reward-endpoints/:reward_type_id', async ({ params }) => { await wait(); const id = Number(params.reward_type_id); const item = rewardEndpoints.find((e) => e.reward_type_id === id) ?? rewardEndpoints[0]; const o = { ...item }; delete o.hmac_secret; return HttpResponse.json(o); }),
-  http.post('*/admin/reward-endpoints', async ({ request }) => { await wait(); const body = (await request.json()) as { reward_type_code: string; url: string }; const secret = `whsec_${Math.random().toString(36).slice(2)}${Math.random().toString(36).slice(2)}`; const nextId = Math.max(0, ...rewardEndpoints.map((e) => e.reward_type_id)) + 1; const row = { reward_type_id: nextId, reward_type_code: body.reward_type_code as RewardTypeCode, url: body.url, is_enabled: true, last_ping_at: null, last_ping_status: null as RewardEndpointPingStatus, last_ping_message: null, hmac_secret_last4: secret.slice(-4), created_at: new Date().toISOString(), updated_at: new Date().toISOString(), hmac_secret: secret }; rewardEndpoints.push(row); return HttpResponse.json(row, { status: 201 }); }),
-  http.patch('*/admin/reward-endpoints/:reward_type_id', async ({ params, request }) => { await wait(); const id = Number(params.reward_type_id); const item = rewardEndpoints.find((e) => e.reward_type_id === id) ?? rewardEndpoints[0]; Object.assign(item, await request.json()); item.updated_at = new Date().toISOString(); return HttpResponse.json(item); }),
-  http.post('*/admin/reward-endpoints/:reward_type_id/ping', async ({ params }) => { await wait(); const id = Number(params.reward_type_id); const item = rewardEndpoints.find((e) => e.reward_type_id === id) ?? rewardEndpoints[0]; const ok = item.url.includes('example.com'); item.last_ping_at = new Date().toISOString(); item.last_ping_status = ok ? 'ok' : 'error'; item.last_ping_message = ok ? '200 OK' : 'Connection refused'; return HttpResponse.json({ ok, status_code: ok ? 200 : 0, message: item.last_ping_message }); }),
-  http.post('*/admin/reward-endpoints/:reward_type_id/regenerate-secret', async ({ params }) => { await wait(); const id = Number(params.reward_type_id); const item = rewardEndpoints.find((e) => e.reward_type_id === id) ?? rewardEndpoints[0]; const secret = `whsec_${Math.random().toString(36).slice(2)}${Math.random().toString(36).slice(2)}`; item.hmac_secret_last4 = secret.slice(-4); item.updated_at = new Date().toISOString(); return HttpResponse.json({ ...item, hmac_secret: secret }); }),
-  http.delete('*/admin/reward-endpoints/:reward_type_id', async ({ params }) => { await wait(); const id = Number(params.reward_type_id); const i = rewardEndpoints.findIndex((e) => e.reward_type_id === id); if (i >= 0) rewardEndpoints.splice(i, 1); return new HttpResponse(null, { status: 204 }); }),
   http.get('*/admin/deliveries', async ({ request }) => { await wait(); const url = new URL(request.url); const status = url.searchParams.getAll('status'); const offset = Number(url.searchParams.get('offset') ?? 0); const limit = Math.min(200, Number(url.searchParams.get('limit') ?? 50)); let list = [...pendingDeliveries]; if (status.length) list = list.filter((d) => status.includes(d.status)); const slice = list.slice(offset, offset + limit); return HttpResponse.json({ items: slice, total: list.length, limit, offset }); }),
   http.get('*/admin/pending-deliveries', async () => { await wait(); const problem = new Set(['failed_exhausted', 'delivery_window_expired', 'manual_pending_operator']); const items = pendingDeliveries.filter((d) => problem.has(d.status)); return HttpResponse.json({ items, total: items.length }); }),
   http.get('*/admin/deliveries/:id', async ({ params }) => { await wait(); const item = pendingDeliveries.find((d) => d.id === params.id) ?? pendingDeliveries[0]; return HttpResponse.json(item); }),
