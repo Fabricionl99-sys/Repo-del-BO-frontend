@@ -129,7 +129,7 @@ export default function ModulesPage() {
             <div className="mt-auto space-y-3 px-4 pb-4">
               <div className="flex items-baseline justify-between">
                 <span className="text-[14px] text-text-tertiary">Precio operador</span>
-                <span className="text-[16px] font-semibold">{formatUsd(mod.operatorPrice)}<span className="text-[13px] font-normal text-text-tertiary">/mes</span></span>
+                <span className="text-[16px] font-bold">{formatUsd(mod.operatorPrice)}<span className="text-[13px] font-medium text-text-tertiary">/mes</span></span>
               </div>
               {mod.price_usd_monthly !== mod.operatorPrice ? (
                 <p className="text-[13px] text-text-tertiary line-through">Catálogo: {formatUsd(mod.price_usd_monthly)}/mes</p>

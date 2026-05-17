@@ -45,7 +45,7 @@ export function BlockConditions() {
           <option value="all">si TODAS</option>
           <option value="any">si ALGUNA</option>
         </select>
-        <p className="text-[13px] font-light italic text-text-tertiary">
+        <p className="text-[13px] font-medium italic text-text-tertiary">
           se {logic === 'all' ? 'cumplen' : 'cumple alguna de'} estas condiciones
         </p>
       </div>

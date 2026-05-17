@@ -137,7 +137,7 @@ export default function WebhooksPage() {
             type="button"
             onClick={() => switchTab(t)}
             className={cn(
-              'border-b-2 px-3 py-2 text-[15px] font-medium transition-colors',
+              'border-b-2 px-3 py-2 text-[15px] font-semibold transition-colors',
               tab === t ? 'border-accent text-text-primary' : 'border-transparent text-text-tertiary hover:text-text-secondary',
             )}
           >
@@ -309,7 +309,7 @@ export default function WebhooksPage() {
                 ].map(([label, value]) => (
                   <div key={String(label)} className="rounded-lg border border-border-subtle bg-bg-secondary p-4">
                     <p className="label-section mb-1">{label}</p>
-                    <p className="text-mono text-[19px] font-semibold">{value}</p>
+                    <p className="text-mono text-[19px] font-bold">{value}</p>
                   </div>
                 ))}
               </div>

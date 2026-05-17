@@ -31,7 +31,7 @@ export function DayOfWeekSelector({ value, onChange, disabled }: { value: number
             disabled={disabled}
             onClick={() => toggle(day.value)}
             className={cn(
-              'rounded-lg border px-3 py-1.5 text-[14px] font-medium transition disabled:cursor-not-allowed disabled:opacity-50',
+              'rounded-lg border px-3 py-1.5 text-[14px] font-semibold transition disabled:cursor-not-allowed disabled:opacity-50',
               active
                 ? 'border-accent bg-accent-subtle text-accent'
                 : 'border-border-subtle bg-bg-tertiary text-text-secondary hover:border-border-strong hover:text-text-primary',

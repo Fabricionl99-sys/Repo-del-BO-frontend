@@ -29,7 +29,7 @@ export function RankingCard({
         </div>
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-2">
-            <h4 className="text-[16px] font-semibold">{ranking.name}</h4>
+            <h4 className="text-[16px] font-bold">{ranking.name}</h4>
             {archived ? (
               <span className="rounded-full bg-bg-tertiary px-2 py-0.5 text-[12px] uppercase">archivado</span>
             ) : ranking.is_active ? (

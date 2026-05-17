@@ -57,7 +57,7 @@ export function DeliveryDetailModal({
             key={t}
             type="button"
             onClick={() => setTab(t)}
-            className={`border-b-2 px-3 py-2 text-[14px] ${tab === t ? 'border-accent text-text-primary' : 'border-transparent text-text-tertiary'}`}
+            className={`border-b-2 px-3 py-2 text-[14px] font-semibold ${tab === t ? 'border-accent text-text-primary' : 'border-transparent text-text-tertiary'}`}
           >
             {t}
           </button>

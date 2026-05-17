@@ -18,7 +18,7 @@ export function Topbar() {
       <nav className="flex items-center gap-2 text-[14px] text-text-secondary">
         <span>{op?.name ?? 'Casino Astral'}</span>
         <span className="text-text-tertiary">/</span>
-        <span className="font-medium text-text-primary">{title}</span>
+        <span className="font-semibold text-text-primary">{title}</span>
       </nav>
       <div className="flex items-center gap-3">
         <ThemeToggle />
@@ -30,7 +30,7 @@ export function Topbar() {
             {user?.initials}
           </div>
           <div className="text-left leading-tight">
-            <div className="text-[15px] font-medium">{user?.name}</div>
+            <div className="text-[15px] font-semibold">{user?.name}</div>
             <div className="text-[14px] text-text-secondary">{user?.role}</div>
           </div>
         </button>

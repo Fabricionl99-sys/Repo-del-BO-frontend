@@ -45,7 +45,7 @@ export function ChestTypeCard({
         )}
       </div>
       <div className="p-4">
-        <h4 className="text-[16px] font-semibold">{type.name}</h4>
+        <h4 className="text-[16px] font-bold">{type.name}</h4>
         <p className="mb-1 font-mono text-[12px] text-text-tertiary">{type.code}</p>
         <p className="mb-3 line-clamp-2 text-[13px] text-text-tertiary">{type.description}</p>
         <div className="flex items-center justify-between text-[13px] text-text-secondary">

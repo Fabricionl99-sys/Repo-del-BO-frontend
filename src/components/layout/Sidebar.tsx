@@ -117,7 +117,7 @@ export function Sidebar() {
         <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-gradient-to-br from-accent to-cyan text-[15px] font-semibold text-text-onAccent">
           N
         </div>
-        <span className="text-[16px] font-semibold">niveles</span>
+        <span className="text-[16px] font-bold">niveles</span>
       </div>
       <OperatorSelector />
       <div className="flex-1">
@@ -137,7 +137,7 @@ export function Sidebar() {
                   className={({ isActive }) =>
                     `relative mb-px flex items-center gap-2.5 rounded-md px-3 py-1.5 text-[15px] transition ${
                       isActive
-                        ? 'bg-accent-subtle font-medium text-accent before:absolute before:-left-3 before:top-1/2 before:h-[18px] before:w-[3px] before:-translate-y-1/2 before:rounded-r before:bg-accent before:content-[""]'
+                        ? 'bg-accent-subtle font-semibold text-accent before:absolute before:-left-3 before:top-1/2 before:h-[18px] before:w-[3px] before:-translate-y-1/2 before:rounded-r before:bg-accent before:content-[""]'
                         : 'text-text-secondary hover:bg-bg-tertiary hover:text-text-primary'
                     }`
                   }
@@ -161,7 +161,7 @@ export function Sidebar() {
           <button
             type="button"
             onClick={() => setDisponiblesOpen((o) => !o)}
-            className="mb-1 flex w-full items-center gap-2 rounded-md px-3 py-2 text-[14px] font-medium text-text-secondary hover:bg-bg-tertiary hover:text-text-primary"
+            className="mb-1 flex w-full items-center gap-2 rounded-md px-3 py-2 text-[14px] font-semibold text-text-secondary hover:bg-bg-tertiary hover:text-text-primary"
           >
             {disponiblesOpen ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
             <span>Disponibles</span>

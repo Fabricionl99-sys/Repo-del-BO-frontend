@@ -43,7 +43,7 @@ export function AvatarCard({ avatar, onEdit }: { avatar: Avatar; onEdit: () => v
         )}
       </div>
       <div className="p-4">
-        <h4 className="text-[16px] font-semibold">{avatar.name}</h4>
+        <h4 className="text-[16px] font-bold">{avatar.name}</h4>
         <p className="mb-2 font-mono text-[12px] text-text-tertiary">{avatar.code}</p>
         <div className="mb-3 flex flex-wrap gap-1.5">
           {avatar.category_name && (

@@ -202,7 +202,7 @@ export default function BrandingPage() {
             type="button"
             onClick={() => setTab(t)}
             className={cn(
-              'px-4 py-2 text-sm font-medium transition-colors',
+              'px-4 py-2 text-sm font-semibold transition-colors',
               tab === t ? 'border-b-2 border-accent text-accent' : 'text-text-secondary hover:text-text-primary',
             )}
           >

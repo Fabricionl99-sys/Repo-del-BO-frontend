@@ -271,7 +271,7 @@ export default function RulesListPage() {
         />
       )}
       <CoinsGlobalSection />
-      <p className="mt-5 text-center text-[14px] font-light italic text-text-tertiary">
+      <p className="mt-5 text-center text-[14px] font-medium italic text-text-tertiary">
         Una regla activa por categoría · evento bet_placed · coins por XP según configuración general
       </p>
       <NewRuleModal open={newRuleOpen} onClose={() => setNewRuleOpen(false)} />

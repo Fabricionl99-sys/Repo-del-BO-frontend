@@ -90,6 +90,7 @@
     color: var(--text-primary);
     font-family: var(--font-sans);
     font-size: 15px;
+    font-weight: 500;
     line-height: 1.55;
     -webkit-font-smoothing: antialiased;
   }
@@ -134,7 +135,7 @@
   }
 
   .field {
-    @apply w-full rounded-lg border border-border-default bg-bg-tertiary px-3 py-2.5 text-[15px] text-text-primary placeholder:text-text-tertiary focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent-subtle;
+    @apply w-full rounded-lg border border-border-default bg-bg-tertiary px-3 py-2.5 text-[15px] font-medium text-text-primary placeholder:text-text-tertiary focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent-subtle;
   }
 
   .card {
@@ -150,7 +151,7 @@
   }
 
   .section-help {
-    @apply mt-1 text-[13px] text-text-secondary;
+    @apply mt-1 text-[13px] font-medium text-text-secondary;
   }
 
   .overlay-backdrop {

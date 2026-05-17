@@ -65,7 +65,7 @@ function PeriodSelector({ value, onChange }: { value: Period; onChange: (period:
           onClick={() => onChange(period)}
           className={`rounded-md px-3 py-1 text-[14px] transition ${
             value === period
-              ? 'bg-bg-tertiary font-medium text-text-primary'
+              ? 'bg-bg-tertiary font-semibold text-text-primary'
               : 'text-text-tertiary hover:text-text-primary'
           }`}
         >
@@ -276,7 +276,7 @@ function SystemStatusCard({
                 />
               </div>
               {query.data.planUsage.daysToReset > 0 && (
-                <p className="mt-2 text-[13px] font-light italic text-text-tertiary">
+                <p className="mt-2 text-[13px] font-medium italic text-text-tertiary">
                   faltan {query.data.planUsage.daysToReset} días para que se renueve
                 </p>
               )}

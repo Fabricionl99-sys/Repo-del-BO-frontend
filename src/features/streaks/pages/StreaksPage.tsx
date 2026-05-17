@@ -131,14 +131,14 @@ export default function StreaksPage() {
       <div className="mb-5 inline-flex rounded-lg border border-border-subtle bg-bg-secondary p-0.5">
         <button
           type="button"
-          className={`rounded-md px-4 py-2 text-[14px] font-medium ${tab === 'programs' ? 'bg-bg-tertiary text-text-primary' : 'text-text-tertiary'}`}
+          className={`rounded-md px-4 py-2 text-[14px] font-semibold ${tab === 'programs' ? 'bg-bg-tertiary text-text-primary' : 'text-text-tertiary'}`}
           onClick={() => setTab('programs')}
         >
           Programas
         </button>
         <button
           type="button"
-          className={`rounded-md px-4 py-2 text-[14px] font-medium ${tab === 'players' ? 'bg-bg-tertiary text-text-primary' : 'text-text-tertiary'}`}
+          className={`rounded-md px-4 py-2 text-[14px] font-semibold ${tab === 'players' ? 'bg-bg-tertiary text-text-primary' : 'text-text-tertiary'}`}
           onClick={() => setTab('players')}
         >
           Jugadores con racha

@@ -20,14 +20,14 @@ export function MarkdownContent({ source }: { source: string }) {
         }
         if (trimmed.startsWith('# ')) {
           return (
-            <h2 key={i} className="text-[19px] font-semibold text-text-primary">
+            <h2 key={i} className="text-[19px] font-bold text-text-primary">
               {trimmed.slice(2)}
             </h2>
           );
         }
         if (trimmed.startsWith('## ')) {
           return (
-            <h3 key={i} className="text-[16px] font-semibold text-text-primary">
+            <h3 key={i} className="text-[16px] font-bold text-text-primary">
               {trimmed.slice(3)}
             </h3>
           );

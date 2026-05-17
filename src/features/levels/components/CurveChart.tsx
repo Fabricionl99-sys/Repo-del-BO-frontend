@@ -69,7 +69,7 @@ export function CurveChart({
         <div className="mt-4 flex gap-6 text-[13px] text-text-tertiary">
           <span>— curva nueva</span>
           <span>- - curva actual</span>
-          <span className="ml-auto font-light italic">pasá el mouse sobre el gráfico para ver detalles</span>
+          <span className="ml-auto font-medium italic">pasá el mouse sobre el gráfico para ver detalles</span>
         </div>
       </div>
     </div>

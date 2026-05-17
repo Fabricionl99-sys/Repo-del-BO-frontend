@@ -110,7 +110,7 @@ export default function ApiKeysPage() {
           ].map(([label, value]) => (
             <div key={label} className="rounded-lg border border-border-subtle bg-bg-secondary p-4">
               <p className="label-section mb-1">{label}</p>
-              <p className="text-mono text-[21px] font-semibold">{value}</p>
+              <p className="text-mono text-[21px] font-bold">{value}</p>
             </div>
           ))}
         </div>
@@ -123,7 +123,7 @@ export default function ApiKeysPage() {
             type="button"
             onClick={() => switchTab(t)}
             className={cn(
-              'px-4 py-2 text-sm font-medium transition-colors',
+              'px-4 py-2 text-sm font-semibold transition-colors',
               tab === t ? 'border-b-2 border-accent text-accent' : 'text-text-secondary hover:text-text-primary',
             )}
           >
