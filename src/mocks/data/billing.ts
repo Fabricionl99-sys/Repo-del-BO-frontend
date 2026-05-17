@@ -112,6 +112,13 @@ export const moduleCatalog: ModulePublic[] = [
     price_usd_monthly: 99,
     category: 'operations',
   },
+  {
+    code: 'news',
+    name: 'Noticias',
+    description: 'Novedades y banners en el widget del jugador',
+    price_usd_monthly: 79,
+    category: 'operations',
+  },
 ];
 
 /** Operator-specific pricing overrides (catalog price * 0.9 or custom). */
@@ -130,6 +137,7 @@ export const operatorModulePricing: Partial<Record<ModuleCode, number>> = {
   branding: 71,
   multi_currency: 98,
   notifications: 89,
+  news: 71,
 };
 
 export function operatorPriceForModule(code: ModuleCode, catalogPrice: number): number {
@@ -152,6 +160,7 @@ export const activeModules: OperatorActiveModulePublic[] = [
   { code: 'avatars', activated_at: iso(18), pending_deactivation: false, pending_deactivation_at: null, operator_price_usd_monthly: 80 },
   { code: 'branding', activated_at: iso(15), pending_deactivation: false, pending_deactivation_at: null, operator_price_usd_monthly: 71 },
   { code: 'notifications', activated_at: iso(10), pending_deactivation: true, pending_deactivation_at: iso(-7), operator_price_usd_monthly: 89 },
+  { code: 'news', activated_at: iso(8), pending_deactivation: false, pending_deactivation_at: null, operator_price_usd_monthly: 71 },
 ];
 
 export const walletTransactions: WalletTransaction[] = [

@@ -1,14 +1,219 @@
-import { ExternalLink, MoreVertical, Pin, Plus } from 'lucide-react';
-import { useSearchParams } from 'react-router-dom';
+import { Newspaper, Plus } from 'lucide-react';
+import { useEffect, useMemo, useState } from 'react';
+import { Link, useSearchParams } from 'react-router-dom';
+
 import { Button } from '@/components/ui/Button';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { ErrorState } from '@/components/ui/ErrorState';
-import { IconButton } from '@/components/ui/IconButton';
+import { FilterPill } from '@/components/ui/FilterPill';
 import { Loading } from '@/components/ui/Loading';
 import { PageHeader } from '@/components/ui/PageHeader';
-import { StatCard } from '@/components/ui/StatCard';
-import { formatRelativeDate } from '@/lib/format';
-import { useNews, useTogglePin } from '@/features/tier4Api';
-import type { NewsItem } from '@/types/tier4';
-export default function NewsPage(){const [params]=useSearchParams(); const mock=params.get('mockState'); const q=useNews(); const items=mock==='empty'?[]:(q.data??[]); const pinned=items.filter(n=>n.pinned); const others=items.filter(n=>!n.pinned); return <><PageHeader title="Noticias y novedades" subtitle='contenido persistente que tus jugadores ven en la sección "novedades" del widget' actions={<Button variant="primary" icon={<Plus size={14}/>}>publicar noticia</Button>}/><div className="mb-7 grid grid-cols-4 gap-4 max-md:grid-cols-2"><StatCard label="publicadas" value={items.filter(n=>n.status==='published').length}/><StatCard label="views totales" value="84.720" trend={{value:'+12%',direction:'up'}}/><StatCard label="CTR promedio" value="14.2%"/><StatCard label="borradores" value={items.filter(n=>n.status==='draft').length}/></div>{mock==='empty'&&items.length===0&&<EmptyState title="No hay noticias" description="Publicá contenido persistente para el widget."/>}{(mock==='loading'||q.isLoading)&&<Loading label="Cargando noticias..."/>}{(mock==='error'||q.isError)&&<ErrorState onRetry={()=>q.refetch()}/>} {mock!=='empty'&&mock!=='loading'&&mock!=='error'&&!q.isLoading&&!q.isError&&items.length===0&&<EmptyState title="No hay noticias" description="Publicá contenido persistente para el widget."/>}{items.length>0&&<><section className="mb-7"><h3 className="label-section mb-3">📌 Pinned · {pinned.length}</h3><div className="space-y-2">{pinned.map(n=><NewsRow key={n.id} item={n}/>)}</div></section><section><h3 className="label-section mb-3">Todas las noticias</h3><div className="space-y-2">{others.map(n=><NewsRow key={n.id} item={n}/>)}</div></section></>}</>}
-function NewsRow({item}:{item:NewsItem}){const pin=useTogglePin(); return <div className={`card grid grid-cols-[160px_1fr_180px] overflow-hidden max-md:grid-cols-1 ${item.pinned?'border-gold/30':''}`}><div className="relative aspect-video bg-bg-tertiary"><img src={item.bannerUrl??'https://images.unsplash.com/photo-1542751371-adc38448a05e?w=800'} alt="" loading="lazy" className="h-full w-full object-cover"/>{item.pinned&&<span className="absolute left-2 top-2 rounded bg-gold px-2 py-0.5 text-[12px] font-semibold text-text-onAccent">anclado</span>}</div><div className="p-4"><div className="mb-1 flex gap-2 text-[13px] text-text-tertiary"><span>{item.status}</span><span>·</span><span>{formatRelativeDate(item.publishedAt)}</span></div><h3 className="font-semibold">{item.title}</h3><p className="line-clamp-2 text-[14px] text-text-tertiary">{item.subtitle}</p>{item.cta&&<p className="mt-2 text-[13px] text-accent">CTA: {item.cta.label} →</p>}</div><div className="flex flex-col justify-between border-l border-border-subtle p-4"><div className="grid grid-cols-2 gap-3"><div><div className="label-section">vistas</div><b>{item.views.toLocaleString('es-AR')}</b></div><div><div className="label-section">CTR</div><b className="text-success">{item.ctrPercent}%</b></div></div><div className="flex justify-end gap-1"><IconButton icon={Pin} title="pin" active={item.pinned} onClick={()=>pin.mutate(item.id)}/><IconButton icon={ExternalLink} title="ver"/><IconButton icon={MoreVertical} title="más"/></div></div></div>}
+import { SearchInput } from '@/components/ui/SearchInput';
+import { Toolbar } from '@/components/ui/Toolbar';
+import { isModuleActive } from '@/features/billing/moduleCatalog';
+import { NewsCard } from '@/features/news/components/NewsCard';
+import { NewsFormModal } from '@/features/news/components/NewsFormModal';
+import { NewsStatsPanel } from '@/features/news/components/NewsStatsPanel';
+import {
+  CATEGORY_LABELS,
+  DISPLAY_FORMAT_LABELS,
+  STATUS_LABELS,
+  TARGET_AUDIENCE_LABELS,
+} from '@/features/news/newsForm';
+import { useNewsList, useNewsStats } from '@/features/news/newsApi';
+import { useDebounce } from '@/hooks/useDebounce';
+import { cn } from '@/lib/cn';
+import { useOperatorStore } from '@/stores/operatorStore';
+import type { NewsCategory, NewsDisplayFormat, NewsItem, NewsStatus, NewsTargetAudience } from '@/types/news';
+
+const tabs = ['Catálogo', 'Estadísticas'] as const;
+type Tab = (typeof tabs)[number];
+
+const statusFilters: Array<'all' | NewsStatus> = ['all', 'draft', 'published', 'archived'];
+
+export default function NewsPage() {
+  const [params, setParams] = useSearchParams();
+  const mock = params.get('mockState');
+  const activeModuleCodes = useOperatorStore((s) => s.activeModuleCodes);
+  const newsActive = isModuleActive(activeModuleCodes, 'news');
+
+  const [tab, setTab] = useState<Tab>('Catálogo');
+  const [categoryFilter, setCategoryFilter] = useState<NewsCategory | 'all'>('all');
+  const [formatFilter, setFormatFilter] = useState<NewsDisplayFormat | 'all'>('all');
+  const [statusFilter, setStatusFilter] = useState<'all' | NewsStatus>('all');
+  const [targetFilter, setTargetFilter] = useState<NewsTargetAudience | 'all'>('all');
+  const [search, setSearch] = useState('');
+  const debouncedSearch = useDebounce(search, 250);
+
+  const [editorItem, setEditorItem] = useState<NewsItem | null | 'new'>(null);
+
+  const listQ = useNewsList({
+    category: categoryFilter,
+    display_format: formatFilter,
+    status: statusFilter,
+    target_audience: targetFilter,
+    search: debouncedSearch || undefined,
+  });
+  const statsQ = useNewsStats();
+
+  const items = mock === 'empty' ? [] : (listQ.data ?? []);
+  const existingCodes = useMemo(() => items.map((n) => n.code), [items]);
+
+  useEffect(() => {
+    const create = params.get('create');
+    const editId = params.get('edit');
+    if (create === '1') {
+      setEditorItem('new');
+      params.delete('create');
+      setParams(params, { replace: true });
+    } else if (editId && listQ.data) {
+      const found = listQ.data.find((n) => n.id === editId);
+      if (found) setEditorItem(found);
+    }
+  }, [params, setParams, listQ.data]);
+
+  if (!newsActive && mock !== 'loading') {
+    return (
+      <>
+        <PageHeader title="Noticias" subtitle="Novedades en el widget del jugador" />
+        <EmptyState
+          icon={Newspaper}
+          title="Módulo Noticias no activo"
+          description="Activá el módulo news desde el catálogo para publicar novedades en el widget."
+          action={
+            <Link to="/modulos">
+              <Button variant="primary">Activar módulo Noticias</Button>
+            </Link>
+          }
+        />
+      </>
+    );
+  }
+
+  const catalogLoading = mock !== 'empty' && tab === 'Catálogo' && listQ.isLoading;
+  const statsLoading = mock !== 'empty' && tab === 'Estadísticas' && statsQ.isLoading;
+
+  if (mock === 'loading' || catalogLoading || statsLoading) {
+    return <Loading label="Cargando noticias..." />;
+  }
+
+  if (mock === 'error' || listQ.isError || statsQ.isError) {
+    return (
+      <ErrorState
+        onRetry={() => {
+          listQ.refetch();
+          statsQ.refetch();
+        }}
+      />
+    );
+  }
+
+  return (
+    <>
+      <PageHeader
+        title="Noticias"
+        subtitle="Publicá novedades que tus jugadores ven en el widget de gamificación"
+        actions={
+          tab === 'Catálogo' ? (
+            <Button variant="primary" icon={<Plus size={14} />} onClick={() => setEditorItem('new')}>
+              Nueva noticia
+            </Button>
+          ) : undefined
+        }
+      />
+
+      <div className="mb-4 flex flex-wrap gap-2 border-b border-border-subtle">
+        {tabs.map((t) => (
+          <button
+            key={t}
+            type="button"
+            onClick={() => setTab(t)}
+            className={cn(
+              'px-4 py-2 text-sm font-semibold transition-colors',
+              tab === t ? 'border-b-2 border-accent text-accent' : 'text-text-secondary hover:text-text-primary',
+            )}
+          >
+            {t}
+          </button>
+        ))}
+      </div>
+
+      {tab === 'Catálogo' && (
+        <>
+          <Toolbar
+            search={
+              <SearchInput
+                placeholder="Buscar por título..."
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+              />
+            }
+            filters={
+              <>
+                <FilterPill label="todas categorías" active={categoryFilter === 'all'} onClick={() => setCategoryFilter('all')} />
+                {(Object.keys(CATEGORY_LABELS) as NewsCategory[]).map((c) => (
+                  <FilterPill key={c} label={CATEGORY_LABELS[c]} active={categoryFilter === c} onClick={() => setCategoryFilter(c)} />
+                ))}
+              </>
+            }
+          />
+
+          <div className="mb-5 flex flex-wrap gap-1.5">
+            {statusFilters.map((s) => (
+              <FilterPill
+                key={s}
+                label={s === 'all' ? 'todos estados' : STATUS_LABELS[s]}
+                active={statusFilter === s}
+                onClick={() => setStatusFilter(s)}
+              />
+            ))}
+            {(Object.keys(DISPLAY_FORMAT_LABELS) as NewsDisplayFormat[]).map((f) => (
+              <FilterPill
+                key={f}
+                label={DISPLAY_FORMAT_LABELS[f]}
+                active={formatFilter === f}
+                onClick={() => setFormatFilter(formatFilter === f ? 'all' : f)}
+              />
+            ))}
+            {(Object.keys(TARGET_AUDIENCE_LABELS) as NewsTargetAudience[]).slice(0, 3).map((t) => (
+              <FilterPill
+                key={t}
+                label={TARGET_AUDIENCE_LABELS[t]}
+                active={targetFilter === t}
+                onClick={() => setTargetFilter(targetFilter === t ? 'all' : t)}
+              />
+            ))}
+          </div>
+
+          {items.length === 0 ? (
+            <EmptyState
+              icon={Newspaper}
+              title="Sin noticias"
+              description="Creá tu primera noticia para el widget del jugador."
+              action={
+                <Button variant="primary" icon={<Plus size={14} />} onClick={() => setEditorItem('new')}>
+                  Crear primera noticia
+                </Button>
+              }
+            />
+          ) : (
+            <div className="grid grid-cols-4 gap-4 max-[1400px]:grid-cols-3 max-[1000px]:grid-cols-2 max-md:grid-cols-1">
+              {items.map((item) => (
+                <NewsCard key={item.id} item={item} onEdit={() => setEditorItem(item)} />
+              ))}
+            </div>
+          )}
+        </>
+      )}
+
+      {tab === 'Estadísticas' && statsQ.data && <NewsStatsPanel stats={statsQ.data} />}
+
+      <NewsFormModal
+        open={editorItem !== null}
+        item={editorItem === 'new' ? null : editorItem}
+        existingCodes={existingCodes}
+        onClose={() => setEditorItem(null)}
+      />
+    </>
+  );
+}

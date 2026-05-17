@@ -228,17 +228,130 @@ handlers.push(
   http.get('*/admin/tournaments/:id/leaderboard', async () => { await wait(); return HttpResponse.json([{ rank: 1, player: 'crypto_king_88', score: 128470 }, { rank: 2, player: 'MariaG_bet', score: 98200 }]); }),
 );
 
-import { news, products } from '@/mocks/data/tier4';
+import { newsItems, computeNewsStats } from '@/mocks/data/news';
+import { products } from '@/mocks/data/tier4';
 crudHandlers('product', 'products', products);
-crudHandlers('news', 'news', news);
+
+function filterNews(request: Request) {
+  const url = new URL(request.url);
+  const category = url.searchParams.get('category');
+  const displayFormat = url.searchParams.get('display_format');
+  const status = url.searchParams.get('status');
+  const target = url.searchParams.get('target_audience');
+  const search = url.searchParams.get('search')?.toLowerCase();
+  return newsItems.filter((n) => {
+    if (category && n.category !== category) return false;
+    if (displayFormat && n.display_format !== displayFormat) return false;
+    if (status && n.status !== status) return false;
+    if (target && n.target_audience !== target) return false;
+    if (search && !n.title.toLowerCase().includes(search)) return false;
+    return true;
+  });
+}
+
+handlers.push(
+  http.get('*/admin/news', async ({ request }) => {
+    await wait();
+    return HttpResponse.json({ data: filterNews(request) });
+  }),
+  http.get('*/admin/news/stats', async () => {
+    await wait();
+    return HttpResponse.json({ data: computeNewsStats(newsItems) });
+  }),
+  http.get('*/admin/news/:id', async ({ params }) => {
+    await wait();
+    if (params.id === 'stats') return HttpResponse.json({ data: computeNewsStats(newsItems) });
+    const item = newsItems.find((n) => n.id === params.id);
+    if (!item) return HttpResponse.json({ message: 'Not found' }, { status: 404 });
+    return HttpResponse.json({ data: item });
+  }),
+  http.post('*/admin/news', async ({ request }) => {
+    await wait();
+    const body = (await request.json()) as Record<string, unknown>;
+    const item = {
+      id: `news_${Date.now()}`,
+      status: 'draft' as const,
+      view_count: 0,
+      click_count: 0,
+      is_active: false,
+      target_audience_config: {},
+      ...body,
+    };
+    newsItems.unshift(item as (typeof newsItems)[number]);
+    return HttpResponse.json({ data: item }, { status: 201 });
+  }),
+  http.patch('*/admin/news/:id', async ({ params, request }) => {
+    await wait();
+    const body = (await request.json()) as Record<string, unknown>;
+    const idx = newsItems.findIndex((n) => n.id === params.id);
+    if (idx < 0) return HttpResponse.json({ message: 'Not found' }, { status: 404 });
+    Object.assign(newsItems[idx], body);
+    return HttpResponse.json({ data: newsItems[idx] });
+  }),
+  http.delete('*/admin/news/:id', async ({ params }) => {
+    await wait();
+    const idx = newsItems.findIndex((n) => n.id === params.id);
+    if (idx >= 0) {
+      newsItems[idx].status = 'archived';
+      newsItems[idx].is_active = false;
+    }
+    return new HttpResponse(null, { status: 204 });
+  }),
+  http.post('*/admin/news/:id/publish', async ({ params }) => {
+    await wait();
+    const item = newsItems.find((n) => n.id === params.id) ?? newsItems[0];
+    item.status = 'published';
+    item.is_active = true;
+    if (!item.publish_at) item.publish_at = new Date().toISOString();
+    return HttpResponse.json({ data: item });
+  }),
+  http.post('*/admin/news/:id/unpublish', async ({ params }) => {
+    await wait();
+    const item = newsItems.find((n) => n.id === params.id) ?? newsItems[0];
+    item.status = 'draft';
+    item.is_active = false;
+    return HttpResponse.json({ data: item });
+  }),
+  http.post('*/admin/news/preview', async ({ request }) => {
+    await wait();
+    const body = (await request.json()) as { title?: string; body_text?: string };
+    return HttpResponse.json({
+      data: {
+        preview_html: `<div>${body.title ?? ''}</div><div>${body.body_text ?? ''}</div>`,
+        mock_player: { handle: 'crypto_king_88', level: 12 },
+      },
+    });
+  }),
+  http.post('*/admin/news/:id/preview', async ({ request }) => {
+    await wait();
+    const body = (await request.json()) as { title?: string; body_text?: string };
+    return HttpResponse.json({
+      data: {
+        preview_html: `<div>${body.title ?? ''}</div>`,
+        mock_player: { handle: 'crypto_king_88', level: 12 },
+      },
+    });
+  }),
+  http.post('*/admin/news/upload-banner', async () => {
+    await wait();
+    return HttpResponse.json({
+      uploadUrl: 'https://uploads.preview.niveles.io/mock-news-banner',
+      finalUrl: 'https://images.unsplash.com/photo-1542751371-adc38448a05e?w=1200',
+    });
+  }),
+  http.post('*/admin/news/upload-thumbnail', async () => {
+    await wait();
+    return HttpResponse.json({
+      uploadUrl: 'https://uploads.preview.niveles.io/mock-news-thumb',
+      finalUrl: 'https://images.unsplash.com/photo-1542751371-adc38448a05e?w=200',
+    });
+  }),
+);
+
 handlers.push(
   http.post('*/admin/products/upload-url', async () => { await wait(); return HttpResponse.json({ uploadUrl: 'https://uploads.preview.niveles.io/mock-product', finalUrl: 'https://images.unsplash.com/photo-1511512578047-dfb367046420?w=500' }); }),
   http.post('*/admin/products/import', async () => { await wait(); return HttpResponse.json({ imported: 3 }); }),
   http.get('*/admin/products/:id/redemptions', async () => { await wait(); return HttpResponse.json([{ id: 'red_1', player: 'crypto_king_88', redeemedAt: new Date().toISOString() }]); }),
-  http.patch('*/admin/news/:id/pin', async ({ params }) => { await wait(); const item = news.find((entry) => entry.id === params.id) ?? news[0]; item.pinned = !item.pinned; return HttpResponse.json(item); }),
-  http.post('*/admin/news/:id/publish', async ({ params }) => { await wait(); const item = news.find((entry) => entry.id === params.id) ?? news[0]; item.status = 'published'; item.publishedAt = new Date().toISOString(); return HttpResponse.json(item); }),
-  http.post('*/admin/news/:id/unpublish', async ({ params }) => { await wait(); const item = news.find((entry) => entry.id === params.id) ?? news[0]; item.status = 'unpublished'; return HttpResponse.json(item); }),
-  http.post('*/admin/news/upload-banner', async () => { await wait(); return HttpResponse.json({ uploadUrl: 'https://uploads.preview.niveles.io/mock-news', finalUrl: 'https://images.unsplash.com/photo-1542751371-adc38448a05e?w=800' }); }),
 );
 
 import { funnel, heatmap, kpis, moderationQueue, moderationStats, topPlayers, topRules, vipDistribution } from '@/mocks/data/tier5';
