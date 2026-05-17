@@ -1553,3 +1553,170 @@ handlers.push(
     return HttpResponse.json({ data: row }, { status: 201 });
   }),
 );
+
+import {
+  apiConfig as bonusApiConfig,
+  computeCatalogStats,
+  filterGrantHistory,
+  filterOperatorBonuses,
+  grantHistory,
+  operatorBonuses,
+  syncHistory,
+} from '@/mocks/data/operatorBonuses';
+import type { OperatorBonusPayload } from '@/types/operatorBonuses';
+
+handlers.push(
+  http.get('*/admin/operator-bonuses', async ({ request }) => {
+    await wait();
+    return HttpResponse.json({ data: filterOperatorBonuses(new URL(request.url).searchParams) });
+  }),
+  http.get('*/admin/operator-bonuses/stats', async () => {
+    await wait();
+    return HttpResponse.json({ data: computeCatalogStats(operatorBonuses) });
+  }),
+  http.get('*/admin/operator-bonuses/api-config', async () => {
+    await wait();
+    return HttpResponse.json({ data: bonusApiConfig });
+  }),
+  http.get('*/admin/operator-bonuses/sync-history', async () => {
+    await wait();
+    return HttpResponse.json({ data: syncHistory });
+  }),
+  http.get('*/admin/operator-bonuses/grant-history', async ({ request }) => {
+    await wait();
+    return HttpResponse.json({ data: filterGrantHistory(new URL(request.url).searchParams) });
+  }),
+  http.get('*/admin/operator-bonuses/:id', async ({ params }) => {
+    await wait();
+    const reserved = ['stats', 'api-config', 'sync-history', 'grant-history'];
+    if (reserved.includes(String(params.id))) {
+      return HttpResponse.json({ data: [] });
+    }
+    const item = operatorBonuses.find((b) => b.id === params.id);
+    if (!item) return HttpResponse.json({ message: 'Not found' }, { status: 404 });
+    return HttpResponse.json({ data: item });
+  }),
+  http.post('*/admin/operator-bonuses', async ({ request }) => {
+    await wait();
+    const body = (await request.json()) as OperatorBonusPayload;
+    const item = {
+      ...operatorBonuses[0],
+      ...body,
+      id: `ob_${Date.now()}`,
+      source: 'manual' as const,
+      status: 'unverified' as const,
+      verified_at: null,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    };
+    operatorBonuses.unshift(item);
+    return HttpResponse.json({ data: item }, { status: 201 });
+  }),
+  http.patch('*/admin/operator-bonuses/:id', async ({ params, request }) => {
+    await wait();
+    const body = (await request.json()) as Partial<OperatorBonusPayload>;
+    const item = operatorBonuses.find((b) => b.id === params.id);
+    if (!item) return HttpResponse.json({ message: 'Not found' }, { status: 404 });
+    Object.assign(item, body, { updated_at: new Date().toISOString() });
+    return HttpResponse.json({ data: item });
+  }),
+  http.delete('*/admin/operator-bonuses/:id', async ({ params }) => {
+    await wait();
+    const idx = operatorBonuses.findIndex((b) => b.id === params.id);
+    if (idx >= 0) operatorBonuses.splice(idx, 1);
+    return new HttpResponse(null, { status: 204 });
+  }),
+  http.patch('*/admin/operator-bonuses/api-config', async ({ request }) => {
+    await wait();
+    Object.assign(bonusApiConfig, await request.json());
+    return HttpResponse.json({ data: bonusApiConfig });
+  }),
+  http.post('*/admin/operator-bonuses/test-connection', async () => {
+    await wait();
+    return HttpResponse.json({
+      data: { ok: true, message: 'Conexión exitosa con la plataforma', latency_ms: 142 },
+    });
+  }),
+  http.post('*/admin/operator-bonuses/sync-now', async () => {
+    await wait();
+    bonusApiConfig.last_sync_at = new Date().toISOString();
+    bonusApiConfig.last_sync_status = 'success';
+    syncHistory.unshift({
+      id: `sync_${Date.now()}`,
+      ran_at: new Date().toISOString(),
+      run_type: 'manual',
+      status: 'success',
+      added_count: 2,
+      updated_count: 4,
+      deprecated_count: 1,
+      error_message: null,
+    });
+    return HttpResponse.json({
+      data: {
+        added: 2,
+        updated: 4,
+        deprecated: 1,
+        status: 'success',
+        details: [
+          { external_id: 'FS_NEW_30', action: 'added' },
+          { external_id: 'FB_SPORTS_25', action: 'updated' },
+          { external_id: 'FS_LEGACY_10', action: 'deprecated' },
+        ],
+      },
+    });
+  }),
+  http.post('*/admin/operator-bonuses/validate-id', async ({ request }) => {
+    await wait();
+    const body = (await request.json()) as { external_id: string };
+    const found = operatorBonuses.find((b) => b.external_id === body.external_id);
+    if (found) {
+      return HttpResponse.json({
+        data: { exists: true, valid: true, name: found.name, bonus_type: found.bonus_type },
+      });
+    }
+    if (body.external_id.startsWith('NEW_')) {
+      return HttpResponse.json({
+        data: {
+          exists: true,
+          valid: true,
+          name: 'Bono validado desde plataforma',
+          bonus_type: 'freespin',
+        },
+      });
+    }
+    return HttpResponse.json({
+      data: { exists: false, valid: false, message: 'ID no encontrado en plataforma' },
+    });
+  }),
+  http.post('*/admin/operator-bonuses/:id/verify', async ({ params }) => {
+    await wait();
+    const item = operatorBonuses.find((b) => b.id === params.id);
+    if (!item) return HttpResponse.json({ message: 'Not found' }, { status: 404 });
+    item.status = 'active';
+    item.verified_at = new Date().toISOString();
+    return HttpResponse.json({ data: item });
+  }),
+  http.post('*/admin/operator-bonuses/:id/reactivate', async ({ params }) => {
+    await wait();
+    const item = operatorBonuses.find((b) => b.id === params.id);
+    if (!item) return HttpResponse.json({ message: 'Not found' }, { status: 404 });
+    item.status = 'active';
+    item.is_active = true;
+    return HttpResponse.json({ data: item });
+  }),
+  http.post('*/admin/operator-bonuses/grant-history/:id/retry', async ({ params }) => {
+    await wait();
+    const item = grantHistory.find((g) => g.id === params.id);
+    if (!item) return HttpResponse.json({ message: 'Not found' }, { status: 404 });
+    item.status = 'sent';
+    item.attempts_count += 1;
+    return HttpResponse.json({ data: item });
+  }),
+  http.post('*/admin/operator-bonuses/upload-image', async () => {
+    await wait();
+    return HttpResponse.json({
+      uploadUrl: 'https://uploads.preview.niveles.io/mock-bonus-image',
+      finalUrl: 'https://images.unsplash.com/photo-1607863680198-23d4b2565df0?w=200',
+    });
+  }),
+);
