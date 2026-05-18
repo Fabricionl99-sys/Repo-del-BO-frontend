@@ -1937,3 +1937,6 @@ handlers.push(...wheelsHandlers);
 
 import { capabilitiesHandlers } from '@/mocks/handlers/capabilitiesHandlers';
 handlers.push(...capabilitiesHandlers);
+
+import { onboardingHandlers } from '@/mocks/handlers/onboardingHandlers';
+handlers.push(...onboardingHandlers);
