@@ -1796,3 +1796,58 @@ handlers.push(
     return HttpResponse.json({ data: { success: true } });
   }),
 );
+
+import { buildPlayerWidgetData, getPreviewPlayers } from '@/mocks/data/widgetPreview';
+
+function playerIdFromUrl(url: string): string | null {
+  return new URL(url).searchParams.get('player_id');
+}
+
+handlers.push(
+  http.get('*/admin/preview-widget/players', async () => {
+    await wait();
+    return HttpResponse.json({ data: getPreviewPlayers() });
+  }),
+  http.get('*/player/widget', async ({ request }) => {
+    await wait();
+    const playerId = playerIdFromUrl(request.url);
+    const data = playerId ? buildPlayerWidgetData(playerId) : null;
+    if (!data) return new HttpResponse(null, { status: 404 });
+    return HttpResponse.json({ data });
+  }),
+  http.get('*/player/missions', async ({ request }) => {
+    await wait();
+    const playerId = playerIdFromUrl(request.url);
+    const data = playerId ? buildPlayerWidgetData(playerId) : null;
+    if (!data) return new HttpResponse(null, { status: 404 });
+    return HttpResponse.json({ data: data.missions });
+  }),
+  http.get('*/player/inventory', async ({ request }) => {
+    await wait();
+    const playerId = playerIdFromUrl(request.url);
+    const data = playerId ? buildPlayerWidgetData(playerId) : null;
+    if (!data) return new HttpResponse(null, { status: 404 });
+    return HttpResponse.json({ data: data.inventory });
+  }),
+  http.get('*/player/shop', async ({ request }) => {
+    await wait();
+    const playerId = playerIdFromUrl(request.url);
+    const data = playerId ? buildPlayerWidgetData(playerId) : null;
+    if (!data) return new HttpResponse(null, { status: 404 });
+    return HttpResponse.json({ data: data.shop_products });
+  }),
+  http.get('*/player/rankings', async ({ request }) => {
+    await wait();
+    const playerId = playerIdFromUrl(request.url);
+    const data = playerId ? buildPlayerWidgetData(playerId) : null;
+    if (!data) return new HttpResponse(null, { status: 404 });
+    return HttpResponse.json({ data: data.rankings });
+  }),
+  http.get('*/player/news', async ({ request }) => {
+    await wait();
+    const playerId = playerIdFromUrl(request.url);
+    const data = playerId ? buildPlayerWidgetData(playerId) : null;
+    if (!data) return new HttpResponse(null, { status: 404 });
+    return HttpResponse.json({ data: data.news });
+  }),
+);
