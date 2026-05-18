@@ -5,6 +5,7 @@ import {
   BarChart3,
   Bell,
   Boxes,
+  CircleDot,
   ChevronDown,
   ChevronRight,
   Coins,
@@ -56,6 +57,10 @@ const sections = [
       ['/curva-niveles', 'Curva de niveles', LineChart] as const,
       ['/monedas', 'Monedas', Coins] as const,
     ],
+  },
+  {
+    label: 'Gamificación',
+    items: [['/ruedas', 'Ruedas', CircleDot] as const],
   },
   {
     label: 'Engagement',

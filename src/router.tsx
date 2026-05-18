@@ -38,6 +38,7 @@ const WalletPage = lazy(() => import('@/features/wallet/pages/WalletPage'));
 const ModulesPage = lazy(() => import('@/features/modules/pages/ModulesPage'));
 const BonusesPage = lazy(() => import('@/features/operatorBonuses/pages/BonusesPage'));
 const WidgetPreviewPage = lazy(() => import('@/features/widget-preview/pages/WidgetPreviewPage'));
+const WheelsPage = lazy(() => import('@/features/wheels/pages/WheelsPage'));
 const ComingSoonPage = lazy(() => import('@/pages/ComingSoonPage'));
 const NotFoundPage = lazy(() => import('@/pages/NotFoundPage'));
 
@@ -46,7 +47,6 @@ const wrap = (element: React.ReactNode) => <Suspense fallback={<Loading />}>{ele
 const comingSoonRoutes = [
   { path: 'niveles', title: 'Niveles del jugador', description: 'vista detallada de jugador individual' },
   { path: 'cajas-misteriosas', title: 'Cajas misteriosas' },
-  { path: 'ruedas-fortuna', title: 'Ruedas de la fortuna' },
   { path: 'raspaditas', title: 'Raspaditas' },
   { path: 'notificaciones-push', title: 'Notificaciones push', description: 'configuración avanzada (lo básico está en /notificaciones)' },
   { path: 'reportes', title: 'Reportes', description: 'exportes scheduled (las métricas en vivo están en /metricas)' },
@@ -84,6 +84,8 @@ export const router = createBrowserRouter([
       { path: 'cofres', element: wrap(<ChestsPage />) },
       { path: 'cofres/nuevo', element: wrap(<ChestsPage />) },
       { path: 'cofres/:code', element: wrap(<ChestsPage />) },
+      { path: 'ruedas', element: wrap(<WheelsPage />) },
+      { path: 'ruedas-fortuna', element: <Navigate to="/ruedas" replace /> },
       { path: 'recompensas-diarias', element: <Navigate to="/rachas" replace /> },
       { path: 'rachas', element: wrap(<StreaksPage />) },
       { path: 'rachas/nueva', element: wrap(<StreakProgramEditorPage />) },
