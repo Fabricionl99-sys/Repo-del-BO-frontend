@@ -46,6 +46,8 @@ afterEach(async () => {
   resetTournamentsStore();
   const { resetOperatorBonusesStore } = await import('@/mocks/data/operatorBonuses');
   resetOperatorBonusesStore();
+  const { resetLoginPopupsStore } = await import('@/mocks/data/loginPopups');
+  resetLoginPopupsStore();
   const { applyTheme } = await import('@/lib/theme');
   applyTheme('dark');
   localStorage.removeItem('niveles_theme_preference_v1');

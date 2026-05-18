@@ -9,7 +9,8 @@ export type MediaModule =
   | 'tournaments'
   | 'bonuses'
   | 'rankings'
-  | 'wheels';
+  | 'wheels'
+  | 'login_popups';
 
 export type MediaPurpose =
   | 'thumbnail'

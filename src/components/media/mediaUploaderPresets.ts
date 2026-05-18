@@ -32,6 +32,13 @@ const PRESETS: Record<string, MediaUploaderConfig> = {
     maxDimensions: { width: 1024, height: 1024 },
     aspectRatio: 'square',
   },
+  'login_popups:banner': {
+    maxSizeKB: 1000,
+    allowedFormats: ['png', 'jpg', 'jpeg'],
+    minDimensions: { width: 1200, height: 300 },
+    maxDimensions: null,
+    aspectRatio: 'banner',
+  },
   'news:banner': {
     maxSizeKB: 1000,
     allowedFormats: ['png', 'jpg', 'jpeg'],

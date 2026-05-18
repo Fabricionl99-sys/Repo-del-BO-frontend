@@ -566,6 +566,80 @@ handlers.push(
   }),
 );
 
+import {
+  buildTemplateFromPayload,
+  filterLoginPopupHistory,
+  filterLoginPopupTemplates,
+  loginPopupManualHistory,
+  loginPopupStats,
+  loginPopupTemplates,
+} from '@/mocks/data/loginPopups';
+import type { LoginPopupManualSendPayload, LoginPopupTemplatePayload } from '@/types/loginPopups';
+
+handlers.push(
+  http.get('*/admin/login-popups/stats', async () => {
+    await wait();
+    return HttpResponse.json({ data: loginPopupStats });
+  }),
+  http.get('*/admin/login-popups/templates', async ({ request }) => {
+    await wait();
+    return HttpResponse.json({ data: filterLoginPopupTemplates(new URL(request.url).searchParams) });
+  }),
+  http.get('*/admin/login-popups/templates/:id', async ({ params }) => {
+    await wait();
+    const item = loginPopupTemplates.find((t) => t.id === params.id);
+    if (!item) return HttpResponse.json({ message: 'Not found' }, { status: 404 });
+    return HttpResponse.json({ data: item });
+  }),
+  http.post('*/admin/login-popups/templates', async ({ request }) => {
+    await wait();
+    const body = (await request.json()) as LoginPopupTemplatePayload;
+    if (loginPopupTemplates.some((t) => t.code === body.code)) {
+      return HttpResponse.json({ message: 'Code duplicado' }, { status: 409 });
+    }
+    const item = buildTemplateFromPayload(body);
+    loginPopupTemplates.unshift(item);
+    return HttpResponse.json({ data: item }, { status: 201 });
+  }),
+  http.patch('*/admin/login-popups/templates/:id', async ({ params, request }) => {
+    await wait();
+    const item = loginPopupTemplates.find((t) => t.id === params.id);
+    if (!item) return HttpResponse.json({ message: 'Not found' }, { status: 404 });
+    const body = (await request.json()) as Partial<LoginPopupTemplatePayload>;
+    Object.assign(item, body, { updated_at: new Date().toISOString() });
+    return HttpResponse.json({ data: item });
+  }),
+  http.delete('*/admin/login-popups/templates/:id', async ({ params }) => {
+    await wait();
+    const item = loginPopupTemplates.find((t) => t.id === params.id);
+    if (item) item.is_active = false;
+    return new HttpResponse(null, { status: 204 });
+  }),
+  http.get('*/admin/login-popups/history', async ({ request }) => {
+    await wait();
+    const params = new URL(request.url).searchParams;
+    if (params.get('manual_only') === '1') {
+      return HttpResponse.json({ data: loginPopupManualHistory.slice(0, 20) });
+    }
+    return HttpResponse.json({ data: filterLoginPopupHistory(params) });
+  }),
+  http.post('*/admin/login-popups/send-manual', async ({ request }) => {
+    await wait();
+    const body = (await request.json()) as LoginPopupManualSendPayload;
+    loginPopupManualHistory.unshift({
+      id: `lpm_${Date.now()}`,
+      player_id: body.player_id,
+      player_handle: body.player_id.replace('pl_', '@'),
+      title: body.title,
+      status: 'pending',
+      priority: body.priority,
+      sent_at: new Date().toISOString(),
+      viewed_at: null,
+    });
+    return HttpResponse.json({ data: { ok: true } });
+  }),
+);
+
 import { operatorPriceForModule } from '@/features/billing/pricing';
 import { activeModules, billingSnapshot, moduleCatalog, walletTransactions } from '@/mocks/data/billing';
 import {
