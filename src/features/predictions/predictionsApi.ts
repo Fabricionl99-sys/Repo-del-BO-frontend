@@ -1,7 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 import { apiClient } from '@/api/client';
-import { unwrapData } from '@/api/response';
+import { unwrapData, unwrapDataList } from '@/api/response';
 import type {
   PlayerPredictionEntry,
   PoolLeaderboardRow,
@@ -29,7 +29,7 @@ export function usePredictionPoolsList(filters: PredictionPoolFilters = {}) {
     queryFn: () =>
       apiClient
         .get(`/admin/prediction-pools${filtersToParams(filters)}`)
-        .then((r) => unwrapData<PredictionPool[]>(r.data)),
+        .then((r) => unwrapDataList<PredictionPool>(r.data, ['pools'])),
   });
 }
 
@@ -57,7 +57,7 @@ export function usePredictionPoolEntries(poolId: string | null) {
     queryFn: () =>
       apiClient
         .get(`/admin/prediction-pools/${poolId}/entries`)
-        .then((r) => unwrapData<PlayerPredictionEntry[]>(r.data)),
+        .then((r) => unwrapDataList<PlayerPredictionEntry>(r.data, ['entries'])),
   });
 }
 
@@ -68,7 +68,7 @@ export function usePredictionPoolLeaderboard(poolId: string | null) {
     queryFn: () =>
       apiClient
         .get(`/admin/prediction-pools/${poolId}/leaderboard`)
-        .then((r) => unwrapData<PoolLeaderboardRow[]>(r.data)),
+        .then((r) => unwrapDataList<PoolLeaderboardRow>(r.data, ['leaderboard', 'rows'])),
   });
 }
 
@@ -76,7 +76,9 @@ export function usePredictionPoolCategories() {
   return useQuery({
     queryKey: ['prediction-pools-categories'],
     queryFn: () =>
-      apiClient.get('/admin/prediction-pools/categories').then((r) => unwrapData<string[]>(r.data)),
+      apiClient
+        .get('/admin/prediction-pools/categories')
+        .then((r) => unwrapDataList<string>(r.data, ['categories'])),
   });
 }
 
@@ -86,7 +88,7 @@ export function usePredictionTypes() {
     queryFn: () =>
       apiClient
         .get('/admin/prediction-pools/prediction-types')
-        .then((r) => unwrapData<string[]>(r.data)),
+        .then((r) => unwrapDataList<string>(r.data, ['types', 'prediction_types'])),
   });
 }
 

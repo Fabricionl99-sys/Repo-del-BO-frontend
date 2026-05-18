@@ -1,10 +1,30 @@
 /** Helpers para respuestas `{ data: T }` del backend (api-shapes.md). */
 
+const LIST_KEYS = ['items', 'pools', 'results', 'entries', 'records', 'rows', 'list'] as const;
+
+/** Coerce API list payloads that may be a bare array or nested under common keys. */
+export function coerceToList<T>(value: unknown, extraKeys: string[] = []): T[] {
+  if (Array.isArray(value)) return value as T[];
+  if (value && typeof value === 'object') {
+    const record = value as Record<string, unknown>;
+    for (const key of [...LIST_KEYS, ...extraKeys]) {
+      const nested = record[key];
+      if (Array.isArray(nested)) return nested as T[];
+    }
+  }
+  return [];
+}
+
 export function unwrapData<T>(body: unknown): T {
   if (body && typeof body === 'object' && 'data' in body) {
     return (body as { data: T }).data;
   }
   return body as T;
+}
+
+/** Unwrap `{ data: T[] }` or `{ data: { pools: T[] } }` style list responses. */
+export function unwrapDataList<T>(body: unknown, extraKeys: string[] = []): T[] {
+  return coerceToList<T>(unwrapData<unknown>(body), extraKeys);
 }
 
 export interface ApiPagination {

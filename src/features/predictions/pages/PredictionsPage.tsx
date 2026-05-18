@@ -26,6 +26,7 @@ import {
 } from '@/features/predictions/predictionsApi';
 import { STATUS_LABELS } from '@/features/predictions/poolForm';
 import { useDebounce } from '@/hooks/useDebounce';
+import { asArray } from '@/lib/asArray';
 import { cn } from '@/lib/cn';
 import { formatNumber, formatRelativeDate } from '@/lib/format';
 import { useOperatorStore } from '@/stores/operatorStore';
@@ -83,7 +84,10 @@ export default function PredictionsPage() {
   const closeMut = useClosePredictionPool();
   const cancelMut = useCancelPredictionPool();
 
-  const pools = mock === 'empty' ? [] : (listQ.data ?? []);
+  const pools = useMemo(
+    () => (mock === 'empty' ? [] : asArray(listQ.data)),
+    [mock, listQ.data],
+  );
   const existingCodes = useMemo(() => pools.map((p) => p.code), [pools]);
   const categories = useMemo(() => ['all', ...new Set(pools.map((p) => p.category))], [pools]);
 
@@ -94,11 +98,11 @@ export default function PredictionsPage() {
       setEditorPool('new');
       params.delete('create');
       setParams(params, { replace: true });
-    } else if (editId && listQ.data) {
-      const found = listQ.data.find((p) => p.id === editId);
+    } else if (editId && pools.length) {
+      const found = pools.find((p) => p.id === editId);
       if (found) setEditorPool(found);
     }
-  }, [params, setParams, listQ.data]);
+  }, [params, setParams, pools]);
 
   if (!predictionsActive && mock !== 'loading') {
     return (

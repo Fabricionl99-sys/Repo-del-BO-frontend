@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { unwrapData, unwrapPaginatedList } from '@/api/response';
+import { coerceToList, unwrapData, unwrapDataList, unwrapPaginatedList } from '@/api/response';
 
 describe('unwrapData', () => {
   it('extrae data wrapper', () => {
@@ -9,6 +9,22 @@ describe('unwrapData', () => {
 
   it('pasa through sin wrapper', () => {
     expect(unwrapData<number>(42)).toBe(42);
+  });
+});
+
+describe('coerceToList / unwrapDataList', () => {
+  it('acepta array directo', () => {
+    expect(coerceToList<number>([1, 2])).toEqual([1, 2]);
+  });
+
+  it('extrae pools anidado', () => {
+    expect(unwrapDataList<{ id: string }>({ data: { pools: [{ id: 'a' }] } }, ['pools'])).toEqual([
+      { id: 'a' },
+    ]);
+  });
+
+  it('devuelve [] si no hay lista', () => {
+    expect(unwrapDataList<string>({ data: { total: 0 } })).toEqual([]);
   });
 });
 
