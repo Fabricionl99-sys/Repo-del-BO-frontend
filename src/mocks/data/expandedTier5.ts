@@ -1,4 +1,4 @@
-import type { LeaderboardEntry, OperatorConfig, PredictionEvent, PredictionMarketDefinition, Ranking } from '@/types/expandedTier5';
+import type { LeaderboardEntry, OperatorConfig, Ranking } from '@/types/expandedTier5';
 
 const iso = (days: number) => new Date(Date.now() + days * 86400000).toISOString();
 
@@ -45,17 +45,3 @@ export const rankings: Ranking[] = [
 
 export const leaderboard: LeaderboardEntry[] = Array.from({ length: 20 }, (_, i) => ({ position: i + 1, player_handle: ['@tigre_loco_82', '@maria_apuestas', '@joaquin_play', '@sofia_bet', '@crypto_king_88'][i % 5] + (i > 4 ? `_${i}` : ''), player_avatar_seed: `seed_${i}`, metric_value: 1847220 - i * 84320, change: i === 4 ? null : i % 3 === 0 ? 1 : i % 3 === 1 ? -1 : 0, vip_tier: i < 2 ? 'gold' : i < 8 ? 'silver' : 'bronze', verified: i % 4 === 0 }));
 
-export const markets: PredictionMarketDefinition[] = [
-  { id: 'result_1x2', label: 'Resultado 1X2', buttons: [{ value: 'option1', label: 'gana opción 1' }, { value: 'draw', label: 'empata' }, { value: 'option2', label: 'gana opción 2' }] },
-  { id: 'winner_2options', label: 'Ganador 2 opciones', buttons: [{ value: 'option1', label: 'gana opción 1' }, { value: 'option2', label: 'gana opción 2' }] },
-  { id: 'total_goals', label: 'Total goles', buttons: [{ value: 'over', label: 'más 2.5' }, { value: 'under', label: 'menos 2.5' }] },
-  { id: 'total_corners', label: 'Total córners', buttons: [{ value: 'over', label: 'más 9.5' }, { value: 'under', label: 'menos 9.5' }] },
-  { id: 'both_score', label: 'Ambos marcan', buttons: [{ value: 'yes', label: 'sí' }, { value: 'no', label: 'no' }] },
-  { id: 'exact_score', label: 'Resultado exacto', buttons: ['1-0', '1-1', '2-0', '2-1', '2-2', '3-0', '3-1', '3-2', 'otro'].map((v) => ({ value: v, label: v })) },
-];
-
-export const predictionEvents: PredictionEvent[] = [
-  { id: 'evt_champ_07may', name: 'Miércoles de Champions · 7 mayo', description: 'Predecí ganador, total goles y córners de los 5 partidos', sport: 'football', status: 'active', closes_at: iso(2), entry_cost: 1000, grand_prize_amount: 5000, grand_prize_chest_id: 'chest_epic', participants_count: 1847, pool_accumulated: 1840000, completion_rate: 0.67, items: [{ id: 'item_1', position: 1, name: 'Real Madrid vs Barcelona', market: 'result_1x2', prize_amount: 150, predictions_count: 1847, predictions_breakdown: [{ value: 'option1', count: 868, percent: 47 }, { value: 'draw', count: 333, percent: 18 }, { value: 'option2', count: 646, percent: 35 }] }, { id: 'item_2', position: 2, name: 'PSG vs Bayern', market: 'total_goals', prize_amount: 120, predictions_count: 1847, predictions_breakdown: [{ value: 'over', count: 1089, percent: 59 }, { value: 'under', count: 758, percent: 41 }] }] },
-  { id: 'evt_tennis_rome', name: 'Final ATP Roma', description: 'Predicción rápida de tenis', sport: 'tennis', status: 'active', closes_at: iso(5), entry_cost: 500, grand_prize_amount: 2500, participants_count: 612, pool_accumulated: 306000, completion_rate: 0.73, items: [{ id: 'tennis_1', position: 1, name: 'Sinner vs Alcaraz', market: 'winner_2options', prize_amount: 100, predictions_count: 612, predictions_breakdown: [{ value: 'option1', count: 320, percent: 52 }, { value: 'option2', count: 292, percent: 48 }] }] },
-  { id: 'evt_closed', name: 'UFC Fight Night', description: 'Pendiente de resultados', sport: 'ufc', status: 'closed_pending_result', closes_at: iso(-1), entry_cost: 1000, grand_prize_amount: 5000, participants_count: 999, pool_accumulated: 999000, completion_rate: 0.61, items: [{ id: 'ufc_1', position: 1, name: 'Main event', market: 'winner_2options', prize_amount: 200, predictions_count: 999, predictions_breakdown: [{ value: 'option1', count: 600, percent: 60 }, { value: 'option2', count: 399, percent: 40 }] }] },
-];
