@@ -30,20 +30,16 @@ import {
   usePreviewBranding,
   useResetBranding,
   useUpdateBranding,
-  useUploadBackground,
-  useUploadFavicon,
-  useUploadLogo,
 } from '../brandingApi';
 import { formToUpdatePayload, configToFormValues } from '../brandingForm';
 import { PALETTE_PRESETS, presetPalette } from '../brandingPresets';
+import { MediaUploader } from '@/components/media/MediaUploader';
+import { mediaValueFromUrl } from '@/components/media/mediaUrl';
+
 import {
-  validateBackgroundUpload,
   validateCustomCss,
-  validateFaviconUpload,
-  validateLogoUpload,
   validateWelcomeText,
 } from '../brandingUploadValidation';
-import { BrandingUploadZone, fileToDataUrl } from '../components/BrandingUploadZone';
 import { ResetBrandingModal } from '../components/ResetBrandingModal';
 import { WidgetPreviewMock } from '../components/WidgetPreviewMock';
 import { WidgetPreviewModal } from '../components/WidgetPreviewModal';
@@ -93,10 +89,6 @@ export default function BrandingPage() {
   const update = useUpdateBranding();
   const preview = usePreviewBranding();
   const reset = useResetBranding();
-  const uploadLogo = useUploadLogo();
-  const uploadFavicon = useUploadFavicon();
-  const uploadBackground = useUploadBackground();
-
   const saved = configQ.data;
   const config = draft ?? saved;
   const configReady = isBrandingConfig(config);
@@ -353,35 +345,18 @@ export default function BrandingPage() {
               <div className="grid grid-cols-2 gap-4 max-md:grid-cols-1">
                 <div>
                   <p className="label-section mb-2">logo</p>
-                  <BrandingUploadZone
-                    previewUrl={config.logo_url}
-                    hint="500 KB · 200-1024 px · PNG/JPG/WebP/SVG · cuadrado"
-                    accept="image/png,image/jpeg,image/webp,image/svg+xml"
-                    validate={validateLogoUpload}
-                    onValidated={async (file, url) => {
-                      const uploaded = await uploadLogo.mutateAsync(file).catch(async () => ({
-                        url: await fileToDataUrl(file),
-                      }));
-                      patch({ logo_url: uploaded.url ?? url });
-                    }}
-                    onClear={() => patch({ logo_url: null })}
+                  <MediaUploader
+                    value={mediaValueFromUrl(config.logo_url ?? undefined)}
+                    onChange={(v) => patch({ logo_url: v?.url ?? null })}
+                    context={{ module: 'branding', purpose: 'logo' }}
                   />
                 </div>
                 <div>
                   <p className="label-section mb-2">favicon</p>
-                  <BrandingUploadZone
-                    previewUrl={config.favicon_url}
-                    hint="100 KB · 16-256 px · PNG/ICO"
-                    accept="image/png,image/x-icon,.ico"
-                    previewClassName="h-10 w-10"
-                    validate={validateFaviconUpload}
-                    onValidated={async (file, url) => {
-                      const uploaded = await uploadFavicon.mutateAsync(file).catch(async () => ({
-                        url: await fileToDataUrl(file),
-                      }));
-                      patch({ favicon_url: uploaded.url ?? url });
-                    }}
-                    onClear={() => patch({ favicon_url: null })}
+                  <MediaUploader
+                    value={mediaValueFromUrl(config.favicon_url ?? undefined)}
+                    onChange={(v) => patch({ favicon_url: v?.url ?? null })}
+                    context={{ module: 'branding', purpose: 'icon' }}
                   />
                   <div className="mt-2 flex items-center gap-2 rounded-lg border border-border-subtle bg-bg-tertiary px-3 py-2">
                     {config.favicon_url && <img src={config.favicon_url} alt="" className="h-4 w-4" />}
@@ -391,19 +366,10 @@ export default function BrandingPage() {
               </div>
               <div className="mt-4">
                 <p className="label-section mb-2">background (opcional)</p>
-                <BrandingUploadZone
-                  previewUrl={config.background_image_url}
-                  hint="2 MB · mínimo 1920×1080 · PNG/JPG/WebP"
-                  accept="image/png,image/jpeg,image/webp"
-                  previewClassName="h-24 w-full"
-                  validate={validateBackgroundUpload}
-                  onValidated={async (file, url) => {
-                    const uploaded = await uploadBackground.mutateAsync(file).catch(async () => ({
-                      url: await fileToDataUrl(file),
-                    }));
-                    patch({ background_image_url: uploaded.url ?? url });
-                  }}
-                  onClear={() => patch({ background_image_url: null })}
+                <MediaUploader
+                  value={mediaValueFromUrl(config.background_image_url ?? undefined)}
+                  onChange={(v) => patch({ background_image_url: v?.url ?? null })}
+                  context={{ module: 'branding', purpose: 'background' }}
                 />
               </div>
             </ConfigSection>

@@ -22,6 +22,7 @@ vi.stubGlobal(
 function wrap(route = '/branding') {
   cleanup();
   useOperatorStore.setState({
+    current: { id: 'demo', name: 'Demo', slug: 'demo' } as never,
     activeModuleCodes: ['branding', 'shop', 'missions'],
     billingMode: 'wallet',
   });
@@ -70,22 +71,12 @@ describe('BrandingPage', () => {
     expect(screen.getByText('Título del widget')).toBeInTheDocument();
   });
 
-  it('sube logo válido', async () => {
+  it('muestra MediaUploader en tab logo e imágenes', async () => {
     wrap();
     await screen.findByText('Logo e imágenes');
     fireEvent.click(screen.getByRole('button', { name: 'Logo e imágenes' }));
-    const file = new File(['x'], 'logo.png', { type: 'image/png' });
-    const input = document.querySelector('input[type="file"]') as HTMLInputElement;
-    fireEvent.change(input, { target: { files: [file] } });
-    await waitFor(() => {
-      const logoPreview = Array.from(document.querySelectorAll('img')).find((img) =>
-        img.className.includes('h-24 w-24'),
-      );
-      expect(logoPreview).toHaveAttribute(
-        'src',
-        'https://dummyimage.com/256x256/0AF784/0E1116&text=Logo',
-      );
-    });
+    expect((await screen.findAllByText('Cargar archivo')).length).toBeGreaterThan(0);
+    expect(screen.getAllByText('Usar URL externa').length).toBeGreaterThan(0);
   });
 
   it('cambia posición y tamaño del widget', async () => {

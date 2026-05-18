@@ -4,6 +4,7 @@ import { createMemoryRouter, RouterProvider } from 'react-router-dom';
 import { describe, expect, it, vi } from 'vitest';
 
 import { BO_LOCAL_STORAGE_KEYS } from '@/lib/boLocalStorage';
+import { useOperatorStore } from '@/stores/operatorStore';
 
 import SettingsPage from './SettingsPage';
 
@@ -25,6 +26,11 @@ function wrap(route = '/configuracion') {
   localStorage.removeItem(BO_LOCAL_STORAGE_KEYS.operatorConfigLegacy);
   localStorage.removeItem(BO_LOCAL_STORAGE_KEYS.brandingConfig);
   localStorage.removeItem(BO_LOCAL_STORAGE_KEYS.brandingConfigLegacy);
+  useOperatorStore.setState({
+    current: { id: 'demo', name: 'Demo', slug: 'demo' } as never,
+    activeModuleCodes: ['coins'],
+    billingMode: 'wallet',
+  });
   const router = createMemoryRouter([{ path: '/configuracion', element: <SettingsPage /> }], {
     initialEntries: [route],
   });
@@ -70,17 +76,11 @@ describe('SettingsPage', () => {
     });
   });
 
-  it('sube logo desde modal', async () => {
+  it('muestra MediaUploader para logo de empresa', async () => {
     wrap();
-    await screen.findByText('Subir logo');
-    fireEvent.click(screen.getByText('Subir logo'));
-    await screen.findByRole('dialog');
-    const file = new File(['x'], 'logo.png', { type: 'image/png' });
-    const input = document.querySelector('input[type="file"]') as HTMLInputElement;
-    fireEvent.change(input, { target: { files: [file] } });
-    await waitFor(() => {
-      expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
-    });
+    await screen.findByText('datos de la empresa');
+    expect(screen.getByText('Cargar archivo')).toBeInTheDocument();
+    expect(screen.getByText('Usar URL externa')).toBeInTheDocument();
   });
 
   it('agrega feriado en tab horarios', async () => {

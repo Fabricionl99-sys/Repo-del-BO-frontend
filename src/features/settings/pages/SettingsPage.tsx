@@ -2,6 +2,8 @@ import { RotateCcw, Save } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import { useBlocker, useSearchParams } from 'react-router-dom';
 
+import { MediaUploader } from '@/components/media/MediaUploader';
+import { mediaValueFromUrl } from '@/components/media/mediaUrl';
 import { Button } from '@/components/ui/Button';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { ErrorState } from '@/components/ui/ErrorState';
@@ -24,7 +26,6 @@ import type {
 
 import { EmailTagsInput } from '../components/EmailTagsInput';
 import { HolidayModal } from '../components/HolidayModal';
-import { LogoUploadModal } from '../components/LogoUploadModal';
 import { NotificationTestModal } from '../components/NotificationTestModal';
 import {
   isOperatorConfigApiResponse,
@@ -78,7 +79,6 @@ export default function SettingsPage() {
 
   const [tab, setTab] = useState<Tab>('Empresa');
   const [draft, setDraft] = useState<OperatorConfigApiResponse | null>(null);
-  const [logoOpen, setLogoOpen] = useState(false);
   const [holidayEditor, setHolidayEditor] = useState<BusinessHoliday | null | 'new'>(null);
   const [testNotifOpen, setTestNotifOpen] = useState(false);
   const [formError, setFormError] = useState<string | undefined>();
@@ -236,17 +236,14 @@ export default function SettingsPage() {
                 <div className="grid grid-cols-2 gap-3 max-md:grid-cols-1">
                   <Field label="razón social" value={config.company_info.legal_name} onChange={(v) => patch({ company_info: { legal_name: v } })} />
                   <Field label="nombre comercial" value={config.company_info.commercial_name} onChange={(v) => patch({ company_info: { commercial_name: v } })} />
-                  <label className="col-span-2 block max-md:col-span-1">
+                  <div className="col-span-2 max-md:col-span-1">
                     <span className="mb-1 block text-[14px] text-text-secondary">logo</span>
-                    <div className="flex items-center gap-3">
-                      {config.company_info.company_logo_url && (
-                        <img src={config.company_info.company_logo_url} alt="" className="h-14 w-14 rounded-lg object-cover" />
-                      )}
-                      <Button variant="secondary" size="sm" onClick={() => setLogoOpen(true)}>
-                        Subir logo
-                      </Button>
-                    </div>
-                  </label>
+                    <MediaUploader
+                      value={mediaValueFromUrl(config.company_info.company_logo_url)}
+                      onChange={(v) => patch({ company_info: { company_logo_url: v?.url ?? '' } })}
+                      context={{ module: 'settings', purpose: 'logo' }}
+                    />
+                  </div>
                   <label className="col-span-2 block max-md:col-span-1">
                     <span className="mb-1 block text-[14px] text-text-secondary">descripción</span>
                     <textarea className="field min-h-20" value={config.company_info.description} onChange={(e) => patch({ company_info: { description: e.target.value } })} />
@@ -490,12 +487,6 @@ export default function SettingsPage() {
         </div>
       </div>
 
-      <LogoUploadModal
-        open={logoOpen}
-        previewUrl={config.company_info.company_logo_url}
-        onClose={() => setLogoOpen(false)}
-        onUploaded={(url) => patch({ company_info: { company_logo_url: url } })}
-      />
       <HolidayModal
         open={holidayEditor !== null}
         holiday={holidayEditor === 'new' ? null : holidayEditor}
