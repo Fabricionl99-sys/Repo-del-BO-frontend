@@ -6,6 +6,11 @@ import { AppShell } from '@/components/layout/AppShell';
 import { Loading } from '@/components/ui/Loading';
 
 const LoginPage = lazy(() => import('@/pages/LoginPage'));
+const LandingPage = lazy(() => import('@/features/public/pages/LandingPage'));
+const SignupPage = lazy(() => import('@/features/public/pages/SignupPage'));
+const ConfirmEmailPage = lazy(() => import('@/features/public/pages/ConfirmEmailPage'));
+const OnboardingWizardPage = lazy(() => import('@/features/public/pages/OnboardingWizardPage'));
+const WelcomePage = lazy(() => import('@/features/public/pages/WelcomePage'));
 const DashboardPage = lazy(() => import('@/features/dashboard/pages/DashboardPage'));
 const TeamPage = lazy(() => import('@/features/team/pages/TeamPage'));
 const ApiKeysPage = lazy(() => import('@/features/apiKeys/pages/ApiKeysPage'));
@@ -56,16 +61,19 @@ const comingSoonRoutes = [
 ];
 
 export const router = createBrowserRouter([
+  { path: '/', element: wrap(<LandingPage />) },
   { path: '/login', element: wrap(<LoginPage />) },
+  { path: '/signup', element: wrap(<SignupPage />) },
+  { path: '/signup/confirm-email', element: wrap(<ConfirmEmailPage />) },
+  { path: '/signup/onboarding', element: wrap(<OnboardingWizardPage />) },
+  { path: '/signup/welcome', element: wrap(<WelcomePage />) },
   {
-    path: '/',
     element: (
       <ProtectedRoute>
         <AppShell />
       </ProtectedRoute>
     ),
     children: [
-      { index: true, element: <Navigate to="/dashboard" replace /> },
       { path: 'dashboard', element: wrap(<DashboardPage />) },
       {
         path: 'equipo',
