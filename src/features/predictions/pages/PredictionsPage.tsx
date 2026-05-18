@@ -9,46 +9,50 @@ import { FilterPill } from '@/components/ui/FilterPill';
 import { Loading } from '@/components/ui/Loading';
 import { PageHeader } from '@/components/ui/PageHeader';
 import { SearchInput } from '@/components/ui/SearchInput';
-import { Table, type Column } from '@/components/ui/Table';
+import { StatusPill } from '@/components/ui/StatusPill';
 import { Toolbar } from '@/components/ui/Toolbar';
 import { isModuleActive } from '@/features/billing/moduleCatalog';
-import { PredictionFormModal } from '@/features/predictions/components/PredictionFormModal';
-import { PredictionParticipantsModal } from '@/features/predictions/components/PredictionParticipantsModal';
-import { PredictionResolveModal } from '@/features/predictions/components/PredictionResolveModal';
-import { PredictionStatsPanel } from '@/features/predictions/components/PredictionStatsPanel';
+import { PoolFormModal } from '@/features/predictions/components/PoolFormModal';
+import { PoolLeaderboardModal } from '@/features/predictions/components/PoolLeaderboardModal';
+import { PoolParticipantsModal } from '@/features/predictions/components/PoolParticipantsModal';
+import { PoolResolveModal } from '@/features/predictions/components/PoolResolveModal';
+import { PoolStatsPanel } from '@/features/predictions/components/PoolStatsPanel';
 import {
-  useCancelPrediction,
-  useClosePrediction,
-  useOpenPrediction,
-  usePredictionsList,
-  usePredictionStats,
+  useCancelPredictionPool,
+  useClosePredictionPool,
+  useOpenPredictionPool,
+  usePredictionPoolsList,
+  usePredictionPoolStats,
 } from '@/features/predictions/predictionsApi';
-import { STATUS_LABELS } from '@/features/predictions/predictionForm';
+import { STATUS_LABELS } from '@/features/predictions/poolForm';
 import { useDebounce } from '@/hooks/useDebounce';
 import { cn } from '@/lib/cn';
-import { formatRelativeDate } from '@/lib/format';
+import { formatNumber, formatRelativeDate } from '@/lib/format';
 import { useOperatorStore } from '@/stores/operatorStore';
-import type { PredictionEvent, PredictionEventStatus } from '@/types/predictions';
+import type { PredictionPool, PredictionPoolStatus } from '@/types/predictions';
 
-const tabs = ['Eventos', 'Estadísticas'] as const;
+const tabs = ['Prodes', 'Estadísticas'] as const;
 type Tab = (typeof tabs)[number];
 
-const statusFilters: Array<'all' | PredictionEventStatus> = [
+const statusFilters: Array<'all' | PredictionPoolStatus> = [
   'all',
   'draft',
   'open',
   'closed',
+  'resolving',
   'resolved',
   'cancelled',
 ];
 
-const statusColors: Record<PredictionEventStatus, string> = {
-  draft: 'bg-text-tertiary/15 text-text-tertiary',
-  open: 'bg-success/15 text-success',
-  closed: 'bg-warning/15 text-warning',
-  resolved: 'bg-purple/15 text-purple',
-  cancelled: 'bg-danger/15 text-danger',
-};
+function poolStatusPill(status: PredictionPoolStatus) {
+  if (status === 'open') return <StatusPill status="live" label={STATUS_LABELS.open} />;
+  if (status === 'closed' || status === 'resolving') {
+    return <StatusPill status="scheduled" label={STATUS_LABELS[status]} />;
+  }
+  if (status === 'resolved') return <StatusPill status="finished" label={STATUS_LABELS.resolved} />;
+  if (status === 'cancelled') return <StatusPill status="error" label={STATUS_LABELS.cancelled} />;
+  return <StatusPill status="draft" label={STATUS_LABELS.draft} />;
+}
 
 export default function PredictionsPage() {
   const [params, setParams] = useSearchParams();
@@ -56,56 +60,54 @@ export default function PredictionsPage() {
   const activeModuleCodes = useOperatorStore((s) => s.activeModuleCodes);
   const predictionsActive = isModuleActive(activeModuleCodes, 'predictions');
 
-  const [tab, setTab] = useState<Tab>('Eventos');
-  const [statusFilter, setStatusFilter] = useState<'all' | PredictionEventStatus>('all');
+  const [tab, setTab] = useState<Tab>('Prodes');
+  const [statusFilter, setStatusFilter] = useState<'all' | PredictionPoolStatus>('all');
   const [categoryFilter, setCategoryFilter] = useState('all');
   const [participationFilter, setParticipationFilter] = useState<'all' | 'free' | 'paid'>('all');
   const [search, setSearch] = useState('');
   const debouncedSearch = useDebounce(search, 250);
 
-  const [editorEvent, setEditorEvent] = useState<PredictionEvent | null | 'new'>(null);
-  const [resolveEvent, setResolveEvent] = useState<PredictionEvent | null>(null);
-  const [participantsEvent, setParticipantsEvent] = useState<PredictionEvent | null>(null);
+  const [editorPool, setEditorPool] = useState<PredictionPool | null | 'new'>(null);
+  const [resolvePool, setResolvePool] = useState<PredictionPool | null>(null);
+  const [participantsPool, setParticipantsPool] = useState<PredictionPool | null>(null);
+  const [leaderboardPool, setLeaderboardPool] = useState<PredictionPool | null>(null);
 
-  const listQ = usePredictionsList({
+  const listQ = usePredictionPoolsList({
     status: statusFilter,
     category: categoryFilter,
     participation: participationFilter,
     search: debouncedSearch || undefined,
   });
-  const statsQ = usePredictionStats();
-  const openMut = useOpenPrediction();
-  const closeMut = useClosePrediction();
-  const cancelMut = useCancelPrediction();
+  const statsQ = usePredictionPoolStats();
+  const openMut = useOpenPredictionPool();
+  const closeMut = useClosePredictionPool();
+  const cancelMut = useCancelPredictionPool();
 
-  const events = mock === 'empty' ? [] : (listQ.data ?? []);
-  const existingCodes = useMemo(() => events.map((e) => e.code), [events]);
-  const categories = useMemo(
-    () => ['all', ...new Set(events.map((e) => e.category))],
-    [events],
-  );
+  const pools = mock === 'empty' ? [] : (listQ.data ?? []);
+  const existingCodes = useMemo(() => pools.map((p) => p.code), [pools]);
+  const categories = useMemo(() => ['all', ...new Set(pools.map((p) => p.category))], [pools]);
 
   useEffect(() => {
     const create = params.get('create');
     const editId = params.get('edit');
     if (create === '1') {
-      setEditorEvent('new');
+      setEditorPool('new');
       params.delete('create');
       setParams(params, { replace: true });
     } else if (editId && listQ.data) {
-      const found = listQ.data.find((e) => e.id === editId);
-      if (found) setEditorEvent(found);
+      const found = listQ.data.find((p) => p.id === editId);
+      if (found) setEditorPool(found);
     }
   }, [params, setParams, listQ.data]);
 
   if (!predictionsActive && mock !== 'loading') {
     return (
       <>
-        <PageHeader title="Predicciones" subtitle="Eventos donde jugadores predicen resultados" />
+        <PageHeader title="Predicciones" subtitle="Prodes y porras con múltiples partidos" />
         <EmptyState
           icon={Target}
           title="Módulo Predicciones no activo"
-          description="Activá el módulo predictions desde el catálogo para crear eventos de predicción."
+          description="Activá el módulo predictions desde el catálogo para crear prodes."
           action={
             <Link to="/modulos">
               <Button variant="primary">Activar módulo Predicciones</Button>
@@ -116,7 +118,7 @@ export default function PredictionsPage() {
     );
   }
 
-  const catalogLoading = mock !== 'empty' && tab === 'Eventos' && listQ.isLoading;
+  const catalogLoading = mock !== 'empty' && tab === 'Prodes' && listQ.isLoading;
   const statsLoading = mock !== 'empty' && tab === 'Estadísticas' && statsQ.isLoading;
 
   if (mock === 'loading' || catalogLoading || statsLoading) {
@@ -134,73 +136,15 @@ export default function PredictionsPage() {
     );
   }
 
-  const columns: Column<PredictionEvent>[] = [
-    { key: 'code', header: 'Code', render: (e) => <span className="font-mono text-[13px]">{e.code}</span> },
-    { key: 'name', header: 'Nombre', render: (e) => e.name },
-    { key: 'category', header: 'Categoría', render: (e) => e.category },
-    { key: 'type', header: 'Tipo', render: (e) => e.prediction_type },
-    {
-      key: 'status',
-      header: 'Estado',
-      render: (e) => (
-        <span className={cn('rounded-full px-2 py-0.5 text-[13px] font-semibold', statusColors[e.status])}>
-          {STATUS_LABELS[e.status]}
-        </span>
-      ),
-    },
-    { key: 'count', header: 'Predicciones', render: (e) => e.predictions_count },
-    {
-      key: 'closes',
-      header: 'Cierra',
-      render: (e) => formatRelativeDate(e.closes_at),
-    },
-    {
-      key: 'resolves',
-      header: 'Resuelve',
-      render: (e) => formatRelativeDate(e.resolves_at),
-    },
-    {
-      key: 'actions',
-      header: 'Acciones',
-      render: (e) => (
-        <div className="flex flex-wrap gap-1">
-          {e.status === 'draft' && (
-            <Button size="sm" loading={openMut.isPending} onClick={(ev) => { ev.stopPropagation(); openMut.mutate(e.id); }}>
-              Abrir
-            </Button>
-          )}
-          {e.status === 'open' && (
-            <Button size="sm" loading={closeMut.isPending} onClick={(ev) => { ev.stopPropagation(); closeMut.mutate(e.id); }}>
-              Cerrar
-            </Button>
-          )}
-          {e.status === 'closed' && (
-            <Button size="sm" onClick={(ev) => { ev.stopPropagation(); setResolveEvent(e); }}>
-              Resolver
-            </Button>
-          )}
-          {['draft', 'open', 'closed'].includes(e.status) && (
-            <Button size="sm" variant="ghost" loading={cancelMut.isPending} onClick={(ev) => { ev.stopPropagation(); cancelMut.mutate(e.id); }}>
-              Cancelar
-            </Button>
-          )}
-          <Button size="sm" variant="secondary" onClick={(ev) => { ev.stopPropagation(); setParticipantsEvent(e); }}>
-            Participantes
-          </Button>
-        </div>
-      ),
-    },
-  ];
-
   return (
     <>
       <PageHeader
         title="Predicciones"
-        subtitle="Eventos donde jugadores predicen resultados sin cuotas"
+        subtitle="Prodes y porras: el jugador completa todos los partidos en un formulario"
         actions={
-          tab === 'Eventos' ? (
-            <Button variant="primary" icon={<Plus size={14} />} onClick={() => setEditorEvent('new')}>
-              Nuevo evento
+          tab === 'Prodes' ? (
+            <Button variant="primary" icon={<Plus size={14} />} onClick={() => setEditorPool('new')}>
+              Nuevo prode
             </Button>
           ) : undefined
         }
@@ -222,7 +166,7 @@ export default function PredictionsPage() {
         ))}
       </div>
 
-      {tab === 'Eventos' && (
+      {tab === 'Prodes' && (
         <>
           <Toolbar
             search={
@@ -250,62 +194,101 @@ export default function PredictionsPage() {
                     label={c === 'all' ? 'Todas categorías' : c}
                   />
                 ))}
-                <FilterPill
-                  active={participationFilter === 'all'}
-                  onClick={() => setParticipationFilter('all')}
-                  label="Todos"
-                />
-                <FilterPill
-                  active={participationFilter === 'free'}
-                  onClick={() => setParticipationFilter('free')}
-                  label="Gratis"
-                />
-                <FilterPill
-                  active={participationFilter === 'paid'}
-                  onClick={() => setParticipationFilter('paid')}
-                  label="Pagado"
-                />
+                <FilterPill active={participationFilter === 'all'} onClick={() => setParticipationFilter('all')} label="Todos" />
+                <FilterPill active={participationFilter === 'free'} onClick={() => setParticipationFilter('free')} label="Gratis" />
+                <FilterPill active={participationFilter === 'paid'} onClick={() => setParticipationFilter('paid')} label="Pagado" />
               </>
             }
           />
 
-            <Table
-              columns={columns}
-              rows={events}
-              rowKey={(e) => e.id}
-              onRowClick={(e) => setEditorEvent(e)}
-              emptyState={
-                <EmptyState
-                  title="Sin eventos"
-                  description="Creá tu primer evento de predicción para que los jugadores participen."
-                  action={
-                    <Button variant="primary" onClick={() => setEditorEvent('new')}>
-                      Crear primer evento
-                    </Button>
-                  }
-                />
+          {pools.length === 0 ? (
+            <EmptyState
+              title="Sin prodes"
+              description="Creá tu primer prode con múltiples partidos para que los jugadores participen."
+              action={
+                <Button variant="primary" onClick={() => setEditorPool('new')}>
+                  Crear primer prode
+                </Button>
               }
             />
+          ) : (
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              {pools.map((pool) => (
+                <article key={pool.id} className="card overflow-hidden">
+                  <button type="button" onClick={() => setEditorPool(pool)} className="w-full text-left">
+                    {pool.image_url ? (
+                      <img src={pool.image_url} alt="" className="h-32 w-full object-cover" loading="lazy" />
+                    ) : (
+                      <div className="flex h-32 items-center justify-center bg-bg-tertiary text-4xl">🎯</div>
+                    )}
+                    <div className="p-4">
+                      <div className="mb-2 flex items-start justify-between gap-2">
+                        <h3 className="font-semibold">{pool.name}</h3>
+                        {poolStatusPill(pool.status)}
+                      </div>
+                      <p className="line-clamp-2 text-[13px] text-text-tertiary">{pool.description}</p>
+                      <p className="mt-3 text-[13px] text-text-secondary">
+                        {pool.category} · cierra {formatRelativeDate(pool.closes_at)}
+                      </p>
+                      <p className="mt-1 text-[13px] text-text-tertiary">
+                        {pool.total_events_count} partidos · {formatNumber(pool.total_entries_count)} participantes
+                        {pool.participation_cost.type === 'paid' && ` · ${pool.participation_cost.cost_in_coins} coins`}
+                      </p>
+                    </div>
+                  </button>
+                  <div className="flex flex-wrap gap-1 border-t border-border-subtle px-3 py-2">
+                    {pool.status === 'draft' && (
+                      <Button size="sm" loading={openMut.isPending} onClick={() => openMut.mutate(pool.id)}>
+                        Abrir
+                      </Button>
+                    )}
+                    {pool.status === 'open' && (
+                      <Button size="sm" loading={closeMut.isPending} onClick={() => closeMut.mutate(pool.id)}>
+                        Cerrar
+                      </Button>
+                    )}
+                    {pool.status === 'closed' && (
+                      <Button size="sm" onClick={() => setResolvePool(pool)}>
+                        Resolver
+                      </Button>
+                    )}
+                    {['draft', 'open', 'closed'].includes(pool.status) && (
+                      <Button size="sm" variant="ghost" loading={cancelMut.isPending} onClick={() => cancelMut.mutate(pool.id)}>
+                        Cancelar
+                      </Button>
+                    )}
+                    <Button size="sm" variant="secondary" onClick={() => setParticipantsPool(pool)}>
+                      Participantes
+                    </Button>
+                    <Button size="sm" variant="secondary" onClick={() => setLeaderboardPool(pool)}>
+                      Ranking
+                    </Button>
+                  </div>
+                </article>
+              ))}
+            </div>
+          )}
         </>
       )}
 
-      {tab === 'Estadísticas' && <PredictionStatsPanel />}
+      {tab === 'Estadísticas' && <PoolStatsPanel />}
 
-      <PredictionFormModal
-        open={editorEvent !== null}
-        event={editorEvent === 'new' ? null : editorEvent}
+      <PoolFormModal
+        open={editorPool !== null}
+        pool={editorPool === 'new' ? null : editorPool}
         existingCodes={existingCodes}
-        onClose={() => setEditorEvent(null)}
+        onClose={() => setEditorPool(null)}
       />
-      <PredictionResolveModal
-        open={resolveEvent !== null}
-        event={resolveEvent}
-        onClose={() => setResolveEvent(null)}
+      <PoolResolveModal open={resolvePool !== null} pool={resolvePool} onClose={() => setResolvePool(null)} />
+      <PoolParticipantsModal
+        open={participantsPool !== null}
+        pool={participantsPool}
+        onClose={() => setParticipantsPool(null)}
       />
-      <PredictionParticipantsModal
-        open={participantsEvent !== null}
-        event={participantsEvent}
-        onClose={() => setParticipantsEvent(null)}
+      <PoolLeaderboardModal
+        open={leaderboardPool !== null}
+        pool={leaderboardPool}
+        onClose={() => setLeaderboardPool(null)}
       />
     </>
   );
