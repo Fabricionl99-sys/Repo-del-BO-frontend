@@ -1,11 +1,10 @@
 import type { MediaSource, MediaValue } from '@/types/media';
-
-const CDN_HOSTS = ['cdn.social2game.com', 'mock-cdn.social2game.local'] as const;
+import { cdnHostnames } from '@/config/env';
 
 export function isCdnMediaUrl(url: string): boolean {
   try {
     const host = new URL(url).hostname;
-    return CDN_HOSTS.some((cdn) => host === cdn || host.endsWith(`.${cdn}`));
+    return cdnHostnames().some((cdn) => host === cdn || host.endsWith(`.${cdn}`));
   } catch {
     return false;
   }
