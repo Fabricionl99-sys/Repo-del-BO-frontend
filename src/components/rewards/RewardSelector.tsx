@@ -2,6 +2,7 @@ import { AlertTriangle } from 'lucide-react';
 import { useMemo } from 'react';
 import { Link } from 'react-router-dom';
 
+import { useCapabilityChecks } from '@/features/capabilities/useCapabilityChecks';
 import {
   bonusesForRewardType,
   defaultRewardFormFields,
@@ -10,6 +11,7 @@ import {
   getEffectiveRewardTypes,
   isCurrencyAwareRewardType,
   isRewardTypeGated,
+  MODULE_REWARD_TYPES,
   REWARD_TYPE_LABELS,
   rewardValueToForm,
   type RewardFormFields,
@@ -48,6 +50,7 @@ export function RewardSelector({
   disabled = false,
 }: RewardSelectorProps) {
   const { context: fetchedContext, isLoading } = useRewardOperatorContext();
+  const { isBonusTypeActive, capabilityDisabledTooltip } = useCapabilityChecks();
   const context = contextProp ?? fetchedContext;
   const fields = useMemo(() => rewardValueToForm(value), [value]);
 
@@ -56,7 +59,11 @@ export function RewardSelector({
     [availableRewardTypes, context.activeModuleCodes, moduleKey],
   );
 
-  const allTypes = availableRewardTypes ?? getEffectiveRewardTypes(moduleKey, context.activeModuleCodes);
+  const allTypes = availableRewardTypes ?? MODULE_REWARD_TYPES[moduleKey];
+  const moduleAllowedTypes = useMemo(
+    () => allTypes.filter((t) => !isRewardTypeGated(t, context.activeModuleCodes).gated),
+    [allTypes, context.activeModuleCodes],
+  );
   const gatedTypes = allTypes.filter((t) => !effectiveTypes.includes(t));
 
   const update = (patch: Partial<RewardFormFields>) => {
@@ -81,12 +88,31 @@ export function RewardSelector({
             onChange(formToRewardValue({ ...defaultRewardFormFields(nextType), reward_type: nextType }));
           }}
         >
-          {effectiveTypes.map((t) => (
-            <option key={t} value={t}>
-              {REWARD_TYPE_LABELS[t]}
-            </option>
-          ))}
+          {moduleAllowedTypes.map((t) => {
+            const capDisabled = BONUS_REWARD_TYPES.includes(t) && !isBonusTypeActive(t);
+            return (
+              <option
+                key={t}
+                value={t}
+                disabled={capDisabled}
+                title={capDisabled ? capabilityDisabledTooltip : undefined}
+              >
+                {REWARD_TYPE_LABELS[t]}
+                {capDisabled ? ' (no soportado)' : ''}
+              </option>
+            );
+          })}
         </select>
+        {BONUS_REWARD_TYPES.filter(
+          (t) => moduleAllowedTypes.includes(t) && !isBonusTypeActive(t),
+        ).map((t) => (
+          <p key={`cap-${t}`} className="mt-2 text-[13px] text-text-tertiary">
+            {REWARD_TYPE_LABELS[t]}: {capabilityDisabledTooltip}{' '}
+            <Link to="/capabilities" className="text-accent hover:underline">
+              Ir a Capacidades
+            </Link>
+          </p>
+        ))}
         {gatedTypes.map((t) => {
           const gate = isRewardTypeGated(t, context.activeModuleCodes);
           if (!gate.gated || !gate.module) return null;

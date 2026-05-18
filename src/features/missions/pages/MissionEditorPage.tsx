@@ -1,6 +1,6 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useEffect, useState } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { Link, useNavigate, useParams } from 'react-router-dom';
 import { FormProvider, useForm, useWatch } from 'react-hook-form';
 
 import { DayOfWeekSelector } from '@/components/ui/DayOfWeekSelector';
@@ -24,6 +24,7 @@ import {
   TRIGGER_CONFIG_LABELS,
   type TriggerConfigField,
 } from '@/features/missions/missionTriggers';
+import { useCapabilityChecks } from '@/features/capabilities/useCapabilityChecks';
 import { useMission, useSaveMission } from '@/features/tier3Api';
 
 const ICONS = ['🎯', '💰', '🎰', '🃏', '⚡', '🔥', '🏦', '⚽', '🤝', '👤'];
@@ -42,6 +43,7 @@ export default function MissionEditorPage() {
   });
 
   const { register, handleSubmit, reset, setValue, control, watch, formState: { errors } } = form;
+  const { isEventActive, capabilityDisabledTooltip } = useCapabilityChecks();
   const trigger = useWatch({ control, name: 'trigger' });
   const triggerDef = getTriggerDef(trigger);
   const name = watch('name');
@@ -117,14 +119,31 @@ export default function MissionEditorPage() {
               <select id="mission-trigger" className="field" {...register('trigger')}>
                 {MISSION_TRIGGER_GROUPS.map((group) => (
                   <optgroup key={group.label} label={group.label}>
-                    {group.triggers.map((t) => (
-                      <option key={t.code} value={t.code}>
-                        {t.label}
-                      </option>
-                    ))}
+                    {group.triggers.map((t) => {
+                      const eventDisabled = !isEventActive(t.code);
+                      return (
+                        <option
+                          key={t.code}
+                          value={t.code}
+                          disabled={eventDisabled}
+                          title={eventDisabled ? capabilityDisabledTooltip : undefined}
+                        >
+                          {t.label}
+                          {eventDisabled ? ' (no habilitado)' : ''}
+                        </option>
+                      );
+                    })}
                   </optgroup>
                 ))}
               </select>
+              {!isEventActive(trigger) && (
+                <p className="mt-2 text-[13px] text-text-tertiary">
+                  {capabilityDisabledTooltip}{' '}
+                  <Link to="/capabilities" className="text-accent hover:underline">
+                    Ir a Capacidades
+                  </Link>
+                </p>
+              )}
             </div>
             <div>
               <label className="mb-1.5 block text-[14px] text-text-secondary">valor objetivo</label>
