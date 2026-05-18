@@ -38,6 +38,32 @@ describe('PredictionsPage', () => {
     expect(screen.getAllByText(/Partido \d/).length).toBeGreaterThanOrEqual(2);
   });
 
+  it('prode abierto muestra todas las opciones en solo lectura', async () => {
+    wrap();
+    await screen.findByText('Champions Semana 3');
+    fireEvent.click(screen.getByRole('button', { name: /Champions Semana 3/i }));
+    await screen.findByText('Editar prode', { selector: 'h2' });
+    await screen.findByDisplayValue('Real Madrid vs Barcelona');
+    expect(screen.getAllByDisplayValue('Real Madrid').length).toBeGreaterThanOrEqual(1);
+    expect(screen.getAllByDisplayValue('Barcelona').length).toBeGreaterThanOrEqual(1);
+    expect(screen.queryByRole('button', { name: 'Agregar opción' })).not.toBeInTheDocument();
+  });
+
+  it('prode en borrador permite agregar opciones', async () => {
+    wrap();
+    await screen.findByText('Clausura 2026 (borrador)');
+    fireEvent.click(screen.getByRole('button', { name: /Clausura 2026/i }));
+    await screen.findByText('Editar prode', { selector: 'h2' });
+    await waitFor(() =>
+      expect(screen.getAllByPlaceholderText('Texto de la opción (requerido)').length).toBeGreaterThan(0),
+    );
+    const before = screen.getAllByPlaceholderText('Texto de la opción (requerido)').length;
+    fireEvent.click(screen.getAllByRole('button', { name: 'Agregar opción' })[0]!);
+    await waitFor(() =>
+      expect(screen.getAllByPlaceholderText('Texto de la opción (requerido)')).toHaveLength(before + 1),
+    );
+  });
+
   it('abrir prode en draft', async () => {
     wrap();
     await screen.findByText('Clausura 2026 (borrador)');
@@ -52,7 +78,7 @@ describe('PredictionsPage', () => {
     expect(await screen.findByText(/Resolver prode — Liga Argentina/)).toBeInTheDocument();
     expect(screen.getByText('Partido 1 · Resultado')).toBeInTheDocument();
     fireEvent.click(screen.getByRole('button', { name: 'Boca' }));
-    fireEvent.click(screen.getByRole('button', { name: '+2.5' }));
+    fireEvent.click(screen.getByRole('button', { name: '2-3' }));
     fireEvent.click(screen.getByRole('button', { name: 'Independiente' }));
     fireEvent.click(screen.getByRole('button', { name: '+8.5' }));
     fireEvent.click(screen.getByRole('button', { name: 'Más de 1 gol' }));

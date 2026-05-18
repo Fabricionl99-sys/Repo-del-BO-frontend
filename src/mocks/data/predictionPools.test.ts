@@ -39,4 +39,17 @@ describe('predictionPools mocks', () => {
     const entries = getPoolEntries('pool_champions_s3');
     expect(entries.length).toBeGreaterThan(10);
   });
+
+  it('champions semana 3 tiene partidos con 2 a 5 opciones', () => {
+    const pool = predictionPools.find((p) => p.id === 'pool_champions_s3')!;
+    expect(pool.events[0]?.options.map((o) => o.text)).toEqual([
+      'Real Madrid',
+      'Empate',
+      'Barcelona',
+    ]);
+    for (const ev of pool.events) {
+      expect(ev.options.length).toBeGreaterThanOrEqual(2);
+      expect(ev.options.length).toBeLessThanOrEqual(5);
+    }
+  });
 });
