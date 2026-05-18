@@ -4,7 +4,9 @@ import { rewardValueSchema } from '@/features/rewards/rewardForm';
 import type {
   ParticipationCostType,
   PoolAudienceType,
+  PoolMatch,
   PoolRewardConfig,
+  PredictionOption,
   PredictionPool,
   PredictionPoolPayload,
   PredictionRewardConfig,
@@ -277,6 +279,29 @@ function rewardConfigToForm(pool: PredictionPool): Partial<PoolFormValues> {
   return { per_hit_reward: configToReward(rc.reward) };
 }
 
+export function optionsToFormValues(options: PredictionOption[] | undefined | null): MatchOptionFormValues[] {
+  const sorted = Array.isArray(options) ? [...options].sort((a, b) => a.display_order - b.display_order) : [];
+  const mapped: MatchOptionFormValues[] = sorted.map((o) => ({
+    text: o.text,
+    description: o.description ?? '',
+    image_url: o.image_url ?? '',
+  }));
+  while (mapped.length < 2) {
+    mapped.push({ text: '', description: '', image_url: '' });
+  }
+  return mapped;
+}
+
+export function eventToFormValues(event: PoolMatch): MatchFormValues {
+  return {
+    name: event.name,
+    description: event.description ?? '',
+    image_url: event.image_url ?? '',
+    prediction_type: event.prediction_type,
+    options: optionsToFormValues(event.options),
+  };
+}
+
 export function poolToForm(pool: PredictionPool): PoolFormValues {
   return {
     code: pool.code,
@@ -303,21 +328,7 @@ export function poolToForm(pool: PredictionPool): PoolFormValues {
     player_ids: (pool.audience_config.player_ids ?? []).join(', '),
     vip_only: pool.restrictions.vip_only,
     new_players_only: pool.restrictions.new_players_only,
-    events: pool.events
-      .sort((a, b) => a.display_order - b.display_order)
-      .map((e) => ({
-        name: e.name,
-        description: e.description ?? '',
-        image_url: e.image_url ?? '',
-        prediction_type: e.prediction_type,
-        options: e.options
-          .sort((a, b) => a.display_order - b.display_order)
-          .map((o) => ({
-            text: o.text,
-            description: o.description ?? '',
-            image_url: o.image_url ?? '',
-          })),
-      })),
+    events: pool.events.sort((a, b) => a.display_order - b.display_order).map(eventToFormValues),
     ...rewardConfigToForm(pool),
   };
 }

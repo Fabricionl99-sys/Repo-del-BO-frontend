@@ -59,24 +59,67 @@ function makeMatch(
 }
 
 const poolChampionsEvents = [
-  makeMatch('pool_champions_s3', 0, 'Real Madrid vs Barcelona', 'Corners', ['+9.5', '-9.5']),
+  makeMatch('pool_champions_s3', 0, 'Real Madrid vs Barcelona', 'Resultado', [
+    'Real Madrid',
+    'Empate',
+    'Barcelona',
+  ]),
   makeMatch('pool_champions_s3', 1, 'Juventus vs Inter', 'Resultado', ['Juventus', 'Empate', 'Inter']),
-  makeMatch('pool_champions_s3', 2, 'Atlético vs Manchester United', 'Goles', ['+3.5', '-3.5']),
+  makeMatch('pool_champions_s3', 2, 'Atlético vs Manchester United', 'Goles', ['+3.5 goles', '-3.5 goles']),
 ];
 
 const poolLigaEvents = [
-  makeMatch('pool_liga_j5', 0, 'Boca vs Racing', 'Resultado', ['Boca', 'Empate', 'Racing']),
-  makeMatch('pool_liga_j5', 1, 'River vs San Lorenzo', 'Goles', ['+2.5', '-2.5']),
-  makeMatch('pool_liga_j5', 2, 'Independiente vs Huracán', 'Resultado', ['Independiente', 'Empate', 'Huracán']),
-  makeMatch('pool_liga_j5', 3, 'Talleres vs Belgrano', 'Corners', ['+8.5', '-8.5']),
-  makeMatch('pool_liga_j5', 4, 'Estudiantes vs Gimnasia', 'Goleador', ['Más de 1 gol', 'Sin goles']),
+  makeMatch('pool_liga_j5', 0, 'Boca vs Racing', 'Resultado', ['Boca', 'Empate', 'Racing', '0-0']),
+  makeMatch('pool_liga_j5', 1, 'River vs San Lorenzo', 'Goles', ['0-1', '2-3', '4+']),
+  makeMatch('pool_liga_j5', 2, 'Independiente vs Huracán', 'Resultado', [
+    'Independiente',
+    'Empate',
+    'Huracán',
+    'Doble oportunidad local',
+  ]),
+  makeMatch('pool_liga_j5', 3, 'Talleres vs Belgrano', 'Corners', ['+8.5', '-8.5', 'Exactamente 8']),
+  makeMatch('pool_liga_j5', 4, 'Estudiantes vs Gimnasia', 'Goleador', [
+    'Más de 1 gol',
+    'Sin goles',
+    '2 o más',
+    'Hat-trick',
+    'Autogol',
+  ]),
 ];
 
 const poolMundialEvents = [
-  makeMatch('pool_mundial_u20', 0, 'Argentina vs Brasil', 'Resultado', ['Argentina', 'Empate', 'Brasil'], 'pool_mundial_u20_ev_0_opt_0'),
-  makeMatch('pool_mundial_u20', 1, 'España vs Francia', 'Goles', ['+2.5', '-2.5'], 'pool_mundial_u20_ev_1_opt_1'),
-  makeMatch('pool_mundial_u20', 2, 'México vs USA', 'Resultado', ['México', 'Empate', 'USA'], 'pool_mundial_u20_ev_2_opt_0'),
-  makeMatch('pool_mundial_u20', 3, 'Alemania vs Italia', 'Corners', ['+9.5', '-9.5'], 'pool_mundial_u20_ev_3_opt_0'),
+  makeMatch(
+    'pool_mundial_u20',
+    0,
+    'Argentina vs Brasil',
+    'Resultado',
+    ['Argentina', 'Empate', 'Brasil', 'Penales'],
+    'pool_mundial_u20_ev_0_opt_0',
+  ),
+  makeMatch(
+    'pool_mundial_u20',
+    1,
+    'España vs Francia',
+    'Goles',
+    ['0-1', '2-3', '4+', '+2.5'],
+    'pool_mundial_u20_ev_1_opt_1',
+  ),
+  makeMatch(
+    'pool_mundial_u20',
+    2,
+    'México vs USA',
+    'Resultado',
+    ['México', 'Empate', 'USA'],
+    'pool_mundial_u20_ev_2_opt_0',
+  ),
+  makeMatch(
+    'pool_mundial_u20',
+    3,
+    'Alemania vs Italia',
+    'Corners',
+    ['+9.5', '-9.5', 'Empate en corners'],
+    'pool_mundial_u20_ev_3_opt_0',
+  ),
 ];
 
 const topPositionsReward: PoolRewardConfig = {

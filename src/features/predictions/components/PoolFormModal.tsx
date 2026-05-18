@@ -1,16 +1,19 @@
 import { zodResolver } from '@hookform/resolvers/zod';
-import { ArrowDown, ArrowUp, Plus, Trash2 } from 'lucide-react';
-import { useEffect } from 'react';
+import { ArrowDown, ArrowUp, Plus } from 'lucide-react';
+import { useEffect, useMemo } from 'react';
 import { useFieldArray, useForm, useWatch } from 'react-hook-form';
 
 import { MediaUploaderRhf } from '@/components/media/MediaUploaderRhf';
 import { RewardSelectorRhf } from '@/components/rewards/RewardSelectorRhf';
 import { Button } from '@/components/ui/Button';
+import { Loading } from '@/components/ui/Loading';
 import { Modal } from '@/components/ui/Modal';
 import { Switch } from '@/components/ui/Switch';
 import { ConfigSection, ConfiguratorScaffold } from '@/components/configurator/ConfiguratorScaffold';
+import { PoolMatchOptionsEditor } from '@/features/predictions/components/PoolMatchOptionsEditor';
 import {
   useOpenPredictionPool,
+  usePredictionPool,
   usePredictionPoolCategories,
   usePredictionTypes,
   useSavePredictionPool,
@@ -26,84 +29,6 @@ import {
 } from '@/features/predictions/poolForm';
 import type { PredictionPool, RewardStructureType } from '@/types/predictions';
 
-function MatchOptionsEditor({
-  control,
-  register,
-  matchIndex,
-  readOnly,
-}: {
-  control: ReturnType<typeof useForm<PoolFormValues>>['control'];
-  register: ReturnType<typeof useForm<PoolFormValues>>['register'];
-  matchIndex: number;
-  readOnly: boolean;
-}) {
-  const { fields, append, remove, move } = useFieldArray({
-    control,
-    name: `events.${matchIndex}.options`,
-  });
-
-  return (
-    <div className="space-y-2">
-      {fields.map((field, optIdx) => (
-        <div key={field.id} className="flex flex-wrap items-start gap-2 rounded-lg border border-border-subtle p-3">
-          <div className="min-w-[140px] flex-1">
-            <input
-              className="field"
-              placeholder="Texto opción"
-              disabled={readOnly}
-              {...register(`events.${matchIndex}.options.${optIdx}.text`)}
-            />
-          </div>
-          {!readOnly && (
-            <MediaUploaderRhf
-              control={control}
-              name={`events.${matchIndex}.options.${optIdx}.image_url`}
-              context={{ module: 'predictions', purpose: 'thumbnail' }}
-              compact
-            />
-          )}
-          {!readOnly && (
-            <div className="flex gap-1">
-              <Button type="button" size="sm" variant="ghost" disabled={optIdx === 0} onClick={() => move(optIdx, optIdx - 1)}>
-                <ArrowUp size={14} />
-              </Button>
-              <Button
-                type="button"
-                size="sm"
-                variant="ghost"
-                disabled={optIdx === fields.length - 1}
-                onClick={() => move(optIdx, optIdx + 1)}
-              >
-                <ArrowDown size={14} />
-              </Button>
-              <Button
-                type="button"
-                size="sm"
-                variant="ghost"
-                disabled={fields.length <= 2}
-                onClick={() => remove(optIdx)}
-              >
-                <Trash2 size={14} />
-              </Button>
-            </div>
-          )}
-        </div>
-      ))}
-      {!readOnly && (
-        <Button
-          type="button"
-          variant="secondary"
-          size="sm"
-          icon={<Plus size={14} />}
-          onClick={() => append({ text: '', description: '', image_url: '' })}
-        >
-          Agregar opción
-        </Button>
-      )}
-    </div>
-  );
-}
-
 export function PoolFormModal({
   open,
   pool,
@@ -117,11 +42,14 @@ export function PoolFormModal({
 }) {
   const save = useSavePredictionPool();
   const openPool = useOpenPredictionPool();
+  const poolDetailQ = usePredictionPool(pool?.id ?? null);
   const categoriesQ = usePredictionPoolCategories();
   const typesQ = usePredictionTypes();
   const categories = categoriesQ.data ?? [];
   const predictionTypes = typesQ.data ?? [];
-  const readOnly = Boolean(pool && pool.status !== 'draft');
+  const editingPool = poolDetailQ.data ?? pool;
+  const readOnly = Boolean(editingPool && editingPool.status !== 'draft');
+  const formKey = useMemo(() => (pool ? pool.id ?? 'new' : 'closed'), [pool]);
 
   const form = useForm<PoolFormValues>({
     resolver: zodResolver(poolFormSchema),
@@ -150,8 +78,9 @@ export function PoolFormModal({
 
   useEffect(() => {
     if (!open) return;
-    reset(pool ? poolToForm(pool) : defaultPoolForm());
-  }, [open, pool, reset]);
+    if (pool && pool.id && poolDetailQ.isLoading) return;
+    reset(editingPool ? poolToForm(editingPool) : defaultPoolForm());
+  }, [open, pool, editingPool, poolDetailQ.isLoading, reset]);
 
   const persist = async (values: PoolFormValues, andOpen: boolean) => {
     if (existingCodes.includes(values.code.trim()) && values.code.trim() !== pool?.code) {
@@ -195,7 +124,10 @@ export function PoolFormModal({
           Este prode ya está abierto o cerrado. Solo podés cancelarlo desde el catálogo.
         </p>
       )}
-      <ConfiguratorScaffold>
+      {pool?.id && poolDetailQ.isLoading ? (
+        <Loading label="Cargando partidos..." />
+      ) : (
+      <ConfiguratorScaffold key={formKey}>
         <ConfigSection icon="📋" title="Información del prode">
           <div className="grid gap-3 sm:grid-cols-2">
             <div>
@@ -299,7 +231,14 @@ export function PoolFormModal({
                     <option key={t} value={t} />
                   ))}
                 </datalist>
-                <MatchOptionsEditor control={control} register={register} matchIndex={evIdx} readOnly={readOnly} />
+                <PoolMatchOptionsEditor
+                  key={`${ev.id}-options`}
+                  control={control}
+                  register={register}
+                  matchIndex={evIdx}
+                  readOnly={readOnly}
+                  errors={errors}
+                />
               </div>
             ))}
           </div>
@@ -490,6 +429,7 @@ export function PoolFormModal({
           </div>
         </ConfigSection>
       </ConfiguratorScaffold>
+      )}
     </Modal>
   );
 }
