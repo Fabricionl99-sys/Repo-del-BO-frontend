@@ -40,6 +40,7 @@ export const MODULE_REWARD_TYPES: Record<RewardModuleKey, RewardTypeCode[]> = {
   streaks: ALL_REWARD_TYPES,
   shop: ALL_REWARD_TYPES.filter((t) => t !== 'xp'),
   chests: ALL_REWARD_TYPES.filter((t) => t !== 'chest'),
+  wheels: ALL_REWARD_TYPES.filter((t) => t !== 'wheel_spin'),
   rankings: ALL_REWARD_TYPES,
   tournaments: ALL_REWARD_TYPES,
   predictions: ALL_REWARD_TYPES.filter((t) => t !== 'xp'),

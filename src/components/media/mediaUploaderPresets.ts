@@ -123,6 +123,13 @@ const PRESETS: Record<string, MediaUploaderConfig> = {
     maxDimensions: { width: 1024, height: 1024 },
     aspectRatio: 'square',
   },
+  'wheels:prize_image': {
+    maxSizeKB: 300,
+    allowedFormats: DEFAULT_FORMATS,
+    minDimensions: { width: 64, height: 64 },
+    maxDimensions: { width: 512, height: 512 },
+    aspectRatio: 'square',
+  },
 };
 
 const FALLBACK: MediaUploaderConfig = {
@@ -153,6 +160,7 @@ export function purposeLabel(purpose: MediaPurpose): string {
     logo: 'logo',
     icon: 'icono',
     main_image: 'imagen',
+    prize_image: 'imagen premio',
   };
   return labels[purpose];
 }

@@ -18,7 +18,8 @@ export type MediaPurpose =
   | 'background'
   | 'logo'
   | 'icon'
-  | 'main_image';
+  | 'main_image'
+  | 'prize_image';
 
 export type MediaSource = 'upload' | 'external';
 

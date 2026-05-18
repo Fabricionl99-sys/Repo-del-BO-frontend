@@ -2,6 +2,7 @@ import { useMemo } from 'react';
 
 import { useCoins } from '@/features/coinsApi';
 import { useChestTypeOptions } from '@/features/chests/chestsApi';
+import { useWheelOptions } from '@/features/wheels/wheelsApi';
 import { useAvatars } from '@/features/avatars/avatarsApi';
 import { useOperatorBonuses } from '@/features/operatorBonuses/operatorBonusesApi';
 import { useOperatorCurrencies } from '@/features/settings/operatorConfigApi';
@@ -11,6 +12,7 @@ import type { RewardOperatorContext } from '@/types/rewards';
 export function useRewardOperatorContext(): { context: RewardOperatorContext; isLoading: boolean } {
   const bonusesQ = useOperatorBonuses({ status: 'all' });
   const chestsQ = useChestTypeOptions();
+  const wheelsQ = useWheelOptions();
   const avatarsQ = useAvatars({ status: 'active' });
   const coinsQ = useCoins();
   const currenciesQ = useOperatorCurrencies();
@@ -20,7 +22,7 @@ export function useRewardOperatorContext(): { context: RewardOperatorContext; is
     () => ({
       operator_bonuses: bonusesQ.data ?? [],
       available_chests: (chestsQ.data ?? []).map((c) => ({ code: c.code, name: c.name })),
-      available_wheels: [],
+      available_wheels: wheelsQ.data ?? [],
       available_avatars: (avatarsQ.data?.items ?? []).map((a) => ({ id: a.id, name: a.name })),
       available_coins: (coinsQ.data ?? [])
         .filter((c) => c.active)
@@ -28,11 +30,12 @@ export function useRewardOperatorContext(): { context: RewardOperatorContext; is
       active_currencies: (currenciesQ.data ?? []).map((c) => c.code),
       activeModuleCodes,
     }),
-    [activeModuleCodes, avatarsQ.data, bonusesQ.data, chestsQ.data, coinsQ.data, currenciesQ.data],
+    [activeModuleCodes, avatarsQ.data, bonusesQ.data, chestsQ.data, coinsQ.data, currenciesQ.data, wheelsQ.data],
   );
 
   return {
     context,
-    isLoading: bonusesQ.isLoading || chestsQ.isLoading || avatarsQ.isLoading || coinsQ.isLoading,
+    isLoading:
+      bonusesQ.isLoading || chestsQ.isLoading || wheelsQ.isLoading || avatarsQ.isLoading || coinsQ.isLoading,
   };
 }

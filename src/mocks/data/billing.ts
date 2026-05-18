@@ -64,6 +64,13 @@ export const moduleCatalog: ModulePublic[] = [
     category: 'engagement',
   },
   {
+    code: 'wheels',
+    name: 'Ruedas de la fortuna',
+    description: 'Ruletas configurables con premios y ocasiones',
+    price_usd_monthly: 129,
+    category: 'engagement',
+  },
+  {
     code: 'tournaments',
     name: 'Torneos',
     description: 'Competencias con ranking y premios',
@@ -130,6 +137,7 @@ export const operatorModulePricing: Partial<Record<ModuleCode, number>> = {
   shop: 143,
   rewards_delivery: 89,
   chests: 107,
+  wheels: 116,
   tournaments: 170,
   predictions: 152,
   rankings: 125,

@@ -1931,3 +1931,6 @@ handlers.push(
     return HttpResponse.json({ data: data.news });
   }),
 );
+
+import { wheelsHandlers } from '@/mocks/handlers/wheelsHandlers';
+handlers.push(...wheelsHandlers);

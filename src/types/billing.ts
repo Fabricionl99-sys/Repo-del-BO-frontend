@@ -11,6 +11,7 @@ export type ModuleCode =
   | 'shop'
   | 'rewards_delivery'
   | 'chests'
+  | 'wheels'
   | 'tournaments'
   | 'predictions'
   | 'rankings'

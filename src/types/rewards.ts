@@ -35,6 +35,7 @@ export type RewardModuleKey =
   | 'streaks'
   | 'shop'
   | 'chests'
+  | 'wheels'
   | 'rankings'
   | 'tournaments'
   | 'predictions'

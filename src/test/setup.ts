@@ -48,6 +48,8 @@ afterEach(async () => {
   resetOperatorBonusesStore();
   const { resetLoginPopupsStore } = await import('@/mocks/data/loginPopups');
   resetLoginPopupsStore();
+  const { resetWheelsStore } = await import('@/mocks/data/wheels');
+  resetWheelsStore();
   const { applyTheme } = await import('@/lib/theme');
   applyTheme('dark');
   localStorage.removeItem('niveles_theme_preference_v1');
