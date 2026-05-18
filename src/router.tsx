@@ -48,6 +48,7 @@ const WheelsPage = lazy(() => import('@/features/wheels/pages/WheelsPage'));
 const CapabilitiesPage = lazy(() => import('@/features/capabilities/pages/CapabilitiesPage'));
 const ComingSoonPage = lazy(() => import('@/pages/ComingSoonPage'));
 const NotFoundPage = lazy(() => import('@/pages/NotFoundPage'));
+const PublicNotFoundPage = lazy(() => import('@/pages/PublicNotFoundPage'));
 
 const wrap = (element: React.ReactNode) => <Suspense fallback={<Loading />}>{element}</Suspense>;
 
@@ -153,7 +154,8 @@ export const router = createBrowserRouter([
         path: route.path,
         element: wrap(<ComingSoonPage title={route.title} description={route.description} />),
       })),
+      { path: '*', element: wrap(<NotFoundPage />) },
     ],
   },
-  { path: '*', element: <Navigate to="/dashboard" replace /> },
+  { path: '*', element: wrap(<PublicNotFoundPage />) },
 ]);

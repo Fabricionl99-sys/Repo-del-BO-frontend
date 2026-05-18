@@ -13,6 +13,13 @@ export default defineConfig({
     },
   },
   test: {
+    env: {
+      VITE_APP_ENV: 'test',
+      VITE_USE_MOCKS: 'true',
+      VITE_API_BASE_URL: '/api',
+      VITE_CDN_BASE_URL: 'http://localhost',
+      VITE_SENTRY_DSN: '',
+    },
     environment: 'jsdom',
     setupFiles: ['./src/test/setup.ts'],
     testTimeout: 10_000,

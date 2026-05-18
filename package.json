@@ -6,7 +6,11 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
+    "build:staging": "tsc -b && vite build --mode staging",
+    "build:production": "tsc -b && vite build --mode production",
     "preview": "vite preview",
+    "preview:staging": "vite preview --mode staging",
+    "preview:production": "vite preview --mode production",
     "lint": "eslint .",
     "type-check": "tsc --noEmit",
     "test": "vitest run",
@@ -55,6 +59,7 @@
     "typescript": "latest",
     "typescript-eslint": "latest",
     "vite": "latest",
+    "vite-plugin-compression": "^0.5.1",
     "vitest": "latest"
   },
   "msw": {
