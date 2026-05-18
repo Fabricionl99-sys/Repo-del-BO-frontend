@@ -6,15 +6,18 @@ import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 import { queryClient } from '@/api/queryClient';
 import { AuthProvider } from '@/auth/AuthProvider';
 import { ToastContainer } from '@/components/ui/Toast';
+import { env } from '@/config/env';
+import { initSentry } from '@/lib/sentry';
 import { sanitizeBoPersistentState } from '@/lib/sanitizeBoPersistentState';
 
 import { App } from './App';
 import './styles/globals.css';
 
 sanitizeBoPersistentState(queryClient);
+initSentry();
 
 async function enableMocks() {
-  if (import.meta.env.VITE_USE_MOCKS !== 'true') return;
+  if (!env.useMocks) return;
   const { worker } = await import('./mocks/browser');
   return worker.start({ onUnhandledRequest: 'warn' });
 }

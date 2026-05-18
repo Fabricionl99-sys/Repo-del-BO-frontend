@@ -1,12 +1,18 @@
 import axios, { AxiosError, InternalAxiosRequestConfig } from 'axios';
 
+import { refreshSession } from '@/api/authSession';
+import { env } from '@/config/env';
 import { useAuthStore } from '@/stores/authStore';
 import { useOperatorStore } from '@/stores/operatorStore';
 import { toast } from '@/stores/toastStore';
 
 export const apiClient = axios.create({
-  baseURL: import.meta.env.VITE_API_BASE_URL ?? '/api',
-  timeout: 30000,
+  baseURL: env.apiBaseUrl,
+  timeout: 30_000,
+  headers: {
+    'Content-Type': 'application/json',
+    Accept: 'application/json',
+  },
 });
 
 apiClient.interceptors.request.use((config: InternalAxiosRequestConfig) => {
@@ -14,13 +20,21 @@ apiClient.interceptors.request.use((config: InternalAxiosRequestConfig) => {
   const tenant = useOperatorStore.getState().current?.id;
 
   if (token) config.headers.Authorization = `Bearer ${token}`;
-  if (tenant) config.headers['X-Tenant-ID'] = tenant;
+  if (tenant) config.headers['X-Tenant-Id'] = tenant;
 
   return config;
 });
 
 let isRefreshing = false;
 let refreshQueue: Array<(token: string) => void> = [];
+
+function redirectToLogin() {
+  useAuthStore.getState().clearAuth();
+  const path = window.location.pathname;
+  if (!path.startsWith('/login') && !path.startsWith('/signup')) {
+    window.history.replaceState(null, '', '/login');
+  }
+}
 
 apiClient.interceptors.response.use(
   (response) => response,
@@ -30,6 +44,15 @@ apiClient.interceptors.response.use(
       | undefined;
 
     if (error.response?.status === 401 && originalRequest && !originalRequest._retry) {
+      const isAuthRoute =
+        originalRequest.url?.includes('/auth/login') ||
+        originalRequest.url?.includes('/auth/refresh') ||
+        originalRequest.url?.includes('/auth/signup');
+
+      if (isAuthRoute) {
+        return Promise.reject(error);
+      }
+
       if (isRefreshing) {
         return new Promise((resolve) => {
           refreshQueue.push((token) => {
@@ -46,22 +69,21 @@ apiClient.interceptors.response.use(
         const refreshToken = localStorage.getItem('niveles_refresh_token');
         if (!refreshToken) throw new Error('No refresh token');
 
-        const { data } = await axios.post(
-          `${import.meta.env.VITE_API_BASE_URL ?? '/api'}/auth/refresh`,
-          { refreshToken },
-        );
+        const session = await refreshSession(refreshToken);
+        useAuthStore.getState().setAuth(session.user, session.accessToken, session.refreshToken);
+        useOperatorStore.getState().setAvailable(session.operators);
+        if (!useOperatorStore.getState().current && session.operators[0]) {
+          useOperatorStore.getState().setCurrent(session.operators[0]);
+        }
 
-        useAuthStore.getState().setAuth(data.user, data.accessToken, data.refreshToken);
-        localStorage.setItem('niveles_refresh_token', data.refreshToken);
-
-        refreshQueue.forEach((callback) => callback(data.accessToken));
+        refreshQueue.forEach((callback) => callback(session.accessToken));
         refreshQueue = [];
 
-        originalRequest.headers.Authorization = `Bearer ${data.accessToken}`;
+        originalRequest.headers.Authorization = `Bearer ${session.accessToken}`;
         return apiClient(originalRequest);
       } catch (refreshError) {
-        useAuthStore.getState().clearAuth();
-        window.history.replaceState(null, '', '/login');
+        refreshQueue = [];
+        redirectToLogin();
         return Promise.reject(refreshError);
       } finally {
         isRefreshing = false;
@@ -73,7 +95,7 @@ apiClient.interceptors.response.use(
     } else if (error.response && error.response.status >= 500) {
       toast.error('Error del servidor · intentá de nuevo en unos minutos');
     } else if (!error.response) {
-      toast.error('Sin conexión · revisá tu red');
+      toast.error('Conexión perdida · revisá tu red');
     }
 
     return Promise.reject(error);
