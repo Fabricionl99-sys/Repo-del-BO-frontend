@@ -28,6 +28,9 @@ import type {
 import { ChannelCard } from '../components/ChannelCard';
 import { ChannelConfigModal } from '../components/ChannelConfigModal';
 import { HistoryDetailModal } from '../components/HistoryDetailModal';
+import { LoginPopupsHistoryTab } from '../components/LoginPopupsHistoryTab';
+import { LoginPopupsTemplatesTab } from '../components/LoginPopupsTemplatesTab';
+import { ManualLoginPopupTab } from '../components/ManualLoginPopupTab';
 import { NotificationStatsPanel } from '../components/NotificationStatsPanel';
 import { TemplateFormModal } from '../components/TemplateFormModal';
 import { buildPreviewFromTemplate } from '../notificationPreview';
@@ -41,7 +44,16 @@ import {
   useTestNotificationChannel,
 } from '../notificationsApi';
 
-const tabs = ['Canales', 'Templates', 'Historial', 'Envío manual', 'Estadísticas'] as const;
+const tabs = [
+  'Canales',
+  'Templates',
+  'Historial',
+  'Envío manual',
+  'Estadísticas',
+  'Popups al Login',
+  'Mensaje Manual',
+  'Historial Popups',
+] as const;
 type Tab = (typeof tabs)[number];
 
 const statusFilters = ['active', 'archived', 'all'] as const;
@@ -124,7 +136,10 @@ export default function NotificationsPage() {
     (tab === 'Canales' && channelsQ.isLoading) ||
     (tab === 'Templates' && templatesQ.isLoading) ||
     (tab === 'Historial' && historyQ.isLoading) ||
-    (tab === 'Estadísticas' && statsQ.isLoading);
+    (tab === 'Estadísticas' && statsQ.isLoading) ||
+    (tab === 'Popups al Login' && false) ||
+    (tab === 'Mensaje Manual' && false) ||
+    (tab === 'Historial Popups' && false);
 
   if (loading) return <Loading label="Cargando notificaciones..." />;
 
@@ -421,6 +436,10 @@ export default function NotificationsPage() {
       )}
 
       {tab === 'Estadísticas' && statsQ.data && <NotificationStatsPanel stats={statsQ.data} />}
+
+      {tab === 'Popups al Login' && <LoginPopupsTemplatesTab />}
+      {tab === 'Mensaje Manual' && <ManualLoginPopupTab />}
+      {tab === 'Historial Popups' && <LoginPopupsHistoryTab />}
 
       <ChannelConfigModal open={!!channelEditor} channel={channelEditor} onClose={() => setChannelEditor(null)} />
       <TemplateFormModal

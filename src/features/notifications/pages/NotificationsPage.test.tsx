@@ -92,6 +92,29 @@ describe('NotificationsPage', () => {
     expect(screen.getByText('envíos últimos 30 días por canal')).toBeInTheDocument();
   });
 
+  it('tab popups al login lista templates', async () => {
+    wrap();
+    await screen.findByText('In-app');
+    fireEvent.click(screen.getByRole('button', { name: 'Popups al Login' }));
+    expect(await screen.findByText('Mantén tu racha')).toBeInTheDocument();
+    fireEvent.click(screen.getByText('Nuevo popup template'));
+    expect(screen.getByText('Nuevo popup template', { selector: 'h2' })).toBeInTheDocument();
+  });
+
+  it('tab mensaje manual popup', async () => {
+    wrap();
+    await screen.findByText('In-app');
+    fireEvent.click(screen.getByRole('button', { name: 'Mensaje Manual' }));
+    expect(await screen.findByText(/próximo login del jugador/)).toBeInTheDocument();
+  });
+
+  it('tab historial popups', async () => {
+    wrap();
+    await screen.findByText('In-app');
+    fireEvent.click(screen.getByRole('button', { name: 'Historial Popups' }));
+    expect(await screen.findByText('Mostrados hoy')).toBeInTheDocument();
+  });
+
   it('módulo inactivo', () => {
     cleanup();
     useOperatorStore.setState({ activeModuleCodes: ['shop'], billingMode: 'wallet' });
