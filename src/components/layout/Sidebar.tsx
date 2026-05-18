@@ -27,6 +27,7 @@ import {
   Wallet,
   Webhook,
   Zap,
+  Eye,
 } from 'lucide-react';
 
 import {
@@ -78,6 +79,10 @@ const sections = [
       ['/notificaciones', 'Notificaciones', Bell] as const,
       ['/noticias', 'Noticias', Newspaper] as const,
     ],
+  },
+  {
+    label: 'Herramientas',
+    items: [['/preview-widget', 'Preview Widget', Eye] as const],
   },
   {
     label: 'Developers',

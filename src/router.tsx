@@ -37,6 +37,7 @@ const FeedPlaceholderPage = lazy(() => import('@/features/feed/pages/FeedPlaceho
 const WalletPage = lazy(() => import('@/features/wallet/pages/WalletPage'));
 const ModulesPage = lazy(() => import('@/features/modules/pages/ModulesPage'));
 const BonusesPage = lazy(() => import('@/features/operatorBonuses/pages/BonusesPage'));
+const WidgetPreviewPage = lazy(() => import('@/features/widget-preview/pages/WidgetPreviewPage'));
 const ComingSoonPage = lazy(() => import('@/pages/ComingSoonPage'));
 const NotFoundPage = lazy(() => import('@/pages/NotFoundPage'));
 
@@ -129,6 +130,7 @@ export const router = createBrowserRouter([
         path: 'modulos',
         element: <ProtectedRoute roles={['admin']}>{wrap(<ModulesPage />)}</ProtectedRoute>,
       },
+      { path: 'preview-widget', element: wrap(<WidgetPreviewPage />) },
       { path: 'billing', element: <Navigate to="/wallet" replace /> },
       ...comingSoonRoutes.map((route) => ({
         path: route.path,
