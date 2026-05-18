@@ -38,7 +38,6 @@ import {
   SIDEBAR_MODULE_BY_PATH,
   type ModuleCode,
 } from '@/features/billing/moduleCatalog';
-import { TrialBanner } from './TrialBanner';
 import { OperatorSelector } from './OperatorSelector';
 import { useAuthStore } from '@/stores/authStore';
 import { useOperatorStore } from '@/stores/operatorStore';
@@ -135,7 +134,6 @@ export function Sidebar() {
         <span className="text-[16px] font-bold">niveles</span>
       </div>
       <OperatorSelector />
-      <TrialBanner />
       <div className="flex-1">
         {sections.map((s, i) => (
           <div key={i} className="mb-2 px-3">

@@ -85,4 +85,5 @@ export interface OnboardingCompleteResponse {
   refresh_token: string;
   trial_ends_at: string;
   company_display_name: string;
+  has_payment_method?: boolean;
 }

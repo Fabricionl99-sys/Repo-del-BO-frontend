@@ -2,6 +2,7 @@ import { PlanModuleGuard } from './PlanModuleGuard';
 import { Sidebar } from './Sidebar';
 import { TenantUrlSync } from './TenantUrlSync';
 import { Topbar } from './Topbar';
+import { TrialBanner } from './TrialBanner';
 
 export function AppShell() {
   return (
@@ -10,6 +11,7 @@ export function AppShell() {
       <Sidebar />
       <div className="flex min-w-0 flex-col">
         <Topbar />
+        <TrialBanner />
         <main className="flex-1 overflow-auto">
           <div className="max-w-[1600px] px-7 py-7">
             <PlanModuleGuard />

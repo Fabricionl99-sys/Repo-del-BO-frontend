@@ -1,16 +1,20 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { MemoryRouter } from 'react-router-dom';
+import { MemoryRouter, Route, Routes } from 'react-router-dom';
 import { describe, expect, it } from 'vitest';
 
+import EmailSentPage from './EmailSentPage';
 import SignupPage from './SignupPage';
 
 function wrap() {
   return render(
     <QueryClientProvider client={new QueryClient({ defaultOptions: { queries: { retry: false } } })}>
-      <MemoryRouter>
-        <SignupPage />
+      <MemoryRouter initialEntries={['/signup']}>
+        <Routes>
+          <Route path="/signup" element={<SignupPage />} />
+          <Route path="/signup/email-sent" element={<EmailSentPage />} />
+        </Routes>
       </MemoryRouter>
     </QueryClientProvider>,
   );
@@ -19,8 +23,8 @@ function wrap() {
 describe('SignupPage', () => {
   it('renderiza formulario de registro', () => {
     wrap();
-    expect(screen.getByRole('heading', { name: /Crear cuenta/i })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /Crear cuenta/i })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: /Crea tu cuenta gratis/i })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /Crear cuenta gratis/i })).toBeInTheDocument();
   });
 
   it('flujo signup muestra pantalla de email enviado', async () => {
@@ -34,7 +38,7 @@ describe('SignupPage', () => {
     await user.type(inputs[1], 'Nuevo Casino');
     await user.selectOptions(screen.getByRole('combobox'), 'AR');
     await user.click(screen.getByRole('checkbox', { name: /Acepto términos/i }));
-    await user.click(screen.getByRole('button', { name: /Crear cuenta/i }));
-    await waitFor(() => expect(screen.getByText(/Revisá tu email/i)).toBeInTheDocument());
+    await user.click(screen.getByRole('button', { name: /Crear cuenta gratis/i }));
+    await waitFor(() => expect(screen.getByText(/Te enviamos un email/i)).toBeInTheDocument());
   });
 });

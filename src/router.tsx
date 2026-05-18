@@ -8,6 +8,7 @@ import { Loading } from '@/components/ui/Loading';
 const LoginPage = lazy(() => import('@/pages/LoginPage'));
 const LandingPage = lazy(() => import('@/features/public/pages/LandingPage'));
 const SignupPage = lazy(() => import('@/features/public/pages/SignupPage'));
+const EmailSentPage = lazy(() => import('@/features/public/pages/EmailSentPage'));
 const ConfirmEmailPage = lazy(() => import('@/features/public/pages/ConfirmEmailPage'));
 const OnboardingWizardPage = lazy(() => import('@/features/public/pages/OnboardingWizardPage'));
 const WelcomePage = lazy(() => import('@/features/public/pages/WelcomePage'));
@@ -64,6 +65,7 @@ export const router = createBrowserRouter([
   { path: '/', element: wrap(<LandingPage />) },
   { path: '/login', element: wrap(<LoginPage />) },
   { path: '/signup', element: wrap(<SignupPage />) },
+  { path: '/signup/email-sent', element: wrap(<EmailSentPage />) },
   { path: '/signup/confirm-email', element: wrap(<ConfirmEmailPage />) },
   { path: '/signup/onboarding', element: wrap(<OnboardingWizardPage />) },
   { path: '/signup/welcome', element: wrap(<WelcomePage />) },

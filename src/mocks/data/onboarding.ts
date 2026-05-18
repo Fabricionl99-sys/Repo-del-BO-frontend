@@ -3,7 +3,18 @@ import type {
   SignupPayload,
 } from '@/types/onboarding';
 
-export const TAKEN_EMAILS = new Set(['existing@casino.com', 'fabricionl99@icloud.com']);
+/** Seed accounts for QA: acme (trial), test (expired), pro (paid). */
+export const SEED_ACCOUNTS = {
+  'admin@acme.com': { kind: 'trial_active' as const },
+  'admin@test.com': { kind: 'trial_expired' as const },
+  'admin@pro.com': { kind: 'subscribed' as const },
+};
+
+export const TAKEN_EMAILS = new Set([
+  'existing@casino.com',
+  'fabricionl99@icloud.com',
+  ...Object.keys(SEED_ACCOUNTS),
+]);
 
 export interface PendingSignup extends SignupPayload {
   id: string;
@@ -113,13 +124,21 @@ export function saveStep(token: string, step: number, stepData: Record<string, u
 export function completeOnboarding(token: string) {
   const session = sessions.get(token);
   if (!session) throw new Error('SESSION_NOT_FOUND');
+  const seed = SEED_ACCOUNTS[session.email as keyof typeof SEED_ACCOUNTS];
   const trialEnds = new Date();
-  trialEnds.setDate(trialEnds.getDate() + 14);
+  if (seed?.kind === 'trial_expired') {
+    trialEnds.setDate(trialEnds.getDate() - 1);
+  } else if (seed?.kind === 'subscribed') {
+    trialEnds.setDate(trialEnds.getDate() + 365);
+  } else {
+    trialEnds.setDate(trialEnds.getDate() + 14);
+  }
   return {
     tenant_id: `op_${session.company_name.toLowerCase().replace(/\s+/g, '_').slice(0, 24)}`,
     access_token: 'trial_access_token',
     refresh_token: 'trial_refresh_token',
     trial_ends_at: trialEnds.toISOString(),
     company_display_name: session.company_name,
+    has_payment_method: seed?.kind === 'subscribed',
   };
 }

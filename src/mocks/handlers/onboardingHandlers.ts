@@ -43,7 +43,7 @@ export const onboardingHandlers = [
     await wait();
     const { email } = (await request.json()) as { email: string };
     const sent = resendConfirmation(email);
-    return HttpResponse.json({ data: { sent } });
+    return HttpResponse.json({ data: { sent, cooldown_seconds: 60 } });
   }),
 
   http.post('*/auth/confirm-email', async ({ request }) => {

@@ -86,7 +86,7 @@ export const COMPARISON_ROWS = [
   { label: 'Setup fee', us: '$499 quickstart (opcional)', them: '$15K–$50K' },
   { label: 'Tiempo de integración', us: '1–2 semanas', them: '2–4 meses' },
   { label: 'Multi-currency', us: '33 monedas + crypto', them: 'Limitado' },
-  { label: 'Self-service', us: 'Sí, trial 14 días', them: 'No' },
+  { label: 'Self-service', us: 'Sí, trial 14 días', them: 'No (enterprise only)' },
   { label: 'Pricing inicial', us: 'Desde $299/mes', them: 'Desde $2K+/mes' },
 ];
 

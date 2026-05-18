@@ -1,33 +1,33 @@
 import { useEffect, useState } from 'react';
-import { useForm } from 'react-hook-form';
+import { useForm, useWatch } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Eye, EyeOff } from 'lucide-react';
-import { Link, useSearchParams } from 'react-router-dom';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 
 import { Button } from '@/components/ui/Button';
-import { useSignup, useResendConfirmation } from '@/features/onboarding/signupApi';
+import { useCheckEmailAvailable, useSignup } from '@/features/onboarding/signupApi';
 import { useSignupStore } from '@/stores/signupStore';
 import { toast } from '@/stores/toastStore';
 import type { PricingTierId } from '@/types/onboarding';
 
+import { PasswordStrength } from '../components/PasswordStrength';
 import { SIGNUP_COUNTRIES } from '../constants/landingContent';
 import { PublicSplitLayout } from '../layout/PublicSplitLayout';
 import { signupSchema, type SignupFormValues } from '../schemas/signupSchema';
 
 export default function SignupPage() {
   const [params] = useSearchParams();
+  const nav = useNavigate();
   const tier = (params.get('tier') as PricingTierId | null) ?? null;
   const [showPass, setShowPass] = useState(false);
-  const [sent, setSent] = useState(false);
   const setSignupPending = useSignupStore((s) => s.setSignupPending);
   const setSelectedTier = useSignupStore((s) => s.setSelectedTier);
-  const pendingEmail = useSignupStore((s) => s.pendingEmail);
   const signup = useSignup();
-  const resend = useResendConfirmation();
 
   const {
     register,
     handleSubmit,
+    control,
     formState: { errors, isSubmitting, isValid },
   } = useForm<SignupFormValues>({
     resolver: zodResolver(signupSchema),
@@ -35,11 +35,19 @@ export default function SignupPage() {
     defaultValues: { newsletter: false, terms: undefined },
   });
 
+  const email = useWatch({ control, name: 'email' });
+  const password = useWatch({ control, name: 'password' }) ?? '';
+  const emailCheck = useCheckEmailAvailable(email ?? '');
+
   useEffect(() => {
     if (tier) setSelectedTier(tier);
   }, [tier, setSelectedTier]);
 
   const onSubmit = handleSubmit(async (values) => {
+    if (emailCheck.data === false) {
+      toast.error('Ese email ya está registrado');
+      return;
+    }
     try {
       const result = await signup.mutateAsync({
         email: values.email,
@@ -49,56 +57,31 @@ export default function SignupPage() {
         newsletter: values.newsletter,
       });
       setSignupPending(values.email, result.signup_token);
-      setSent(true);
-      toast.success('Revisá tu email para confirmar la cuenta');
+      nav('/signup/email-sent', { replace: true });
     } catch {
       toast.error('No pudimos crear la cuenta. ¿El email ya está registrado?');
     }
   });
 
-  if (sent && pendingEmail) {
-    return (
-      <PublicSplitLayout>
-        <div className="w-full max-w-md rounded-xl border border-border-subtle bg-bg-secondary p-8 text-center">
-          <h1 className="text-[22px] font-bold">Revisá tu email</h1>
-          <p className="mt-3 text-[15px] text-text-secondary">
-            Te enviamos un link de confirmación a <strong className="text-text-primary">{pendingEmail}</strong>.
-          </p>
-          <p className="mt-2 text-[13px] text-text-tertiary">
-            En desarrollo: usá{' '}
-            <Link to="/signup/confirm-email?token=confirm-demo" className="text-accent underline">
-              confirmar demo
-            </Link>
-          </p>
-          <Button
-            variant="secondary"
-            className="mt-6 w-full"
-            loading={resend.isPending}
-            onClick={() => resend.mutate(pendingEmail)}
-          >
-            Reenviar email
-          </Button>
-          <Link to="/login" className="mt-4 block text-[14px] text-text-tertiary hover:text-text-primary">
-            Ya tengo cuenta →
-          </Link>
-        </div>
-      </PublicSplitLayout>
-    );
-  }
-
   return (
     <PublicSplitLayout>
       <div className="w-full max-w-md">
-        <h1 className="text-[26px] font-bold">Crear cuenta</h1>
-        <p className="mt-1 text-[15px] text-text-tertiary">14 días gratis · sin tarjeta</p>
+        <h1 className="text-[26px] font-bold">Crea tu cuenta gratis</h1>
+        <p className="mt-1 text-[15px] text-text-tertiary">14 días de trial. Sin tarjeta.</p>
         <form onSubmit={onSubmit} className="mt-6 space-y-4">
           <div>
-            <label className="mb-1.5 block text-[14px] text-text-secondary">email empresa</label>
+            <label className="mb-1.5 block text-[14px] text-text-secondary">Email empresa</label>
             <input className="field" type="email" autoComplete="email" {...register('email')} />
             {errors.email && <p className="mt-1 text-[13px] text-danger">{errors.email.message}</p>}
+            {emailCheck.data === false && (
+              <p className="mt-1 text-[13px] text-danger">Este email ya está registrado</p>
+            )}
+            {emailCheck.data === true && email?.includes('@') && (
+              <p className="mt-1 text-[13px] text-success">Email disponible</p>
+            )}
           </div>
           <div>
-            <label className="mb-1.5 block text-[14px] text-text-secondary">contraseña</label>
+            <label className="mb-1.5 block text-[14px] text-text-secondary">Contraseña</label>
             <div className="relative">
               <input
                 className="field pr-10"
@@ -115,24 +98,25 @@ export default function SignupPage() {
                 {showPass ? <EyeOff size={14} /> : <Eye size={14} />}
               </button>
             </div>
+            <PasswordStrength password={password} />
             {errors.password && <p className="mt-1 text-[13px] text-danger">{errors.password.message}</p>}
           </div>
           <div>
-            <label className="mb-1.5 block text-[14px] text-text-secondary">confirmar contraseña</label>
+            <label className="mb-1.5 block text-[14px] text-text-secondary">Confirmar contraseña</label>
             <input className="field" type="password" autoComplete="new-password" {...register('confirmPassword')} />
             {errors.confirmPassword && (
               <p className="mt-1 text-[13px] text-danger">{errors.confirmPassword.message}</p>
             )}
           </div>
           <div>
-            <label className="mb-1.5 block text-[14px] text-text-secondary">nombre comercial</label>
+            <label className="mb-1.5 block text-[14px] text-text-secondary">Nombre comercial empresa</label>
             <input className="field" {...register('company_name')} />
             {errors.company_name && (
               <p className="mt-1 text-[13px] text-danger">{errors.company_name.message}</p>
             )}
           </div>
           <div>
-            <label className="mb-1.5 block text-[14px] text-text-secondary">país</label>
+            <label className="mb-1.5 block text-[14px] text-text-secondary">País</label>
             <select className="field" {...register('country')}>
               <option value="">Seleccionar...</option>
               {SIGNUP_COUNTRIES.map((c) => (
@@ -153,7 +137,7 @@ export default function SignupPage() {
             Quiero recibir newsletter mensual
           </label>
           <Button type="submit" variant="primary" className="w-full" loading={isSubmitting} disabled={!isValid}>
-            Crear cuenta
+            Crear cuenta gratis
           </Button>
         </form>
         <p className="mt-4 text-center text-[14px] text-text-tertiary">

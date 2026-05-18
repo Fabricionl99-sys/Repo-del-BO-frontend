@@ -149,7 +149,11 @@ function WizardInner() {
         setAvailable(mockLogin.operators);
         setCurrent(mockLogin.operators[0]);
         setActiveModules(quickstart.modules);
-        setTrial(result.trial_ends_at, result.company_display_name);
+        setTrial(
+          result.trial_ends_at,
+          result.company_display_name,
+          result.has_payment_method ?? !plan.skip_payment,
+        );
         nav('/signup/welcome', { replace: true });
         return;
       }

@@ -1,4 +1,5 @@
 import { ArrowRight, Check, Coins, Plug, Rocket, Sparkles } from 'lucide-react';
+import { useState } from 'react';
 import { Link } from 'react-router-dom';
 
 import { Button } from '@/components/ui/Button';
@@ -16,6 +17,8 @@ import { PublicLayout } from '../layout/PublicLayout';
 const WHY_ICONS = { coins: Coins, api: Plug, rocket: Rocket } as const;
 
 export default function LandingPage() {
+  const [annual, setAnnual] = useState(false);
+
   return (
     <PublicLayout>
       <section className="relative overflow-hidden border-b border-border-subtle">
@@ -93,6 +96,28 @@ export default function LandingPage() {
           <p className="mx-auto mt-2 max-w-lg text-center text-[15px] text-text-secondary">
             Suscripción mensual + setup opcional ($499 quickstart guided). Trial 14 días en Starter, Growth y Pro.
           </p>
+          <div className="mt-6 flex justify-center gap-2">
+            <button
+              type="button"
+              onClick={() => setAnnual(false)}
+              className={cn(
+                'rounded-full px-4 py-1.5 text-[14px] font-semibold',
+                !annual ? 'bg-accent text-text-onAccent' : 'border border-border-default text-text-secondary',
+              )}
+            >
+              Mensual
+            </button>
+            <button
+              type="button"
+              onClick={() => setAnnual(true)}
+              className={cn(
+                'rounded-full px-4 py-1.5 text-[14px] font-semibold',
+                annual ? 'bg-accent text-text-onAccent' : 'border border-border-default text-text-secondary',
+              )}
+            >
+              Anual <span className="text-[12px] opacity-90">(-10%)</span>
+            </button>
+          </div>
           <div className="mt-10 grid gap-6 lg:grid-cols-4">
             {PRICING_TIERS.map((tier) => (
               <article
@@ -106,8 +131,10 @@ export default function LandingPage() {
                 <p className="mt-2 text-[32px] font-bold">
                   {tier.price != null ? (
                     <>
-                      ${tier.price}
-                      <span className="text-[14px] font-medium text-text-tertiary">/mes</span>
+                      ${annual ? Math.round(tier.price * 12 * 0.9) : tier.price}
+                      <span className="text-[14px] font-medium text-text-tertiary">
+                        {annual ? '/año' : '/mes'}
+                      </span>
                     </>
                   ) : (
                     'Contactar'
@@ -143,14 +170,14 @@ export default function LandingPage() {
 
       <section className="py-16">
         <div className="mx-auto max-w-4xl px-4 sm:px-6">
-          <h2 className="text-center text-[28px] font-bold">Social2Game vs Smartico</h2>
+          <h2 className="text-center text-[28px] font-bold">Social2Game vs Competidor X</h2>
           <div className="mt-8 overflow-hidden rounded-xl border border-border-subtle">
             <table className="w-full text-left text-[14px]">
               <thead className="bg-bg-tertiary text-text-tertiary">
                 <tr>
                   <th className="px-4 py-3 font-semibold"> </th>
                   <th className="px-4 py-3 font-semibold text-accent">Social2Game</th>
-                  <th className="px-4 py-3 font-semibold">Smartico</th>
+                  <th className="px-4 py-3 font-semibold">Competidor X</th>
                 </tr>
               </thead>
               <tbody>

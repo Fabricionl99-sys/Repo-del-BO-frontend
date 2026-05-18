@@ -9,11 +9,13 @@ interface SignupState {
   pendingEmail: string | null;
   companyDisplayName: string | null;
   trialEndsAt: string | null;
+  hasPaymentMethod: boolean;
   selectedTier: PricingTierId | null;
   onboardingComplete: boolean;
   setSignupPending: (email: string, signupToken: string) => void;
   setOnboardingAuth: (onboardingToken: string) => void;
-  setTrial: (trialEndsAt: string, companyDisplayName: string) => void;
+  setTrial: (trialEndsAt: string, companyDisplayName: string, hasPayment?: boolean) => void;
+  setHasPaymentMethod: (value: boolean) => void;
   setSelectedTier: (tier: PricingTierId) => void;
   markOnboardingComplete: () => void;
   clearSignupFlow: () => void;
@@ -27,12 +29,14 @@ export const useSignupStore = create<SignupState>()(
       pendingEmail: null,
       companyDisplayName: null,
       trialEndsAt: null,
+      hasPaymentMethod: false,
       selectedTier: null,
       onboardingComplete: false,
       setSignupPending: (email, signupToken) => set({ pendingEmail: email, signupToken }),
       setOnboardingAuth: (onboardingToken) => set({ onboardingToken }),
-      setTrial: (trialEndsAt, companyDisplayName) =>
-        set({ trialEndsAt, companyDisplayName, onboardingComplete: true }),
+      setTrial: (trialEndsAt, companyDisplayName, hasPayment = false) =>
+        set({ trialEndsAt, companyDisplayName, hasPaymentMethod: hasPayment, onboardingComplete: true }),
+      setHasPaymentMethod: (hasPaymentMethod) => set({ hasPaymentMethod }),
       setSelectedTier: (tier) => set({ selectedTier: tier }),
       markOnboardingComplete: () => set({ onboardingComplete: true }),
       clearSignupFlow: () =>

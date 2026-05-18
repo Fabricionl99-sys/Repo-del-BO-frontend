@@ -40,7 +40,7 @@ export default function ConfirmEmailPage() {
   if (confirm.isPending) {
     return (
       <PublicSplitLayout>
-        <Loading label="Validando email..." />
+        <Loading label="Confirmando tu email..." />
       </PublicSplitLayout>
     );
   }
