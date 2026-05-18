@@ -50,6 +50,8 @@ afterEach(async () => {
   resetLoginPopupsStore();
   const { resetWheelsStore } = await import('@/mocks/data/wheels');
   resetWheelsStore();
+  const { resetCapabilitiesStore } = await import('@/mocks/data/capabilities');
+  resetCapabilitiesStore();
   const { applyTheme } = await import('@/lib/theme');
   applyTheme('dark');
   localStorage.removeItem('niveles_theme_preference_v1');

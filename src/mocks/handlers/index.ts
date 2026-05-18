@@ -1934,3 +1934,6 @@ handlers.push(
 
 import { wheelsHandlers } from '@/mocks/handlers/wheelsHandlers';
 handlers.push(...wheelsHandlers);
+
+import { capabilitiesHandlers } from '@/mocks/handlers/capabilitiesHandlers';
+handlers.push(...capabilitiesHandlers);
