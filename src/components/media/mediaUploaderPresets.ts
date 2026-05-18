@@ -46,10 +46,17 @@ const PRESETS: Record<string, MediaUploaderConfig> = {
     maxDimensions: { width: 400, height: 400 },
     aspectRatio: 'square',
   },
+  'predictions:banner': {
+    maxSizeKB: 1000,
+    allowedFormats: ['png', 'jpg', 'jpeg'],
+    minDimensions: { width: 1200, height: 300 },
+    maxDimensions: null,
+    aspectRatio: 'banner',
+  },
   'predictions:thumbnail': {
     maxSizeKB: 200,
     allowedFormats: DEFAULT_FORMATS,
-    minDimensions: { width: 64, height: 64 },
+    minDimensions: { width: 200, height: 200 },
     maxDimensions: { width: 512, height: 512 },
     aspectRatio: 'square',
   },
