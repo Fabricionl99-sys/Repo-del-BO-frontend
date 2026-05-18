@@ -162,6 +162,7 @@ export const activeModules: OperatorActiveModulePublic[] = [
   { code: 'shop', activated_at: iso(60), pending_deactivation: false, pending_deactivation_at: null, operator_price_usd_monthly: 143 },
   { code: 'rewards_delivery', activated_at: iso(60), pending_deactivation: false, pending_deactivation_at: null, operator_price_usd_monthly: 89 },
   { code: 'chests', activated_at: iso(45), pending_deactivation: false, pending_deactivation_at: null, operator_price_usd_monthly: 107 },
+  { code: 'wheels', activated_at: iso(40), pending_deactivation: false, pending_deactivation_at: null, operator_price_usd_monthly: 116 },
   { code: 'tournaments', activated_at: iso(30), pending_deactivation: false, pending_deactivation_at: null, operator_price_usd_monthly: 170 },
   { code: 'predictions', activated_at: iso(30), pending_deactivation: false, pending_deactivation_at: null, operator_price_usd_monthly: 152 },
   { code: 'rankings', activated_at: iso(20), pending_deactivation: false, pending_deactivation_at: null, operator_price_usd_monthly: 125 },
