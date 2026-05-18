@@ -2,149 +2,156 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 import { apiClient } from '@/api/client';
 import { unwrapData } from '@/api/response';
-import { toast } from '@/stores/toastStore';
 import type {
-  PlayerPrediction,
-  PredictionEvent,
-  PredictionEventPayload,
-  PredictionFilters,
-  PredictionStats,
-  ResolvePredictionPayload,
+  PlayerPredictionEntry,
+  PoolLeaderboardRow,
+  PredictionPool,
+  PredictionPoolFilters,
+  PredictionPoolPayload,
+  PredictionPoolStats,
+  ResolvePoolPayload,
+  ResolvePoolPreview,
 } from '@/types/predictions';
 
-function buildQuery(filters: PredictionFilters): string {
+function filtersToParams(filters: PredictionPoolFilters): string {
   const sp = new URLSearchParams();
   if (filters.status && filters.status !== 'all') sp.set('status', filters.status);
   if (filters.category && filters.category !== 'all') sp.set('category', filters.category);
   if (filters.participation && filters.participation !== 'all') sp.set('participation', filters.participation);
   if (filters.search) sp.set('search', filters.search);
-  const qs = sp.toString();
-  return qs ? `?${qs}` : '';
+  const q = sp.toString();
+  return q ? `?${q}` : '';
 }
 
-export function usePredictionsList(filters: PredictionFilters = {}) {
+export function usePredictionPoolsList(filters: PredictionPoolFilters = {}) {
   return useQuery({
-    queryKey: ['predictions', filters],
-    queryFn: async () => {
-      const res = await apiClient.get(`/admin/predictions${buildQuery(filters)}`);
-      return unwrapData<PredictionEvent[]>(res.data);
-    },
+    queryKey: ['prediction-pools', filters],
+    queryFn: () =>
+      apiClient
+        .get(`/admin/prediction-pools${filtersToParams(filters)}`)
+        .then((r) => unwrapData<PredictionPool[]>(r.data)),
   });
 }
 
-export function usePredictionItem(id: string | null) {
+export function usePredictionPool(id: string | null) {
   return useQuery({
-    queryKey: ['predictions', id],
+    queryKey: ['prediction-pool', id],
     enabled: Boolean(id),
-    queryFn: () => apiClient.get(`/admin/predictions/${id}`).then((r) => unwrapData<PredictionEvent>(r.data)),
+    queryFn: () =>
+      apiClient.get(`/admin/prediction-pools/${id}`).then((r) => unwrapData<PredictionPool>(r.data)),
   });
 }
 
-export function usePredictionStats() {
+export function usePredictionPoolStats() {
   return useQuery({
-    queryKey: ['predictions-stats'],
-    queryFn: () => apiClient.get('/admin/predictions/stats').then((r) => unwrapData<PredictionStats>(r.data)),
+    queryKey: ['prediction-pools-stats'],
+    queryFn: () =>
+      apiClient.get('/admin/prediction-pools/stats').then((r) => unwrapData<PredictionPoolStats>(r.data)),
   });
 }
 
-export function usePredictionPlayers(eventId: string | null) {
+export function usePredictionPoolEntries(poolId: string | null) {
   return useQuery({
-    queryKey: ['predictions-players', eventId],
-    enabled: Boolean(eventId),
+    queryKey: ['prediction-pool-entries', poolId],
+    enabled: Boolean(poolId),
     queryFn: () =>
       apiClient
-        .get(`/admin/predictions/${eventId}/players`)
-        .then((r) => unwrapData<PlayerPrediction[]>(r.data)),
+        .get(`/admin/prediction-pools/${poolId}/entries`)
+        .then((r) => unwrapData<PlayerPredictionEntry[]>(r.data)),
   });
 }
 
-export function usePredictionCategories() {
+export function usePredictionPoolLeaderboard(poolId: string | null) {
   return useQuery({
-    queryKey: ['predictions-categories'],
+    queryKey: ['prediction-pool-leaderboard', poolId],
+    enabled: Boolean(poolId),
     queryFn: () =>
-      apiClient.get('/admin/predictions/categories').then((r) => unwrapData<string[]>(r.data)),
+      apiClient
+        .get(`/admin/prediction-pools/${poolId}/leaderboard`)
+        .then((r) => unwrapData<PoolLeaderboardRow[]>(r.data)),
   });
 }
 
-export function useSavePrediction() {
+export function usePredictionPoolCategories() {
+  return useQuery({
+    queryKey: ['prediction-pools-categories'],
+    queryFn: () =>
+      apiClient.get('/admin/prediction-pools/categories').then((r) => unwrapData<string[]>(r.data)),
+  });
+}
+
+export function usePredictionTypes() {
+  return useQuery({
+    queryKey: ['prediction-pools-types'],
+    queryFn: () =>
+      apiClient
+        .get('/admin/prediction-pools/prediction-types')
+        .then((r) => unwrapData<string[]>(r.data)),
+  });
+}
+
+export function useResolvePoolPreview(poolId: string | null, results: ResolvePoolPayload['results']) {
+  return useQuery({
+    queryKey: ['prediction-pool-resolve-preview', poolId, results],
+    enabled: Boolean(poolId) && results.length > 0,
+    queryFn: () =>
+      apiClient
+        .post(`/admin/prediction-pools/${poolId}/resolve-preview`, { results })
+        .then((r) => unwrapData<ResolvePoolPreview>(r.data)),
+  });
+}
+
+export function useSavePredictionPool() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: ({ id, ...payload }: PredictionEventPayload & { id?: string }) =>
+    mutationFn: ({ id, ...payload }: PredictionPoolPayload & { id?: string }) =>
       id
-        ? apiClient.patch(`/admin/predictions/${id}`, payload).then((r) => unwrapData<PredictionEvent>(r.data))
-        : apiClient.post('/admin/predictions', payload).then((r) => unwrapData<PredictionEvent>(r.data)),
+        ? apiClient.patch(`/admin/prediction-pools/${id}`, payload).then((r) => unwrapData<PredictionPool>(r.data))
+        : apiClient.post('/admin/prediction-pools', payload).then((r) => unwrapData<PredictionPool>(r.data)),
     onSuccess: () => {
-      toast.success('Evento guardado');
-      qc.invalidateQueries({ queryKey: ['predictions'] });
-      qc.invalidateQueries({ queryKey: ['predictions-stats'] });
-      qc.invalidateQueries({ queryKey: ['predictions-categories'] });
+      void qc.invalidateQueries({ queryKey: ['prediction-pools'] });
+      void qc.invalidateQueries({ queryKey: ['prediction-pools-stats'] });
     },
   });
 }
 
-export function useArchivePrediction() {
-  const qc = useQueryClient();
-  return useMutation({
-    mutationFn: (id: string) => apiClient.delete(`/admin/predictions/${id}`),
-    onSuccess: () => {
-      toast.success('Evento archivado');
-      qc.invalidateQueries({ queryKey: ['predictions'] });
-      qc.invalidateQueries({ queryKey: ['predictions-stats'] });
-    },
-  });
-}
-
-export function useOpenPrediction() {
+export function useOpenPredictionPool() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: (id: string) =>
-      apiClient.post(`/admin/predictions/${id}/open`).then((r) => unwrapData<PredictionEvent>(r.data)),
-    onSuccess: () => {
-      toast.success('Predicciones abiertas');
-      qc.invalidateQueries({ queryKey: ['predictions'] });
-      qc.invalidateQueries({ queryKey: ['predictions-stats'] });
-    },
+      apiClient.post(`/admin/prediction-pools/${id}/open`).then((r) => unwrapData<PredictionPool>(r.data)),
+    onSuccess: () => void qc.invalidateQueries({ queryKey: ['prediction-pools'] }),
   });
 }
 
-export function useClosePrediction() {
+export function useClosePredictionPool() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: (id: string) =>
-      apiClient.post(`/admin/predictions/${id}/close`).then((r) => unwrapData<PredictionEvent>(r.data)),
-    onSuccess: () => {
-      toast.success('Predicciones cerradas');
-      qc.invalidateQueries({ queryKey: ['predictions'] });
-      qc.invalidateQueries({ queryKey: ['predictions-stats'] });
-    },
+      apiClient.post(`/admin/prediction-pools/${id}/close`).then((r) => unwrapData<PredictionPool>(r.data)),
+    onSuccess: () => void qc.invalidateQueries({ queryKey: ['prediction-pools'] }),
   });
 }
 
-export function useResolvePrediction() {
+export function useResolvePredictionPool() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: ({ id, ...payload }: ResolvePredictionPayload & { id: string }) =>
+    mutationFn: ({ id, ...payload }: ResolvePoolPayload & { id: string }) =>
       apiClient
-        .post(`/admin/predictions/${id}/resolve`, payload)
-        .then((r) => unwrapData<PredictionEvent>(r.data)),
+        .post(`/admin/prediction-pools/${id}/resolve`, payload)
+        .then((r) => unwrapData<PredictionPool>(r.data)),
     onSuccess: () => {
-      toast.success('Evento resuelto · premios en cola');
-      qc.invalidateQueries({ queryKey: ['predictions'] });
-      qc.invalidateQueries({ queryKey: ['predictions-stats'] });
-      qc.invalidateQueries({ queryKey: ['predictions-players'] });
+      void qc.invalidateQueries({ queryKey: ['prediction-pools'] });
+      void qc.invalidateQueries({ queryKey: ['prediction-pools-stats'] });
     },
   });
 }
 
-export function useCancelPrediction() {
+export function useCancelPredictionPool() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: (id: string) =>
-      apiClient.post(`/admin/predictions/${id}/cancel`).then((r) => unwrapData<PredictionEvent>(r.data)),
-    onSuccess: () => {
-      toast.success('Evento cancelado');
-      qc.invalidateQueries({ queryKey: ['predictions'] });
-      qc.invalidateQueries({ queryKey: ['predictions-stats'] });
-    },
+      apiClient.post(`/admin/prediction-pools/${id}/cancel`).then((r) => unwrapData<PredictionPool>(r.data)),
+    onSuccess: () => void qc.invalidateQueries({ queryKey: ['prediction-pools'] }),
   });
 }

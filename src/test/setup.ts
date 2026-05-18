@@ -40,8 +40,8 @@ afterEach(async () => {
   resetNewsStore();
   const { resetMissionsStore } = await import('@/mocks/data/tier3');
   resetMissionsStore();
-  const { resetPredictionsStore } = await import('@/mocks/data/predictions');
-  resetPredictionsStore();
+  const { resetPredictionPoolsStore } = await import('@/mocks/data/predictionPools');
+  resetPredictionPoolsStore();
   const { resetTournamentsStore } = await import('@/mocks/data/tournaments');
   resetTournamentsStore();
   const { resetOperatorBonusesStore } = await import('@/mocks/data/operatorBonuses');

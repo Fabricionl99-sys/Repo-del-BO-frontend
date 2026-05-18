@@ -569,13 +569,19 @@ handlers.push(
 import { operatorPriceForModule } from '@/features/billing/pricing';
 import { activeModules, billingSnapshot, moduleCatalog, walletTransactions } from '@/mocks/data/billing';
 import {
-  computePredictionStats,
-  filterPredictionEvents,
+  applyPoolResolve,
+  buildPoolFromPayload,
+  computeLeaderboard,
+  computePredictionPoolStats,
+  computeResolvePreview,
+  filterPredictionPools,
+  getPoolById,
+  getPoolEntries,
   getUsedCategories,
-  playerPredictions,
-  predictionEvents,
-} from '@/mocks/data/predictions';
-import type { PredictionEventPayload } from '@/types/predictions';
+  getUsedPredictionTypes,
+  predictionPools,
+} from '@/mocks/data/predictionPools';
+import type { PredictionPoolPayload, ResolvePoolPayload } from '@/types/predictions';
 import { legacyGameCatalog, operatorConfigFull } from '@/mocks/data/operatorConfig';
 import { CURRENCY_OPTIONS, LANGUAGE_OPTIONS, TIMEZONE_OPTIONS } from '@/mocks/data/operatorConfigMeta';
 import type { OperatorConfig } from '@/types/operatorConfig';
@@ -709,109 +715,109 @@ handlers.push(
     }
     return HttpResponse.json({ data: mod ?? { code, pending_deactivation: true } });
   }),
-  http.get('*/admin/predictions', async ({ request }) => {
+  http.get('*/admin/prediction-pools/stats', async () => {
     await wait();
-    return HttpResponse.json({ data: filterPredictionEvents(new URL(request.url).searchParams) });
+    return HttpResponse.json({ data: computePredictionPoolStats() });
   }),
-  http.get('*/admin/predictions/stats', async () => {
-    await wait();
-    return HttpResponse.json({ data: computePredictionStats(predictionEvents) });
-  }),
-  http.get('*/admin/predictions/categories', async () => {
+  http.get('*/admin/prediction-pools/categories', async () => {
     await wait();
     return HttpResponse.json({ data: getUsedCategories() });
   }),
-  http.get('*/admin/predictions/:id/players', async ({ params }) => {
+  http.get('*/admin/prediction-pools/prediction-types', async () => {
     await wait();
-    const list = playerPredictions.filter((p) => p.event_id === params.id);
-    return HttpResponse.json({ data: list });
+    return HttpResponse.json({ data: getUsedPredictionTypes() });
   }),
-  http.get('*/admin/predictions/:id', async ({ params }) => {
+  http.get('*/admin/prediction-pools', async ({ request }) => {
     await wait();
-    if (params.id === 'stats') return HttpResponse.json({ data: computePredictionStats(predictionEvents) });
-    const item = predictionEvents.find((e) => e.id === params.id);
+    return HttpResponse.json({ data: filterPredictionPools(new URL(request.url).searchParams) });
+  }),
+  http.get('*/admin/prediction-pools/:id/entries', async ({ params }) => {
+    await wait();
+    return HttpResponse.json({ data: getPoolEntries(params.id as string) });
+  }),
+  http.get('*/admin/prediction-pools/:id/leaderboard', async ({ params }) => {
+    await wait();
+    return HttpResponse.json({ data: computeLeaderboard(params.id as string) });
+  }),
+  http.post('*/admin/prediction-pools/:id/resolve-preview', async ({ params, request }) => {
+    await wait();
+    const body = (await request.json()) as ResolvePoolPayload;
+    return HttpResponse.json({
+      data: computeResolvePreview(params.id as string, body.results),
+    });
+  }),
+  http.get('*/admin/prediction-pools/:id', async ({ params }) => {
+    await wait();
+    const item = getPoolById(params.id as string);
     if (!item) return HttpResponse.json({ message: 'Not found' }, { status: 404 });
     return HttpResponse.json({ data: item });
   }),
-  http.post('*/admin/predictions', async ({ request }) => {
+  http.post('*/admin/prediction-pools', async ({ request }) => {
     await wait();
-    const body = (await request.json()) as PredictionEventPayload;
-    const options = body.options.map((o, i) => ({
-      ...o,
-      id: `opt_${Date.now()}_${i}`,
-    }));
-    const item = {
-      ...predictionEvents[0],
-      ...body,
-      id: `pred_${Date.now()}`,
-      options,
-      status: 'draft' as const,
-      winning_option_id: null,
-      predictions_count: 0,
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
-    };
-    predictionEvents.unshift(item);
+    const body = (await request.json()) as PredictionPoolPayload;
+    const item = buildPoolFromPayload(body);
+    predictionPools.unshift(item);
     return HttpResponse.json({ data: item }, { status: 201 });
   }),
-  http.patch('*/admin/predictions/:id', async ({ params, request }) => {
+  http.patch('*/admin/prediction-pools/:id', async ({ params, request }) => {
     await wait();
-    const body = (await request.json()) as Partial<PredictionEventPayload>;
-    const item = predictionEvents.find((e) => e.id === params.id);
+    const item = getPoolById(params.id as string);
     if (!item) return HttpResponse.json({ message: 'Not found' }, { status: 404 });
-    if (body.options) {
-      item.options = body.options.map((o, i) => ({
-        ...o,
-        id: item.options[i]?.id ?? `opt_${Date.now()}_${i}`,
-      }));
+    if (item.status !== 'draft') {
+      return HttpResponse.json({ message: 'Solo borradores pueden editarse' }, { status: 400 });
     }
-    Object.assign(item, { ...body, options: item.options, updated_at: new Date().toISOString() });
+    const body = (await request.json()) as Partial<PredictionPoolPayload>;
+    const rebuilt = buildPoolFromPayload({ ...item, ...body, events: body.events ?? item.events.map((e) => ({
+      name: e.name,
+      description: e.description,
+      image_url: e.image_url,
+      prediction_type: e.prediction_type,
+      display_order: e.display_order,
+      options: e.options.map((o) => ({
+        text: o.text,
+        description: o.description,
+        image_url: o.image_url,
+        display_order: o.display_order,
+      })),
+    })) } as PredictionPoolPayload, item.id);
+    Object.assign(item, rebuilt);
+    item.updated_at = new Date().toISOString();
     return HttpResponse.json({ data: item });
   }),
-  http.delete('*/admin/predictions/:id', async ({ params }) => {
+  http.delete('*/admin/prediction-pools/:id', async ({ params }) => {
     await wait();
-    const idx = predictionEvents.findIndex((e) => e.id === params.id);
-    if (idx >= 0) predictionEvents.splice(idx, 1);
+    const idx = predictionPools.findIndex((p) => p.id === params.id);
+    if (idx >= 0) predictionPools.splice(idx, 1);
     return new HttpResponse(null, { status: 204 });
   }),
-  http.post('*/admin/predictions/:id/open', async ({ params }) => {
+  http.post('*/admin/prediction-pools/:id/open', async ({ params }) => {
     await wait();
-    const item = predictionEvents.find((e) => e.id === params.id);
+    const item = getPoolById(params.id as string);
     if (!item) return HttpResponse.json({ message: 'Not found' }, { status: 404 });
     item.status = 'open';
     item.updated_at = new Date().toISOString();
     return HttpResponse.json({ data: item });
   }),
-  http.post('*/admin/predictions/:id/close', async ({ params }) => {
+  http.post('*/admin/prediction-pools/:id/close', async ({ params }) => {
     await wait();
-    const item = predictionEvents.find((e) => e.id === params.id);
+    const item = getPoolById(params.id as string);
     if (!item) return HttpResponse.json({ message: 'Not found' }, { status: 404 });
     item.status = 'closed';
     item.updated_at = new Date().toISOString();
     return HttpResponse.json({ data: item });
   }),
-  http.post('*/admin/predictions/:id/resolve', async ({ params, request }) => {
+  http.post('*/admin/prediction-pools/:id/resolve', async ({ params, request }) => {
     await wait();
-    const body = (await request.json()) as { winning_option_id: string };
-    const item = predictionEvents.find((e) => e.id === params.id);
-    if (!item) return HttpResponse.json({ message: 'Not found' }, { status: 404 });
-    if (item.status !== 'closed') {
-      return HttpResponse.json({ message: 'Solo eventos cerrados pueden resolverse' }, { status: 400 });
-    }
-    item.status = 'resolved';
-    item.winning_option_id = body.winning_option_id;
-    item.updated_at = new Date().toISOString();
-    for (const pp of playerPredictions) {
-      if (pp.event_id === item.id) {
-        pp.is_winner = pp.option_id === body.winning_option_id;
-        if (pp.is_winner) pp.reward_delivered_at = new Date().toISOString();
-      }
+    const body = (await request.json()) as ResolvePoolPayload;
+    const item = applyPoolResolve(params.id as string, body.results);
+    if (!item) {
+      return HttpResponse.json({ message: 'Solo prodes cerrados pueden resolverse' }, { status: 400 });
     }
     return HttpResponse.json({ data: item });
   }),
-  http.post('*/admin/predictions/:id/cancel', async ({ params }) => {
+  http.post('*/admin/prediction-pools/:id/cancel', async ({ params }) => {
     await wait();
-    const item = predictionEvents.find((e) => e.id === params.id);
+    const item = getPoolById(params.id as string);
     if (!item) return HttpResponse.json({ message: 'Not found' }, { status: 404 });
     item.status = 'cancelled';
     item.updated_at = new Date().toISOString();
