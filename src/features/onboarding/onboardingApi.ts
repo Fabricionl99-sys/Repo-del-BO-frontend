@@ -6,12 +6,18 @@ import { useSignupStore } from '@/stores/signupStore';
 import type { OnboardingCompleteResponse, OnboardingState, OnboardingStepData } from '@/types/onboarding';
 
 function onboardingHeaders(): Record<string, string> {
-  const token = useSignupStore.getState().onboardingToken;
-  return token ? { 'X-Onboarding-Token': token } : {};
+  // El backend valida vía Authorization: Bearer (SignupTokenGuard) — NO un
+  // header custom. Aceptamos onboardingToken (flow ConfirmEmailPage si llega
+  // un link real de SES en el futuro) o signupToken (flow auto-confirm MVP
+  // actual). Ambos son el MISMO JWT del backend; mantenemos ambas keys del
+  // store por compat retroactiva.
+  const s = useSignupStore.getState();
+  const token = s.onboardingToken ?? s.signupToken;
+  return token ? { Authorization: `Bearer ${token}` } : {};
 }
 
 export function useOnboardingState() {
-  const token = useSignupStore((s) => s.onboardingToken);
+  const token = useSignupStore((s) => s.onboardingToken ?? s.signupToken);
   return useQuery({
     queryKey: ['onboarding-state', token],
     enabled: Boolean(token),

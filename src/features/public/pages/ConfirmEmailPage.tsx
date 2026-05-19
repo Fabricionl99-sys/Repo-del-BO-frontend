@@ -24,9 +24,12 @@ export default function ConfirmEmailPage() {
     let cancelled = false;
     confirm
       .mutateAsync({ token })
-      .then((res) => {
+      .then(() => {
         if (cancelled) return;
-        setOnboardingAuth(res.onboarding_token);
+        // El `token` de la URL ES el mismo JWT que sirve para el wizard
+        // (SignupTokenGuard del backend). El response NO devuelve un token
+        // nuevo. Lo persistimos en onboardingToken para el wizard.
+        setOnboardingAuth(token);
         nav('/signup/onboarding', { replace: true });
       })
       .catch(() => {

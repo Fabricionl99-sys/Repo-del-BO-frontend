@@ -22,6 +22,7 @@ export default function SignupPage() {
   const tier = (params.get('tier') as PricingTierId | null) ?? null;
   const [showPass, setShowPass] = useState(false);
   const setSignupPending = useSignupStore((s) => s.setSignupPending);
+  const setOnboardingAuth = useSignupStore((s) => s.setOnboardingAuth);
   const setSelectedTier = useSignupStore((s) => s.setSelectedTier);
   const signup = useSignup();
 
@@ -60,8 +61,14 @@ export default function SignupPage() {
         company_name: values.company_name,
         country: values.country,
       });
+      // Backend auto-confirma email en MVP (sin SES real). Saltamos
+      // /signup/email-sent y vamos directo al wizard. Cuando se integre
+      // SES (TECH_DEBT backend), volver al flow estándar con email-sent.
+      // El mismo signup_token sirve como onboarding token (Authorization
+      // Bearer en el wizard).
       setSignupPending(values.email, result.signup_token);
-      nav('/signup/email-sent', { replace: true });
+      setOnboardingAuth(result.signup_token);
+      nav('/signup/onboarding', { replace: true });
     } catch (error) {
       toast.error(getSignupErrorMessage(error));
     }

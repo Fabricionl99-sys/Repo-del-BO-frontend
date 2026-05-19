@@ -21,8 +21,8 @@ export interface ConfirmEmailPayload {
 
 export interface ConfirmEmailResponse {
   user_id: string;
-  onboarding_token: string;
-  onboarding_step: number;
+  onboarding_session_id: string;
+  current_step: number;
 }
 
 export interface OnboardingLegalStep {
@@ -81,9 +81,12 @@ export interface OnboardingState {
 
 export interface OnboardingCompleteResponse {
   tenant_id: string;
+  user_id: string;
   access_token: string;
   refresh_token: string;
   trial_ends_at: string;
-  company_display_name: string;
-  has_payment_method?: boolean;
+  message: string;
+  // NO devueltos por backend — frontend deriva de state local:
+  //   company_display_name → stateQ.data.company_name
+  //   has_payment_method   → !plan.skip_payment
 }

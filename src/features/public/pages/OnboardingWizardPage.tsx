@@ -139,11 +139,17 @@ function WizardInner() {
       } else if (step === 5) {
         await saveStep.mutateAsync({ step: 5, data: quickstart });
         const result = await complete.mutateAsync();
+        // Backend NO devuelve company_display_name ni has_payment_method
+        // (no son shape del response /complete). Usamos data local:
+        //   - company_name del state del wizard (GET /onboarding/state).
+        //   - has_payment_method = !plan.skip_payment (decisión del paso 4).
+        const companyDisplayName = stateQ.data?.company_name ?? 'Mi empresa';
+        const userEmail = stateQ.data?.email ?? mockLogin.user.email;
         const user = {
           ...mockLogin.user,
-          id: result.tenant_id,
-          name: result.company_display_name,
-          email: stateQ.data?.email ?? mockLogin.user.email,
+          id: result.user_id,
+          name: companyDisplayName,
+          email: userEmail,
         };
         setAuth(user, result.access_token, result.refresh_token);
         setAvailable(mockLogin.operators);
@@ -151,8 +157,8 @@ function WizardInner() {
         setActiveModules(quickstart.modules);
         setTrial(
           result.trial_ends_at,
-          result.company_display_name,
-          result.has_payment_method ?? !plan.skip_payment,
+          companyDisplayName,
+          !plan.skip_payment,
         );
         nav('/signup/welcome', { replace: true });
         return;
