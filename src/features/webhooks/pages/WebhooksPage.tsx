@@ -107,6 +107,7 @@ export default function WebhooksPage() {
           title="Sin endpoints"
           description="Configurá tu primer webhook para recibir premios y eventos de jugadores."
           action={<Button variant="primary" onClick={() => setFormEndpoint(null)}>Nuevo endpoint</Button>}
+          hint="Tip: usá entorno test primero y verificá la firma HMAC con la documentación en /docs/bonus-delivery."
         />
         <EndpointFormModal open={formEndpoint === null} endpoint={null} onClose={() => setFormEndpoint(undefined)} onCreatedSecret={() => {}} />
       </>

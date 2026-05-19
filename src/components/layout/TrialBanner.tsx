@@ -1,7 +1,12 @@
 import { useState } from 'react';
 import { Button } from '@/components/ui/Button';
 import { Modal } from '@/components/ui/Modal';
-import { trialDaysRemaining, useSignupStore } from '@/stores/signupStore';
+import { useTrialCountdown } from '@/lib/useTrialCountdown';
+import { useSignupStore } from '@/stores/signupStore';
+
+function pad(n: number) {
+  return String(n).padStart(2, '0');
+}
 
 export function TrialBanner() {
   const trialEndsAt = useSignupStore((s) => s.trialEndsAt);
@@ -10,8 +15,13 @@ export function TrialBanner() {
   const [modalOpen, setModalOpen] = useState(false);
   const [card, setCard] = useState({ number: '', expiry: '', cvc: '' });
 
-  const days = trialDaysRemaining(trialEndsAt);
-  if (!trialEndsAt || hasPayment || days <= 0) return null;
+  const countdown = useTrialCountdown(trialEndsAt);
+  if (!trialEndsAt || hasPayment || countdown.expired) return null;
+
+  const label =
+    countdown.days > 0
+      ? `${countdown.days}d ${pad(countdown.hours)}:${pad(countdown.minutes)}:${pad(countdown.seconds)}`
+      : `${pad(countdown.hours)}:${pad(countdown.minutes)}:${pad(countdown.seconds)}`;
 
   const saveCard = () => {
     if (card.number.length < 12) return;
@@ -24,7 +34,7 @@ export function TrialBanner() {
       <div className="border-b border-warning/30 bg-warning/10 px-6 py-2.5">
         <div className="mx-auto flex max-w-[1600px] flex-wrap items-center justify-between gap-2">
           <p className="text-[14px] font-semibold text-warning">
-            Trial activo: {days} días restantes
+            Trial activo: <span className="font-mono tabular-nums">{label}</span> restantes
           </p>
           <button
             type="button"
