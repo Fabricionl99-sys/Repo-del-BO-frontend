@@ -9,6 +9,12 @@ import {
   useOnboardingState,
   useSaveOnboardingStep,
 } from '@/features/onboarding/onboardingApi';
+import {
+  trackEvent,
+  trackOnboardingStep,
+  trackPaymentInitiated,
+  trackTrialStart,
+} from '@/lib/analytics';
 import { validateTaxId } from '@/lib/taxId';
 import { cn } from '@/lib/cn';
 import { mockLogin } from '@/mocks/data/auth';
@@ -143,16 +149,23 @@ function WizardInner() {
           return;
         }
         await saveStep.mutateAsync({ step: 1, data: legal });
+        trackOnboardingStep(1);
       } else if (step === 2) {
         await saveStep.mutateAsync({ step: 2, data: platform });
+        trackOnboardingStep(2);
       } else if (step === 3) {
         await saveStep.mutateAsync({ step: 3, data: capabilities });
+        trackOnboardingStep(3);
       } else if (step === 4) {
         const payload: OnboardingPlanStep = {
           ...plan,
           card_last4: plan.skip_payment ? null : card.number.slice(-4) || '4242',
         };
+        if (!plan.skip_payment && card.number.length >= 12) {
+          trackPaymentInitiated('onboarding_step_4');
+        }
         await saveStep.mutateAsync({ step: 4, data: payload });
+        trackOnboardingStep(4);
       } else if (step === 5) {
         await saveStep.mutateAsync({ step: 5, data: quickstart });
         const result = await complete.mutateAsync();
@@ -177,6 +190,9 @@ function WizardInner() {
           companyDisplayName,
           !plan.skip_payment,
         );
+        trackOnboardingStep(5);
+        trackEvent('onboarding_completed');
+        trackTrialStart();
         nav('/signup/welcome', { replace: true });
         return;
       }

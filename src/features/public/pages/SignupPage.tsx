@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useForm, useWatch } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Eye, EyeOff } from 'lucide-react';
@@ -6,6 +6,7 @@ import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 
 import { getCheckEmailErrorMessage, getSignupErrorMessage } from '@/api/errors';
 import { Button } from '@/components/ui/Button';
+import { trackEvent, trackSignup } from '@/lib/analytics';
 import { useCheckEmailAvailable, useSignup } from '@/features/onboarding/signupApi';
 import { useSignupStore } from '@/stores/signupStore';
 import { toast } from '@/stores/toastStore';
@@ -25,6 +26,7 @@ export default function SignupPage() {
   const setOnboardingAuth = useSignupStore((s) => s.setOnboardingAuth);
   const setSelectedTier = useSignupStore((s) => s.setSelectedTier);
   const signup = useSignup();
+  const formStartedRef = useRef(false);
 
   const {
     register,
@@ -44,6 +46,17 @@ export default function SignupPage() {
   useEffect(() => {
     if (tier) setSelectedTier(tier);
   }, [tier, setSelectedTier]);
+
+  useEffect(() => {
+    trackSignup(tier ?? 'direct');
+    const onAbandon = () => {
+      if (document.querySelector('form') && !signup.isSuccess) {
+        trackEvent('form_abandoned_signup');
+      }
+    };
+    window.addEventListener('beforeunload', onAbandon);
+    return () => window.removeEventListener('beforeunload', onAbandon);
+  }, [tier, signup.isSuccess]);
 
   const onSubmit = handleSubmit(async (values) => {
     if (emailCheck.data === false) {
@@ -68,6 +81,8 @@ export default function SignupPage() {
       // Bearer en el wizard).
       setSignupPending(values.email, result.signup_token);
       setOnboardingAuth(result.signup_token);
+      trackEvent('signup_email_sent');
+      trackEvent('onboarding_started');
       nav('/signup/onboarding', { replace: true });
     } catch (error) {
       toast.error(getSignupErrorMessage(error));
@@ -82,7 +97,18 @@ export default function SignupPage() {
         <form onSubmit={onSubmit} className="mt-6 space-y-4">
           <div>
             <label className="mb-1.5 block text-[14px] text-text-secondary">Email empresa</label>
-            <input className="field" type="email" autoComplete="email" {...register('email')} />
+            <input
+              className="field"
+              type="email"
+              autoComplete="email"
+              {...register('email')}
+              onFocus={() => {
+                if (!formStartedRef.current) {
+                  formStartedRef.current = true;
+                  trackEvent('form_started_signup');
+                }
+              }}
+            />
             {errors.email && <p className="mt-1 text-[13px] text-danger">{errors.email.message}</p>}
             {emailCheck.isError && email?.includes('@') && (
               <p className="mt-1 text-[13px] text-danger">{getCheckEmailErrorMessage(emailCheck.error)}</p>

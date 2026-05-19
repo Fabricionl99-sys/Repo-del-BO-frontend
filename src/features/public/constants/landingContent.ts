@@ -92,18 +92,22 @@ export const COMPARISON_ROWS = [
 
 export const FAQ_ITEMS = [
   {
+    id: 'integration_required',
     q: '¿Necesito integración custom para empezar?',
     a: 'No. El trial incluye sandbox, API keys de test y documentación para integrar eventos y bonos en 1–2 semanas.',
   },
   {
+    id: 'vs_smartico',
     q: '¿Cómo se compara con Smartico?',
     a: 'Mismo tipo de gamificación enterprise, con self-service, pricing desde $299/mes y setup opcional de $499 vs contratos de $15K+.',
   },
   {
+    id: 'after_trial',
     q: '¿Qué pasa después de los 14 días?',
     a: 'Activás un plan Starter, Growth o Pro. Sin tarjeta el trial expira; tus datos se conservan 30 días.',
   },
   {
+    id: 'api_docs',
     q: '¿Dónde está la documentación de API?',
     a: 'En docs.social2game.com con quickstart, referencia completa, Postman y ejemplos Node.js/Python.',
   },

@@ -3,6 +3,7 @@ import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 
 import { Button } from '@/components/ui/Button';
 import { Loading } from '@/components/ui/Loading';
+import { trackEvent } from '@/lib/analytics';
 import { useConfirmEmail } from '@/features/onboarding/signupApi';
 import { useSignupStore } from '@/stores/signupStore';
 
@@ -30,6 +31,8 @@ export default function ConfirmEmailPage() {
         // (SignupTokenGuard del backend). El response NO devuelve un token
         // nuevo. Lo persistimos en onboardingToken para el wizard.
         setOnboardingAuth(token);
+        trackEvent('signup_email_confirmed');
+        trackEvent('onboarding_started');
         nav('/signup/onboarding', { replace: true });
       })
       .catch(() => {

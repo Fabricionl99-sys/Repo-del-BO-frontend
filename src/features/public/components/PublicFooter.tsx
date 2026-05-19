@@ -25,7 +25,7 @@ export function PublicFooter() {
                 </li>
                 <li>
                   <a href="#cookies" className="hover:text-text-primary">
-                    Cookies
+                    Cookies y analytics
                   </a>
                 </li>
               </ul>
@@ -58,7 +58,12 @@ export function PublicFooter() {
             </div>
           </div>
         </div>
-        <p className="mt-10 text-center text-[13px] text-text-tertiary">
+        <p id="cookies" className="mx-auto mt-8 max-w-2xl text-center text-[12px] text-text-tertiary">
+          Usamos cookies necesarias para sesión y preferencias. Con tu consentimiento, Google
+          Analytics 4 registra páginas vistas y eventos anónimos (sin email ni datos fiscales). Podés
+          rechazar analytics desde el banner al entrar al sitio.
+        </p>
+        <p className="mt-4 text-center text-[13px] text-text-tertiary">
           © {new Date().getFullYear()} Social2Game · Gamificación + CRM para iGaming
         </p>
       </div>

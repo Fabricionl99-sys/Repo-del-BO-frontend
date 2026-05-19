@@ -3,6 +3,8 @@ import { useState } from 'react';
 import { Link } from 'react-router-dom';
 
 import { Button } from '@/components/ui/Button';
+import { useScrollDepth } from '@/hooks/useScrollDepth';
+import { trackCtaClicked, trackEvent } from '@/lib/analytics';
 import { cn } from '@/lib/cn';
 import { docsPath } from '@/lib/docsUrl';
 
@@ -23,6 +25,13 @@ export default function LandingPage() {
   const docsHref = docsPath('/quickstart');
   const docsExternal = docsHref.startsWith('http');
 
+  useScrollDepth(true);
+
+  const onPricingToggle = (nextAnnual: boolean) => {
+    setAnnual(nextAnnual);
+    trackEvent('pricing_toggle_changed', { billing: nextAnnual ? 'annual' : 'monthly' });
+  };
+
   return (
     <PublicLayout>
       <section className="relative overflow-hidden border-b border-border-subtle">
@@ -39,12 +48,17 @@ export default function LandingPage() {
             La forma moderna de aumentar retención y LTV en tu plataforma.
           </p>
           <div className="mt-8 flex flex-wrap gap-3">
-            <Link to="/signup">
+            <Link to="/signup" onClick={() => trackCtaClicked('hero_signup')}>
               <Button variant="primary" size="md" icon={<ArrowRight size={16} />} iconPosition="right">
                 Empezar gratis 14 días
               </Button>
             </Link>
-            <a href="https://calendly.com" target="_blank" rel="noreferrer">
+            <a
+              href="https://calendly.com"
+              target="_blank"
+              rel="noreferrer"
+              onClick={() => trackEvent('video_played', { source: 'hero_demo' })}
+            >
               <Button variant="secondary" size="md">
                 Ver demo
               </Button>
@@ -183,7 +197,7 @@ export default function LandingPage() {
           <div className="mt-6 flex justify-center gap-2">
             <button
               type="button"
-              onClick={() => setAnnual(false)}
+              onClick={() => onPricingToggle(false)}
               className={cn(
                 'rounded-full px-4 py-1.5 text-[14px] font-semibold',
                 !annual ? 'bg-accent text-text-onAccent' : 'border border-border-default text-text-secondary',
@@ -193,7 +207,7 @@ export default function LandingPage() {
             </button>
             <button
               type="button"
-              onClick={() => setAnnual(true)}
+              onClick={() => onPricingToggle(true)}
               className={cn(
                 'rounded-full px-4 py-1.5 text-[14px] font-semibold',
                 annual ? 'bg-accent text-text-onAccent' : 'border border-border-default text-text-secondary',
@@ -240,7 +254,11 @@ export default function LandingPage() {
                     </Button>
                   </a>
                 ) : (
-                  <Link to={`/signup?tier=${tier.id}`} className="mt-6 block">
+                  <Link
+                    to={`/signup?tier=${tier.id}`}
+                    className="mt-6 block"
+                    onClick={() => trackCtaClicked(`pricing_${tier.id}`)}
+                  >
                     <Button variant={tier.id === 'growth' ? 'primary' : 'secondary'} className="w-full">
                       Empezar gratis 14 días
                     </Button>
@@ -310,7 +328,11 @@ export default function LandingPage() {
           <h2 className="text-center text-[28px] font-bold">FAQ</h2>
           <dl className="mt-10 space-y-6">
             {FAQ_ITEMS.map((item) => (
-              <div key={item.q} className="card p-5">
+              <div
+                key={item.id}
+                className="card cursor-pointer p-5"
+                onClick={() => trackEvent('faq_expanded', { question_id: item.id })}
+              >
                 <dt className="text-[16px] font-semibold">{item.q}</dt>
                 <dd className="mt-2 text-[14px] text-text-secondary">{item.a}</dd>
               </div>
