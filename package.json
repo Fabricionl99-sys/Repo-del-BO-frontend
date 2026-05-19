@@ -33,6 +33,7 @@
     "msw": "latest",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
+    "react-ga4": "^3.0.1",
     "react-hook-form": "latest",
     "react-router-dom": "latest",
     "tailwind-merge": "latest",

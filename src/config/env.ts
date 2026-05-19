@@ -15,6 +15,15 @@ export function resolveApiBaseUrl(raw: string | undefined): string {
 
 const appEnv = (import.meta.env.VITE_APP_ENV as string | undefined) ?? import.meta.env.MODE;
 
+function resolveGaMeasurementId(): string | undefined {
+  const prod = (import.meta.env.VITE_GA_MEASUREMENT_ID_PROD as string | undefined)?.trim();
+  const staging = (import.meta.env.VITE_GA_MEASUREMENT_ID_STAGING as string | undefined)?.trim();
+  if (appEnv === 'production' && prod) return prod;
+  if (appEnv === 'staging' && staging) return staging;
+  if (import.meta.env.DEV) return staging || prod || undefined;
+  return undefined;
+}
+
 export const env = {
   appEnv,
   isDev: import.meta.env.DEV,
@@ -25,6 +34,11 @@ export const env = {
   sentryDsn: (import.meta.env.VITE_SENTRY_DSN as string | undefined) ?? '',
   widgetPreviewUrl: import.meta.env.VITE_WIDGET_PREVIEW_URL as string | undefined,
   docsUrl: import.meta.env.VITE_DOCS_URL as string | undefined,
+  gaMeasurementId: resolveGaMeasurementId(),
+  internalMetricsUserIds: (import.meta.env.VITE_INTERNAL_METRICS_USER_IDS as string | undefined)
+    ?.split(',')
+    .map((s) => s.trim())
+    .filter(Boolean) ?? [],
   appVersion: (import.meta.env.VITE_APP_VERSION as string | undefined) ?? '0.0.0',
 } as const;
 
