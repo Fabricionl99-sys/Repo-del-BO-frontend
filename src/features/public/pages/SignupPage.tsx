@@ -50,12 +50,15 @@ export default function SignupPage() {
       return;
     }
     try {
+      // No mandamos `newsletter` al backend — el SignupSchema es strict y lo
+      // rechaza con 400 unrecognized_keys. El campo sigue en el form local
+      // (TODO: cuando haya endpoint /v1/marketing/subscribe, persistirlo
+      // ahí post-signup).
       const result = await signup.mutateAsync({
         email: values.email,
         password: values.password,
         company_name: values.company_name,
         country: values.country,
-        newsletter: values.newsletter,
       });
       setSignupPending(values.email, result.signup_token);
       nav('/signup/email-sent', { replace: true });
