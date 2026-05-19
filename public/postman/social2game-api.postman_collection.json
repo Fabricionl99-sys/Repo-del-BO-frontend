@@ -1,0 +1,128 @@
+{
+  "info": {
+    "name": "Social2Game API",
+    "description": "Public API for iGaming operators — events, players, bonuses, rewards.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "https://api.social2game.com" },
+    { "key": "apiKey", "value": "wgpk_test_YOUR_KEY" },
+    { "key": "operatorId", "value": "op_your_id" }
+  ],
+  "item": [
+    {
+      "name": "Events",
+      "item": [
+        {
+          "name": "Post event",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{apiKey}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"event_type\": \"login\",\n  \"player_id\": \"pl_demo_001\"\n}"
+            },
+            "url": "{{baseUrl}}/v1/events"
+          }
+        },
+        {
+          "name": "Batch events",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{apiKey}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"events\": [\n    { \"event_type\": \"bet\", \"player_id\": \"pl_1\" }\n  ]\n}"
+            },
+            "url": "{{baseUrl}}/v1/events/batch"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Players",
+      "item": [
+        {
+          "name": "Get player",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{apiKey}}" }],
+            "url": "{{baseUrl}}/v1/players/pl_demo_001"
+          }
+        },
+        {
+          "name": "Sync players",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{apiKey}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"players\": [{ \"external_id\": \"pl_1\", \"country\": \"AR\" }]\n}"
+            },
+            "url": "{{baseUrl}}/v1/players/sync"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Operator bonuses",
+      "item": [
+        {
+          "name": "List bonuses",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{apiKey}}" },
+              { "key": "X-Operator-Id", "value": "{{operatorId}}" }
+            ],
+            "url": "{{baseUrl}}/v1/operator-bonuses"
+          }
+        },
+        {
+          "name": "Create bonus",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{apiKey}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"external_id\": \"FREESPIN_50\",\n  \"name\": \"50 Free Spins\",\n  \"bonus_type\": \"freespin\",\n  \"value\": 50\n}"
+            },
+            "url": "{{baseUrl}}/v1/operator-bonuses"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Rewards",
+      "item": [
+        {
+          "name": "Deliver reward",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{apiKey}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"player_id\": \"pl_1\",\n  \"reward_id\": \"rw_99\"\n}"
+            },
+            "url": "{{baseUrl}}/v1/rewards/deliver"
+          }
+        }
+      ]
+    }
+  ]
+}

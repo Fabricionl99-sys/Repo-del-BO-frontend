@@ -1,0 +1,8 @@
+{
+  "name": "social2game-api-examples-node",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "send-event": "node send-event.mjs"
+  }
+}

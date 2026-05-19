@@ -49,6 +49,7 @@ const CapabilitiesPage = lazy(() => import('@/features/capabilities/pages/Capabi
 const ComingSoonPage = lazy(() => import('@/pages/ComingSoonPage'));
 const NotFoundPage = lazy(() => import('@/pages/NotFoundPage'));
 const PublicNotFoundPage = lazy(() => import('@/pages/PublicNotFoundPage'));
+const DocsShell = lazy(() => import('@/features/docs/pages/DocsShell'));
 
 const wrap = (element: React.ReactNode) => <Suspense fallback={<Loading />}>{element}</Suspense>;
 
@@ -70,6 +71,7 @@ export const router = createBrowserRouter([
   { path: '/signup/confirm-email', element: wrap(<ConfirmEmailPage />) },
   { path: '/signup/onboarding', element: wrap(<OnboardingWizardPage />) },
   { path: '/signup/welcome', element: wrap(<WelcomePage />) },
+  { path: '/docs/*', element: wrap(<DocsShell />) },
   {
     element: (
       <ProtectedRoute>
