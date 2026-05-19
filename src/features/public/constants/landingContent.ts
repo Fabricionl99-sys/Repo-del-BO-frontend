@@ -90,24 +90,46 @@ export const COMPARISON_ROWS = [
   { label: 'Pricing inicial', us: 'Desde $299/mes', them: 'Desde $2K+/mes' },
 ];
 
+export const FAQ_ITEMS = [
+  {
+    q: '¿Necesito integración custom para empezar?',
+    a: 'No. El trial incluye sandbox, API keys de test y documentación para integrar eventos y bonos en 1–2 semanas.',
+  },
+  {
+    q: '¿Cómo se compara con Smartico?',
+    a: 'Mismo tipo de gamificación enterprise, con self-service, pricing desde $299/mes y setup opcional de $499 vs contratos de $15K+.',
+  },
+  {
+    q: '¿Qué pasa después de los 14 días?',
+    a: 'Activás un plan Starter, Growth o Pro. Sin tarjeta el trial expira; tus datos se conservan 30 días.',
+  },
+  {
+    q: '¿Dónde está la documentación de API?',
+    a: 'En docs.social2game.com con quickstart, referencia completa, Postman y ejemplos Node.js/Python.',
+  },
+] as const;
+
 export const TESTIMONIALS = [
   {
     quote: 'Pasamos de Smartico en 3 semanas. El sandbox nos permitió validar con el equipo de producto antes de ir a prod.',
     name: 'María González',
     role: 'Head of CRM',
     company: 'LatamBet',
+    photo: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=120&h=120&fit=crop',
   },
   {
     quote: 'La integración de bonos por API fue el diferencial. Nuestro equipo de dev la terminó en un sprint.',
     name: 'Tomás Ruiz',
     role: 'CTO',
     company: 'Pampa Gaming',
+    photo: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=120&h=120&fit=crop',
   },
   {
     quote: 'Multi-moneda nativo nos ahorró meses de desarrollo custom para mercados LATAM.',
     name: 'Ana Belén Costa',
     role: 'Product Lead',
     company: 'Astral Casino',
+    photo: 'https://images.unsplash.com/photo-1580489944761-15a19d654956?w=120&h=120&fit=crop',
   },
 ];
 

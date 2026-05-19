@@ -1,12 +1,14 @@
-import { ArrowRight, Check, Coins, Plug, Rocket, Sparkles } from 'lucide-react';
+import { ArrowRight, BookOpen, Check, Code2, Coins, Plug, Rocket, Sparkles } from 'lucide-react';
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 
 import { Button } from '@/components/ui/Button';
 import { cn } from '@/lib/cn';
+import { docsPath } from '@/lib/docsUrl';
 
 import {
   COMPARISON_ROWS,
+  FAQ_ITEMS,
   MODULE_CARDS,
   PRICING_TIERS,
   TESTIMONIALS,
@@ -18,6 +20,8 @@ const WHY_ICONS = { coins: Coins, api: Plug, rocket: Rocket } as const;
 
 export default function LandingPage() {
   const [annual, setAnnual] = useState(false);
+  const docsHref = docsPath('/quickstart');
+  const docsExternal = docsHref.startsWith('http');
 
   return (
     <PublicLayout>
@@ -45,6 +49,86 @@ export default function LandingPage() {
                 Ver demo
               </Button>
             </a>
+          </div>
+        </div>
+      </section>
+
+      <section id="developers" className="border-b border-border-subtle py-16">
+        <div className="mx-auto max-w-6xl px-4 sm:px-6">
+          <div className="grid items-center gap-10 lg:grid-cols-2">
+            <div>
+              <p className="mb-2 inline-flex items-center gap-2 text-[13px] font-semibold uppercase tracking-wide text-accent">
+                <Code2 size={16} />
+                For developers
+              </p>
+              <h2 className="text-[28px] font-bold">API lista para producción</h2>
+              <p className="mt-3 text-[15px] text-text-secondary">
+                Quickstart en 5 minutos, referencia completa, colección Postman y ejemplos en Node.js y Python.
+              </p>
+              <div className="mt-6 flex flex-wrap gap-3">
+                {docsExternal ? (
+                  <a href={docsHref}>
+                    <Button variant="primary" icon={<BookOpen size={16} />}>
+                      Ver documentación
+                    </Button>
+                  </a>
+                ) : (
+                  <Link to={docsHref}>
+                    <Button variant="primary" icon={<BookOpen size={16} />}>
+                      Ver documentación
+                    </Button>
+                  </Link>
+                )}
+                <a href="/postman/social2game-api.postman_collection.json" download>
+                  <Button variant="secondary">Descargar Postman</Button>
+                </a>
+              </div>
+            </div>
+            <div className="card overflow-hidden p-0">
+              <pre className="overflow-x-auto bg-bg-tertiary p-4 text-[12px] leading-relaxed text-text-secondary">
+                {`curl -X POST https://api.social2game.com/v1/events \\
+  -H "Authorization: Bearer wgpk_test_..." \\
+  -d '{"event_type":"login","player_id":"pl_1"}'`}
+              </pre>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="getting-started" className="border-b border-border-subtle bg-bg-secondary py-16">
+        <div className="mx-auto max-w-6xl px-4 sm:px-6">
+          <h2 className="text-center text-[28px] font-bold">Getting started</h2>
+          <p className="mx-auto mt-2 max-w-xl text-center text-[15px] text-text-secondary">
+            Creá tu cuenta, confirmá email y configurá tu operador en menos de 10 minutos.
+          </p>
+          <div className="mt-10 grid gap-8 lg:grid-cols-2">
+            <div className="card flex aspect-video items-center justify-center bg-bg-tertiary">
+              <div className="text-center">
+                <div className="mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded-full bg-accent-subtle text-accent">
+                  <Sparkles size={24} />
+                </div>
+                <p className="text-[14px] font-semibold text-text-secondary">Flujo de signup · 5 pasos</p>
+                <p className="mt-1 text-[13px] text-text-tertiary">Empresa → branding → módulos → API → listo</p>
+              </div>
+            </div>
+            <ol className="space-y-4 text-[15px] text-text-secondary">
+              <li>
+                <strong className="text-text-primary">1.</strong>{' '}
+                <Link to="/signup" className="text-accent hover:underline">
+                  Registrate gratis
+                </Link>{' '}
+                — 14 días sin tarjeta.
+              </li>
+              <li>
+                <strong className="text-text-primary">2.</strong> Confirmá tu email y completá el wizard de onboarding.
+              </li>
+              <li>
+                <strong className="text-text-primary">3.</strong> Generá API keys de test y enviá tu primer evento.
+              </li>
+              <li>
+                <strong className="text-text-primary">4.</strong> Configurá webhooks de entrega de bonos.
+              </li>
+            </ol>
           </div>
         </div>
       </section>
@@ -170,14 +254,14 @@ export default function LandingPage() {
 
       <section className="py-16">
         <div className="mx-auto max-w-4xl px-4 sm:px-6">
-          <h2 className="text-center text-[28px] font-bold">Social2Game vs Competidor X</h2>
+          <h2 className="text-center text-[28px] font-bold">Social2Game vs Smartico</h2>
           <div className="mt-8 overflow-hidden rounded-xl border border-border-subtle">
             <table className="w-full text-left text-[14px]">
               <thead className="bg-bg-tertiary text-text-tertiary">
                 <tr>
                   <th className="px-4 py-3 font-semibold"> </th>
                   <th className="px-4 py-3 font-semibold text-accent">Social2Game</th>
-                  <th className="px-4 py-3 font-semibold">Competidor X</th>
+                  <th className="px-4 py-3 font-semibold">Smartico</th>
                 </tr>
               </thead>
               <tbody>
@@ -202,9 +286,12 @@ export default function LandingPage() {
               <blockquote key={t.name} className="card p-6">
                 <p className="text-[15px] italic text-text-secondary">&ldquo;{t.quote}&rdquo;</p>
                 <footer className="mt-4 flex items-center gap-3">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-full bg-bg-tertiary text-[13px] font-bold text-accent">
-                    {t.company.slice(0, 2).toUpperCase()}
-                  </div>
+                  <img
+                    src={t.photo}
+                    alt=""
+                    className="h-10 w-10 rounded-full object-cover"
+                    loading="lazy"
+                  />
                   <div>
                     <p className="text-[14px] font-semibold">{t.name}</p>
                     <p className="text-[13px] text-text-tertiary">
@@ -215,6 +302,20 @@ export default function LandingPage() {
               </blockquote>
             ))}
           </div>
+        </div>
+      </section>
+
+      <section id="faq" className="py-16">
+        <div className="mx-auto max-w-3xl px-4 sm:px-6">
+          <h2 className="text-center text-[28px] font-bold">FAQ</h2>
+          <dl className="mt-10 space-y-6">
+            {FAQ_ITEMS.map((item) => (
+              <div key={item.q} className="card p-5">
+                <dt className="text-[16px] font-semibold">{item.q}</dt>
+                <dd className="mt-2 text-[14px] text-text-secondary">{item.a}</dd>
+              </div>
+            ))}
+          </dl>
         </div>
       </section>
     </PublicLayout>

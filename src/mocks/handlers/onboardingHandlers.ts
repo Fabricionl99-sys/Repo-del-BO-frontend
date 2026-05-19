@@ -15,6 +15,8 @@ const wait = () =>
   import.meta.env.MODE === 'test' ? Promise.resolve() : delay(150 + Math.random() * 300);
 
 function onboardingAuth(request: Request): string | null {
+  const auth = request.headers.get('Authorization');
+  if (auth?.startsWith('Bearer ')) return auth.slice(7);
   return request.headers.get('X-Onboarding-Token');
 }
 

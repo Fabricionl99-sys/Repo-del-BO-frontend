@@ -4,7 +4,7 @@ import userEvent from '@testing-library/user-event';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
 import { describe, expect, it } from 'vitest';
 
-import EmailSentPage from './EmailSentPage';
+import OnboardingWizardPage from './OnboardingWizardPage';
 import SignupPage from './SignupPage';
 
 function wrap() {
@@ -13,7 +13,7 @@ function wrap() {
       <MemoryRouter initialEntries={['/signup']}>
         <Routes>
           <Route path="/signup" element={<SignupPage />} />
-          <Route path="/signup/email-sent" element={<EmailSentPage />} />
+          <Route path="/signup/onboarding" element={<OnboardingWizardPage />} />
         </Routes>
       </MemoryRouter>
     </QueryClientProvider>,
@@ -27,7 +27,7 @@ describe('SignupPage', () => {
     expect(screen.getByRole('button', { name: /Crear cuenta gratis/i })).toBeInTheDocument();
   });
 
-  it('flujo signup muestra pantalla de email enviado', async () => {
+  it('flujo signup avanza al wizard de onboarding (MVP auto-confirm)', async () => {
     const user = userEvent.setup();
     wrap();
     const inputs = screen.getAllByRole('textbox');
@@ -39,6 +39,8 @@ describe('SignupPage', () => {
     await user.selectOptions(screen.getByRole('combobox'), 'AR');
     await user.click(screen.getByRole('checkbox', { name: /Acepto términos/i }));
     await user.click(screen.getByRole('button', { name: /Crear cuenta gratis/i }));
-    await waitFor(() => expect(screen.getByText(/Te enviamos un email/i)).toBeInTheDocument());
+    await waitFor(() =>
+      expect(screen.getByRole('heading', { name: /Datos legales/i })).toBeInTheDocument(),
+    );
   });
 });
