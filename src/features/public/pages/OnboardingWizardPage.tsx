@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Navigate, useNavigate } from 'react-router-dom';
 
 import { Button } from '@/components/ui/Button';
 import { Loading } from '@/components/ui/Loading';
@@ -101,13 +101,30 @@ function WizardInner() {
   useEffect(() => {
     if (!stateQ.data) return;
     const s = stateQ.data;
+    // Si el onboarding ya está completado, no tiene sentido renderizar el
+    // wizard (puede haber state stale en el store). Mandar al dashboard.
+    if (s.completed_at) {
+      nav('/dashboard', { replace: true });
+      return;
+    }
     setStep(Math.min(s.current_step, 5));
-    if (s.data.legal) setLegal(s.data.legal);
-    if (s.data.platform) setPlatform(s.data.platform);
-    if (s.data.capabilities) setCapabilities(s.data.capabilities);
-    if (s.data.plan) setPlan(s.data.plan);
-    if (s.data.quickstart) setQuickstart(s.data.quickstart);
-  }, [stateQ.data]);
+    // Backend devuelve `data_so_far.step_1` (lo que el wizard envió por
+    // POST /onboarding/step/1 — i.e. el shape de `legal`). Hidratamos
+    // desde ahí con cast. Mocks viejos usan `data.legal` (legacy), lo
+    // soportamos como fallback.
+    const dso = s.data_so_far;
+    const legacy = s.data;
+    const step1 = (dso?.step_1 as OnboardingLegalStep | undefined) ?? legacy?.legal;
+    const step2 = (dso?.step_2 as OnboardingPlatformStep | undefined) ?? legacy?.platform;
+    const step3 = (dso?.step_3 as OnboardingCapabilitiesStep | undefined) ?? legacy?.capabilities;
+    const step4 = (dso?.step_4 as OnboardingPlanStep | undefined) ?? legacy?.plan;
+    const step5 = (dso?.step_5 as OnboardingQuickstartStep | undefined) ?? legacy?.quickstart;
+    if (step1) setLegal(step1);
+    if (step2) setPlatform(step2);
+    if (step3) setCapabilities(step3);
+    if (step4) setPlan(step4);
+    if (step5) setQuickstart(step5);
+  }, [stateQ.data, nav]);
 
   const recommendedTier = useMemo(() => tierForMau(capabilities.mau_band), [capabilities.mau_band]);
 
@@ -313,12 +330,27 @@ function WizardInner() {
   );
 }
 
+/**
+ * Auth-gate al wizard: si el usuario ya tiene access_token (post-onboarding
+ * complete + login), el wizard no debe renderizarse. Sin esto, F5 sobre
+ * /signup/onboarding después de login crashea porque intenta hidratarse
+ * con un signup_token revocado/inválido. Separado en sub-component para
+ * NO violar rules-of-hooks (no llamar hooks después de return early).
+ */
+function AuthGate({ children }: { children: React.ReactNode }) {
+  const accessToken = useAuthStore((s) => s.accessToken);
+  if (accessToken) return <Navigate to="/dashboard" replace />;
+  return <>{children}</>;
+}
+
 export default function OnboardingWizardPage() {
   return (
-    <OnboardingGuard>
-      <PublicSplitLayout>
-        <WizardInner />
-      </PublicSplitLayout>
-    </OnboardingGuard>
+    <AuthGate>
+      <OnboardingGuard>
+        <PublicSplitLayout>
+          <WizardInner />
+        </PublicSplitLayout>
+      </OnboardingGuard>
+    </AuthGate>
   );
 }

@@ -112,6 +112,10 @@ export function saveStep(token: string, step: number, stepData: Record<string, u
   const keys = ['legal', 'platform', 'capabilities', 'plan', 'quickstart'] as const;
   const key = keys[step - 1];
   if (key) {
+    // OnboardingState.data fue cambiado a opcional (sub-etapa 23 — backend
+    // real usa data_so_far). Mock sigue funcionando con la forma legacy si
+    // ya estaba seteada; init defensivo si falta.
+    if (!session.state.data) session.state.data = {};
     session.state.data[key] = stepData as never;
   }
   if (!session.state.completed_steps.includes(step)) {

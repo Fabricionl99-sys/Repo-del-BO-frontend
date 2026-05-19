@@ -66,9 +66,22 @@ export type OnboardingStepData =
   | OnboardingQuickstartStep;
 
 export interface OnboardingState {
+  signup_id?: string;
   current_step: number;
   completed_steps: number[];
-  data: {
+  // Backend devuelve `data_so_far: Record<step_N, JSONB opaco>` (lo que el
+  // wizard envió en cada POST /onboarding/step/:n). El shape interno NO está
+  // tipado por backend — son los mismos objects que el wizard mandó.
+  // `data` (forma legacy con keys nombradas) la mantenemos opcional para
+  // backward compat con mocks/tests viejos.
+  data_so_far?: {
+    step_1?: OnboardingLegalStep;
+    step_2?: OnboardingPlatformStep;
+    step_3?: OnboardingCapabilitiesStep;
+    step_4?: OnboardingPlanStep;
+    step_5?: OnboardingQuickstartStep;
+  } & Record<string, unknown>;
+  data?: {
     legal?: OnboardingLegalStep;
     platform?: OnboardingPlatformStep;
     capabilities?: OnboardingCapabilitiesStep;
@@ -77,6 +90,7 @@ export interface OnboardingState {
   };
   email?: string;
   company_name?: string;
+  completed_at?: string | null;
 }
 
 export interface OnboardingCompleteResponse {
