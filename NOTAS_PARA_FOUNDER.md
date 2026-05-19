@@ -8,7 +8,7 @@
 |-------|--------|-----------------|
 | **0 — Verde light mode** | ✅ Listo | `5fb7c5d` |
 | **1 — Internal panel** | ✅ Repo existente | `social2game-internal-panel/` (ver abajo) |
-| **2 — Wallet cripto BO** | ✅ Listo | `94ede57` |
+| **2 — Wallet cripto BO** | ✅ Listo | `64da4e0` |
 | **3 — Audit visual BO** | ✅ Doc + fixes menores | `AUDIT_VISUAL.md` |
 
 ## Tarea 0 — Acento verde
