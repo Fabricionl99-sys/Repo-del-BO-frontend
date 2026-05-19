@@ -8,11 +8,11 @@ export function useCheckEmailAvailable(email: string) {
   return useQuery({
     queryKey: ['check-email', email],
     enabled: email.includes('@') && email.length > 5,
+    retry: false,
     queryFn: async () => {
       const res = await apiClient.get('/auth/check-email', { params: { email } });
       return unwrapData<{ available: boolean }>(res.data).available;
     },
-    staleTime: 30_000,
   });
 }
 

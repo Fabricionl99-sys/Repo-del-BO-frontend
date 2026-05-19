@@ -12,6 +12,9 @@ Static SPA built with Vite, hosted on **Amazon S3** + **CloudFront**.
 
 Env files: `.env.development`, `.env.staging`, `.env.production` (see `.env.example`).
 
+`VITE_API_BASE_URL` is the API **origin only** (e.g. `https://api.social2game.com`). The client
+prepends `/v1` automatically, so requests hit `https://api.social2game.com/v1/auth/signup`, etc.
+
 ## Prerequisites
 
 - Node.js 20+

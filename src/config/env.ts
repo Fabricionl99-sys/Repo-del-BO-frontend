@@ -3,6 +3,16 @@ function flag(value: string | undefined): boolean {
   return value === 'true' || value === '1';
 }
 
+/**
+ * Normalizes API base URL and appends `/v1` when missing.
+ * VITE_API_BASE_URL should be the API origin only (e.g. https://api.social2game.com).
+ */
+export function resolveApiBaseUrl(raw: string | undefined): string {
+  const base = (raw ?? '/api').replace(/\/$/, '');
+  if (base.endsWith('/v1')) return base;
+  return `${base}/v1`;
+}
+
 const appEnv = (import.meta.env.VITE_APP_ENV as string | undefined) ?? import.meta.env.MODE;
 
 export const env = {
@@ -10,7 +20,7 @@ export const env = {
   isDev: import.meta.env.DEV,
   isProd: import.meta.env.PROD,
   useMocks: flag(import.meta.env.VITE_USE_MOCKS),
-  apiBaseUrl: (import.meta.env.VITE_API_BASE_URL as string | undefined)?.replace(/\/$/, '') || '/api',
+  apiBaseUrl: resolveApiBaseUrl(import.meta.env.VITE_API_BASE_URL as string | undefined),
   cdnBaseUrl: (import.meta.env.VITE_CDN_BASE_URL as string | undefined)?.replace(/\/$/, '') ?? '',
   sentryDsn: (import.meta.env.VITE_SENTRY_DSN as string | undefined) ?? '',
   widgetPreviewUrl: import.meta.env.VITE_WIDGET_PREVIEW_URL as string | undefined,

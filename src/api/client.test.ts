@@ -1,6 +1,7 @@
 import { http, HttpResponse } from 'msw';
 import { beforeEach, describe, expect, it } from 'vitest';
 
+import { env } from '@/config/env';
 import { useAuthStore } from '@/stores/authStore';
 import { apiClient } from './client';
 import { server } from '@/mocks/server';
@@ -9,6 +10,13 @@ import { mockLogin } from '@/mocks/data/auth';
 beforeEach(() => {
   localStorage.clear();
   useAuthStore.getState().clearAuth();
+});
+
+describe('apiClient base URL', () => {
+  it('incluye prefijo /v1', () => {
+    expect(apiClient.defaults.baseURL).toBe(env.apiBaseUrl);
+    expect(env.apiBaseUrl.endsWith('/v1')).toBe(true);
+  });
 });
 
 describe('apiClient refresh transparente', () => {

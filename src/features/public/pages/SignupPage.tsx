@@ -4,6 +4,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { Eye, EyeOff } from 'lucide-react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 
+import { getCheckEmailErrorMessage, getSignupErrorMessage } from '@/api/errors';
 import { Button } from '@/components/ui/Button';
 import { useCheckEmailAvailable, useSignup } from '@/features/onboarding/signupApi';
 import { useSignupStore } from '@/stores/signupStore';
@@ -58,8 +59,8 @@ export default function SignupPage() {
       });
       setSignupPending(values.email, result.signup_token);
       nav('/signup/email-sent', { replace: true });
-    } catch {
-      toast.error('No pudimos crear la cuenta. ¿El email ya está registrado?');
+    } catch (error) {
+      toast.error(getSignupErrorMessage(error));
     }
   });
 
@@ -73,10 +74,13 @@ export default function SignupPage() {
             <label className="mb-1.5 block text-[14px] text-text-secondary">Email empresa</label>
             <input className="field" type="email" autoComplete="email" {...register('email')} />
             {errors.email && <p className="mt-1 text-[13px] text-danger">{errors.email.message}</p>}
-            {emailCheck.data === false && (
+            {emailCheck.isError && email?.includes('@') && (
+              <p className="mt-1 text-[13px] text-danger">{getCheckEmailErrorMessage(emailCheck.error)}</p>
+            )}
+            {emailCheck.data === false && !emailCheck.isError && (
               <p className="mt-1 text-[13px] text-danger">Este email ya está registrado</p>
             )}
-            {emailCheck.data === true && email?.includes('@') && (
+            {emailCheck.data === true && !emailCheck.isError && email?.includes('@') && (
               <p className="mt-1 text-[13px] text-success">Email disponible</p>
             )}
           </div>
