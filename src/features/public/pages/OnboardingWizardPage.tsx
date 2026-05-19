@@ -181,8 +181,21 @@ function WizardInner() {
         return;
       }
       setStep((s) => Math.min(s + 1, 5));
-    } catch {
-      toast.error('No pudimos guardar el paso');
+    } catch (err) {
+      // Log para debugging en consola del navegador.
+      console.error('[wizard goNext]', err);
+      // Extraer mensaje del backend si vino con response.data.detail.
+      // (ProblemDetails de NestJS).
+      const e = err as { response?: { status?: number; data?: { detail?: string; message?: string } }; message?: string };
+      const status = e.response?.status;
+      const backendDetail = e.response?.data?.detail ?? e.response?.data?.message;
+      let msg = 'No pudimos guardar el paso';
+      if (status === 401) msg = 'Sesión expirada · volvé a iniciar el signup';
+      else if (status === 400 && backendDetail) msg = `Validación: ${backendDetail}`;
+      else if (backendDetail) msg = backendDetail;
+      else if (status && status >= 500) msg = 'Error del servidor · intentá de nuevo en unos minutos';
+      else if (!e.response) msg = 'Conexión perdida · revisá tu red';
+      toast.error(msg);
     }
   };
 

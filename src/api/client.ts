@@ -19,8 +19,12 @@ apiClient.interceptors.request.use((config: InternalAxiosRequestConfig) => {
   const token = useAuthStore.getState().accessToken;
   const tenant = useOperatorStore.getState().current?.id;
 
-  if (token) config.headers.Authorization = `Bearer ${token}`;
-  if (tenant) config.headers['X-Tenant-Id'] = tenant;
+  // NO pisar headers que el caller ya seteó explícitamente. El wizard de
+  // onboarding manda `Authorization: Bearer <signup_token>` (signupApi.ts),
+  // y si auth.accessToken existe (sesión vieja), pisarlo rompía el wizard
+  // con 401 silencioso → toast "Conexión perdida" inentendible.
+  if (token && !config.headers.Authorization) config.headers.Authorization = `Bearer ${token}`;
+  if (tenant && !config.headers['X-Tenant-Id']) config.headers['X-Tenant-Id'] = tenant;
 
   return config;
 });
@@ -44,12 +48,17 @@ apiClient.interceptors.response.use(
       | undefined;
 
     if (error.response?.status === 401 && originalRequest && !originalRequest._retry) {
-      const isAuthRoute =
-        originalRequest.url?.includes('/auth/login') ||
-        originalRequest.url?.includes('/auth/refresh') ||
-        originalRequest.url?.includes('/auth/signup');
+      // Rutas que NUNCA deben dispar refresh:
+      //   - /auth/* — son pre-login (signup, login, refresh, confirm-email,
+      //     resend-confirmation, check-email).
+      //   - /onboarding/* — usan signup_token (no access_token), el refresh
+      //     daría access_token nuevo que tampoco sirve para SignupTokenGuard.
+      //     Sin este skip, el wizard recibía 401 → refresh fallaba → toast
+      //     "Conexión perdida".
+      const url = originalRequest.url ?? '';
+      const skipRefresh = url.includes('/auth/') || url.includes('/onboarding/');
 
-      if (isAuthRoute) {
+      if (skipRefresh) {
         return Promise.reject(error);
       }
 
