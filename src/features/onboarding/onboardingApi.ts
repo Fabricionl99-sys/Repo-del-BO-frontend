@@ -46,7 +46,12 @@ export function useSaveOnboardingStep() {
 export function useCompleteOnboarding() {
   return useMutation({
     mutationFn: async () => {
-      const res = await apiClient.post('/onboarding/complete', null, {
+      // Body `{}` (no `null`): el body-parser de Express con strict:true
+      // rechaza `null` como "Unexpected token n" → 400 sin CORS headers →
+      // browser bloquea como network error → toast "Conexión perdida"
+      // engañoso. Backend ya está fixed para que CORS aplique a errores
+      // pero esto evita el round-trip del 400.
+      const res = await apiClient.post('/onboarding/complete', {}, {
         headers: onboardingHeaders(),
       });
       return unwrapData<OnboardingCompleteResponse>(res.data);
