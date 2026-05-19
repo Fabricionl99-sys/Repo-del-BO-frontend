@@ -10,10 +10,11 @@
     --bg-tertiary: #1c2128;
     --bg-elevated: #21262d;
     --bg-hover: #262c36;
-    --accent: #0af784;
-    --accent-hover: #08d971;
-    --accent-glow: rgba(10, 247, 132, 0.15);
-    --accent-subtle: rgba(10, 247, 132, 0.08);
+    /* Brillante en dark — buen contraste sobre fondos oscuros */
+    --accent: #10b981;
+    --accent-hover: #34d399;
+    --accent-glow: rgba(16, 185, 129, 0.18);
+    --accent-subtle: rgba(16, 185, 129, 0.1);
     --text-primary: #ffffff;
     --text-secondary: #d0d6e0;
     --text-tertiary: #a8b2c1;
@@ -23,7 +24,7 @@
     --border-default: rgba(255, 255, 255, 0.1);
     --border-strong: rgba(255, 255, 255, 0.16);
     --overlay: rgba(0, 0, 0, 0.6);
-    --success: #0af784;
+    --success: #10b981;
     --warning: #f0b72f;
     --danger: #f85149;
     --info: #58a6ff;
@@ -44,15 +45,16 @@
     --bg-tertiary: #d5d8dd;
     --bg-elevated: #f0f2f5;
     --bg-hover: #c8cbd0;
-    --accent: #0af784;
-    --accent-hover: #08d971;
-    --accent-glow: rgba(10, 247, 132, 0.2);
-    --accent-subtle: rgba(10, 247, 132, 0.12);
+    /* Emerald-700 base — texto blanco en CTAs ≥4.5:1 (WCAG AA) */
+    --accent: #047857;
+    --accent-hover: #065f46;
+    --accent-glow: rgba(4, 120, 87, 0.22);
+    --accent-subtle: rgba(4, 120, 87, 0.14);
     --text-primary: #12151c;
     --text-secondary: #3d4a5c;
     --text-tertiary: #5a6778;
     --text-disabled: #8b95a5;
-    --text-on-accent: #0a0d12;
+    --text-on-accent: #ffffff;
     --border-subtle: rgba(0, 0, 0, 0.1);
     --border-default: rgba(15, 23, 42, 0.1);
     --border-strong: rgba(15, 23, 42, 0.14);
