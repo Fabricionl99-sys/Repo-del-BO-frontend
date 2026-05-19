@@ -34,11 +34,11 @@ function wrap() {
 }
 
 describe('Sidebar billing', () => {
-  it('oculta módulos inactivos y muestra sección Disponibles', () => {
+  it('muestra módulos inactivos con lock y sección Disponibles', () => {
     wrap();
-    expect(screen.queryByText('Misiones')).not.toBeInTheDocument();
-    fireEvent.click(screen.getByText('Disponibles'));
     expect(screen.getByText('Misiones')).toBeInTheDocument();
+    fireEvent.click(screen.getByText('Disponibles'));
+    expect(screen.getAllByText('Misiones').length).toBeGreaterThanOrEqual(1);
     expect(screen.getByText('Ver catálogo completo →')).toBeInTheDocument();
   });
 

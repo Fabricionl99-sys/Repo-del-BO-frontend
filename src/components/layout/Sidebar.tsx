@@ -40,6 +40,7 @@ import {
   type ModuleCode,
 } from '@/features/billing/moduleCatalog';
 import { OperatorSelector } from './OperatorSelector';
+import { SidebarBrand } from './SidebarBrand';
 import { useAuthStore } from '@/stores/authStore';
 import { useOperatorStore } from '@/stores/operatorStore';
 
@@ -128,12 +129,7 @@ export function Sidebar() {
 
   return (
     <aside className="sticky top-0 flex h-screen flex-col overflow-y-auto border-r border-border-subtle bg-bg-secondary py-4">
-      <div className="mb-4 flex items-center gap-2.5 border-b border-border-subtle px-5 pb-5">
-        <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-gradient-to-br from-accent to-cyan text-[15px] font-semibold text-text-onAccent">
-          N
-        </div>
-        <span className="text-[16px] font-bold">niveles</span>
-      </div>
+      <SidebarBrand />
       <OperatorSelector />
       <div className="flex-1">
         {sections.map((s, i) => (
