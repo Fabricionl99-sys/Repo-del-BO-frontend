@@ -15,6 +15,7 @@ import {
   KeyRound,
   LayoutGrid,
   LineChart,
+  Lock,
   MessageCircle,
   Newspaper,
   Package,
@@ -140,32 +141,58 @@ export function Sidebar() {
             {'label' in s && s.label ? <p className="label-section px-3 py-2">{s.label}</p> : null}
             {s.items
               .filter((item) => {
-                const roleOk = !item[3] || item[3] === role || item[3] === 'soon';
-                const mod = SIDEBAR_MODULE_BY_PATH[item[0]];
-                return roleOk && isModuleActive(activeModuleCodes, mod);
+                // Aceptamos 'owner' como equivalente a 'admin' (rol post-signup
+                // del backend = "owner" del tenant). Sin esto, owners ven todo
+                // Developers/Configuración oculto.
+                const requiredRole = item[3];
+                if (!requiredRole || requiredRole === 'soon') return true;
+                if (requiredRole === role) return true;
+                if (role === 'owner') return true; // owner > admin
+                return false;
               })
-              .map(([to, label, Icon]) => (
-                <NavLink
-                  key={to}
-                  to={to}
-                  className={({ isActive }) =>
-                    `relative mb-px flex items-center gap-2.5 rounded-md px-3 py-1.5 text-[15px] transition ${
-                      isActive
-                        ? 'bg-accent-subtle font-semibold text-accent before:absolute before:-left-3 before:top-1/2 before:h-[18px] before:w-[3px] before:-translate-y-1/2 before:rounded-r before:bg-accent before:content-[""]'
-                        : 'text-text-secondary hover:bg-bg-tertiary hover:text-text-primary'
-                    }`
-                  }
-                >
-                  <Icon size={14} />
-                  <span>{label}</span>
-                  {to === '/feed' ? (
-                    <span className="ml-auto rounded-full bg-warning/10 px-1.5 py-0.5 text-[12px] text-warning">soon</span>
-                  ) : null}
-                  {to === '/reglas-xp' ? (
-                    <span className="ml-auto rounded-full bg-bg-elevated px-1.5 py-0.5 text-[12px] text-text-tertiary">12</span>
-                  ) : null}
-                </NavLink>
-              ))}
+              .map(([to, label, Icon, tag]) => {
+                const mod = SIDEBAR_MODULE_BY_PATH[to];
+                const moduleActive = isModuleActive(activeModuleCodes, mod);
+                const isSoon = tag === 'soon';
+                const disabled = !moduleActive || isSoon;
+                // Si el item requiere un módulo y está inactivo, navegamos a
+                // /modulos con highlight en lugar del path original. Click sigue
+                // funcionando — UX mejor que ocultar (Opción B founder).
+                const finalTo = disabled && !isSoon && mod ? `/modulos?activar=${mod}` : to;
+                return (
+                  <NavLink
+                    key={to}
+                    to={finalTo}
+                    aria-disabled={disabled}
+                    title={
+                      isSoon
+                        ? 'Próximamente'
+                        : disabled
+                          ? `Módulo "${label}" inactivo — click para activar`
+                          : undefined
+                    }
+                    className={({ isActive }) =>
+                      `relative mb-px flex items-center gap-2.5 rounded-md px-3 py-1.5 text-[15px] transition ${
+                        isActive
+                          ? 'bg-accent-subtle font-semibold text-accent before:absolute before:-left-3 before:top-1/2 before:h-[18px] before:w-[3px] before:-translate-y-1/2 before:rounded-r before:bg-accent before:content-[""]'
+                          : disabled
+                            ? 'text-text-tertiary opacity-60 hover:bg-bg-tertiary hover:opacity-80'
+                            : 'text-text-secondary hover:bg-bg-tertiary hover:text-text-primary'
+                      }`
+                    }
+                  >
+                    <Icon size={14} />
+                    <span>{label}</span>
+                    {isSoon ? (
+                      <span className="ml-auto rounded-full bg-warning/10 px-1.5 py-0.5 text-[12px] text-warning">soon</span>
+                    ) : disabled ? (
+                      <Lock size={12} className="ml-auto text-text-tertiary" />
+                    ) : to === '/reglas-xp' ? (
+                      <span className="ml-auto rounded-full bg-bg-elevated px-1.5 py-0.5 text-[12px] text-text-tertiary">12</span>
+                    ) : null}
+                  </NavLink>
+                );
+              })}
           </div>
         ))}
       </div>
