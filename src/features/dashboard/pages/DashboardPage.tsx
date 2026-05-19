@@ -21,6 +21,7 @@ import { PageHeader } from '@/components/ui/PageHeader';
 import { StatCard } from '@/components/ui/StatCard';
 import { formatNumber, formatRelativeDate } from '@/lib/format';
 import type { Period } from '@/types/shared';
+import { InternalMetricsWidget } from '../components/InternalMetricsWidget';
 import { useActivityFeed, useDashboardMetrics, useSystemStatus } from '../api/dashboardApi';
 
 const periods: Period[] = ['today', '7d', '30d', '90d'];
@@ -45,6 +46,7 @@ export default function DashboardPage() {
         actions={<PeriodSelector value={period} onChange={setPeriod} />}
       />
 
+      <InternalMetricsWidget />
       <DashboardMetricsGrid query={metrics} mockState={mockState} />
       <QuickActions onNavigate={navigate} />
 
