@@ -2,6 +2,9 @@ import { AlertTriangle, Plus, Wallet } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 
+import { CryptoTopupPanel } from '../components/CryptoTopupPanel';
+import { TopupsHistoryPanel } from '../components/TopupsHistoryPanel';
+
 import { Button } from '@/components/ui/Button';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { ErrorState } from '@/components/ui/ErrorState';
@@ -54,9 +57,17 @@ function formatDate(iso: string) {
   }).format(new Date(iso));
 }
 
+type WalletTab = 'movements' | 'topups' | 'crypto';
+
 export default function WalletPage() {
-  const [params] = useSearchParams();
+  const [params, setParams] = useSearchParams();
   const mock = params.get('mockState');
+  const tab = (params.get('tab') as WalletTab | null) ?? 'movements';
+  const setTab = (next: WalletTab) => {
+    const p = new URLSearchParams(params);
+    p.set('tab', next);
+    setParams(p, { replace: true });
+  };
   const [txFilter, setTxFilter] = useState<TransactionType | 'all'>('all');
   const [topupOpen, setTopupOpen] = useState(false);
   const [amount, setAmount] = useState('500');
@@ -150,9 +161,14 @@ export default function WalletPage() {
         title="Mi Wallet"
         subtitle="Saldo prepago, recargas y movimientos"
         actions={
-          <Button variant="primary" icon={<Plus size={14} />} onClick={() => setTopupOpen(true)}>
-            Recargar saldo
-          </Button>
+          <>
+            <Button variant="ghost" onClick={() => setTopupOpen(true)}>
+              Banco / tarjeta
+            </Button>
+            <Button variant="primary" icon={<Plus size={14} />} onClick={() => setTab('crypto')}>
+              Recargar saldo
+            </Button>
+          </>
         }
       />
 
@@ -199,26 +215,64 @@ export default function WalletPage() {
         </div>
       ) : null}
 
-      <div className="mb-4 flex flex-wrap gap-2">
-        {TX_FILTERS.map((f) => (
-          <FilterPill
-            key={f.value}
-            label={f.label}
-            active={txFilter === f.value}
-            onClick={() => setTxFilter(f.value)}
-          />
+      <div className="mb-4 flex flex-wrap gap-2 border-b border-border-subtle pb-2">
+        {(
+          [
+            ['movements', 'Movimientos'],
+            ['topups', 'Recargas cripto'],
+            ['crypto', 'Nueva recarga'],
+          ] as const
+        ).map(([id, label]) => (
+          <button
+            key={id}
+            type="button"
+            onClick={() => setTab(id)}
+            className={`border-b-2 px-3 py-2 text-[14px] font-semibold transition ${
+              tab === id
+                ? 'border-accent text-accent'
+                : 'border-transparent text-text-tertiary hover:text-text-primary'
+            }`}
+          >
+            {label}
+          </button>
         ))}
       </div>
 
-      <Table
-        columns={columns}
-        rows={rows}
-        rowKey={(r) => r.id}
-        loading={txQ.isLoading}
-        emptyState={
-          <EmptyState title="Sin movimientos" description="Todavía no hay transacciones en esta wallet." />
-        }
-      />
+      {tab === 'crypto' ? <CryptoTopupPanel /> : null}
+      {tab === 'topups' ? <TopupsHistoryPanel /> : null}
+
+      {tab === 'movements' ? (
+        <>
+          <div className="mb-4 flex flex-wrap gap-2">
+            {TX_FILTERS.map((f) => (
+              <FilterPill
+                key={f.value}
+                label={f.label}
+                active={txFilter === f.value}
+                onClick={() => setTxFilter(f.value)}
+              />
+            ))}
+          </div>
+
+          <Table
+            columns={columns}
+            rows={rows}
+            rowKey={(r) => r.id}
+            loading={txQ.isLoading}
+            emptyState={
+              <EmptyState
+                title="Sin movimientos"
+                description="Todavía no hay transacciones en esta wallet."
+                action={
+                  <Button variant="primary" size="sm" onClick={() => setTab('crypto')}>
+                    Recargar con cripto
+                  </Button>
+                }
+              />
+            }
+          />
+        </>
+      ) : null}
 
       <Modal
         open={topupOpen}

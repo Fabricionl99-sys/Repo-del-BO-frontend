@@ -14,6 +14,7 @@ import {
 } from 'lucide-react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 
+import { Button } from '@/components/ui/Button';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { ErrorState } from '@/components/ui/ErrorState';
 import { Loading } from '@/components/ui/Loading';
@@ -47,7 +48,7 @@ export default function DashboardPage() {
       />
 
       <InternalMetricsWidget />
-      <DashboardMetricsGrid query={metrics} mockState={mockState} />
+      <DashboardMetricsGrid query={metrics} mockState={mockState} onNavigate={navigate} />
       <QuickActions onNavigate={navigate} />
 
       <div className="mt-7 grid grid-cols-[2fr_1fr] gap-5 max-[1200px]:grid-cols-1">
@@ -81,28 +82,28 @@ function PeriodSelector({ value, onChange }: { value: Period; onChange: (period:
 function DashboardMetricsGrid({
   query,
   mockState,
+  onNavigate,
 }: {
   query: ReturnType<typeof useDashboardMetrics>;
   mockState: MockState;
+  onNavigate: (path: string) => void;
 }) {
-  if (mockState === 'empty') {
-    return (
-      <EmptyState
-        title="Todavía no hay métricas"
-        description="Cuando el operador empiece a enviar eventos, los KPIs principales aparecen acá."
-      />
-    );
-  }
+  const metricsEmpty = (
+    <EmptyState
+      title="Todavía no hay métricas"
+      description="Cuando el operador empiece a enviar eventos, los KPIs principales aparecen acá."
+      action={
+        <Button variant="primary" size="sm" onClick={() => onNavigate('/api-keys')}>
+          Configurar API keys
+        </Button>
+      }
+    />
+  );
+
+  if (mockState === 'empty') return metricsEmpty;
   if (mockState === 'loading' || query.isLoading) return <Loading label="Cargando métricas..." />;
   if (mockState === 'error' || query.isError) return <ErrorState onRetry={() => query.refetch()} />;
-  if (!query.data) {
-    return (
-      <EmptyState
-        title="Todavía no hay métricas"
-        description="Cuando el operador empiece a enviar eventos, los KPIs principales aparecen acá."
-      />
-    );
-  }
+  if (!query.data) return metricsEmpty;
 
   const data = query.data;
   return (

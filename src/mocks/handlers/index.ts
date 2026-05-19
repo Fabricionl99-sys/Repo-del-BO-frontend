@@ -737,22 +737,6 @@ handlers.push(
     const items = filtered.slice(offset, offset + limit);
     return HttpResponse.json({ data: { items, total: filtered.length, limit, offset } });
   }),
-  http.post('*/admin/wallet/topup', async ({ request }) => {
-    await wait();
-    const body = (await request.json()) as { amount_usd: number; payment_method: string; payment_reference?: string };
-    billingSnapshot.wallet_balance_usd += body.amount_usd;
-    const tx = {
-      id: `tx_${Date.now()}`,
-      transaction_type: 'topup' as const,
-      amount_usd: body.amount_usd,
-      reason: `Recarga ${body.payment_method}`,
-      notes: body.payment_reference ?? null,
-      balance_after_usd: billingSnapshot.wallet_balance_usd,
-      created_at: new Date().toISOString(),
-    };
-    walletTransactions.unshift(tx);
-    return HttpResponse.json({ data: tx }, { status: 201 });
-  }),
   http.get('*/admin/modules/catalog', async () => {
     await wait();
     return HttpResponse.json({ data: moduleCatalog });
@@ -1941,4 +1925,6 @@ import { capabilitiesHandlers } from '@/mocks/handlers/capabilitiesHandlers';
 handlers.push(...capabilitiesHandlers);
 
 import { onboardingHandlers } from '@/mocks/handlers/onboardingHandlers';
+import { walletTopupHandlers } from '@/mocks/handlers/walletTopupHandlers';
 handlers.push(...onboardingHandlers);
+handlers.push(...walletTopupHandlers);
