@@ -1,6 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 import { apiClient } from '@/api/client';
+import { trackEvent } from '@/lib/analytics';
 import { unwrapData, unwrapPaginatedList } from '@/api/response';
 import { normalizeChestType, normalizeChestTypes } from '@/features/chests/chestTypeShape';
 import { toast } from '@/stores/toastStore';
@@ -54,6 +55,7 @@ export function useCreateChestType() {
         .post('/admin/chests/types', payload)
         .then((r) => normalizeChestType(unwrapData<ChestType>(r.data))),
     onSuccess: () => {
+      trackEvent('chest_created');
       toast.success('Tipo de cofre creado');
       qc.invalidateQueries({ queryKey: ['chest-types'] });
     },
@@ -172,7 +174,11 @@ export function usePlayerSearch(query: string) {
     queryFn: () =>
       apiClient
         .get(`/admin/players/search?q=${encodeURIComponent(query.trim())}`)
-        .then((r) => unwrapData<PlayerSearchResult[]>(r.data)),
+        .then((r) => {
+          const data = unwrapData<PlayerSearchResult[]>(r.data);
+          trackEvent('player_searched');
+          return data;
+        }),
   });
 }
 

@@ -1,6 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 import { apiClient } from '@/api/client';
+import { trackEvent } from '@/lib/analytics';
 import { unwrapData } from '@/api/response';
 import { toast } from '@/stores/toastStore';
 import type {
@@ -160,6 +161,7 @@ export function useSyncBonusesNow() {
         .post('/admin/operator-bonuses/sync-now')
         .then((r) => unwrapData<SyncNowResponse>(r.data)),
     onSuccess: (data) => {
+      trackEvent('bonus_synced', { added: data.added, updated: data.updated });
       toast.success(`Sync: +${data.added} / ~${data.updated} / -${data.deprecated}`);
       qc.invalidateQueries({ queryKey: ['operator-bonuses'] });
       qc.invalidateQueries({ queryKey: ['operator-bonus-stats'] });

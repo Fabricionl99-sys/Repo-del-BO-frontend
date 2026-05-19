@@ -2,6 +2,7 @@ import { useEffect } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 import { apiClient } from '@/api/client';
+import { trackEvent } from '@/lib/analytics';
 import { unwrapData } from '@/api/response';
 import { isBrandingConfig } from '@/lib/boConfigValidation';
 import { BO_LOCAL_STORAGE_KEYS, removeLocalStorageKey, writeLocalStorageJson } from '@/lib/boLocalStorage';
@@ -67,6 +68,7 @@ export function useUpdateBranding() {
         return;
       }
       toast.success('Branding guardado');
+      trackEvent('branding_updated');
       storeBrandingConfig(data);
       qc.setQueryData(['branding-config'], data);
       qc.invalidateQueries({ queryKey: ['branding-config'] });

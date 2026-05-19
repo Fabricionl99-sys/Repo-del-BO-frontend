@@ -25,6 +25,7 @@ import {
   type TriggerConfigField,
 } from '@/features/missions/missionTriggers';
 import { useCapabilityChecks } from '@/features/capabilities/useCapabilityChecks';
+import { trackEvent } from '@/lib/analytics';
 import { useMission, useSaveMission } from '@/features/tier3Api';
 
 const ICONS = ['🎯', '💰', '🎰', '🃏', '⚡', '🔥', '🏦', '⚽', '🤝', '👤'];
@@ -64,6 +65,7 @@ export default function MissionEditorPage() {
       await save.mutateAsync(
         formToMissionPayload(values, { id: isNew ? undefined : id, status, daysOfWeek: days }),
       );
+      if (isNew) trackEvent('mission_created');
       nav('/misiones');
     })();
   };

@@ -1,6 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 import { apiClient } from '@/api/client';
+import { trackEvent } from '@/lib/analytics';
 import { unwrapData } from '@/api/response';
 import { toast } from '@/stores/toastStore';
 import type {
@@ -77,7 +78,8 @@ export function useCreateApiKey() {
   return useMutation({
     mutationFn: (payload: CreateApiKeyPayload) =>
       apiClient.post('/admin/api-keys', payload).then((r) => unwrapData<CreateApiKeyResult>(r.data)),
-    onSuccess: () => {
+    onSuccess: (_data, variables) => {
+      trackEvent('api_key_generated', { environment: variables.environment });
       qc.invalidateQueries({ queryKey: ['api-keys'] });
     },
   });
