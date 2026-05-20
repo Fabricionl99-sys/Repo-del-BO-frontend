@@ -89,9 +89,55 @@ Variables en `.env`:
 
 Crear propiedad GA4 con dos web streams. Doc: `docs/ANALYTICS.md`.
 
+## Player demo (Sesión 1) — `social2game-player-demo/`
+
+| Item | Detalle |
+|------|---------|
+| **Repo** | `/gamificacion-workspace/social2game-player-demo/` |
+| **SHA inicial** | `2af388c` |
+| **BO integración** | `cf15915` — botones «Ver mi demo» / «Compartir demo» en `/branding` |
+| **Puerto dev** | `http://localhost:5174` |
+
+### Cómo correr
+
+```bash
+cd social2game-player-demo
+npm install
+npm run dev
+```
+
+### URLs demo
+
+| Modo | URL |
+|------|-----|
+| Público | `http://localhost:5174/` |
+| Branding operador | `http://localhost:5174/?tenant=op_latambet` (también `op_astral`) |
+| Desde BO | Branding → **Ver mi demo** (usa `config.tenant_id`) |
+
+Env BO: `VITE_PLAYER_DEMO_URL=http://localhost:5174` (prod: `https://demo.social2game.com`).
+
+### Módulos Sesión 1
+
+- **Misiones:** lista + progress, modal, completar con confetti + toast XP/coins.
+- **Cofres:** grid por rareza, flip 3D (rotateY), premio + confetti.
+- **Rueda:** conic-gradient, spin 4s ease-out, costo 100 XP, modal premio.
+
+### Animaciones
+
+- Framer Motion: cards, modal, wheel spin, chest flip.
+- `canvas-confetti` en recompensas.
+
+### Pendiente Sesión 2+
+
+- Shop, leaderboard, predictions, streaks, avatars, tournaments.
+- Deploy `demo.social2game.com`, PWA icons, SSO modo jugador real.
+
+---
+
 ## Próximos pasos sugeridos
 
-1. Revisar visualmente wallet cripto en light/dark.
-2. Push + deploy BO cuando apruebes (`ahead 1` + commits nuevos).
-3. Conectar internal panel a APIs reales + TOTP real (no mock).
-4. Backlog audit P0 en `AUDIT_VISUAL.md`.
+1. Probar demo: `npm run dev` en player-demo + branding desde BO.
+2. Revisar visualmente wallet cripto en light/dark.
+3. Push + deploy BO cuando apruebes.
+4. Sesión 2 player demo: resto de módulos.
+5. Conectar internal panel a APIs reales + TOTP real (no mock).
