@@ -127,6 +127,15 @@ Env BO: `VITE_PLAYER_DEMO_URL=http://localhost:5174` (prod: `https://demo.social
 - Framer Motion: cards, modal, wheel spin, chest flip.
 - `canvas-confetti` en recompensas.
 
+### Design system BO en modo default (2026-05-20)
+
+- **SHA:** `a92b9d0` en `social2game-player-demo/`
+- **Commit:** `feat(player-demo): adopt BO design system for default theme`
+- Sin `?tenant` → tokens Social2Game idénticos al BO (`globals.css`, `tailwind.config.ts`, Urbanist, emerald-700 light / emerald-500 dark).
+- Con `?tenant=op_latambet` (u otro) → override de branding operador (ej. acento amarillo LatamBet).
+- Toggle tema en header del player demo; tests WCAG en `src/styles/themeContrast.test.ts`.
+- Verificar: BO `http://localhost:5173/dashboard` + demo `http://localhost:5174/missions` (reiniciar `npm run dev` en player-demo tras pull).
+
 ### Pendiente Sesión 2+
 
 - Shop, leaderboard, predictions, streaks, avatars, tournaments.

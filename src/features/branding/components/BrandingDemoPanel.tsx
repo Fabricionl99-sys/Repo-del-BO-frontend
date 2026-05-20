@@ -2,7 +2,7 @@ import { ExternalLink, Link2, Monitor } from 'lucide-react';
 import { useMemo, useState } from 'react';
 
 import { Button } from '@/components/ui/Button';
-import { buildPlayerDemoUrl } from '@/lib/playerDemoUrl';
+import { buildWidgetPreviewUrl } from '@/lib/playerDemoUrl';
 import type { BrandingConfig } from '@/types/branding';
 
 export function BrandingDemoPanel({ config }: { config: BrandingConfig }) {
@@ -19,7 +19,7 @@ export function BrandingDemoPanel({ config }: { config: BrandingConfig }) {
     <aside className="card flex w-full flex-col gap-4 p-4">
       <div className="flex items-center gap-2 text-sm font-semibold text-text-primary">
         <Monitor size={16} className="text-accent" />
-        Vista previa demo jugador
+        Vista previa widget jugador
       </div>
       <div
         className="overflow-hidden rounded-xl border border-border-subtle"
@@ -57,7 +57,7 @@ export function BrandingDemoPanel({ config }: { config: BrandingConfig }) {
         </div>
       </div>
       <p className="text-[12px] text-text-tertiary">
-        Abrí el demo público con el branding de tu operador (`tenant={config.tenant_id}`).
+        Abrí el widget con el branding guardado (`?tenant={config.tenant_id}`). Tras subir logo o cambiar colores, guardá y recargá el link.
       </p>
       <div className="flex flex-col gap-2">
         <Button
