@@ -1,6 +1,6 @@
 # Propuesta de pricing — Social2Game
 
-**Versión:** 1.0 · **Fecha:** 2026-05-19  
+**Versión:** 2.0 · **Fecha:** 2026-05-19  
 **Alcance:** Investigación de mercado + recomendación comercial (sin cambios de producto)  
 **Audiencia:** Founder, ventas, producto, marketing
 
@@ -12,7 +12,98 @@ El mercado de gamificación/CRM para iGaming está dominado por **vendors enterp
 
 Social2Game puede posicionarse como **“enterprise-grade gamification, startup-grade pricing”**: self-service, trial 14 días, $0 setup, multi-currency nativo, API desde día 1.
 
-**Recomendación:** mantener la estructura de 4 tiers ya visible en landing (`$299 / $799 / $1.999 / Enterprise`), con ajustes finos en MAU incluidos, overage y bundle de módulos documentados abajo.
+**Recomendación vigente (v2):** modelo **híbrido** — **base obligatoria + módulos à la carte + plataforma incluida gratis + consumo por encima del free tier**. El operador paga solo lo que activa; el catálogo completo de gamificación cuesta **~$552/mes** antes de consumo extra.
+
+> Los planes empaquetados Starter/Growth/Pro (v1) quedan en [Apéndice A](#apéndice-a--planes-empaquetados-referencia-v1--landing) como referencia de landing hasta migrar UI.
+
+---
+
+## Modelo híbrido Social2Game (propuesta vigente)
+
+### Fórmula
+
+```
+Facturación mensual = Base XP/Coins ($100)
+                    + Σ(módulos cobrables activos)
+                    + consumo extra (MAU, notifs, emails, storage) si supera free tier
+```
+
+### Módulos cobrables
+
+| Módulo (producto) | Código interno | Precio USD/mes | Notas |
+|-------------------|----------------|----------------|-------|
+| **XP / Coins** (obligatorio) | `xp_engine` + `coins` | **$100** | Motor base; sin esto no hay economía de juego |
+| Misiones | `missions` | **$49** | Tier estándar |
+| Cofres | `chests` | **$49** | Tier estándar |
+| Rachas | `streaks` | **$49** | Tier estándar |
+| Rankings | `rankings` | **$49** | Tier estándar |
+| Tienda | `shop` | **$49** | Tier estándar |
+| Predicciones | `predictions` | **$79** | Mayor complejidad / deportes |
+| Torneos | `tournaments` | **$79** | Mayor complejidad / premios |
+| Rueda Fortuna | `wheels` | **$49** | Tier estándar |
+
+**Ejemplos de ticket mensual (solo licencia de módulos):**
+
+| Combo | Cálculo | Total/mes |
+|-------|---------|-----------|
+| Mínimo viable | Base $100 + Misiones $49 | **$149** |
+| Retención core | Base + Misiones + Rachas + Rankings + Tienda | **$296** |
+| **Full gamificación** | Base $100 + 5×$49 + 2×$79 + Rueda $49 | **$552** |
+
+```
+Full stack = 100 + (49×5) + (79×2) + 49
+          = 100 + 245 + 158 + 49
+          = $552/mes
+```
+
+### Incluido gratis (con cualquier módulo de pago activo)
+
+Estos **no suman línea en la factura** — son plataforma y go-to-market:
+
+| Capacidad | Código / nota |
+|-----------|----------------|
+| Branding | `branding` |
+| Multi-currency (33 fiat + crypto) | `multi_currency` |
+| Notificaciones (canal in-app / config) | `notifications` |
+| Avatares | `avatars` |
+| Login Popups | feature plataforma (sin código `ModuleCode` separado) |
+| Noticias | `news` |
+| Webhooks | estándar con API |
+| Bonus Delivery | `rewards_delivery` |
+| API REST + sandbox | acceso completo documentado |
+
+**Mensaje comercial:** *“Pagás los módulos de juego; la plataforma, la API y la entrega de bonos vienen incluidos.”*
+
+### Consumo extra (después del free tier)
+
+Variables a tarifar **encima** de la licencia de módulos. Umbrales y precios **pendientes de costos de infra/backend (Code)**:
+
+| Dimensión | Free tier propuesto (borrador) | Overage (TBD) |
+|-----------|-------------------------------|---------------|
+| **MAU** | p.ej. 1.000 MAU/mes incluidos con base | $/MAU por tramo |
+| **Notificaciones** | p.ej. 50K envíos in-app/mes | $/1K envíos |
+| **Emails** | p.ej. 10K emails/mes | $/1K emails |
+| **Storage** | p.ej. 5 GB assets/logs | $/GB-mes |
+
+**Próximo paso con Code:** COGS por MAU, por evento webhook, por email (SendGrid/etc.) y storage S3 → definir free tier + tabla de overage sin erosionar margen en full stack $552.
+
+### Políticas que se mantienen
+
+| Política | Valor |
+|----------|-------|
+| Trial | 14 días gratis, sin tarjeta |
+| Setup fee | **$0** |
+| Descuento anual | 10% sobre suma de módulos activos (confirmar) |
+| Wallet prepaga | Compatible: cada módulo cobrable = precio lista arriba debitado del saldo |
+
+### Posicionamiento vs competencia (híbrido)
+
+| | Social2Game híbrido | Enterprise típico |
+|--|---------------------|-------------------|
+| Entrada | **$149/mes** (base + 1 módulo) | $1.000–$5.000+/mes |
+| Full stack | **~$552/mes** módulos | $5.000–$15.000+ *estimado* |
+| Lo que no pagás | Branding, multi-currency, API, bonus delivery | Add-ons o integración custom |
+| Escala | Módulos + consumo medido | MAU opaco en contrato |
 
 ---
 
@@ -89,21 +180,60 @@ Social2Game puede posicionarse como **“enterprise-grade gamification, startup-
 
 ---
 
-## Parte 2 — Propuesta de pricing Social2Game
+## Parte 2 — Detalle comercial del modelo híbrido
 
 ### Principios
 
-1. **Anclar a landing actual** (`PRICING_TIERS` en código) para coherencia comercial.
-2. **Costo por MAU** decreciente al subir tier (alineado con StriveCloud/CompetitionLabs).
-3. **Módulos** como upsell claro; bundles en tier para reducir fricción.
-4. **Margen saludable** en overage (principal palanca al crecer sin forzar upgrade prematuro).
+1. **Pay for play:** solo módulos de juego que el operador activa.
+2. **Base obligatoria** ($100) asegura economía XP/monedas y margen mínimo por tenant.
+3. **Plataforma gratis** reduce fricción vs competidores que cobran API, branding o multi-currency aparte.
+4. **Consumo medido** alinea precio con costo real (pendiente definición con backend).
 
-### Catálogo de módulos (referencia)
+### Calculadora para ventas
 
-Módulos core Social2Game: Misiones, Cofres, Rankings, Torneos, Predicciones, Rueda, Avatares, Notificaciones, Login Popups, Noticias, Tienda, Rachas, XP/Coins, Webhooks, Multi-currency, Branding, Bonus delivery.
+```
+Total licencia = 100
+              + (49 × n_standard)    // misiones, cofres, rachas, rankings, tienda, rueda
+              + (79 × n_premium)     // predicciones, torneos
+```
 
-**Precio lista módulo extra (fuera del bundle del plan):** **$89/mes/módulo**  
-*(alineado con rango mock interno ~$71–$170/módulo; redondeo comercial simple)*
+Descuento anual sugerido: **10%** sobre el total de licencia de módulos.
+
+### Bundles sugeridos (opcional, para landing)
+
+Paquetes **no obligatorios** — descuento ~10–15% vs suma à la carte para simplificar decisión:
+
+| Pack | Módulos | Lista à la carte | Precio pack sugerido |
+|------|---------|------------------|----------------------|
+| **Launch** | Base + Misiones + Rankings + Tienda | $247 | **$219/mes** |
+| **Retention** | Launch + Rachas + Cofres | $345 | **$299/mes** |
+| **Full** | Todos los cobrables | $552 | **$499/mes** |
+
+### Mensajes landing (híbrido)
+
+- Headline: **“Desde $100/mes + los módulos que necesités. Full stack ~$552.”**
+- Sub: **Branding, multi-currency, API y bonus delivery incluidos.**
+- CTA: *“Armar mi stack”* / *“Trial 14 días”*
+
+### Objeciones (híbrido)
+
+| Objeción | Respuesta |
+|----------|-----------|
+| *“¿Por qué $100 fijos?”* | Es el motor XP/monedas que alimenta todos los módulos; sin eso no hay economía de juego coherente. |
+| *“¿Pago por notificaciones o API?”* | **No** en licencia base — vienen con cualquier módulo activo. Solo pagás overage si superás el free tier de consumo. |
+| *“$552 es mucho vs $299 de la landing”* | La landing legacy usaba planes empaquetados; el híbrido es más transparente: **$149 para empezar**, **$552 solo si querés todo**. |
+| *“¿Y si crezco en MAU?”* | Tramos de consumo publicados cuando Code cierre COGS; sin sorpresas en contrato. |
+
+---
+
+## Apéndice A — Planes empaquetados (referencia v1 / landing)
+
+> **Estado:** referencia histórica en `PRICING_TIERS` (landing). Sustituir por modelo híbrido cuando producto y checkout lo soporten.
+
+### Principios v1
+
+1. Tiers fijos con MAU incluidos y bundles de módulos.
+2. Alternativa para operadores que prefieren predictibilidad vs à la carte.
 
 ---
 
@@ -212,14 +342,14 @@ Módulos core Social2Game: Misiones, Cofres, Rankings, Torneos, Predicciones, Ru
 | **Trial** | **14 días gratis, sin tarjeta** | Confirmado. Alineado con landing y onboarding. Datos conservados 30 días post-trial. |
 | **Setup fee** | **$0** | Confirmado. Diferenciador vs Smartico/CompetitionLabs/Gamblitude. Quickstart opcional **$499** solo si piden manos (no obligatorio). |
 | **Descuento anual** | **10%** | Confirmado. Competencia usa 20% (CompetitionLabs) — evaluar **15%** si conversión anual es prioridad Q3. |
-| **Módulo extra** | **$89/mes/módulo** | Fuera del bundle del plan. |
+| **Módulo extra (v1 tiers)** | ~~$89/mes/módulo~~ | Reemplazado por catálogo híbrido ($49 / $79 / base $100). |
 | **Multi-currency** | **Incluido en todos los planes** | Confirmado (33 fiat + crypto). No monetizar como add-on. |
 | **API access** | **Incluido en todos** | REST + webhooks según tier (premium en Pro+). |
 | **Soporte** | Ver tiers arriba | Starter email · Growth email+chat · Pro chat+Slack · Enterprise dedicated 24/7 |
 
 ### Wallet prepaga (complemento comercial)
 
-Para operadores en modelo wallet (módulos activados por saldo): mantener pricing por módulo alineado a **$89–$179/mes** según catálogo interno; planes SaaS anteriores son alternativa para operadores que prefieren predictibilidad.
+En modelo wallet, cada activación de módulo debita el **precio lista híbrido** (base $100 + módulos $49/$79). Los módulos gratis no generan cargo. El consumo extra se factura aparte cuando supere free tier.
 
 ---
 
@@ -245,28 +375,25 @@ Programa para **primeros 5–10 operadores** con fit estratégico (LATAM, multi-
 
 ## Parte 5 — Mensajes para landing
 
-### Headline pricing
-> **Gamificación iGaming desde $299/mes.** Sin setup fee. Trial 14 días.
+### Headline pricing (híbrido — vigente)
+> **Desde $100/mes + módulos.** Full stack **~$552**. Sin setup fee. Trial 14 días.
 
 ### Bullets diferenciadores
-- Mismo poder que Smartico, **sin contrato de $15K de entrada**
-- **10× más accesible** que plataformas enterprise (Optimove, CompetitionLabs)
-- **Multi-currency nativo** — no un add-on
-- **Activo en días**, no en meses
+- **Pagá solo los módulos de juego** — branding, API, multi-currency y bonus delivery **incluidos**
+- Full stack **~$552/mes** vs **$5K+** Smartico estimado
+- **$0 setup**, activo en días
+- Consumo (MAU, emails) con **free tier** transparente
 
 ### Comparativa (tabla landing)
 | | Social2Game | Enterprise típico |
 |--|-------------|-------------------|
-| Desde | **$299/mes** | $1.000–$5.000+/mes |
+| Desde | **$149/mes** (base + 1 módulo) | $1.000–$5.000+/mes |
+| Full gamificación | **~$552/mes** | $5.000–$15.000+/mes |
 | Setup | **$0** | $15K–$50K |
-| Go-live | **1–14 días** | 2–4 meses |
 | Trial | **14 días, sin tarjeta** | Demo solo |
 
-### CTA por tier
-- Starter: *"Empezar trial"*
-- Growth: *"Probar 14 días — plan más elegido"*
-- Pro: *"Hablar con ventas"* + trial
-- Enterprise: *"Agendar demo"*
+### CTA
+- *"Armar mi stack"* · *"Ver precios por módulo"* · *"Trial 14 días"*
 
 ---
 
@@ -286,11 +413,11 @@ Programa para **primeros 5–10 operadores** con fit estratégico (LATAM, multi-
 
 ## Parte 7 — Recomendaciones operativas
 
-1. **Publicar rangos en landing** (ya alineados) y mantener Enterprise como "desde $4.500/mes" en FAQ para anclar valor.
-2. **Calculadora MAU** en sitio: MAU estimado → plan sugerido + costo overage (reduce fricción ventas).
-3. **Revisar descuento anual** a 15% si churn post-trial es bajo y CAC alto.
-4. **Monitorear COGS por MAU** (eventos, storage) antes de bajar overage en Starter.
-5. **Design Partner** solo con operadores que integran en <30 días — protege margen del 50% off.
+1. **Migrar landing** de tiers `$299/$799/$1.999` a **calculadora de módulos** + packs opcionales ($219 / $299 / $499).
+2. **Sincronizar wallet BO** con precios híbridos (`xp_engine`+`coins` = $100, etc.).
+3. **Workshop con Code:** cerrar free tier + overage MAU/notifs/emails/storage antes de publicar consumo.
+4. **Design Partner:** 50% off aplicado a **suma de módulos activos**, no a tiers v1.
+5. **Enterprise:** custom sobre híbrido + consumo negociado + SSO/infra.
 
 ---
 
@@ -308,4 +435,4 @@ Programa para **primeros 5–10 operadores** con fit estratégico (LATAM, multi-
 
 ---
 
-*Documento preparado para decisión de founder. No implica cambios automáticos en facturación del producto hasta aprobación comercial.*
+*Documento preparado para decisión de founder. v2 refleja modelo híbrido acordado (mayo 2026). No implica cambios automáticos en facturación del producto hasta aprobación comercial e inputs de costos de Code.*
