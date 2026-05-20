@@ -14,7 +14,7 @@ export function useCreateCryptoTopup() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: (payload: WalletCryptoTopupRequest) =>
-      apiClient.post('/admin/wallet/topup', payload).then((r) => unwrapData<WalletCryptoTopup>(r.data)),
+      apiClient.post('/admin/wallet/crypto/topup', payload).then((r) => unwrapData<WalletCryptoTopup>(r.data)),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['wallet-topups'] });
     },
@@ -25,7 +25,7 @@ export function useWalletTopup(id: string | null) {
   return useQuery({
     queryKey: ['wallet-topup', id],
     enabled: Boolean(id),
-    queryFn: () => apiClient.get(`/admin/wallet/topup/${id}`).then((r) => unwrapData<WalletCryptoTopup>(r.data)),
+    queryFn: () => apiClient.get(`/admin/wallet/crypto/topup/${id}`).then((r) => unwrapData<WalletCryptoTopup>(r.data)),
     refetchInterval: (q) => {
       const status = q.state.data?.status;
       if (status === 'pending' || status === 'confirming') return 3000;
@@ -39,7 +39,7 @@ export function useWalletTopups(params: WalletTopupsListParams = {}) {
     queryKey: ['wallet-topups', params],
     queryFn: () =>
       apiClient
-        .get('/admin/wallet/topups', { params })
+        .get('/admin/wallet/crypto/topups', { params })
         .then((r) => unwrapData<WalletTopupsListResponse>(r.data)),
   });
 }

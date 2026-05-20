@@ -13,19 +13,21 @@ import type { WalletTopupRequest } from '@/types/billing';
 const wait = () =>
   import.meta.env.MODE === 'test' ? Promise.resolve() : delay(120 + Math.random() * 200);
 
+/**
+ * 2 grupos de mocks separados — alineados con backend que tiene 2 controllers:
+ *   - WalletController (path /admin/wallet/topup) — credit-on-faith legacy
+ *     con schema {amount_usd, payment_method, payment_reference}.
+ *   - WalletTopupController (path /admin/wallet/crypto/topup) — NOWPayments
+ *     real con schema {amount_usd, crypto_currency, callback_url}.
+ *
+ * Pre-cambio backend, este file mockeaba ambos casos sobre /topup branched
+ * por shape. Ahora cada handler vive en su propio path.
+ */
 export const walletTopupHandlers = [
+  // ─── Legacy: credit-on-faith ─────────────────────────────────────
   http.post('*/admin/wallet/topup', async ({ request }) => {
     await wait();
-    const body = (await request.json()) as WalletCryptoTopupRequest | WalletTopupRequest;
-    if ('crypto' in body && body.crypto) {
-      const topup = seedWalletTopup({
-        amount_usd: body.amount_usd,
-        crypto: body.crypto,
-        network: body.network ?? 'TRC20',
-      });
-      return HttpResponse.json({ data: topup }, { status: 201 });
-    }
-    const legacy = body as WalletTopupRequest;
+    const legacy = (await request.json()) as WalletTopupRequest;
     billingSnapshot.wallet_balance_usd += legacy.amount_usd;
     const tx = {
       id: `tx_${Date.now()}`,
@@ -40,7 +42,19 @@ export const walletTopupHandlers = [
     return HttpResponse.json({ data: tx }, { status: 201 });
   }),
 
-  http.get('*/admin/wallet/topup/:id', async ({ params }) => {
+  // ─── NOWPayments crypto ──────────────────────────────────────────
+  http.post('*/admin/wallet/crypto/topup', async ({ request }) => {
+    await wait();
+    const body = (await request.json()) as WalletCryptoTopupRequest;
+    const topup = seedWalletTopup({
+      amount_usd: body.amount_usd,
+      crypto: body.crypto,
+      network: body.network ?? 'TRC20',
+    });
+    return HttpResponse.json({ data: topup }, { status: 201 });
+  }),
+
+  http.get('*/admin/wallet/crypto/topup/:id', async ({ params }) => {
     await wait();
     const id = params.id as string;
     advanceTopupStatus(id);
@@ -66,7 +80,7 @@ export const walletTopupHandlers = [
     return HttpResponse.json({ data: topup });
   }),
 
-  http.get('*/admin/wallet/topups', async ({ request }) => {
+  http.get('*/admin/wallet/crypto/topups', async ({ request }) => {
     await wait();
     const url = new URL(request.url);
     const status = url.searchParams.get('status') ?? undefined;
