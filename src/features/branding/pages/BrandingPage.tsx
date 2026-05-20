@@ -3,7 +3,9 @@ import {
   ArrowDownRight,
   ArrowUpLeft,
   ArrowUpRight,
+  ExternalLink,
   Eye,
+  Link2,
   Palette,
   RotateCcw,
   Save,
@@ -40,9 +42,11 @@ import {
   validateCustomCss,
   validateWelcomeText,
 } from '../brandingUploadValidation';
+import { BrandingDemoPanel } from '../components/BrandingDemoPanel';
 import { ResetBrandingModal } from '../components/ResetBrandingModal';
 import { WidgetPreviewMock } from '../components/WidgetPreviewMock';
 import { WidgetPreviewModal } from '../components/WidgetPreviewModal';
+import { buildPlayerDemoUrl } from '@/lib/playerDemoUrl';
 
 const tabs = ['Paleta de colores', 'Tipografía', 'Logo e imágenes', 'Configuración del widget', 'Avanzado'] as const;
 type Tab = (typeof tabs)[number];
@@ -185,7 +189,30 @@ export default function BrandingPage() {
 
   return (
     <>
-      <PageHeader title="Branding" subtitle="Personalizá colores, tipografías, logos y comportamiento del widget" />
+      <PageHeader
+        title="Branding"
+        subtitle="Personalizá colores, tipografías, logos y comportamiento del widget"
+        actions={
+          <>
+            <Button
+              variant="ghost"
+              size="sm"
+              icon={<Link2 size={14} />}
+              onClick={() => void navigator.clipboard.writeText(buildPlayerDemoUrl(config.tenant_id))}
+            >
+              Compartir demo
+            </Button>
+            <Button
+              variant="primary"
+              size="sm"
+              icon={<ExternalLink size={14} />}
+              onClick={() => window.open(buildPlayerDemoUrl(config.tenant_id), '_blank', 'noopener,noreferrer')}
+            >
+              Ver mi demo
+            </Button>
+          </>
+        }
+      />
 
       <div className="mb-4 flex flex-wrap gap-2 border-b border-border-subtle">
         {tabs.map((t) => (
@@ -467,13 +494,16 @@ export default function BrandingPage() {
           <WidgetPreviewMock config={config} viewport="mobile" />
         </aside>
         <aside className="max-[1200px]:hidden">
-          <div className="card sticky top-4 overflow-hidden">
-            <header className="section-head">
-              <h2 className="label-section">preview en vivo</h2>
-            </header>
-            <div className="bg-bg-tertiary p-4">
-              <WidgetPreviewMock config={config} viewport="mobile" />
+          <div className="sticky top-4 flex flex-col gap-4">
+            <div className="card overflow-hidden">
+              <header className="section-head">
+                <h2 className="label-section">preview en vivo</h2>
+              </header>
+              <div className="bg-bg-tertiary p-4">
+                <WidgetPreviewMock config={config} viewport="mobile" />
+              </div>
             </div>
+            <BrandingDemoPanel config={config} />
           </div>
         </aside>
       </div>
