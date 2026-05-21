@@ -185,20 +185,11 @@ export const router = createBrowserRouter([
       { path: 'feed', element: wrap(<FeedPlaceholderPage />) },
       { path: 'logros/*', element: wrap(<NotFoundPage />) },
       {
-        // BrandingPage llama /admin/branding — endpoint NO implementado en
-        // backend (los datos viven en operator-config + public-branding GET).
-        // Refactor pendiente: leer/escribir desde operator-config.
+        // Sub-etapa Operator-Branding-v2: backend ahora expone GET/PATCH/
+        // POST reset + uploads en /admin/branding. Widget consume vía
+        // /v1/public/branding/:tenantId con fonts + theme_mode.
         path: 'branding',
-        element: (
-          <ProtectedRoute roles={['admin']}>
-            {wrap(
-              <ComingSoonPage
-                title="Branding"
-                description="Próximamente — refactor pendiente al endpoint /admin/operator-config. La data ya existe en backend, falta wiring frontend."
-              />,
-            )}
-          </ProtectedRoute>
-        ),
+        element: <ProtectedRoute roles={['admin']}>{wrap(<BrandingPage />)}</ProtectedRoute>,
       },
       {
         path: 'wallet',
