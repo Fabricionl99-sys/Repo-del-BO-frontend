@@ -26,7 +26,15 @@ export function useOperatorBillingBootstrap() {
         wallet_low_balance_threshold_usd: config.wallet_low_balance_threshold_usd,
         status: config.status,
       });
-      setActiveModules(activeModules.map((m) => m.code));
+      // BUG FIX (Operator-Ready): el backend de /v1/admin/modules/active
+      // devuelve `module_code` (snake_case full), no `code`. Mapear a `.code`
+      // producía [undefined,...] → Sidebar marcaba todos los módulos como
+      // inactivos → click en cualquier link redirigía a /modulos (UX rota
+      // donde todas las páginas mostraban la misma).
+      const codes = activeModules
+        .map((m) => (m as { module_code?: string; code?: string }).module_code ?? m.code)
+        .filter((c): c is string => Boolean(c));
+      setActiveModules(codes);
 
       return { config, activeModules };
     },

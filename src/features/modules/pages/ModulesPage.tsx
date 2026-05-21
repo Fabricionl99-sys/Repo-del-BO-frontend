@@ -48,7 +48,14 @@ export default function ModulesPage() {
 
   const cards = useMemo((): ModuleCardData[] => {
     const catalog = catalogQ.data ?? [];
-    const activeMap = new Map((activeQ.data ?? []).map((m) => [m.code, m]));
+    // Backend devuelve `module_code` (snake_case full). El cast acepta
+    // ambas formas por seguridad.
+    const activeMap = new Map(
+      (activeQ.data ?? []).map((m) => {
+        const code = (m as { module_code?: string; code?: string }).module_code ?? m.code;
+        return [code, m] as const;
+      }),
+    );
     return catalog.map((mod) => {
       const active = activeMap.get(mod.code);
       return {
