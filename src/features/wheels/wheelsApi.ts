@@ -29,7 +29,7 @@ export function useWheelsCatalog(filters: WheelsFilters = {}) {
       if (filters.status && filters.status !== 'all') sp.set('status', filters.status);
       if (filters.search) sp.set('search', filters.search);
       const qs = sp.toString();
-      const res = await apiClient.get(`/admin/wheels${qs ? `?${qs}` : ''}`);
+      const res = await apiClient.get(`/admin/wheels/types${qs ? `?${qs}` : ''}`);
       return unwrapData<WheelCatalogResponse>(res.data);
     },
   });
@@ -40,7 +40,7 @@ export function useWheel(code: string | null) {
     queryKey: ['wheels', code],
     enabled: Boolean(code),
     queryFn: () =>
-      apiClient.get(`/admin/wheels/${code}`).then((r) => unwrapData<WheelType>(r.data)),
+      apiClient.get(`/admin/wheels/types/${code}`).then((r) => unwrapData<WheelType>(r.data)),
   });
 }
 
@@ -48,7 +48,7 @@ export function useWheelOptions() {
   return useQuery({
     queryKey: ['wheels', 'options'],
     queryFn: async () => {
-      const res = await apiClient.get('/admin/wheels?status=active');
+      const res = await apiClient.get('/admin/wheels/types?status=active');
       const data = unwrapData<WheelCatalogResponse>(res.data);
       return data.items.map((w) => ({ code: w.code, name: w.name }));
     },
@@ -59,7 +59,7 @@ export function useCreateWheel() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: (payload: WheelTypeCreatePayload) =>
-      apiClient.post('/admin/wheels', payload).then((r) => unwrapData<WheelType>(r.data)),
+      apiClient.post('/admin/wheels/types', payload).then((r) => unwrapData<WheelType>(r.data)),
     onSuccess: () => {
       toast.success('Rueda creada');
       qc.invalidateQueries({ queryKey: ['wheels'] });
@@ -71,7 +71,7 @@ export function useUpdateWheel() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: ({ code, ...payload }: Partial<WheelTypeCreatePayload> & { code: string }) =>
-      apiClient.patch(`/admin/wheels/${code}`, payload).then((r) => unwrapData<WheelType>(r.data)),
+      apiClient.patch(`/admin/wheels/types/${code}`, payload).then((r) => unwrapData<WheelType>(r.data)),
     onSuccess: (_data, vars) => {
       toast.success('Rueda actualizada');
       qc.invalidateQueries({ queryKey: ['wheels'] });
@@ -84,7 +84,7 @@ export function useArchiveWheel() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: ({ code, ...payload }: WheelArchivePayload & { code: string }) =>
-      apiClient.delete(`/admin/wheels/${code}`, { data: payload }),
+      apiClient.delete(`/admin/wheels/types/${code}`, { data: payload }),
     onSuccess: () => {
       toast.success('Rueda archivada');
       qc.invalidateQueries({ queryKey: ['wheels'] });
@@ -98,7 +98,7 @@ export function useAddWheelPrize() {
   return useMutation({
     mutationFn: ({ code, ...payload }: WheelPrizePayload & { code: string }) =>
       apiClient
-        .post(`/admin/wheels/${code}/prizes`, payload)
+        .post(`/admin/wheels/types/${code}/prizes`, payload)
         .then((r) => unwrapData<WheelPrize>(r.data)),
     onSuccess: (_data, vars) => {
       toast.success('Premio agregado');
@@ -117,7 +117,7 @@ export function useUpdateWheelPrize() {
       ...payload
     }: WheelPrizePayload & { code: string; prizeId: string }) =>
       apiClient
-        .patch(`/admin/wheels/${code}/prizes/${prizeId}`, payload)
+        .patch(`/admin/wheels/types/${code}/prizes/${prizeId}`, payload)
         .then((r) => unwrapData<WheelPrize>(r.data)),
     onSuccess: (_data, vars) => {
       toast.success('Premio actualizado');
@@ -131,7 +131,7 @@ export function useDeleteWheelPrize() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: ({ code, prizeId }: { code: string; prizeId: string }) =>
-      apiClient.delete(`/admin/wheels/${code}/prizes/${prizeId}`),
+      apiClient.delete(`/admin/wheels/types/${code}/prizes/${prizeId}`),
     onSuccess: (_data, vars) => {
       toast.success('Premio eliminado');
       qc.invalidateQueries({ queryKey: ['wheels'] });

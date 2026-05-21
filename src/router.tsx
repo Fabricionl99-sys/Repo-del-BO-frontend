@@ -85,8 +85,20 @@ export const router = createBrowserRouter([
         element: <ProtectedRoute roles={['admin']}>{wrap(<TeamPage />)}</ProtectedRoute>,
       },
       {
+        // ApiKeysPage espera /admin/api-keys + stats + ips + reference que
+        // no existen — backend solo tiene /admin/api-key singular. Hasta
+        // re-skin la page con el endpoint real, redirect a Coming Soon.
         path: 'api-keys',
-        element: <ProtectedRoute roles={['admin']}>{wrap(<ApiKeysPage />)}</ProtectedRoute>,
+        element: (
+          <ProtectedRoute roles={['admin']}>
+            {wrap(
+              <ComingSoonPage
+                title="API Keys"
+                description="Próximamente — el endpoint /admin/api-key existe (singular) pero la UI multi-key + stats + IPs todavía no está conectada. Usá `aws secretsmanager` o el panel super-admin mientras tanto."
+              />,
+            )}
+          </ProtectedRoute>
+        ),
       },
       { path: 'reglas-xp', element: wrap(<RulesListPage />) },
       { path: 'reglas-xp/:id', element: wrap(<RuleEditorPage />) },
@@ -104,9 +116,19 @@ export const router = createBrowserRouter([
       { path: 'rachas', element: wrap(<StreaksPage />) },
       { path: 'rachas/nueva', element: wrap(<StreakProgramEditorPage />) },
       { path: 'rachas/:id', element: wrap(<StreakProgramEditorPage />) },
-      { path: 'torneos', element: wrap(<TournamentsPage />) },
-      { path: 'torneos/nuevo', element: wrap(<TournamentEditorPage />) },
-      { path: 'torneos/:id', element: wrap(<TournamentEditorPage />) },
+      // TournamentsPage llama /admin/tournaments — endpoint no implementado.
+      {
+        path: 'torneos',
+        element: wrap(<ComingSoonPage title="Torneos" description="Próximamente — endpoint backend pendiente." />),
+      },
+      {
+        path: 'torneos/nuevo',
+        element: wrap(<ComingSoonPage title="Torneos" description="Próximamente." />),
+      },
+      {
+        path: 'torneos/:id',
+        element: wrap(<ComingSoonPage title="Torneos" description="Próximamente." />),
+      },
       { path: 'bonos', element: wrap(<BonusesPage />) },
       { path: 'tienda', element: wrap(<ShopPage />) },
       { path: 'tienda/nuevo', element: wrap(<ShopPage />) },
@@ -114,9 +136,19 @@ export const router = createBrowserRouter([
       { path: 'notificaciones', element: wrap(<NotificationsPage />) },
       { path: 'notificaciones/templates/nuevo', element: wrap(<NotificationsPage />) },
       { path: 'notificaciones/templates/:id', element: wrap(<NotificationsPage />) },
-      { path: 'noticias', element: wrap(<NewsPage />) },
-      { path: 'noticias/nueva', element: wrap(<NewsEditorPage />) },
-      { path: 'noticias/:id', element: wrap(<NewsEditorPage />) },
+      // NewsPage llama /admin/news — endpoint no implementado.
+      {
+        path: 'noticias',
+        element: wrap(<ComingSoonPage title="Noticias" description="Próximamente — endpoint backend pendiente." />),
+      },
+      {
+        path: 'noticias/nueva',
+        element: wrap(<ComingSoonPage title="Noticias" description="Próximamente." />),
+      },
+      {
+        path: 'noticias/:id',
+        element: wrap(<ComingSoonPage title="Noticias" description="Próximamente." />),
+      },
       { path: 'moderacion', element: wrap(<ModerationPage />) },
       { path: 'metricas', element: wrap(<MetricsPage />) },
       {
@@ -125,18 +157,48 @@ export const router = createBrowserRouter([
       },
       { path: 'integraciones', element: <Navigate to="/webhooks" replace /> },
       { path: 'bandeja-premios', element: wrap(<DeliveriesPage />) },
-      { path: 'configuracion', element: <ProtectedRoute roles={['admin']}>{wrap(<SettingsPage />)}</ProtectedRoute> },
+      {
+        // SettingsPage llama /admin/settings — endpoint no implementado.
+        // Datos viven en /admin/operator-config + módulos. Refactor pendiente.
+        path: 'configuracion',
+        element: (
+          <ProtectedRoute roles={['admin']}>
+            {wrap(
+              <ComingSoonPage
+                title="Configuración"
+                description="Próximamente — algunos datos están en /admin/operator-config + /admin/modules, falta unificar UI."
+              />,
+            )}
+          </ProtectedRoute>
+        ),
+      },
       { path: 'configuracion-general', element: <Navigate to="/configuracion" replace /> },
       { path: 'rankings', element: wrap(<RankingsPage />) },
       { path: 'rankings/:code', element: wrap(<RankingsPage />) },
       { path: 'avatares', element: wrap(<AvatarsPage />) },
       { path: 'ranking', element: <Navigate to="/rankings" replace /> },
-      { path: 'predicciones', element: wrap(<PredictionsPage />) },
+      {
+        // PredictionsPage llama /admin/prediction-pools — endpoint no implementado.
+        path: 'predicciones',
+        element: wrap(<ComingSoonPage title="Predicciones" description="Próximamente — endpoint backend pendiente." />),
+      },
       { path: 'feed', element: wrap(<FeedPlaceholderPage />) },
       { path: 'logros/*', element: wrap(<NotFoundPage />) },
       {
+        // BrandingPage llama /admin/branding — endpoint NO implementado en
+        // backend (los datos viven en operator-config + public-branding GET).
+        // Refactor pendiente: leer/escribir desde operator-config.
         path: 'branding',
-        element: <ProtectedRoute roles={['admin']}>{wrap(<BrandingPage />)}</ProtectedRoute>,
+        element: (
+          <ProtectedRoute roles={['admin']}>
+            {wrap(
+              <ComingSoonPage
+                title="Branding"
+                description="Próximamente — refactor pendiente al endpoint /admin/operator-config. La data ya existe en backend, falta wiring frontend."
+              />,
+            )}
+          </ProtectedRoute>
+        ),
       },
       {
         path: 'wallet',
@@ -150,7 +212,17 @@ export const router = createBrowserRouter([
         path: 'capabilities',
         element: <ProtectedRoute roles={['admin']}>{wrap(<CapabilitiesPage />)}</ProtectedRoute>,
       },
-      { path: 'preview-widget', element: wrap(<WidgetPreviewPage />) },
+      {
+        // WidgetPreviewPage espera backend de embed/snippet generation.
+        // Mientras tanto, el widget real vive en demo.social2game.com.
+        path: 'preview-widget',
+        element: wrap(
+          <ComingSoonPage
+            title="Preview Widget"
+            description="Próximamente. Mientras tanto, abrí https://demo.social2game.com en otra pestaña para ver el widget en vivo (tenant DemoPlay con datos seedeados)."
+          />,
+        ),
+      },
       { path: 'billing', element: <Navigate to="/wallet" replace /> },
       ...comingSoonRoutes.map((route) => ({
         path: route.path,
