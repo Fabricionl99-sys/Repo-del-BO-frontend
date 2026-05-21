@@ -1,9 +1,24 @@
 import { CATEGORIES, type GameCategory } from '@/types/expandedTier5';
 import type { RuleBoost, XPRule } from '@/types/rules';
 
+/**
+ * Sprint #4 Fix #3 — el operador define UNA moneda preferida en Configuración
+ * → todas las reglas la usan automáticamente. La hint text del form y el
+ * label se generan dinámicamente con esta moneda en vez de "USD" hardcoded.
+ *
+ * Si quiere reglas con monedas distintas (un día), el backend ya lo soporta
+ * (currency_mode='manual_per_currency' + xp_per_currency_unit[code]=rate).
+ * Acá usamos shape simple: una sola moneda por regla = preferred_currency.
+ */
 export type RuleXpFormValues = {
   category: GameCategory;
   usd_per_xp: number;
+  /**
+   * Currency code (ISO 4217) del operador. Default 'USD'. NO se persiste
+   * como campo separado en la regla — se manda como key de xp_per_currency_unit
+   * en el payload (action.xpPerAmount.currency).
+   */
+  currency?: string;
   boost?: RuleBoost;
 };
 
@@ -28,6 +43,7 @@ export const boostDefaults = (category: GameCategory): RuleBoost => {
 export const fromRuleToFormValues = (rule: XPRule): RuleXpFormValues => ({
   category: rule.category,
   usd_per_xp: rule.usd_per_xp ?? rule.action.xpPerAmount?.amount ?? rule.action.xpBase ?? 10,
+  currency: rule.action.xpPerAmount?.currency ?? 'USD',
   boost: rule.boost
     ? {
         ...rule.boost,
@@ -58,6 +74,7 @@ export function buildRulePayload(
 ): Partial<XPRule> {
   const boost = toIsoBoost(values.boost);
   const name = opts.existingRule?.name?.trim() || ruleNameForCategory(values.category);
+  const currency = (values.currency ?? 'USD').toUpperCase();
 
   return {
     name,
@@ -70,7 +87,7 @@ export function buildRulePayload(
     conditions: [],
     action: {
       xpBase: 1,
-      xpPerAmount: { xp: 1, amount: values.usd_per_xp, currency: 'USD' },
+      xpPerAmount: { xp: 1, amount: values.usd_per_xp, currency },
       xpMaxPerEvent: null,
     },
     boost,

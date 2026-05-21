@@ -1,8 +1,10 @@
+import { useEffect } from 'react';
 import { useFormContext } from 'react-hook-form';
 import { Switch } from '@/components/ui/Switch';
 import type { GameCategory } from '@/types/expandedTier5';
 import type { RuleXpFormValues } from '@/features/rules/ruleXpForm';
 import { boostDefaults } from '@/features/rules/ruleXpForm';
+import { useOperatorConfig } from '@/features/settings/operatorConfigApi';
 import { CategorySelector } from './CategorySelector';
 
 export function RuleCategoryField({ enabledCategories }: { enabledCategories: GameCategory[] }) {
@@ -11,12 +13,34 @@ export function RuleCategoryField({ enabledCategories }: { enabledCategories: Ga
   return <CategorySelector value={category} onChange={(v) => setValue('category', v)} enabledCategories={enabledCategories} />;
 }
 
+/**
+ * Sprint #4 Fix #3 — la moneda viene de Configuración → Localización del
+ * operador (preferred_currency). Si el operador opera en ARS la regla se
+ * denomina en ARS sin que tenga que pensar en conversión a USD. Si quiere
+ * cambiar la moneda, va a Configuración y la cambia globalmente.
+ */
 export function RuleUsdPerXpField() {
-  const { register } = useFormContext<RuleXpFormValues>();
+  const { register, setValue, getValues } = useFormContext<RuleXpFormValues>();
+  const { data: opConfig } = useOperatorConfig();
+  const operatorCurrency = opConfig?.localization?.currency_code ?? 'USD';
+
+  // Si el form todavía no tiene currency seteada (regla nueva), defaulteala
+  // a la del operador. Si edita una existente, fromRuleToFormValues ya la
+  // hidrató con la moneda persistida.
+  useEffect(() => {
+    if (!getValues('currency')) {
+      setValue('currency', operatorCurrency, { shouldDirty: false });
+    }
+  }, [operatorCurrency, getValues, setValue]);
+
+  const currency = getValues('currency') ?? operatorCurrency;
+
   return (
     <div>
       <label>
-        <span className="mb-1.5 block text-[14px] text-text-secondary">Cuánto se apuesta para 1 XP (USD)</span>
+        <span className="mb-1.5 block text-[14px] text-text-secondary">
+          Cuánto se apuesta para 1 XP ({currency})
+        </span>
         <input
           type="number"
           min={0.01}
@@ -26,7 +50,15 @@ export function RuleUsdPerXpField() {
         />
       </label>
       <p className="mt-2 rounded-lg border border-info/25 bg-info/10 p-3 text-[14px] text-text-secondary">
-        Ej.: si ponés 10, cada $10 apostados en esta categoría dan 1 XP al jugador.
+        Ej.: si ponés 10, cada 10 {currency} apostados en esta categoría dan 1 XP al jugador.
+        {operatorCurrency !== 'USD' && (
+          <>
+            {' '}
+            <span className="text-text-tertiary">
+              (Cambiá la moneda en Configuración → Localización si querés.)
+            </span>
+          </>
+        )}
       </p>
     </div>
   );
