@@ -2,7 +2,7 @@ import { ExternalLink, Link2, Monitor } from 'lucide-react';
 import { useMemo, useState } from 'react';
 
 import { Button } from '@/components/ui/Button';
-import { buildWidgetPreviewUrl } from '@/lib/playerDemoUrl';
+import { buildPlayerDemoUrl } from '@/lib/playerDemoUrl';
 import type { BrandingConfig } from '@/types/branding';
 
 export function BrandingDemoPanel({ config }: { config: BrandingConfig }) {
