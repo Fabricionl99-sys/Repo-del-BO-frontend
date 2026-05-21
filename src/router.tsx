@@ -165,7 +165,7 @@ export const router = createBrowserRouter([
       {
         // PredictionsPage llama /admin/prediction-pools — endpoint no implementado.
         path: 'predicciones',
-        element: wrap(<ComingSoonPage title="Predicciones" description="Próximamente — endpoint backend pendiente." />),
+        element: wrap(<PredictionsPage />),
       },
       { path: 'feed', element: wrap(<FeedPlaceholderPage />) },
       { path: 'logros/*', element: wrap(<NotFoundPage />) },
