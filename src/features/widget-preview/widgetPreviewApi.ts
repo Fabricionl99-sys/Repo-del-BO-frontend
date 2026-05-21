@@ -20,7 +20,7 @@ export function usePlayerWidget(playerId: string | null) {
     enabled: Boolean(playerId),
     queryFn: () =>
       apiClient
-        .get(`/player/widget?player_id=${playerId}`)
+        .get(`/admin/preview-widget/player?player_id=${playerId}`)
         .then((r) => unwrapData<PlayerWidgetData>(r.data)),
   });
 }

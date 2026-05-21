@@ -189,15 +189,9 @@ export const router = createBrowserRouter([
         element: <ProtectedRoute roles={['admin']}>{wrap(<CapabilitiesPage />)}</ProtectedRoute>,
       },
       {
-        // WidgetPreviewPage espera backend de embed/snippet generation.
-        // Mientras tanto, el widget real vive en demo.social2game.com.
+        // Sprint #2 backend: /admin/preview-widget/{players,player} listos.
         path: 'preview-widget',
-        element: wrap(
-          <ComingSoonPage
-            title="Preview Widget"
-            description="Próximamente. Mientras tanto, abrí https://demo.social2game.com en otra pestaña para ver el widget en vivo (tenant DemoPlay con datos seedeados)."
-          />,
-        ),
+        element: wrap(<WidgetPreviewPage />),
       },
       { path: 'billing', element: <Navigate to="/wallet" replace /> },
       ...comingSoonRoutes.map((route) => ({
