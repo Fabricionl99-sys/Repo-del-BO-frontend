@@ -85,20 +85,11 @@ export const router = createBrowserRouter([
         element: <ProtectedRoute roles={['admin']}>{wrap(<TeamPage />)}</ProtectedRoute>,
       },
       {
-        // ApiKeysPage espera /admin/api-keys + stats + ips + reference que
-        // no existen — backend solo tiene /admin/api-key singular. Hasta
-        // re-skin la page con el endpoint real, redirect a Coming Soon.
+        // Sub-etapa Sprint #1: backend ahora expone /admin/api-keys wrapper
+        // multi-key sobre single-key (list/create/rotate/delete + stats/logs
+        // stubbed). UI funciona — multi-key real queda para Sprint #2.
         path: 'api-keys',
-        element: (
-          <ProtectedRoute roles={['admin']}>
-            {wrap(
-              <ComingSoonPage
-                title="API Keys"
-                description="Próximamente — el endpoint /admin/api-key existe (singular) pero la UI multi-key + stats + IPs todavía no está conectada. Usá `aws secretsmanager` o el panel super-admin mientras tanto."
-              />,
-            )}
-          </ProtectedRoute>
-        ),
+        element: <ProtectedRoute roles={['admin']}>{wrap(<ApiKeysPage />)}</ProtectedRoute>,
       },
       { path: 'reglas-xp', element: wrap(<RulesListPage />) },
       { path: 'reglas-xp/:id', element: wrap(<RuleEditorPage />) },
@@ -158,19 +149,13 @@ export const router = createBrowserRouter([
       { path: 'integraciones', element: <Navigate to="/webhooks" replace /> },
       { path: 'bandeja-premios', element: wrap(<DeliveriesPage />) },
       {
-        // SettingsPage llama /admin/settings — endpoint no implementado.
-        // Datos viven en /admin/operator-config + módulos. Refactor pendiente.
+        // Sub-etapa Sprint #1: backend ahora expone PATCH /admin/operator-config
+        // + GET /timezones + /languages. Settings UI puede leer/escribir.
+        // NOTE: la SettingsPage actual quizás necesita ajustar nesting de
+        // OperatorConfig (company_info, contact_info, etc.) — backend lo
+        // sirve flat. Si hay UI breakage, refactor incremental.
         path: 'configuracion',
-        element: (
-          <ProtectedRoute roles={['admin']}>
-            {wrap(
-              <ComingSoonPage
-                title="Configuración"
-                description="Próximamente — algunos datos están en /admin/operator-config + /admin/modules, falta unificar UI."
-              />,
-            )}
-          </ProtectedRoute>
-        ),
+        element: <ProtectedRoute roles={['admin']}>{wrap(<SettingsPage />)}</ProtectedRoute>,
       },
       { path: 'configuracion-general', element: <Navigate to="/configuracion" replace /> },
       { path: 'rankings', element: wrap(<RankingsPage />) },
