@@ -169,6 +169,11 @@ function boRuleToBackendPayload(values: Partial<XPRule>): Record<string, unknown
   const payload: Record<string, unknown> = {
     name: values.name,
     category_id: category ? CATEGORY_SLUG_TO_ID[category] ?? 1 : 1,
+    // Sprint #6: cada regla tiene su moneda. Backend permite múltiples
+    // reglas por categoría si están en monedas distintas. Fallback en
+    // bet_placed: si no encuentra rule(category, X), usa rule en la
+    // moneda madre del operador (preferred_currency).
+    currency,
     xp_per_unit: usdPerXp,
     unit_field: 'amount',
     status: (values as { status?: string }).status ?? 'active',
