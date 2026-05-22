@@ -4,7 +4,10 @@ import { Switch } from '@/components/ui/Switch';
 import type { GameCategory } from '@/types/expandedTier5';
 import type { RuleXpFormValues } from '@/features/rules/ruleXpForm';
 import { boostDefaults } from '@/features/rules/ruleXpForm';
-import { useOperatorConfig } from '@/features/settings/operatorConfigApi';
+import {
+  useOperatorConfig,
+  useOperatorCurrencies,
+} from '@/features/settings/operatorConfigApi';
 import { CategorySelector } from './CategorySelector';
 
 export function RuleCategoryField({ enabledCategories }: { enabledCategories: GameCategory[] }) {
@@ -14,51 +17,70 @@ export function RuleCategoryField({ enabledCategories }: { enabledCategories: Ga
 }
 
 /**
- * Sprint #4 Fix #3 — la moneda viene de Configuración → Localización del
- * operador (preferred_currency). Si el operador opera en ARS la regla se
- * denomina en ARS sin que tenga que pensar en conversión a USD. Si quiere
- * cambiar la moneda, va a Configuración y la cambia globalmente.
+ * Sprint #6 Fix — Cada regla tiene su DROPDOWN de moneda. El operador
+ * elige por regla cuál usar (de la lista de monedas soportadas). Default
+ * para reglas nuevas = preferred_currency del operador.
+ *
+ * Reglas distintas pueden estar en monedas distintas (útil cuando el
+ * operador opera multi-moneda — ej: torneo regional en USD vs liga
+ * argentina en ARS).
  */
 export function RuleUsdPerXpField() {
-  const { register, setValue, getValues } = useFormContext<RuleXpFormValues>();
+  const { register, setValue, watch } = useFormContext<RuleXpFormValues>();
   const { data: opConfig } = useOperatorConfig();
+  const { data: availableCurrencies } = useOperatorCurrencies();
   const operatorCurrency = opConfig?.localization?.currency_code ?? 'USD';
+  const selectedCurrency = watch('currency') ?? operatorCurrency;
 
   // Si el form todavía no tiene currency seteada (regla nueva), defaulteala
   // a la del operador. Si edita una existente, fromRuleToFormValues ya la
   // hidrató con la moneda persistida.
   useEffect(() => {
-    if (!getValues('currency')) {
+    if (!selectedCurrency || selectedCurrency === '') {
       setValue('currency', operatorCurrency, { shouldDirty: false });
     }
-  }, [operatorCurrency, getValues, setValue]);
+  }, [operatorCurrency, selectedCurrency, setValue]);
 
-  const currency = getValues('currency') ?? operatorCurrency;
+  const currencies = availableCurrencies ?? [
+    { code: 'USD', label: 'US Dollar', symbol: '$' },
+  ];
 
   return (
-    <div>
-      <label>
-        <span className="mb-1.5 block text-[14px] text-text-secondary">
-          Cuánto se apuesta para 1 XP ({currency})
-        </span>
-        <input
-          type="number"
-          min={0.01}
-          step={0.01}
-          className="field max-w-xs"
-          {...register('usd_per_xp', { valueAsNumber: true })}
-        />
-      </label>
-      <p className="mt-2 rounded-lg border border-info/25 bg-info/10 p-3 text-[14px] text-text-secondary">
-        Ej.: si ponés 10, cada 10 {currency} apostados en esta categoría dan 1 XP al jugador.
-        {operatorCurrency !== 'USD' && (
-          <>
-            {' '}
-            <span className="text-text-tertiary">
-              (Cambiá la moneda en Configuración → Localización si querés.)
-            </span>
-          </>
-        )}
+    <div className="space-y-3">
+      <div className="grid gap-3 sm:grid-cols-[1fr_140px]">
+        <label className="block">
+          <span className="mb-1.5 block text-[14px] text-text-secondary">
+            Cuánto se apuesta para 1 XP
+          </span>
+          <input
+            type="number"
+            min={0.01}
+            step={0.01}
+            className="field w-full"
+            {...register('usd_per_xp', { valueAsNumber: true })}
+          />
+        </label>
+        <label className="block">
+          <span className="mb-1.5 block text-[14px] text-text-secondary">
+            Moneda
+          </span>
+          <select
+            className="field w-full"
+            value={selectedCurrency}
+            onChange={(e) => setValue('currency', e.target.value, { shouldDirty: true })}
+          >
+            {currencies.map((c) => (
+              <option key={c.code} value={c.code}>
+                {c.symbol ? `${c.symbol} ${c.code}` : c.code}
+              </option>
+            ))}
+          </select>
+        </label>
+      </div>
+      <p className="rounded-lg border border-info/25 bg-info/10 p-3 text-[14px] text-text-secondary">
+        Ej.: si ponés 10 y elegís {selectedCurrency}, cada 10 {selectedCurrency} apostados
+        en esta categoría dan 1 XP al jugador. Podés tener reglas en monedas
+        distintas — el operador elige por regla cuál usar.
       </p>
     </div>
   );

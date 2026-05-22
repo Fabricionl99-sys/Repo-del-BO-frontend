@@ -129,4 +129,6 @@ export interface LanguageOption {
 export interface CurrencyOption {
   code: string;
   label: string;
+  /** Sprint #6: backend devuelve también symbol (e.g. '$', 'R$'). Opcional. */
+  symbol?: string;
 }
