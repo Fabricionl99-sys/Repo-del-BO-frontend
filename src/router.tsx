@@ -107,19 +107,10 @@ export const router = createBrowserRouter([
       { path: 'rachas', element: wrap(<StreaksPage />) },
       { path: 'rachas/nueva', element: wrap(<StreakProgramEditorPage />) },
       { path: 'rachas/:id', element: wrap(<StreakProgramEditorPage />) },
-      // TournamentsPage llama /admin/tournaments — endpoint no implementado.
-      {
-        path: 'torneos',
-        element: wrap(<ComingSoonPage title="Torneos" description="Próximamente — endpoint backend pendiente." />),
-      },
-      {
-        path: 'torneos/nuevo',
-        element: wrap(<ComingSoonPage title="Torneos" description="Próximamente." />),
-      },
-      {
-        path: 'torneos/:id',
-        element: wrap(<ComingSoonPage title="Torneos" description="Próximamente." />),
-      },
+      // Sprint #5 backend: /admin/tournaments listo.
+      { path: 'torneos', element: wrap(<TournamentsPage />) },
+      { path: 'torneos/nuevo', element: wrap(<TournamentEditorPage />) },
+      { path: 'torneos/:id', element: wrap(<TournamentEditorPage />) },
       { path: 'bonos', element: wrap(<BonusesPage />) },
       { path: 'tienda', element: wrap(<ShopPage />) },
       { path: 'tienda/nuevo', element: wrap(<ShopPage />) },
@@ -127,19 +118,10 @@ export const router = createBrowserRouter([
       { path: 'notificaciones', element: wrap(<NotificationsPage />) },
       { path: 'notificaciones/templates/nuevo', element: wrap(<NotificationsPage />) },
       { path: 'notificaciones/templates/:id', element: wrap(<NotificationsPage />) },
-      // NewsPage llama /admin/news — endpoint no implementado.
-      {
-        path: 'noticias',
-        element: wrap(<ComingSoonPage title="Noticias" description="Próximamente — endpoint backend pendiente." />),
-      },
-      {
-        path: 'noticias/nueva',
-        element: wrap(<ComingSoonPage title="Noticias" description="Próximamente." />),
-      },
-      {
-        path: 'noticias/:id',
-        element: wrap(<ComingSoonPage title="Noticias" description="Próximamente." />),
-      },
+      // Sprint #5 backend: /admin/news listo.
+      { path: 'noticias', element: wrap(<NewsPage />) },
+      { path: 'noticias/nueva', element: wrap(<NewsEditorPage />) },
+      { path: 'noticias/:id', element: wrap(<NewsEditorPage />) },
       { path: 'moderacion', element: wrap(<ModerationPage />) },
       { path: 'metricas', element: wrap(<MetricsPage />) },
       {
