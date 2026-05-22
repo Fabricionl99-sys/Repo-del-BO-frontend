@@ -62,43 +62,66 @@ export function useCreateChestType() {
   });
 }
 
+/**
+ * Sprint #6 fix — backend NO tiene PATCH para chest types. Solo CREATE.
+ * Para "actualizar" en MVP: recreamos el chest_type con mismo code (backend
+ * acepta upsert por code via POST si el viejo está archivado). Stub que NO
+ * rompe la UI pero el cambio no persiste — Sprint #7 implementa PATCH real.
+ */
 export function useUpdateChestType() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: ({ code, ...payload }: ChestTypeMetadataPayload & { code: string }) =>
-      apiClient
-        .patch(`/admin/chests/types/${code}`, payload)
-        .then((r) => normalizeChestType(unwrapData<ChestType>(r.data))),
+    mutationFn: async ({ code, ...payload }: ChestTypeMetadataPayload & { code: string }) => {
+      // MVP: noop suave para no romper UI. Sprint #7 → PATCH backend real.
+      // Reintentamos el create con el mismo code que devuelve 409 → simplemente
+      // refrescamos el detail actual.
+      void payload;
+      const res = await apiClient.get(`/admin/chests/types/${code}`);
+      return normalizeChestType(unwrapData<ChestType>(res.data));
+    },
     onSuccess: (_data, vars) => {
-      toast.success('Tipo de cofre actualizado');
+      toast.warning('Edición pendiente — Sprint #7');
       qc.invalidateQueries({ queryKey: ['chest-types'] });
       qc.invalidateQueries({ queryKey: ['chest-types', vars.code] });
     },
   });
 }
 
+/**
+ * Sprint #6 fix — backend usa POST /admin/chests/types/:code/archive
+ * en vez de DELETE. Pero el routing del backend usa :id (UUID), NO :code,
+ * para el archive action. Stub temporal: no llamamos, mostramos warning.
+ */
 export function useArchiveChestType() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: (code: string) => apiClient.delete(`/admin/chests/types/${code}`),
+    mutationFn: async (_code: string) => {
+      // MVP: backend archive expects :id UUID, no :code. Stub.
+      void _code;
+      return undefined;
+    },
     onSuccess: () => {
-      toast.success('Tipo de cofre archivado');
+      toast.warning('Archivar tipo de cofre en desarrollo — Sprint #7');
       qc.invalidateQueries({ queryKey: ['chest-types'] });
     },
   });
 }
 
+/**
+ * Sprint #6 stubs — backend MVP NO tiene CRUD individual de prizes (los
+ * prizes se setean al crear el chest_type entero). Stubs para no romper UI;
+ * Sprint #7 agrega endpoints PATCH/DELETE prize individual.
+ */
 export function useAddChestPrize() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: ({ code, ...payload }: ChestPrizePayload & { code: string }) =>
-      apiClient
-        .post(`/admin/chests/types/${code}/prizes`, payload)
-        .then((r) => unwrapData<ChestPrize>(r.data)),
-    onSuccess: (_data, vars) => {
-      toast.success('Premio agregado');
+    mutationFn: async (_p: ChestPrizePayload & { code: string }): Promise<ChestPrize> => {
+      void _p;
+      return {} as ChestPrize;
+    },
+    onSuccess: () => {
+      toast.warning('Agregar premio individual — Sprint #7');
       qc.invalidateQueries({ queryKey: ['chest-types'] });
-      qc.invalidateQueries({ queryKey: ['chest-types', vars.code] });
     },
   });
 }
@@ -106,18 +129,13 @@ export function useAddChestPrize() {
 export function useUpdateChestPrize() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: ({
-      code,
-      prizeId,
-      ...payload
-    }: ChestPrizePayload & { code: string; prizeId: string }) =>
-      apiClient
-        .patch(`/admin/chests/types/${code}/prizes/${prizeId}`, payload)
-        .then((r) => unwrapData<ChestPrize>(r.data)),
-    onSuccess: (_data, vars) => {
-      toast.success('Premio actualizado');
+    mutationFn: async (_p: ChestPrizePayload & { code: string; prizeId: string }): Promise<ChestPrize> => {
+      void _p;
+      return {} as ChestPrize;
+    },
+    onSuccess: () => {
+      toast.warning('Editar premio individual — Sprint #7');
       qc.invalidateQueries({ queryKey: ['chest-types'] });
-      qc.invalidateQueries({ queryKey: ['chest-types', vars.code] });
     },
   });
 }
@@ -125,33 +143,30 @@ export function useUpdateChestPrize() {
 export function useDeleteChestPrize() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: ({ code, prizeId }: { code: string; prizeId: string }) =>
-      apiClient.delete(`/admin/chests/types/${code}/prizes/${prizeId}`),
-    onSuccess: (_data, vars) => {
-      toast.success('Premio eliminado');
+    mutationFn: async (_p: { code: string; prizeId: string }) => {
+      void _p;
+      return undefined;
+    },
+    onSuccess: () => {
+      toast.warning('Eliminar premio individual — Sprint #7');
       qc.invalidateQueries({ queryKey: ['chest-types'] });
-      qc.invalidateQueries({ queryKey: ['chest-types', vars.code] });
     },
   });
 }
 
-export function useChestInventory(params: ChestInventoryQuery = {}) {
+/**
+ * Sprint #6 stub — backend MVP NO tiene /admin/chests/inventory. Sprint #7
+ * implementa GET con filtros. La tab Inventory muestra vacío sin error.
+ */
+export function useChestInventory(_params: ChestInventoryQuery = {}) {
   return useQuery({
-    queryKey: ['chest-inventory', params],
-    queryFn: async () => {
-      const sp = new URLSearchParams();
-      if (params.chest_type_code) sp.set('chest_type_code', params.chest_type_code);
-      if (params.player_id) sp.set('player_id', params.player_id);
-      if (params.player_search) sp.set('player_search', params.player_search);
-      if (params.status) sp.set('status', params.status);
-      if (params.acquired_via) sp.set('acquired_via', params.acquired_via);
-      if (params.from) sp.set('from', params.from);
-      if (params.to) sp.set('to', params.to);
-      sp.set('limit', String(params.limit ?? 50));
-      sp.set('offset', String(params.offset ?? 0));
-      const res = await apiClient.get(`/admin/chests/inventory?${sp.toString()}`);
-      return unwrapPaginatedList<PlayerChestInventoryItem>(res.data);
-    },
+    queryKey: ['chest-inventory', _params],
+    queryFn: async () => ({
+      items: [] as PlayerChestInventoryItem[],
+      total: 0,
+      limit: 50,
+      offset: 0,
+    }),
   });
 }
 

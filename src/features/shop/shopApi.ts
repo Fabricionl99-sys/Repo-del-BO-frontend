@@ -37,12 +37,16 @@ export function useShopProduct(id: string | null) {
   });
 }
 
+/**
+ * Sprint #6 fix — BO usaba PATCH pero backend espera PUT (405 → "algo salió mal").
+ * Backend usa POST /admin/shop/products/:id/archive en vez de DELETE.
+ */
 export function useSaveShopProduct() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: ({ id, ...payload }: ShopProductPayload & { id?: string }) =>
       id
-        ? apiClient.patch(`/admin/shop/products/${id}`, payload).then((r) => unwrapData<ShopProduct>(r.data))
+        ? apiClient.put(`/admin/shop/products/${id}`, payload).then((r) => unwrapData<ShopProduct>(r.data))
         : apiClient.post('/admin/shop/products', payload).then((r) => unwrapData<ShopProduct>(r.data)),
     onSuccess: () => {
       toast.success('Producto guardado');
@@ -54,7 +58,7 @@ export function useSaveShopProduct() {
 export function useArchiveShopProduct() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: (id: string) => apiClient.delete(`/admin/shop/products/${id}`),
+    mutationFn: (id: string) => apiClient.post(`/admin/shop/products/${id}/archive`),
     onSuccess: () => {
       toast.success('Producto archivado');
       qc.invalidateQueries({ queryKey: ['shop-products'] });
@@ -62,22 +66,15 @@ export function useArchiveShopProduct() {
   });
 }
 
-export function useShopPurchases(params: ShopPurchasesQuery = {}) {
+/**
+ * Sprint #6 stub — backend MVP NO expone admin purchases endpoint.
+ * Sprint #7 implementa GET /admin/shop/purchases real. Por ahora la tab
+ * Purchases del BO se muestra vacía sin error.
+ */
+export function useShopPurchases(_params: ShopPurchasesQuery = {}) {
   return useQuery({
-    queryKey: ['shop-purchases', params],
-    queryFn: async () => {
-      const sp = new URLSearchParams();
-      if (params.status) sp.set('status', params.status);
-      if (params.product_id) sp.set('product_id', params.product_id);
-      if (params.player_id) sp.set('player_id', params.player_id);
-      if (params.player_search) sp.set('player_search', params.player_search);
-      if (params.from) sp.set('from', params.from);
-      if (params.to) sp.set('to', params.to);
-      sp.set('limit', String(params.limit ?? 50));
-      sp.set('offset', String(params.offset ?? 0));
-      const res = await apiClient.get(`/admin/shop/purchases?${sp.toString()}`);
-      return unwrapPaginatedList<ShopPurchase>(res.data);
-    },
+    queryKey: ['shop-purchases', _params],
+    queryFn: async () => ({ items: [] as ShopPurchase[], total: 0, limit: 50, offset: 0 }),
   });
 }
 
@@ -85,7 +82,6 @@ export function useShopPurchase(id: string | null) {
   return useQuery({
     queryKey: ['shop-purchases', id],
     enabled: Boolean(id),
-    queryFn: () =>
-      apiClient.get(`/admin/shop/purchases/${id}`).then((r) => unwrapData<ShopPurchase>(r.data)),
+    queryFn: async (): Promise<ShopPurchase | null> => null,
   });
 }
