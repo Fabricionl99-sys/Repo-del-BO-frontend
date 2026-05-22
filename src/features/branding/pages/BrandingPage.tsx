@@ -175,9 +175,18 @@ export default function BrandingPage() {
     setDraft(null);
   };
 
-  const handlePreview = async () => {
-    await preview.mutateAsync(formToUpdatePayload(configToFormValues(config)));
-    setPreviewOpen(true);
+  /**
+   * Sprint #6 fix: el endpoint POST /admin/branding/preview NUNCA existió
+   * en backend. Antes el botón tiraba 404 silencioso. Ahora abrimos el
+   * widget real con el tenant del operador — el widget consume el branding
+   * vigente (refresca cada 30s gracias al cache shorter).
+   */
+  const handlePreview = () => {
+    window.open(
+      buildPlayerDemoUrl(config.tenant_id),
+      '_blank',
+      'noopener,noreferrer',
+    );
   };
 
   const handleReset = async () => {
