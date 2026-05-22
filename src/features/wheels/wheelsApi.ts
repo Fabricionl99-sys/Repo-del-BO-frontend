@@ -158,13 +158,14 @@ export function useSpinHistory(filters: SpinHistoryQuery = {}) {
   });
 }
 
-export function useManualGrantHistory(limit = 20) {
+export function useManualGrantHistory(_limit = 20) {
+  // Sprint #6 stub — backend MVP no expone /admin/wheels/inventory.
+  // El widget jugador SÍ tiene /v1/player/wheels/inventory. Para el panel
+  // admin, este endpoint queda para Sprint #7 (history view de grants
+  // manuales).
   return useQuery({
-    queryKey: ['wheels', 'manual-grants', limit],
-    queryFn: () =>
-      apiClient
-        .get(`/admin/wheels/inventory?limit=${limit}`)
-        .then((r) => unwrapData<WheelManualGrantHistoryItem[]>(r.data)),
+    queryKey: ['wheels', 'manual-grants', _limit],
+    queryFn: async (): Promise<WheelManualGrantHistoryItem[]> => [],
   });
 }
 
