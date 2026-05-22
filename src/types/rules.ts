@@ -22,6 +22,6 @@ export interface XPRule {
   updatedAt: string;
   createdBy: { name: string; initials: string };
 }
-export interface RuleListItem { id:string; name:string; description:string; category:RuleCategory; xpDisplay:{value:string;perUnit?:string}; status:RuleStatus; updatedAt:string; active:boolean; boost?:RuleBoost }
+export interface RuleListItem { id:string; name:string; description:string; category:RuleCategory; /** Sprint #6 multi-currency. Optional for legacy mock compat. Display 'USD' as fallback. */ currency?:string; xpDisplay:{value:string;perUnit?:string}; status:RuleStatus; updatedAt:string; active:boolean; boost?:RuleBoost }
 export const UNIVERSAL_EVENTS:TriggerEvent[]=['bet_placed'];
 export const EVENTS_BY_CATEGORY: Partial<Record<RuleCategory, TriggerEvent[]>>={};
