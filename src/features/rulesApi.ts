@@ -28,6 +28,18 @@ const CATEGORY_ID_TO_SLUG: Record<number, RuleCategory> = {
   6: 'poker',
 };
 
+/**
+ * Reverse map para enviar al backend. BO solo tiene 5 categorías pero
+ * backend tiene 6 IDs. Mapeamos al ID más representativo.
+ */
+const CATEGORY_SLUG_TO_ID: Record<RuleCategory, number> = {
+  deportes: 1,
+  casino_vivo: 2,
+  casino: 3, // BO 'casino' → backend 'slots' (3) por default
+  virtuales: 5,
+  poker: 6,
+};
+
 interface BackendRuleRow {
   id: string;
   name: string;
@@ -136,19 +148,61 @@ export function useDuplicateRule() {
   });
 }
 
+/**
+ * Sprint #6 — mapea XPRule (BO) → RuleCreate (backend).
+ *   - category slug → category_id número (1-6)
+ *   - usd_per_xp → xp_per_unit
+ *   - currency del action.xpPerAmount → backend currency_mode +
+ *     base_xp_per_usd (si USD) o xp_per_currency_unit (otra moneda)
+ *   - Fields del BO sin equivalente backend: description, trigger,
+ *     conditionsLogic, conditions, action.xpBase/xpMaxPerEvent → drop.
+ */
+function boRuleToBackendPayload(values: Partial<XPRule>): Record<string, unknown> {
+  const category = (values as { category?: RuleCategory }).category;
+  const usdPerXp = (values as { usd_per_xp?: number }).usd_per_xp ?? 0;
+  const action = (values as {
+    action?: { xpPerAmount?: { currency?: string; amount?: number } };
+  }).action;
+  const currency = action?.xpPerAmount?.currency?.toUpperCase() ?? 'USD';
+  const isUsd = currency === 'USD';
+
+  const payload: Record<string, unknown> = {
+    name: values.name,
+    category_id: category ? CATEGORY_SLUG_TO_ID[category] ?? 1 : 1,
+    xp_per_unit: usdPerXp,
+    unit_field: 'amount',
+    status: (values as { status?: string }).status ?? 'active',
+  };
+
+  if (isUsd) {
+    payload.currency_mode = 'auto_usd';
+    payload.base_xp_per_usd = usdPerXp;
+  } else {
+    payload.currency_mode = 'manual_per_currency';
+    payload.xp_per_currency_unit = { [currency]: usdPerXp };
+  }
+
+  const boost = (values as { boost?: XPRule['boost'] }).boost;
+  if (boost) payload.boost = boost;
+
+  return payload;
+}
+
 export function useSaveRule() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: ({ id, values }: { id: string | null; values: Partial<XPRule> }) =>
-      id
+    mutationFn: ({ id, values }: { id: string | null; values: Partial<XPRule> }) => {
+      const payload = boRuleToBackendPayload(values);
+      return id
         ? apiClient
-            .put(`/admin/rules/${id}`, values)
+            .put(`/admin/rules/${id}`, payload)
             .then((r) => unwrapData<BackendRuleRow>(r.data))
             .then(backendRowToXPRule)
         : apiClient
-            .post('/admin/rules', values)
+            .post('/admin/rules', payload)
             .then((r) => unwrapData<BackendRuleRow>(r.data))
-            .then(backendRowToXPRule),
+            .then(backendRowToXPRule);
+    },
     onSuccess: () => {
       toast.success('regla guardada');
       qc.invalidateQueries({ queryKey: ['rules'] });
