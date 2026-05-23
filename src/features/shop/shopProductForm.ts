@@ -14,6 +14,9 @@ export const SHOP_REWARD_TYPES: ShopRewardType[] = [
   'manual',
 ];
 
+// Sprint #6 — SHOP_CURRENCY_CODES legacy hardcoded eliminado. El form ahora
+// usa `useCoins()` para listar las monedas reales del operador. Mantenemos
+// el export para tests + retrocompat momentánea.
 export const SHOP_CURRENCY_CODES = ['main', 'vip'] as const;
 
 export interface ShopProductFormValues {
@@ -92,8 +95,15 @@ export function defaultShopProductForm(): ShopProductFormValues {
     currency_code: 'main',
     unlimited_stock: true,
     stock: 0,
-    reward_type: 'freespin',
-    reward: { reward_type: 'freespin', reward_config: { bonus_id: 'ob_fs_book_dead' }, currency_mode: 'auto_usd' },
+    // Sprint #6 — default 'manual' para no exigir bonus_id que el tenant
+    // puede no tener. El operador cambia a freespin/freebet/etc desde el
+    // selector → ahí elige bono real del catálogo Bonos.
+    reward_type: 'manual',
+    reward: {
+      reward_type: 'manual',
+      reward_config: { description: 'Premio manual', value_usd: 0 },
+      currency_mode: 'auto_usd',
+    },
     theme_id: '',
     min_level: null,
     vip_only: false,

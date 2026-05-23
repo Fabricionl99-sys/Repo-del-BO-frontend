@@ -72,6 +72,13 @@ export interface RankingConfig {
   metric_type: RankingMetricType;
   period_type: RankingPeriodType;
   period_resets_at: string | null;
+  /** Sprint #6 — fechas que computa el backend según period_type. */
+  current_period_start?: string | null;
+  current_period_end?: string | null;
+  next_period_resets_at?: string | null;
+  period_reset_day?: number | null;
+  period_reset_hour?: number | null;
+  timezone?: string;
   is_active: boolean;
   is_visible_to_players: boolean;
   max_visible_positions: number;

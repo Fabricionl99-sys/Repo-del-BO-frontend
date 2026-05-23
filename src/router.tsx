@@ -44,6 +44,8 @@ const WalletPage = lazy(() => import('@/features/wallet/pages/WalletPage'));
 const ModulesPage = lazy(() => import('@/features/modules/pages/ModulesPage'));
 const BonusesPage = lazy(() => import('@/features/operatorBonuses/pages/BonusesPage'));
 const WidgetPreviewPage = lazy(() => import('@/features/widget-preview/pages/WidgetPreviewPage'));
+const RafflesPage = lazy(() => import('@/features/raffles/pages/RafflesPage'));
+const RaffleDetailPage = lazy(() => import('@/features/raffles/pages/RaffleDetailPage'));
 const WheelsPage = lazy(() => import('@/features/wheels/pages/WheelsPage'));
 const CapabilitiesPage = lazy(() => import('@/features/capabilities/pages/CapabilitiesPage'));
 const ComingSoonPage = lazy(() => import('@/pages/ComingSoonPage'));
@@ -145,10 +147,12 @@ export const router = createBrowserRouter([
       { path: 'avatares', element: wrap(<AvatarsPage />) },
       { path: 'ranking', element: <Navigate to="/rankings" replace /> },
       {
-        // PredictionsPage llama /admin/prediction-pools — endpoint no implementado.
         path: 'predicciones',
         element: wrap(<PredictionsPage />),
       },
+      { path: 'sorteos', element: wrap(<RafflesPage />) },
+      { path: 'sorteos/pending-physical', element: wrap(<RafflesPage />) },
+      { path: 'sorteos/:code', element: wrap(<RaffleDetailPage />) },
       { path: 'feed', element: wrap(<FeedPlaceholderPage />) },
       { path: 'logros/*', element: wrap(<NotFoundPage />) },
       {

@@ -2,7 +2,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 import { apiClient } from '@/api/client';
 import { trackEvent } from '@/lib/analytics';
-import { unwrapData, unwrapPaginatedList } from '@/api/response';
+import { unwrapData } from '@/api/response';
 import { normalizeChestType, normalizeChestTypes } from '@/features/chests/chestTypeShape';
 import { toast } from '@/stores/toastStore';
 import type {
@@ -16,6 +16,127 @@ import type {
   PlayerChestInventoryItem,
   PlayerSearchResult,
 } from '@/types/chests';
+
+/**
+ * Sprint #6 fix — adaptador BO → backend para chest type create.
+ *   BO `reward_type` (slug)         → backend `reward_type_id` (int)
+ *   BO `pity_guaranteed_prize_id`   → backend `pity_guaranteed_prize_index`
+ *   + currency_mode/base_amount_usd/values_per_currency defaults (S16)
+ *
+ * El backend schema (chest.schema.ts) ahora es .passthrough() así que
+ * los campos extra del BO no rompen — solo los críticos (reward_type_id,
+ * pity_guaranteed_prize_index) deben matchear.
+ */
+const CHEST_REWARD_TYPE_TO_ID: Record<string, number> = {
+  freespin: 1,
+  freebet: 2,
+  cashback: 3,
+  bonus_deposit: 4,
+  manual: 5,
+  chest: 6,
+  coins: 7,
+  avatar_pack: 8,
+  wheel_spin: 9,
+};
+
+function adaptChestPrizeForBackend(p: ChestPrizePayload, index = 0): Record<string, unknown> {
+  // Backend `reward_config` discriminated union por `.kind`. Solo acepta:
+  // freespin, freebet, cashback, bonus_deposit, manual, chest, coins,
+  // avatar_pack, wheel_spin. El BO permite 'xp' (que no existe backend) —
+  // lo mapeamos a 'manual' con descripción del XP amount.
+  const VALID_KINDS = new Set([
+    'freespin',
+    'freebet',
+    'cashback',
+    'bonus_deposit',
+    'manual',
+    'chest',
+    'coins',
+    'avatar_pack',
+    'wheel_spin',
+  ]);
+  const safeName = (p.name && p.name.trim()) || `Premio ${index + 1}`;
+  const rawType = String(p.reward_type ?? 'manual');
+  let kind: string;
+  let cfg: Record<string, unknown>;
+  if (rawType === 'xp') {
+    // BO XP → backend manual con descripción.
+    const xpAmount = Number(
+      (p.reward_config as unknown as Record<string, unknown>)?.amount ?? 0,
+    );
+    kind = 'manual';
+    cfg = {
+      kind: 'manual',
+      description: `${xpAmount} XP bonus`,
+      value_usd: 0,
+    };
+  } else if (VALID_KINDS.has(rawType)) {
+    kind = rawType;
+    cfg = {
+      ...(p.reward_config as unknown as Record<string, unknown>),
+      kind: rawType,
+    };
+    if (kind === 'manual') {
+      const desc = cfg.description;
+      if (typeof desc !== 'string' || !desc.trim()) cfg.description = safeName;
+      if (typeof cfg.value_usd !== 'number') cfg.value_usd = 0;
+    }
+    if (kind === 'coins') {
+      if (typeof cfg.amount !== 'number' || (cfg.amount as number) <= 0) cfg.amount = 1;
+      if (!cfg.currency_code) cfg.currency_code = 'main';
+    }
+    if (kind === 'chest' && !cfg.chest_type_code) {
+      cfg.chest_type_code = 'default_chest';
+    }
+    if (kind === 'wheel_spin' && !cfg.wheel_type_code) {
+      cfg.wheel_type_code = 'default_wheel';
+    }
+  } else {
+    // Unknown reward_type → fallback manual.
+    kind = 'manual';
+    cfg = { kind: 'manual', description: safeName, value_usd: 0 };
+  }
+  return {
+    name: safeName,
+    image_url: p.image_url || null,
+    reward_type_id: CHEST_REWARD_TYPE_TO_ID[kind] ?? 5,
+    reward_config: cfg,
+    probability_percent: p.probability_percent,
+    is_rare: p.is_rare,
+    display_order: index,
+    // Sub-etapa 16 — currency defaults (BO no las pide aún).
+    currency_mode: 'auto_usd',
+    base_amount_usd: null,
+    values_per_currency: {},
+  };
+}
+
+function adaptChestForBackend(payload: ChestTypeCreatePayload): Record<string, unknown> {
+  // Backend espera INDEX (0-based). BO tiene UUID del prize → buscamos.
+  let pityIndex: number | null = null;
+  if (payload.has_pity_system && payload.pity_guaranteed_prize_id) {
+    const idx = payload.prizes.findIndex(
+      (p) => (p as unknown as { id?: string }).id === payload.pity_guaranteed_prize_id,
+    );
+    if (idx >= 0) pityIndex = idx;
+    else {
+      const rareIdx = payload.prizes.findIndex((p) => p.is_rare);
+      pityIndex = rareIdx >= 0 ? rareIdx : 0;
+    }
+  }
+  return {
+    code: payload.code,
+    name: payload.name,
+    description: payload.description || null,
+    image_url: payload.image_url || null,
+    color_theme: payload.color_theme || null,
+    default_expiration_hours: payload.default_expiration_hours,
+    has_pity_system: payload.has_pity_system,
+    pity_threshold: payload.has_pity_system ? payload.pity_threshold : null,
+    pity_guaranteed_prize_index: pityIndex,
+    prizes: payload.prizes.map((p, i) => adaptChestPrizeForBackend(p, i)),
+  };
+}
 
 export interface ChestTypesFilters {
   status?: 'active' | 'archived' | 'all';
@@ -52,7 +173,7 @@ export function useCreateChestType() {
   return useMutation({
     mutationFn: (payload: ChestTypeCreatePayload) =>
       apiClient
-        .post('/admin/chests/types', payload)
+        .post('/admin/chests/types', adaptChestForBackend(payload))
         .then((r) => normalizeChestType(unwrapData<ChestType>(r.data))),
     onSuccess: () => {
       trackEvent('chest_created');

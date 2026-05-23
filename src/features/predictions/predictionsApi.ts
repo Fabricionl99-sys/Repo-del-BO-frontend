@@ -180,21 +180,43 @@ function adaptTournamentToPool(t: BackendTournament): PredictionPool {
 }
 
 function poolPayloadToTournamentBody(payload: PredictionPoolPayload): Record<string, unknown> {
-  // prize_distribution: extraer de reward_config.type='top_positions'.
+  // Backend solo soporta prize_distribution = lista de (position, reward).
+  // El BO tiene 4 reward_structure_type — convertimos cada una a position-based:
+  //   top_positions       → 1 prize por cada posición en el rango
+  //   all_correct_only    → 1 prize en posición 1 (el jackpot)
+  //   by_hits_tiers       → 1 prize por tier, posiciones 1..N secuenciales
+  //   every_correct_gives → 1 prize en posición 1 (operador entiende como genérico)
+  // Sprint #7: enriquecer el backend para soportar tiered/jackpot reales.
   let prize_distribution: BackendPrizeEntry[] = [];
-  if (payload.reward_config.type === 'top_positions') {
-    prize_distribution = payload.reward_config.positions.flatMap((pos) => {
+  const cfg = payload.reward_config;
+  const mapReward = (
+    position: number,
+    rewardType: string,
+    rewardConfig: unknown,
+  ): BackendPrizeEntry => ({
+    position,
+    reward_type:
+      rewardType === 'coins' ? 'coins' : rewardType === 'manual' ? 'manual' : 'manual',
+    reward_config: rewardConfig as Record<string, unknown>,
+  });
+  if (cfg.type === 'top_positions') {
+    prize_distribution = cfg.positions.flatMap((pos) => {
       const out: BackendPrizeEntry[] = [];
       for (let p = pos.position_from; p <= pos.position_to; p++) {
-        const rt = pos.reward.reward_type;
-        const reward_type: BackendPrizeEntry['reward_type'] =
-          rt === 'coins' ? 'coins' : rt === 'manual' ? 'manual' : 'manual';
-        out.push({ position: p, reward_type, reward_config: pos.reward.reward_config });
+        out.push(mapReward(p, pos.reward.reward_type, pos.reward.reward_config));
       }
       return out;
     });
+  } else if (cfg.type === 'all_correct_only') {
+    prize_distribution = [mapReward(1, cfg.reward.reward_type, cfg.reward.reward_config)];
+  } else if (cfg.type === 'by_hits_tiers') {
+    prize_distribution = cfg.tiers.map((t, i) =>
+      mapReward(i + 1, t.reward.reward_type, t.reward.reward_config),
+    );
+  } else if (cfg.type === 'every_correct_gives') {
+    const r = (cfg as { reward?: { reward_type: string; reward_config: unknown } }).reward;
+    if (r) prize_distribution = [mapReward(1, r.reward_type, r.reward_config)];
   }
-  // Otros reward_structure_type quedan vacíos (Sprint #6).
 
   return {
     code: payload.code,

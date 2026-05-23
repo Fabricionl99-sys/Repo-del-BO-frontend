@@ -23,8 +23,9 @@ import { ConfigSection, ConfiguratorScaffold } from '@/components/configurator/C
 import { isModuleActive } from '@/features/billing/moduleCatalog';
 import { cn } from '@/lib/cn';
 import { useOperatorStore } from '@/stores/operatorStore';
-import type { BrandingConfig, BrandingFontFamily, ColorPalette, WidgetPosition, WidgetSize } from '@/types/branding';
-import { BRANDING_FONT_OPTIONS, WELCOME_TEXT_MAX } from '@/types/branding';
+import { FontFamilySelect } from '@/features/branding/components/FontFamilySelect';
+import type { BrandingConfig, ColorPalette, WidgetPosition, WidgetSize } from '@/types/branding';
+import { WELCOME_TEXT_MAX } from '@/types/branding';
 
 import {
   isBrandingConfig,
@@ -307,21 +308,16 @@ export default function BrandingPage() {
           {tab === 'Tipografía' && (
             <ConfigSection icon={<Type size={16} />} title="tipografía">
               <div className="grid grid-cols-2 gap-3 max-md:grid-cols-1">
-                <div>
-                  <label className="mb-1 block text-[14px] text-text-secondary">fuente</label>
-                  <select
-                    className="field"
+                <div className="col-span-2 max-md:col-span-1">
+                  <label className="mb-2 block text-[14px] text-text-secondary">fuente</label>
+                  <FontFamilySelect
                     value={config.typography.font_family}
-                    onChange={(e) =>
+                    onChange={(font_family) =>
                       patch({
-                        typography: { ...config.typography, font_family: e.target.value as BrandingFontFamily },
+                        typography: { ...config.typography, font_family },
                       })
                     }
-                  >
-                    {BRANDING_FONT_OPTIONS.map((f) => (
-                      <option key={f} value={f}>{f}</option>
-                    ))}
-                  </select>
+                  />
                 </div>
                 <div>
                   <label className="mb-1 block text-[14px] text-text-secondary">peso títulos</label>

@@ -36,6 +36,10 @@ export interface MediaUploaderProps {
 function previewClass(aspectRatio: MediaAspectRatio, compact?: boolean): string {
   if (aspectRatio === 'banner') return compact ? 'h-16 w-full' : 'h-24 w-full max-w-md';
   if (aspectRatio === 'square') return compact ? 'h-16 w-16' : 'h-28 w-28';
+  if (aspectRatio === 'circle')
+    return compact
+      ? 'h-16 w-16 rounded-full ring-2 ring-border-default'
+      : 'h-28 w-28 rounded-full ring-2 ring-border-default';
   return compact ? 'h-16 w-full' : 'h-24 w-full';
 }
 

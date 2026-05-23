@@ -107,12 +107,16 @@ export function formToMetadataPayload(values: ChestTypeFormValues): ChestTypeMet
 
 export function formToCreatePayload(
   values: ChestTypeFormValues,
-  prizes: Omit<ChestPrize, 'id'>[],
+  // Sprint #6 fix: aceptamos prizes con o sin `id` local — el adapter de
+  // chestsApi.ts usa el `id` para resolver pity_guaranteed_prize_id →
+  // pity_guaranteed_prize_index que espera el backend. El field extra `id`
+  // pasa por passthrough en el schema backend.
+  prizes: Array<Omit<ChestPrize, 'id'> & { id?: string }>,
 ): ChestTypeCreatePayload {
   return {
     code: values.code.trim(),
     ...formToMetadataPayload(values),
-    prizes,
+    prizes: prizes as ChestTypeCreatePayload['prizes'],
   };
 }
 

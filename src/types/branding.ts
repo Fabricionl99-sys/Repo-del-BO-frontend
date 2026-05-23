@@ -4,8 +4,15 @@ export type WidgetPosition = 'bottom_right' | 'bottom_left' | 'top_right' | 'top
 
 export type WidgetSize = 'small' | 'medium' | 'large';
 
+/**
+ * MANTENER SYNC con `BRANDING_FONTS` en el backend
+ * (modulos/niveles/src/domain/schemas/branding.schema.ts) y con el
+ * CHECK constraint `operators_branding_font_family_check` en la DB.
+ * Si agregás o sacás una fuente acá, hay que tocar los 3 lugares.
+ */
 export type BrandingFontFamily =
   | 'Inter'
+  | 'Urbanist'
   | 'Roboto'
   | 'Poppins'
   | 'Montserrat'
@@ -14,7 +21,8 @@ export type BrandingFontFamily =
   | 'Raleway'
   | 'Nunito'
   | 'Oswald'
-  | 'Playfair Display';
+  | 'Playfair Display'
+  | 'Arial';
 
 export type HeadingWeight = '400' | '500' | '600' | '700' | '800';
 export type BodyWeight = '400' | '500' | '600';
@@ -57,8 +65,14 @@ export interface BrandingPalettePreset {
 
 export type BrandingUpdatePayload = Omit<BrandingConfig, 'tenant_id' | 'last_updated_at'>;
 
-export const BRANDING_FONT_OPTIONS: BrandingFontFamily[] = [
+/**
+ * Single source of truth para el picker visual. Importar este array
+ * en cualquier UI que muestre opciones de fuente. NO hardcodear listas
+ * paralelas (drift bait).
+ */
+export const BRANDING_FONT_OPTIONS: readonly BrandingFontFamily[] = [
   'Inter',
+  'Urbanist',
   'Roboto',
   'Poppins',
   'Montserrat',
@@ -68,7 +82,8 @@ export const BRANDING_FONT_OPTIONS: BrandingFontFamily[] = [
   'Nunito',
   'Oswald',
   'Playfair Display',
-];
+  'Arial',
+] as const;
 
 export const WELCOME_TEXT_MAX = 200;
 export const CUSTOM_CSS_MAX = 10 * 1024;

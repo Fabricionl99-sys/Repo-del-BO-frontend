@@ -10,6 +10,7 @@ import { Loading } from '@/components/ui/Loading';
 import { Modal } from '@/components/ui/Modal';
 import { Switch } from '@/components/ui/Switch';
 import { ConfigSection, ConfiguratorScaffold } from '@/components/configurator/ConfiguratorScaffold';
+import { toast } from '@/stores/toastStore';
 import { PoolMatchOptionsEditor } from '@/features/predictions/components/PoolMatchOptionsEditor';
 import {
   useOpenPredictionPool,
@@ -42,7 +43,8 @@ export function PoolFormModal({
 }) {
   const save = useSavePredictionPool();
   const openPool = useOpenPredictionPool();
-  const poolDetailQ = usePredictionPool(pool?.id ?? null);
+  // Backend usa :code (slug) en TODOS los endpoints, no :id (UUID).
+  const poolDetailQ = usePredictionPool(pool?.code ?? null);
   const categoriesQ = usePredictionPoolCategories();
   const typesQ = usePredictionTypes();
   const categories = categoriesQ.data ?? [];
@@ -83,17 +85,85 @@ export function PoolFormModal({
   }, [open, pool, editingPool, poolDetailQ.isLoading, reset]);
 
   const persist = async (values: PoolFormValues, andOpen: boolean) => {
+    // eslint-disable-next-line no-console
+    console.log('[PoolFormModal] persist start', { andOpen, values });
     if (existingCodes.includes(values.code.trim()) && values.code.trim() !== pool?.code) {
       form.setError('code', { message: 'El code ya existe' });
+      toast.error(`El code "${values.code.trim()}" ya existe`);
       return;
     }
-    const saved = await save.mutateAsync({ id: pool?.id, ...formToPayload(values) });
-    if (andOpen) await openPool.mutateAsync(saved.id);
-    onClose();
+    // Backend exige al menos 1 premio. Validamos según el reward_structure_type
+    // que eligió el operador (cada uno usa un field distinto).
+    if (andOpen) {
+      const struct = values.reward_structure_type;
+      let hasReward = false;
+      if (struct === 'top_positions') hasReward = (values.position_rewards?.length ?? 0) > 0;
+      else if (struct === 'by_hits_tiers') hasReward = (values.tier_rewards?.length ?? 0) > 0;
+      else if (struct === 'all_correct_only') hasReward = Boolean(values.jackpot_reward);
+      else if (struct === 'every_correct_gives') hasReward = true; // siempre tiene reward base
+      if (!hasReward) {
+        toast.error('Agregá al menos 1 premio antes de abrir el prode');
+        return;
+      }
+    }
+    try {
+      // Backend usa :code para PATCH. Mandamos `id` field con el code.
+      const saved = await save.mutateAsync({ id: pool?.code, ...formToPayload(values) });
+      // eslint-disable-next-line no-console
+      console.log('[PoolFormModal] saved', saved);
+      if (andOpen) {
+        await openPool.mutateAsync(saved.code ?? saved.id);
+        toast.success('Prode publicado');
+      } else {
+        toast.success('Prode guardado como borrador');
+      }
+      onClose();
+    } catch (err) {
+      // eslint-disable-next-line no-console
+      console.error('[PoolFormModal] persist failed', err);
+      const msg =
+        (err as { response?: { data?: { detail?: string } } })?.response?.data?.detail ??
+        (err as Error)?.message ??
+        'Error desconocido';
+      toast.error(`No se pudo guardar: ${msg}`);
+    }
   };
 
-  const saveDraft = handleSubmit((v) => persist(v, false));
-  const saveAndOpen = handleSubmit((v) => persist(v, true));
+  // Handler de errores de validación — sin esto, react-hook-form rechaza el
+  // submit silenciosamente y el operador no entiende por qué no pasa nada.
+  const onValidationError = (errs: Record<string, unknown>) => {
+    // eslint-disable-next-line no-console
+    console.warn('[PoolFormModal] validation errors:', errs);
+    // Buscar primer error con mensaje legible. React-hook-form errors anidan
+    // pero también tienen refs circulares al DOM/React fiber → evitar recursión
+    // infinita filtrando keys peligrosas + cap de profundidad.
+    const SKIP_KEYS = new Set(['ref', 'refs', '_f', '_fields', '_proxyFormState']);
+    const collectMessages = (obj: unknown, path: string[] = [], depth = 0): string[] => {
+      if (depth > 6 || !obj || typeof obj !== 'object') return [];
+      const out: string[] = [];
+      for (const [k, v] of Object.entries(obj as Record<string, unknown>)) {
+        if (SKIP_KEYS.has(k)) continue;
+        if (k === 'message' && typeof v === 'string') {
+          out.push(`${path.join('.')}: ${v}`);
+        } else if (typeof v === 'object' && v !== null && !(v instanceof Element)) {
+          out.push(...collectMessages(v, [...path, k], depth + 1));
+        }
+      }
+      return out;
+    };
+    const messages = collectMessages(errs);
+    if (messages.length > 0) {
+      toast.error(messages[0]);
+    } else {
+      toast.error(`Faltan datos: ${Object.keys(errs).join(', ') || 'revisá el formulario'}`);
+    }
+  };
+  const saveDraft = handleSubmit((v) => persist(v, false), onValidationError);
+  const saveAndOpen = handleSubmit((v) => {
+    // eslint-disable-next-line no-console
+    console.log('[PoolFormModal] saveAndOpen click — validation passed');
+    return persist(v, true);
+  }, onValidationError);
 
   return (
     <Modal
@@ -253,7 +323,7 @@ export function PoolFormModal({
                   name: '',
                   description: '',
                   image_url: '',
-                  prediction_type: 'Resultado',
+                  prediction_type: '',
                   options: [
                     { text: '', description: '', image_url: '' },
                     { text: '', description: '', image_url: '' },

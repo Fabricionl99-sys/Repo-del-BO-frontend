@@ -134,15 +134,12 @@ export function ChestTypeFormModal({
     if (chestType) {
       await updateType.mutateAsync({ code: chestType.code, ...formToMetadataPayload(values) });
     } else {
-      await createType.mutateAsync(
-        formToCreatePayload(
-          values,
-          prizes.map(({ id: _prizeId, ...rest }) => {
-            void _prizeId;
-            return rest;
-          }),
-        ),
-      );
+      // Sprint #6 fix: NO strip prize ids — el adapter en chestsApi.ts
+      // los necesita para resolver pity_guaranteed_prize_id (UUID local) →
+      // pity_guaranteed_prize_index (int) que espera el backend.
+      // El backend schema ahora es .passthrough() así que el id local extra
+      // no rompe.
+      await createType.mutateAsync(formToCreatePayload(values, prizes));
     }
     onClose();
   });

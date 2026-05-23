@@ -14,6 +14,7 @@ export type ModuleCode =
   | 'wheels'
   | 'tournaments'
   | 'predictions'
+  | 'raffles'
   | 'rankings'
   | 'avatars'
   | 'branding'

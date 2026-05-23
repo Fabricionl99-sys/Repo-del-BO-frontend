@@ -242,12 +242,12 @@ export default function PredictionsPage() {
                   </button>
                   <div className="flex flex-wrap gap-1 border-t border-border-subtle px-3 py-2">
                     {pool.status === 'draft' && (
-                      <Button size="sm" loading={openMut.isPending} onClick={() => openMut.mutate(pool.id)}>
+                      <Button size="sm" loading={openMut.isPending} onClick={() => openMut.mutate(pool.code ?? pool.id)}>
                         Abrir
                       </Button>
                     )}
                     {pool.status === 'open' && (
-                      <Button size="sm" loading={closeMut.isPending} onClick={() => closeMut.mutate(pool.id)}>
+                      <Button size="sm" loading={closeMut.isPending} onClick={() => closeMut.mutate(pool.code ?? pool.id)}>
                         Cerrar
                       </Button>
                     )}
@@ -257,7 +257,7 @@ export default function PredictionsPage() {
                       </Button>
                     )}
                     {['draft', 'open', 'closed'].includes(pool.status) && (
-                      <Button size="sm" variant="ghost" loading={cancelMut.isPending} onClick={() => cancelMut.mutate(pool.id)}>
+                      <Button size="sm" variant="ghost" loading={cancelMut.isPending} onClick={() => cancelMut.mutate(pool.code ?? pool.id)}>
                         Cancelar
                       </Button>
                     )}

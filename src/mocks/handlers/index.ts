@@ -1928,3 +1928,6 @@ import { onboardingHandlers } from '@/mocks/handlers/onboardingHandlers';
 import { walletTopupHandlers } from '@/mocks/handlers/walletTopupHandlers';
 handlers.push(...onboardingHandlers);
 handlers.push(...walletTopupHandlers);
+
+import { rafflesHandlers } from '@/mocks/handlers/rafflesHandlers';
+handlers.push(...rafflesHandlers);

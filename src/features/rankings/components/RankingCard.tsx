@@ -1,9 +1,20 @@
-import { Trophy } from 'lucide-react';
+import { Calendar, RefreshCw, Trophy } from 'lucide-react';
 
 import { Button } from '@/components/ui/Button';
 import { METRIC_LABELS, PERIOD_LABELS } from '@/features/rankings/rankingForm';
 import { cn } from '@/lib/cn';
 import type { RankingConfig } from '@/types/rankings';
+
+/** Formato corto local: "18 may" / "18 may 14:30". */
+function fmtShortDate(iso?: string | null, withTime = false): string | null {
+  if (!iso) return null;
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return null;
+  const date = d.toLocaleDateString('es-AR', { day: '2-digit', month: 'short' });
+  if (!withTime) return date;
+  const time = d.toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' });
+  return `${date} ${time}`;
+}
 
 export function RankingCard({
   ranking,
@@ -14,6 +25,13 @@ export function RankingCard({
 }) {
   const archived = ranking.status === 'archived';
   const prizeCount = ranking.prizes?.length ?? 0;
+  const isAllTime = ranking.period_type === 'all_time';
+  const periodStart = fmtShortDate(ranking.current_period_start);
+  const periodEnd = fmtShortDate(ranking.current_period_end);
+  const nextReset = fmtShortDate(
+    ranking.next_period_resets_at ?? ranking.period_resets_at ?? null,
+    true,
+  );
 
   return (
     <button
@@ -51,6 +69,22 @@ export function RankingCard({
             <span>·</span>
             <span>{prizeCount} premios</span>
           </div>
+          {!isAllTime && (periodStart || nextReset) && (
+            <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-[12px] text-text-tertiary">
+              {periodStart && periodEnd && (
+                <span className="inline-flex items-center gap-1">
+                  <Calendar size={12} />
+                  período: {periodStart} → {periodEnd}
+                </span>
+              )}
+              {nextReset && (
+                <span className="inline-flex items-center gap-1">
+                  <RefreshCw size={12} />
+                  próximo reset: {nextReset}
+                </span>
+              )}
+            </div>
+          )}
         </div>
       </div>
       <div className="border-t border-border-subtle px-4 py-2">

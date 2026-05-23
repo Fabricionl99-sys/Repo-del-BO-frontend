@@ -52,7 +52,8 @@ export interface MatchFormValues {
   name: string;
   description: string;
   image_url: string;
-  prediction_type: string;
+  /** Opcional — label visual BO, backend hardcodea 'multiple_choice'. */
+  prediction_type?: string;
   options: MatchOptionFormValues[];
 }
 
@@ -107,7 +108,9 @@ const matchSchema = z.object({
   name: z.string().min(2, 'Nombre requerido').max(120),
   description: z.string().max(500),
   image_url: z.string().url('URL inválida').or(z.literal('')),
-  prediction_type: z.string().min(1, 'Tipo requerido').max(64),
+  // Opcional — el backend no usa este campo (hardcodea 'multiple_choice');
+  // sirve solo como label visual en el BO. Operador puede dejarlo vacío.
+  prediction_type: z.string().max(64).default(''),
   options: z.array(optionSchema).min(2, 'Mínimo 2 opciones'),
 });
 
@@ -242,7 +245,7 @@ export function defaultPoolForm(): PoolFormValues {
         name: '',
         description: '',
         image_url: '',
-        prediction_type: 'Resultado',
+        prediction_type: '',
         options: [
           { text: '', description: '', image_url: '' },
           { text: '', description: '', image_url: '' },
@@ -404,7 +407,7 @@ export function formToPayload(values: PoolFormValues): PredictionPoolPayload {
       name: ev.name.trim(),
       description: ev.description.trim() || undefined,
       image_url: ev.image_url.trim() || undefined,
-      prediction_type: ev.prediction_type.trim(),
+      prediction_type: (ev.prediction_type ?? '').trim(),
       display_order: i,
       options: ev.options.map((o, j) => ({
         text: o.text.trim(),

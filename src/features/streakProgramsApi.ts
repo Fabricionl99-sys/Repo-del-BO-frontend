@@ -2,6 +2,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 import { apiClient } from '@/api/client';
 import { unwrapData, unwrapPaginatedList } from '@/api/response';
+import { adaptStreakForBackend, normalizeBackendStreak } from '@/features/streakAdapter';
 import { toast } from '@/stores/toastStore';
 import type {
   PlayerStreakDetail,
@@ -14,7 +15,16 @@ import type {
 export function useStreakPrograms() {
   return useQuery({
     queryKey: ['streak-programs'],
-    queryFn: () => apiClient.get('/admin/streak-programs').then((r) => unwrapData<StreakProgram[]>(r.data)),
+    queryFn: async () => {
+      const r = await apiClient.get('/admin/streak-programs');
+      const raw = unwrapData<unknown>(r.data);
+      const arr = Array.isArray(raw)
+        ? (raw as Array<Record<string, unknown>>)
+        : Array.isArray((raw as { items?: unknown[] })?.items)
+          ? ((raw as { items: unknown[] }).items as Array<Record<string, unknown>>)
+          : [];
+      return arr.map(normalizeBackendStreak);
+    },
   });
 }
 
@@ -22,7 +32,11 @@ export function useStreakProgram(id: string | null) {
   return useQuery({
     queryKey: ['streak-programs', id],
     enabled: Boolean(id),
-    queryFn: () => apiClient.get(`/admin/streak-programs/${id}`).then((r) => unwrapData<StreakProgram>(r.data)),
+    queryFn: async () => {
+      const r = await apiClient.get(`/admin/streak-programs/${id}`);
+      const raw = unwrapData<Record<string, unknown>>(r.data);
+      return normalizeBackendStreak(raw);
+    },
   });
 }
 
@@ -44,10 +58,14 @@ export function useStreakProgramNameAvailable(debouncedName: string, excludeId?:
 export function useSaveStreakProgram() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: (payload: Partial<StreakProgram> & { id?: string }) =>
-      payload.id
-        ? apiClient.patch(`/admin/streak-programs/${payload.id}`, payload).then((r) => unwrapData<StreakProgram>(r.data))
-        : apiClient.post('/admin/streak-programs', payload).then((r) => unwrapData<StreakProgram>(r.data)),
+    mutationFn: async (payload: Partial<StreakProgram> & { id?: string }) => {
+      const body = adaptStreakForBackend(payload);
+      const r = payload.id
+        ? await apiClient.put(`/admin/streak-programs/${payload.id}`, body)
+        : await apiClient.post('/admin/streak-programs', body);
+      const raw = unwrapData<Record<string, unknown>>(r.data);
+      return normalizeBackendStreak(raw);
+    },
     onSuccess: () => {
       toast.success('Programa de racha guardado');
       qc.invalidateQueries({ queryKey: ['streak-programs'] });

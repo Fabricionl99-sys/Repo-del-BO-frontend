@@ -15,8 +15,12 @@ export const brandingFormSchema = z.object({
   }),
   palette_preset: z.enum(['custom', 'dark_neon', 'gold_luxury', 'red_classic', 'blue_corporate']),
   typography: z.object({
+    // Mantener sync con BRANDING_FONT_OPTIONS en @/types/branding y con
+    // BRANDING_FONTS en el backend (modulos/niveles/src/domain/schemas/
+    // branding.schema.ts).
     font_family: z.enum([
       'Inter',
+      'Urbanist',
       'Roboto',
       'Poppins',
       'Montserrat',
@@ -26,6 +30,7 @@ export const brandingFormSchema = z.object({
       'Nunito',
       'Oswald',
       'Playfair Display',
+      'Arial',
     ]),
     heading_weight: z.enum(['400', '500', '600', '700', '800']),
     body_weight: z.enum(['400', '500', '600']),

@@ -110,11 +110,15 @@ const PRESETS: Record<string, MediaUploaderConfig> = {
     aspectRatio: 'square',
   },
   'avatars:main_image': {
-    maxSizeKB: 500,
-    allowedFormats: DEFAULT_FORMATS,
-    minDimensions: { width: 256, height: 256 },
-    maxDimensions: { width: 1024, height: 1024 },
-    aspectRatio: 'square',
+    // Avatar — backend hace auto-resize a 512x512 PNG con sharp (cover crop
+    // centrado). El operador puede subir cualquier cuadrado/rectángulo PNG/JPG;
+    // queda normalizado server-side. El preview se muestra circular para
+    // que el operador vea lo que verá el jugador en el widget.
+    maxSizeKB: 2000,
+    allowedFormats: ['png', 'jpg', 'jpeg', 'webp'],
+    minDimensions: { width: 128, height: 128 },
+    maxDimensions: null,
+    aspectRatio: 'circle',
   },
   'wheels:main_image': {
     maxSizeKB: 500,
