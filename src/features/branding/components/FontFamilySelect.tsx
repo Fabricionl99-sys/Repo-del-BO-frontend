@@ -4,8 +4,11 @@ import type { BrandingFontFamily } from '@/types/branding';
 import { BRANDING_FONT_OPTIONS } from '@/types/branding';
 import { cn } from '@/lib/cn';
 
+// Carga 11 de las 12 fuentes del picker (Arial es system font, sin <link>).
+// Mantener alineado con BRANDING_FONT_OPTIONS — si agregás una nueva fuente,
+// sumar aquí el `family=` correspondiente para que la preview funcione.
 const GOOGLE_FONTS_HREF =
-  'https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Urbanist:wght@400;500;600;700;800&family=Poppins:wght@400;500;600;700;800&family=Roboto:wght@400;500;700;900&family=Open+Sans:wght@400;500;600;700;800&family=Montserrat:wght@400;500;600;700;800&family=Lato:wght@400;700;900&family=Nunito:wght@400;500;600;700;800&family=Raleway:wght@400;500;600;700;800&family=Work+Sans:wght@400;500;600;700;800&display=swap';
+  'https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Urbanist:wght@400;500;600;700;800&family=Roboto:wght@400;500;700;900&family=Poppins:wght@400;500;600;700;800&family=Montserrat:wght@400;500;600;700;800&family=Lato:wght@400;700;900&family=Open+Sans:wght@400;500;600;700;800&family=Raleway:wght@400;500;600;700;800&family=Nunito:wght@400;500;600;700;800&family=Oswald:wght@400;500;600;700&family=Playfair+Display:wght@400;500;600;700;800&display=swap';
 
 function ensureBrandingFontsLoaded() {
   const id = 'branding-font-picker';
