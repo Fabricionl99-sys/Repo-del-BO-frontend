@@ -6,15 +6,15 @@ export type WidgetSize = 'small' | 'medium' | 'large';
 
 export type BrandingFontFamily =
   | 'Inter'
-  | 'Roboto'
+  | 'Urbanist'
   | 'Poppins'
+  | 'Roboto'
+  | 'Open Sans'
   | 'Montserrat'
   | 'Lato'
-  | 'Open Sans'
-  | 'Raleway'
   | 'Nunito'
-  | 'Oswald'
-  | 'Playfair Display';
+  | 'Raleway'
+  | 'Work Sans';
 
 export type HeadingWeight = '400' | '500' | '600' | '700' | '800';
 export type BodyWeight = '400' | '500' | '600';
@@ -59,15 +59,15 @@ export type BrandingUpdatePayload = Omit<BrandingConfig, 'tenant_id' | 'last_upd
 
 export const BRANDING_FONT_OPTIONS: BrandingFontFamily[] = [
   'Inter',
-  'Roboto',
+  'Urbanist',
   'Poppins',
+  'Roboto',
+  'Open Sans',
   'Montserrat',
   'Lato',
-  'Open Sans',
-  'Raleway',
   'Nunito',
-  'Oswald',
-  'Playfair Display',
+  'Raleway',
+  'Work Sans',
 ];
 
 export const WELCOME_TEXT_MAX = 200;

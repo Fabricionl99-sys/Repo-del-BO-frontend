@@ -26,6 +26,7 @@ import type {
 } from '@/types/notifications';
 
 import { ChannelCard } from '../components/ChannelCard';
+import { VISIBLE_CHANNELS } from '../notificationForm';
 import { ChannelConfigModal } from '../components/ChannelConfigModal';
 import { HistoryDetailModal } from '../components/HistoryDetailModal';
 import { LoginPopupsHistoryTab } from '../components/LoginPopupsHistoryTab';
@@ -287,15 +288,17 @@ export default function NotificationsPage() {
             <EmptyState title="Sin canales" description="No hay canales disponibles." />
           ) : (
             <div className="grid grid-cols-4 gap-4 max-[1100px]:grid-cols-2 max-md:grid-cols-1">
-              {channels.map((ch) => (
-                <ChannelCard
-                  key={ch.channel_type}
-                  channel={ch}
-                  testing={testingChannel === ch.channel_type}
-                  onConfigure={() => setChannelEditor(ch)}
-                  onTest={() => void handleTestChannel(ch.channel_type)}
-                />
-              ))}
+              {channels
+                .filter((ch) => VISIBLE_CHANNELS.includes(ch.channel_type as ChannelType))
+                .map((ch) => (
+                  <ChannelCard
+                    key={ch.channel_type}
+                    channel={ch}
+                    testing={testingChannel === ch.channel_type}
+                    onConfigure={() => setChannelEditor(ch)}
+                    onTest={() => void handleTestChannel(ch.channel_type)}
+                  />
+                ))}
             </div>
           )}
         </section>
@@ -321,7 +324,7 @@ export default function NotificationsPage() {
             </select>
             <select className="field w-auto" value={tplChannel} onChange={(e) => setTplChannel(e.target.value as ChannelType | 'all')}>
               <option value="all">todos los canales</option>
-              {(['in_app', 'email', 'push', 'sms'] as ChannelType[]).map((c) => (
+              {VISIBLE_CHANNELS.map((c) => (
                 <option key={c} value={c}>{CHANNEL_LABELS[c]}</option>
               ))}
             </select>
@@ -360,7 +363,7 @@ export default function NotificationsPage() {
                 </select>
                 <select className="field w-auto" value={histChannel} onChange={(e) => setHistChannel(e.target.value as ChannelType | 'all')}>
                   <option value="all">todos los canales</option>
-                  {(['in_app', 'email', 'push', 'sms'] as ChannelType[]).map((c) => (
+                  {VISIBLE_CHANNELS.map((c) => (
                     <option key={c} value={c}>{CHANNEL_LABELS[c]}</option>
                   ))}
                 </select>

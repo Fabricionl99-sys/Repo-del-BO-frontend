@@ -23,7 +23,11 @@ export type MediaPurpose =
 
 export type MediaSource = 'upload' | 'external';
 
-export type MediaAspectRatio = 'square' | 'banner' | 'free';
+/**
+ * `circle`: validación square (1:1) + preview redondeado.
+ * Usado para avatares (el render player es circular).
+ */
+export type MediaAspectRatio = 'square' | 'banner' | 'free' | 'circle';
 
 export interface MediaValue {
   url: string;

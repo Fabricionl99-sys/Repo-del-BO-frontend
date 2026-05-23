@@ -61,7 +61,10 @@ export function BonusFormModal({
     setValidationState('loading');
     try {
       const res = await validate.mutateAsync(externalId.trim());
-      if (res.valid) {
+      // Backend devuelve `exists` (S18); type legacy del BO declaraba `valid`.
+      // Aceptamos ambos por compat.
+      const ok = Boolean((res as { exists?: boolean; valid?: boolean }).exists ?? res.valid);
+      if (ok) {
         setValidationState('valid');
         if (!watch('name') && res.name) setValue('name', res.name);
         if (res.bonus_type) setValue('bonus_type', res.bonus_type);

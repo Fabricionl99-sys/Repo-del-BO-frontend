@@ -74,6 +74,7 @@ const sections = [
       ['/rankings', 'Rankings', BarChart3] as const,
       ['/avatares', 'Avatares', UserCircle2] as const,
       ['/predicciones', 'Predicciones', Target] as const,
+      ['/sorteos', 'Sorteos', Gift] as const,
       ['/feed', 'Feed Social', MessageCircle, 'soon'] as const,
       ['/torneos', 'Torneos', Award] as const,
     ],

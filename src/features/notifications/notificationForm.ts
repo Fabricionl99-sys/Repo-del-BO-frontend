@@ -1,6 +1,17 @@
 import { z } from 'zod';
 
-import type { NotificationTemplate, NotificationTemplatePayload } from '@/types/notifications';
+import type { ChannelType, NotificationTemplate, NotificationTemplatePayload } from '@/types/notifications';
+
+/**
+ * Decisión founder (Sprint #6): en gamificación SOLO usamos in_app + push web.
+ * El email y SMS los maneja el CRM del operador a través de los webhooks que
+ * emite la plataforma (level_up, mission_completed, etc). NO replicamos eso.
+ *
+ * El backend mantiene el enum completo `[in_app, email, push, sms]` para
+ * retrocompat — solo filtramos en el UI. Si en el futuro queremos exponer
+ * un módulo email/sms WINGOAT-native, agregamos esos canales acá.
+ */
+export const VISIBLE_CHANNELS: ChannelType[] = ['in_app', 'push'];
 
 export const notificationTemplateSchema = z.object({
   code: z
@@ -23,7 +34,11 @@ export const notificationTemplateSchema = z.object({
     'reward_pending',
     'manual',
   ]),
-  channels: z.array(z.enum(['in_app', 'email', 'push', 'sms'])).min(1, 'Seleccioná al menos un canal'),
+  // Backend acepta 4 channels; UI WINGOAT solo expone in_app + push.
+  channels: z.array(z.enum(['in_app', 'email', 'push', 'sms'])).min(1, 'Seleccioná al menos un canal').refine(
+    (chs) => chs.every((c) => VISIBLE_CHANNELS.includes(c)),
+    'Email y SMS los maneja el CRM del operador — usá in_app o push',
+  ),
   subject: z.string().nullable(),
   body: z.string().min(1, 'El mensaje es obligatorio'),
   body_html: z.string().nullable(),

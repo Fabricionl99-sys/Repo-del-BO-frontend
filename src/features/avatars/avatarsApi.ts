@@ -1,7 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 import { apiClient } from '@/api/client';
-import { unwrapData, unwrapPaginatedList } from '@/api/response';
+import { unwrapData } from '@/api/response';
 import { toast } from '@/stores/toastStore';
 import type {
   Avatar,
@@ -144,22 +144,23 @@ export function useArchiveAvatar() {
 }
 
 export function useAvatarInventory(params: AvatarInventoryQuery = {}) {
+  // Sprint #6 stub — backend MVP no expone /admin/avatars/inventory (la
+  // ruta `inventory` choca con @Get(':id') ParseUUIDPipe → 400 "uuid
+  // expected"). Sprint #7: agregar endpoint admin con paginación + filtros.
+  // El player SÍ tiene /v1/player/avatars/inventory.
   return useQuery({
     queryKey: ['avatar-inventory', params],
-    queryFn: async () => {
-      const sp = new URLSearchParams();
-      if (params.avatar_id) sp.set('avatar_id', params.avatar_id);
-      if (params.player_id) sp.set('player_id', params.player_id);
-      if (params.player_search) sp.set('player_search', params.player_search);
-      if (params.category_id) sp.set('category_id', params.category_id);
-      if (params.unlocked_via) sp.set('unlocked_via', params.unlocked_via);
-      if (params.from) sp.set('from', params.from);
-      if (params.to) sp.set('to', params.to);
-      sp.set('limit', String(params.limit ?? 50));
-      sp.set('offset', String(params.offset ?? 0));
-      const res = await apiClient.get(`/admin/avatars/inventory?${sp.toString()}`);
-      return unwrapPaginatedList<PlayerAvatarInventoryItem>(res.data);
-    },
+    queryFn: async (): Promise<{
+      items: PlayerAvatarInventoryItem[];
+      total: number;
+      limit: number;
+      offset: number;
+    }> => ({
+      items: [],
+      total: 0,
+      limit: params.limit ?? 50,
+      offset: params.offset ?? 0,
+    }),
   });
 }
 

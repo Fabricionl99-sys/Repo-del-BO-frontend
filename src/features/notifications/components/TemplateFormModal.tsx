@@ -28,9 +28,12 @@ import {
   useCreateNotificationTemplate,
   useUpdateNotificationTemplate,
 } from '../notificationsApi';
+import { VISIBLE_CHANNELS } from '../notificationForm';
 import { TemplatePreviewPanel } from './TemplatePreviewPanel';
 
-const channelOptions: ChannelType[] = ['in_app', 'email', 'push', 'sms'];
+// WINGOAT solo expone in_app + push. Email + SMS los maneja el CRM del operador
+// vía los webhooks que emite la plataforma.
+const channelOptions: ChannelType[] = VISIBLE_CHANNELS;
 
 export function TemplateFormModal({
   open,

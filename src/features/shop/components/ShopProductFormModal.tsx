@@ -1,16 +1,16 @@
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useEffect } from 'react';
+import { useEffect, useMemo } from 'react';
 import { useForm, useWatch } from 'react-hook-form';
 
 import { Button } from '@/components/ui/Button';
 import { Modal } from '@/components/ui/Modal';
 import { Switch } from '@/components/ui/Switch';
 import { ConfigSection, ConfiguratorScaffold } from '@/components/configurator/ConfiguratorScaffold';
+import { useCoins } from '@/features/coinsApi';
 import {
   defaultShopProductForm,
   formToPayload,
   productToForm,
-  SHOP_CURRENCY_CODES,
   SHOP_REWARD_TYPES,
   shopProductFormSchema,
   type ShopProductFormValues,
@@ -34,6 +34,12 @@ export function ShopProductFormModal({
   onClose: () => void;
 }) {
   const save = useSaveShopProduct();
+  const coinsQ = useCoins();
+  // Monedas reales del operador (filtramos solo activas).
+  const operatorCurrencies = useMemo(
+    () => (coinsQ.data ?? []).filter((c) => c.active),
+    [coinsQ.data],
+  );
   const form = useForm<ShopProductFormValues>({
     resolver: zodResolver(shopProductFormSchema),
     defaultValues: defaultShopProductForm(),
@@ -54,8 +60,19 @@ export function ShopProductFormModal({
 
   useEffect(() => {
     if (!open) return;
-    reset(product ? productToForm(product) : defaultShopProductForm());
-  }, [open, product, reset]);
+    const base = product ? productToForm(product) : defaultShopProductForm();
+    // Si el default 'main' no existe en las currencies del operador,
+    // usamos la primera disponible. Evita el 400 backend "currency not found".
+    const availableCodes = operatorCurrencies.map((c) => c.symbol || c.name);
+    if (
+      !product &&
+      availableCodes.length > 0 &&
+      !availableCodes.includes(base.currency_code)
+    ) {
+      base.currency_code = availableCodes[0]!;
+    }
+    reset(base);
+  }, [open, product, reset, operatorCurrencies]);
 
   const submit = handleSubmit(async (values) => {
     if (existingCodes.includes(values.code.trim()) && values.code.trim() !== product?.code) {
@@ -122,11 +139,14 @@ export function ShopProductFormModal({
               {errors.cost_in_coins && <p className="mt-1 text-[13px] text-danger">{errors.cost_in_coins.message}</p>}
             </div>
             <div>
-              <label className="mb-1.5 block text-[14px] text-text-secondary">currency_code</label>
+              <label className="mb-1.5 block text-[14px] text-text-secondary">moneda</label>
               <select className="field" {...register('currency_code')}>
-                {SHOP_CURRENCY_CODES.map((c) => (
-                  <option key={c} value={c}>
-                    {c}
+                {operatorCurrencies.length === 0 && (
+                  <option value="">Sin monedas — creá una primero</option>
+                )}
+                {operatorCurrencies.map((c) => (
+                  <option key={c.id} value={c.symbol || c.name}>
+                    {c.name} ({c.symbol || c.name})
                   </option>
                 ))}
               </select>

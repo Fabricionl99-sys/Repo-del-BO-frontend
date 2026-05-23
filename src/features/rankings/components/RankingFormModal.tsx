@@ -157,6 +157,39 @@ export function RankingFormModal({
         }
       >
         <div className="space-y-6">
+          {ranking && ranking.period_type !== 'all_time' && (ranking.current_period_start || ranking.next_period_resets_at) && (
+            <section className="rounded-lg border border-border-subtle bg-bg-tertiary px-4 py-3">
+              <div className="flex flex-wrap items-center gap-x-6 gap-y-2 text-[13px]">
+                {ranking.current_period_start && ranking.current_period_end && (
+                  <div>
+                    <div className="text-[11px] uppercase tracking-wide text-text-tertiary">Período actual</div>
+                    <div className="font-medium">
+                      {new Date(ranking.current_period_start).toLocaleString('es-AR', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })}
+                      {' → '}
+                      {new Date(ranking.current_period_end).toLocaleString('es-AR', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })}
+                    </div>
+                  </div>
+                )}
+                {(ranking.next_period_resets_at ?? ranking.period_resets_at) && (
+                  <div>
+                    <div className="text-[11px] uppercase tracking-wide text-text-tertiary">Próximo reset</div>
+                    <div className="font-medium">
+                      {new Date(ranking.next_period_resets_at ?? ranking.period_resets_at!).toLocaleString('es-AR', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })}
+                      {ranking.timezone && <span className="ml-1 text-text-tertiary">({ranking.timezone})</span>}
+                    </div>
+                  </div>
+                )}
+                {ranking.last_recomputed_at && (
+                  <div>
+                    <div className="text-[11px] uppercase tracking-wide text-text-tertiary">Último recálculo</div>
+                    <div className="font-medium">
+                      {new Date(ranking.last_recomputed_at).toLocaleString('es-AR', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })}
+                    </div>
+                  </div>
+                )}
+              </div>
+            </section>
+          )}
           <section>
             <h3 className="label-section mb-3">Datos básicos</h3>
             <div className="grid gap-3 sm:grid-cols-2">
