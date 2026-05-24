@@ -51,6 +51,7 @@ const sections = [
     items: [
       ['/metricas', 'Métricas', BarChart3] as const,
       ['/moderacion', 'Moderación', Shield] as const,
+      ['/moderacion-social', 'Moderación Social', MessageCircle] as const,
     ],
   },
   {

@@ -133,6 +133,13 @@ export const moduleCatalog: ModulePublic[] = [
     price_usd_monthly: 79,
     category: 'operations',
   },
+  {
+    code: 'social',
+    name: 'Social',
+    description: 'Feed social, perfiles y moderación de posts',
+    price_usd_monthly: 99,
+    category: 'engagement',
+  },
 ];
 
 /** Operator-specific pricing overrides (catalog price * 0.9 or custom). */
@@ -179,6 +186,7 @@ export const activeModules: OperatorActiveModulePublic[] = [
   { code: 'branding', activated_at: iso(15), pending_deactivation: false, pending_deactivation_at: null, operator_price_usd_monthly: 71 },
   { code: 'notifications', activated_at: iso(10), pending_deactivation: true, pending_deactivation_at: iso(-7), operator_price_usd_monthly: 89 },
   { code: 'news', activated_at: iso(8), pending_deactivation: false, pending_deactivation_at: null, operator_price_usd_monthly: 71 },
+  { code: 'social', activated_at: iso(5), pending_deactivation: false, pending_deactivation_at: null, operator_price_usd_monthly: 89 },
 ];
 
 export const walletTransactions: WalletTransaction[] = [

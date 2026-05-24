@@ -20,7 +20,8 @@ export type ModuleCode =
   | 'branding'
   | 'multi_currency'
   | 'notifications'
-  | 'news';
+  | 'news'
+  | 'social';
 
 export interface WalletBalance {
   wallet_balance_usd: number;

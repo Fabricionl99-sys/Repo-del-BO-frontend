@@ -1931,3 +1931,6 @@ handlers.push(...walletTopupHandlers);
 
 import { rafflesHandlers } from '@/mocks/handlers/rafflesHandlers';
 handlers.push(...rafflesHandlers);
+
+import { socialModerationHandlers } from '@/mocks/handlers/socialModerationHandlers';
+handlers.push(...socialModerationHandlers);

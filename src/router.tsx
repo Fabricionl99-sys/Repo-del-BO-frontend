@@ -33,6 +33,7 @@ const NotificationsPage = lazy(() => import('@/features/notifications/pages/Noti
 const NewsPage = lazy(() => import('@/features/news/pages/NewsPage'));
 const NewsEditorPage = lazy(() => import('@/features/news/pages/NewsEditorPage'));
 const ModerationPage = lazy(() => import('@/features/moderation/pages/ModerationPage'));
+const SocialModerationPage = lazy(() => import('@/features/socialModeration/pages/SocialModerationPage'));
 const MetricsPage = lazy(() => import('@/features/metrics/pages/MetricsPage'));
 const BrandingPage = lazy(() => import('@/features/branding/pages/BrandingPage'));
 const SettingsPage = lazy(() => import('@/features/settings/pages/SettingsPage'));
@@ -125,6 +126,7 @@ export const router = createBrowserRouter([
       { path: 'noticias/nueva', element: wrap(<NewsEditorPage />) },
       { path: 'noticias/:id', element: wrap(<NewsEditorPage />) },
       { path: 'moderacion', element: wrap(<ModerationPage />) },
+      { path: 'moderacion-social', element: wrap(<SocialModerationPage />) },
       { path: 'metricas', element: wrap(<MetricsPage />) },
       {
         path: 'webhooks',
