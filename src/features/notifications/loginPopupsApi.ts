@@ -1,7 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 import { apiClient } from '@/api/client';
-import { unwrapData } from '@/api/response';
+import { unwrapData, unwrapPaginatedList } from '@/api/response';
 import { toast } from '@/stores/toastStore';
 import type {
   LoginPopupHistoryFilters,
@@ -70,7 +70,8 @@ export function useLoginPopupHistory(filters: LoginPopupHistoryFilters = {}) {
             search: filters.search,
           })}`,
         )
-        .then((r) => unwrapData<LoginPopupHistoryItem[]>(r.data)),
+        // Backend devuelve { items, total, limit, offset }. Devolvemos items[].
+        .then((r) => unwrapPaginatedList<LoginPopupHistoryItem>(r.data).items),
   });
 }
 
@@ -80,7 +81,8 @@ export function useLoginPopupManualHistory() {
     queryFn: () =>
       apiClient
         .get('/admin/login-popups/history?manual_only=1')
-        .then((r) => unwrapData<LoginPopupManualHistoryItem[]>(r.data)),
+        // Backend devuelve { items, total, limit, offset }. Devolvemos items[].
+        .then((r) => unwrapPaginatedList<LoginPopupManualHistoryItem>(r.data).items),
   });
 }
 
