@@ -50,9 +50,12 @@ const sections = [
     label: 'Analytics',
     items: [
       ['/metricas', 'Métricas', BarChart3] as const,
-      ['/moderacion', 'Moderación', Shield] as const,
       ['/moderacion-social', 'Moderación Social', MessageCircle] as const,
     ],
+  },
+  {
+    label: 'Seguridad',
+    items: [['/anti-fraud', 'Anti-fraude', Shield] as const],
   },
   {
     label: 'Motor de XP',

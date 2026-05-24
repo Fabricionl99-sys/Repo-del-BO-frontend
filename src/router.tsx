@@ -32,8 +32,8 @@ const ShopPage = lazy(() => import('@/features/shop/pages/ShopPage'));
 const NotificationsPage = lazy(() => import('@/features/notifications/pages/NotificationsPage'));
 const NewsPage = lazy(() => import('@/features/news/pages/NewsPage'));
 const NewsEditorPage = lazy(() => import('@/features/news/pages/NewsEditorPage'));
-const ModerationPage = lazy(() => import('@/features/moderation/pages/ModerationPage'));
 const SocialModerationPage = lazy(() => import('@/features/socialModeration/pages/SocialModerationPage'));
+const AntiFraudPage = lazy(() => import('@/features/antiFraud/pages/AntiFraudPage'));
 const MetricsPage = lazy(() => import('@/features/metrics/pages/MetricsPage'));
 const BrandingPage = lazy(() => import('@/features/branding/pages/BrandingPage'));
 const SettingsPage = lazy(() => import('@/features/settings/pages/SettingsPage'));
@@ -125,8 +125,9 @@ export const router = createBrowserRouter([
       { path: 'noticias', element: wrap(<NewsPage />) },
       { path: 'noticias/nueva', element: wrap(<NewsEditorPage />) },
       { path: 'noticias/:id', element: wrap(<NewsEditorPage />) },
-      { path: 'moderacion', element: wrap(<ModerationPage />) },
+      { path: 'moderacion', element: <Navigate to="/moderacion-social" replace /> },
       { path: 'moderacion-social', element: wrap(<SocialModerationPage />) },
+      { path: 'anti-fraud', element: wrap(<AntiFraudPage />) },
       { path: 'metricas', element: wrap(<MetricsPage />) },
       {
         path: 'webhooks',

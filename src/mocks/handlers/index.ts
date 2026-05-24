@@ -1934,3 +1934,6 @@ handlers.push(...rafflesHandlers);
 
 import { socialModerationHandlers } from '@/mocks/handlers/socialModerationHandlers';
 handlers.push(...socialModerationHandlers);
+
+import { antiFraudHandlers } from '@/mocks/handlers/antiFraudHandlers';
+handlers.push(...antiFraudHandlers);
