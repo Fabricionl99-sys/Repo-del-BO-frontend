@@ -1,7 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 import { apiClient } from '@/api/client';
-import { unwrapData } from '@/api/response';
+import { unwrapData, unwrapPaginatedList } from '@/api/response';
 import { toast } from '@/stores/toastStore';
 import type {
   ChannelPatchPayload,
@@ -146,7 +146,9 @@ export function useNotificationHistory(params?: {
       if (params?.from) sp.set('from', params.from);
       if (params?.to) sp.set('to', params.to);
       const res = await apiClient.get(`/admin/notifications/history?${sp.toString()}`);
-      return unwrapData<NotificationHistoryItem[]>(res.data);
+      // Backend devuelve { items, total, limit, offset } (paginated).
+      // unwrapPaginatedList lo maneja y devolvemos solo items[].
+      return unwrapPaginatedList<NotificationHistoryItem>(res.data).items;
     },
   });
 }
