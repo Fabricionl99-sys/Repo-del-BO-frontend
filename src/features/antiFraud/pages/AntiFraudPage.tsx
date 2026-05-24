@@ -18,6 +18,7 @@ import {
   useAntiFraudWhitelistPage,
   useRemoveAntiFraudWhitelist,
   useUpdateAntiFraudConfig,
+  validateXpPerHourThreshold,
 } from '@/features/antiFraud/antiFraudApi';
 import { formatNumber, formatRelativeDate } from '@/lib/format';
 import type { AntiFraudAlert, AntiFraudConfig, AntiFraudWhitelistEntry } from '@/types/antiFraud';
@@ -48,6 +49,7 @@ function formatWindow(start: string, end: string) {
 export default function AntiFraudPage() {
   const [tab, setTab] = useState<Tab>('Configuración');
   const [configDraft, setConfigDraft] = useState<AntiFraudConfig | null>(null);
+  const [thresholdError, setThresholdError] = useState<string | null>(null);
   const [whitelistOpen, setWhitelistOpen] = useState(false);
   const [reviewAlert, setReviewAlert] = useState<AntiFraudAlert | null>(null);
 
@@ -66,7 +68,13 @@ export default function AntiFraudPage() {
   const [alertsNext, setAlertsNext] = useState<string | null>(null);
 
   useEffect(() => {
-    if (configQuery.data) setConfigDraft(configQuery.data);
+    if (configQuery.data) {
+      setConfigDraft({
+        ...configQuery.data,
+        xp_per_hour_threshold: Number(configQuery.data.xp_per_hour_threshold),
+      });
+      setThresholdError(null);
+    }
   }, [configQuery.data]);
 
   useEffect(() => {
@@ -97,6 +105,21 @@ export default function AntiFraudPage() {
     setAlertItems([]);
     setAlertsNext(null);
     void alertsPageQ.refetch();
+  };
+
+  const saveConfigDraft = () => {
+    if (!configDraft) return;
+    const xpPerHourThreshold = Number(configDraft.xp_per_hour_threshold);
+    const error = validateXpPerHourThreshold(xpPerHourThreshold);
+    if (error) {
+      setThresholdError(error);
+      return;
+    }
+    setThresholdError(null);
+    saveConfig.mutate({
+      enabled: configDraft.enabled,
+      xp_per_hour_threshold: xpPerHourThreshold,
+    });
   };
 
   const whitelistColumns: Column<AntiFraudWhitelistEntry>[] = [
@@ -208,10 +231,15 @@ export default function AntiFraudPage() {
                 step={1}
                 className="field mt-1"
                 value={configDraft.xp_per_hour_threshold}
-                onChange={(e) =>
-                  setConfigDraft({ ...configDraft, xp_per_hour_threshold: Number(e.target.value) })
-                }
+                onChange={(e) => {
+                  const xpPerHourThreshold = Number(e.target.value);
+                  setConfigDraft({ ...configDraft, xp_per_hour_threshold: xpPerHourThreshold });
+                  if (thresholdError) {
+                    setThresholdError(validateXpPerHourThreshold(xpPerHourThreshold));
+                  }
+                }}
               />
+              {thresholdError ? <p className="mt-1 text-sm text-danger">{thresholdError}</p> : null}
             </label>
             <p className="text-metadata text-text-tertiary">
               Cuando un jugador gana más de N XP en 1 hora rolling, se genera una alerta para que revises. El jugador
@@ -220,16 +248,7 @@ export default function AntiFraudPage() {
             <p className="text-xs text-text-tertiary">
               Última actualización: {formatUpdatedAt(configDraft.updated_at)}
             </p>
-            <Button
-              size="sm"
-              loading={saveConfig.isPending}
-              onClick={() =>
-                saveConfig.mutate({
-                  enabled: configDraft.enabled,
-                  xp_per_hour_threshold: configDraft.xp_per_hour_threshold,
-                })
-              }
-            >
+            <Button size="sm" loading={saveConfig.isPending} onClick={saveConfigDraft}>
               Guardar
             </Button>
           </Card>

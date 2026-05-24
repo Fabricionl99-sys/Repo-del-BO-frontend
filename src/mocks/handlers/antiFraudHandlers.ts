@@ -32,6 +32,17 @@ export const antiFraudHandlers = [
   http.patch('*/admin/anti-fraud/config', async ({ request }) => {
     const body = (await request.json()) as AntiFraudConfigPatch;
     if (body.xp_per_hour_threshold !== undefined) {
+      if (typeof body.xp_per_hour_threshold !== 'number') {
+        return HttpResponse.json(
+          {
+            type: 'about:blank',
+            title: 'Validation Error',
+            status: 400,
+            detail: 'Invalid input: expected number, received string',
+          },
+          { status: 400 },
+        );
+      }
       if (!Number.isInteger(body.xp_per_hour_threshold) || body.xp_per_hour_threshold < 100 || body.xp_per_hour_threshold > 10_000_000) {
         return HttpResponse.json(
           { type: 'about:blank', title: 'Validation Error', status: 400, detail: 'xp_per_hour_threshold debe estar entre 100 y 10.000.000' },

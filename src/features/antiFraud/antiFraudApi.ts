@@ -34,6 +34,21 @@ function unwrapCursorPage<T>(body: unknown): AntiFraudCursorPage<T> {
   };
 }
 
+export function validateXpPerHourThreshold(value: number): string | null {
+  if (!Number.isInteger(value) || value < 100 || value > 10_000_000) {
+    return 'El umbral debe ser un entero entre 100 y 10.000.000';
+  }
+  return null;
+}
+
+function normalizeAntiFraudConfigPatch(payload: AntiFraudConfigPatch): AntiFraudConfigPatch {
+  const normalized: AntiFraudConfigPatch = { ...payload };
+  if (payload.xp_per_hour_threshold !== undefined) {
+    normalized.xp_per_hour_threshold = Number(payload.xp_per_hour_threshold);
+  }
+  return normalized;
+}
+
 export function useAntiFraudConfig() {
   return useQuery({
     queryKey: keys.config,
@@ -48,7 +63,8 @@ export function useUpdateAntiFraudConfig() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: async (payload: AntiFraudConfigPatch) => {
-      const res = await apiClient.patch('/admin/anti-fraud/config', payload);
+      const body = normalizeAntiFraudConfigPatch(payload);
+      const res = await apiClient.patch('/admin/anti-fraud/config', body);
       return unwrapData<AntiFraudConfig>(res.data);
     },
     onSuccess: () => {
