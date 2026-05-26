@@ -1,6 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 import { apiClient } from '@/api/client';
+import { getApiErrorMessage } from '@/api/errors';
 import { unwrapData } from '@/api/response';
 import { toast } from '@/stores/toastStore';
 import type {
@@ -57,18 +58,31 @@ export function useUpdateSocialModerationConfig() {
   });
 }
 
+interface SocialReviewResult {
+  report?: unknown;
+  post_hidden?: boolean;
+  author_banned?: boolean;
+}
+
 export function useReviewSocialReport() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: async ({ reportId, payload }: { reportId: string; payload: SocialReportReviewPayload }) => {
       const res = await apiClient.post(`/admin/social/reports/${reportId}/review`, payload);
-      return unwrapData(res.data);
+      return unwrapData<SocialReviewResult>(res.data);
     },
-    onSuccess: () => {
+    onSuccess: (data, { payload }) => {
       void qc.invalidateQueries({ queryKey: ['social-moderation', 'reports'] });
-      toast.success('Reporte revisado');
+      const parts: string[] = [];
+      if (payload.action === 'dismiss') parts.push('Reporte archivado (mantener post)');
+      else parts.push('Post removido');
+      if (data.post_hidden) parts.push('post oculto');
+      if (data.author_banned) parts.push('autor baneado');
+      toast.success(parts.join(' · '));
     },
-    onError: () => toast.error('No se pudo revisar el reporte'),
+    onError: (error) => {
+      toast.error(getApiErrorMessage(error, 'No se pudo revisar el reporte'));
+    },
   });
 }
 
