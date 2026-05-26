@@ -1,5 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { apiClient } from '@/api/client';
+import { getApiErrorMessage } from '@/api/errors';
 import { unwrapData } from '@/api/response';
 import { toast } from '@/stores/toastStore';
 import type { RuleCategory, RuleListItem, RuleStatus, XPRule } from '@/types/rules';
@@ -116,9 +117,15 @@ export function useToggleRule() {
   return useMutation({
     mutationFn: ({ id, active }: { id: string; active: boolean }) =>
       apiClient.patch(`/admin/rules/${id}/status`, {
-        status: active ? 'active' : 'draft',
+        status: active ? 'active' : 'paused',
       }),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['rules'] }),
+    onSuccess: () => {
+      toast.success('Estado de regla actualizado');
+      qc.invalidateQueries({ queryKey: ['rules'] });
+    },
+    onError: (error) => {
+      toast.error(getApiErrorMessage(error, 'No se pudo cambiar el estado de la regla'));
+    },
   });
 }
 
@@ -130,20 +137,22 @@ export function useDuplicateRule() {
         .get(`/admin/rules/${id}`)
         .then((r) => unwrapData<BackendRuleRow>(r.data))
         .then(backendRowToXPRule);
-      const copy = {
+      const payload = boRuleToBackendPayload({
         ...existing,
-        id: undefined,
         name: `${existing.name} (copia)`,
-        status: 'draft' as const,
-      };
+        status: 'draft',
+      });
       return apiClient
-        .post('/admin/rules', copy)
+        .post('/admin/rules', payload)
         .then((r) => unwrapData<BackendRuleRow>(r.data))
         .then(backendRowToXPRule);
     },
     onSuccess: () => {
-      toast.success('regla duplicada');
+      toast.success('Regla duplicada');
       qc.invalidateQueries({ queryKey: ['rules'] });
+    },
+    onError: (error) => {
+      toast.error(getApiErrorMessage(error, 'No se pudo duplicar la regla'));
     },
   });
 }
@@ -209,8 +218,11 @@ export function useSaveRule() {
             .then(backendRowToXPRule);
     },
     onSuccess: () => {
-      toast.success('regla guardada');
+      toast.success('Regla guardada');
       qc.invalidateQueries({ queryKey: ['rules'] });
+    },
+    onError: (error) => {
+      toast.error(getApiErrorMessage(error, 'No se pudo guardar la regla'));
     },
   });
 }

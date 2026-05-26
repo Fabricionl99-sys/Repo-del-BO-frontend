@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/Button';
 import { ErrorState } from '@/components/ui/ErrorState';
 import { Loading } from '@/components/ui/Loading';
 import { PageHeader } from '@/components/ui/PageHeader';
-import { useRule, useSaveRule } from '@/features/rulesApi';
+import { useDuplicateRule, useRule, useSaveRule, useToggleRule } from '@/features/rulesApi';
 import { useEnabledCategories } from '@/features/settingsApi';
 import type { GameCategory } from '@/types/expandedTier5';
 import type { XPRule } from '@/types/rules';
@@ -20,6 +20,8 @@ export default function RuleEditorPage() {
   const q = useRule(id!);
   const enabledCategories = useEnabledCategories();
   const save = useSaveRule();
+  const dup = useDuplicateRule();
+  const toggle = useToggleRule();
   const form = useForm<RuleXpFormValues>({
     values: q.data ? fromRuleToFormValues(q.data) : undefined,
     defaultValues: {
@@ -54,10 +56,26 @@ export default function RuleEditorPage() {
         subtitle="Categoría, USD por XP y boost opcional. El evento siempre es bet_placed."
         actions={
           <>
-            <Button size="sm" variant="ghost">
+            <Button
+              size="sm"
+              variant="ghost"
+              loading={dup.isPending}
+              onClick={() => dup.mutate(q.data.id, { onSuccess: () => nav('/reglas-xp') })}
+            >
               Duplicar
             </Button>
-            <Button size="sm">Archivar</Button>
+            <Button
+              size="sm"
+              loading={toggle.isPending}
+              onClick={() =>
+                toggle.mutate(
+                  { id: q.data.id, active: false },
+                  { onSuccess: () => nav('/reglas-xp') },
+                )
+              }
+            >
+              Pausar
+            </Button>
           </>
         }
       />
