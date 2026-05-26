@@ -2,7 +2,9 @@ import { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/Button';
 import { Modal } from '@/components/ui/Modal';
 import { Switch } from '@/components/ui/Switch';
+import { COIN_ICON_REQUIREMENTS_LABEL, validateCoinIconFile } from '@/lib/coinIconUpload';
 import { useSaveCoin, useUploadCoinImage } from '@/features/coinsApi';
+import { toast } from '@/stores/toastStore';
 import type { Coin, CoinCaps, CoinDeliveryMode, CoinP2PConfig } from '@/types/coins';
 
 const emptyCoin = (): Omit<Coin, 'id'> => ({
@@ -125,20 +127,30 @@ export function CurrencyEditorModal({ open, onClose, initial }: Props) {
             <label className="cursor-pointer rounded-lg border border-border-default bg-bg-tertiary px-3 py-2 text-[14px] hover:border-accent/40">
               <input
                 type="file"
-                accept="image/png,image/svg+xml"
+                accept="image/png"
                 className="hidden"
+                disabled={upload.isPending}
                 onChange={async (e) => {
                   const file = e.target.files?.[0];
-                  if (!file) return;
-                  const url = await upload.mutateAsync(file);
-                  setImageUrl(url);
                   e.target.value = '';
+                  if (!file) return;
+                  const validation = await validateCoinIconFile(file);
+                  if (!validation.ok) {
+                    toast.error(validation.error ?? 'Imagen inválida');
+                    return;
+                  }
+                  try {
+                    const url = await upload.mutateAsync(file);
+                    setImageUrl(url);
+                  } catch {
+                    /* toast en useUploadCoinImage */
+                  }
                 }}
               />
-              Subir archivo
+              {upload.isPending ? 'Subiendo…' : 'Subir archivo'}
             </label>
           </div>
-          <p className="mt-1 text-[13px] text-text-tertiary">Formato: PNG/SVG, 64×64px recomendado, máx. 100KB</p>
+          <p className="mt-1 text-[13px] text-text-tertiary">{COIN_ICON_REQUIREMENTS_LABEL}</p>
         </div>
 
         <div className="border-t border-border-subtle pt-4">
