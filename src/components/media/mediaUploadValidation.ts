@@ -77,8 +77,8 @@ export function validateExternalImageUrl(
         resolve({ ok: false, error: `Debe ser cuadrada (${width}×${height}px).` });
         return;
       }
-      if (opts.aspectRatio === 'banner' && width / height < 2.5) {
-        resolve({ ok: false, error: 'Formato banner recomendado (ancho >> alto).' });
+      if (opts.aspectRatio === 'banner' && width < height) {
+        resolve({ ok: false, error: 'El banner debe ser más ancho que alto.' });
         return;
       }
       resolve({ ok: true, previewUrl: url, width, height });
@@ -138,8 +138,8 @@ export async function validateMediaFile(
     if (opts.aspectRatio === 'square' && width !== height) {
       return { ok: false, error: `${label}: debe ser cuadrada (${width}×${height}px).` };
     }
-    if (opts.aspectRatio === 'banner' && width / height < 2.5) {
-      return { ok: false, error: `${label}: formato banner recomendado (ancho >> alto).` };
+    if (opts.aspectRatio === 'banner' && width < height) {
+      return { ok: false, error: `${label}: el banner debe ser más ancho que alto.` };
     }
     return { ok: true, previewUrl: URL.createObjectURL(file), width, height };
   } catch {

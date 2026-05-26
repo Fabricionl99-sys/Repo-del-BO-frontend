@@ -1,6 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 import { apiClient } from '@/api/client';
+import { getApiErrorMessage } from '@/api/errors';
 import { unwrapData } from '@/api/response';
 import { toast } from '@/stores/toastStore';
 import { useOperatorStore } from '@/stores/operatorStore';
@@ -56,8 +57,8 @@ export function useUploadMedia() {
       };
       return result;
     },
-    onError: () => {
-      toast.error('No se pudo subir la imagen');
+    onError: (error) => {
+      toast.error(getApiErrorMessage(error, 'No se pudo subir la imagen'));
     },
   });
 }

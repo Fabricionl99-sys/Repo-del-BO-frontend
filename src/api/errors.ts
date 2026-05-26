@@ -88,8 +88,24 @@ function problemDetail(error: unknown): string | undefined {
   return undefined;
 }
 
+/** RFC 7807 issues[] — p. ej. avatares 400 tras fix backend. */
+export function getValidationIssuesMessage(error: unknown): string | undefined {
+  const issues = getProblemIssues(error);
+  if (!issues.length) return undefined;
+  const lines = issues
+    .map((i) => {
+      const path = Array.isArray(i.path) ? i.path.join('.') : (i.path ?? 'campo');
+      return i.message ? `${path}: ${i.message}` : path;
+    })
+    .filter(Boolean);
+  return lines.length ? lines.join(' · ') : undefined;
+}
+
 /** Mensaje legible para toasts (Problem+JSON, Nest messages, fallback). */
 export function getApiErrorMessage(error: unknown, fallback: string): string {
+  const issuesMsg = getValidationIssuesMessage(error);
+  if (issuesMsg) return issuesMsg;
+
   const detail = problemDetail(error);
   if (detail) return detail;
 

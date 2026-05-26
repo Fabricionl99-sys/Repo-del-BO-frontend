@@ -1,7 +1,9 @@
 import { Image, Link2, Loader2, RefreshCw, Upload, X } from 'lucide-react';
 import { useEffect, useMemo, useRef, useState } from 'react';
 
+import { getApiErrorMessage } from '@/api/errors';
 import { Button } from '@/components/ui/Button';
+import { toast } from '@/stores/toastStore';
 import { useStorageFiles, useUploadMedia } from '@/features/media/storageApi';
 import { cn } from '@/lib/cn';
 import type { MediaAspectRatio, MediaContext, MediaValue } from '@/types/media';
@@ -77,8 +79,9 @@ export function MediaUploader({
   const [externalUrl, setExternalUrl] = useState(value?.source === 'external' ? value.url : '');
   const [validatingExternal, setValidatingExternal] = useState(false);
   const [pendingFile, setPendingFile] = useState<{ name: string; size: number } | null>(null);
+  const [localPreviewUrl, setLocalPreviewUrl] = useState<string | null>(null);
 
-  const previewUrl = value?.url ?? null;
+  const previewUrl = localPreviewUrl ?? value?.url ?? null;
   const hint = useMemo(() => buildValidationHint(config), [config]);
   const accept = acceptFromFormats(config.allowedFormats);
   const previewCls = previewClass(config.aspectRatio, compact);
@@ -98,15 +101,20 @@ export function MediaUploader({
     label: purposeLabel(context.purpose),
   };
 
-  const handleValidatedFile = async (file: File) => {
+  const handleValidatedFile = async (file: File, previewFromValidation: string) => {
     setLocalError(undefined);
     setPendingFile({ name: file.name, size: file.size });
+    setLocalPreviewUrl(previewFromValidation);
     try {
       const res = await upload.mutateAsync({ file, context });
       onChange({ url: res.url, source: 'upload' });
       setMode('upload');
-    } catch {
-      setLocalError('Error al subir el archivo.');
+      setLocalPreviewUrl(null);
+    } catch (err) {
+      const msg = getApiErrorMessage(err, 'Error al subir el archivo.');
+      setLocalError(msg);
+      toast.error(msg);
+      setLocalPreviewUrl(null);
     } finally {
       setPendingFile(null);
     }
@@ -118,9 +126,10 @@ export function MediaUploader({
     const result = await validateMediaFile(file, validationOpts);
     if (!result.ok) {
       setLocalError(result.error);
+      toast.error(result.error);
       return;
     }
-    await handleValidatedFile(file);
+    await handleValidatedFile(file, result.previewUrl);
   };
 
   const handleExternalBlur = async () => {
@@ -155,11 +164,18 @@ export function MediaUploader({
     setExternalUrl('');
     setLocalError(undefined);
     setPendingFile(null);
+    setLocalPreviewUrl(null);
     if (inputRef.current) inputRef.current.value = '';
   };
 
   const displayError = error || localError;
   const isBusy = upload.isPending || validatingExternal;
+
+  const openFilePicker = () => {
+    if (isBusy) return;
+    setMode('upload');
+    inputRef.current?.click();
+  };
 
   return (
     <div className="space-y-3">
@@ -170,7 +186,7 @@ export function MediaUploader({
             size="sm"
             variant={mode === 'upload' ? 'primary' : 'secondary'}
             icon={<Upload size={14} />}
-            onClick={() => setMode('upload')}
+            onClick={openFilePicker}
           >
             Cargar archivo
           </Button>
@@ -209,7 +225,7 @@ export function MediaUploader({
               setDragOver(false);
               void handleFile(e.dataTransfer.files[0]);
             }}
-            onClick={() => !isBusy && inputRef.current?.click()}
+            onClick={openFilePicker}
             className={cn(
               'flex cursor-pointer flex-col items-center justify-center p-4 transition',
               compact ? 'min-h-28' : 'min-h-36',
@@ -289,7 +305,7 @@ export function MediaUploader({
 
       {previewUrl && (
         <div className="flex flex-wrap gap-2">
-          <Button type="button" size="sm" variant="ghost" icon={<RefreshCw size={14} />} onClick={() => inputRef.current?.click()}>
+          <Button type="button" size="sm" variant="ghost" icon={<RefreshCw size={14} />} onClick={openFilePicker}>
             Cambiar imagen
           </Button>
           <Button type="button" size="sm" variant="ghost" icon={<X size={14} />} onClick={handleClear}>
