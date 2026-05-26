@@ -164,6 +164,12 @@ function normalizeBackendWheel(raw: Record<string, unknown>): WheelType {
     name: String(raw.name ?? ''),
     description: typeof raw.description === 'string' ? raw.description : '',
     image_url: typeof raw.image_url === 'string' ? raw.image_url : '',
+    center_logo_url:
+      typeof raw.center_logo_url === 'string'
+        ? raw.center_logo_url
+        : typeof raw.center_logo === 'string'
+          ? raw.center_logo
+          : '',
     color_theme: typeof raw.color_theme === 'string' ? raw.color_theme : '#FFD700',
     is_active: Boolean(raw.is_active),
     pity_enabled: Boolean(raw.has_pity_system),
@@ -223,6 +229,7 @@ function adaptWheelForBackend(payload: WheelTypeCreatePayload): Record<string, u
     name: payload.name,
     description: payload.description || null,
     image_url: payload.image_url || null,
+    center_logo_url: payload.center_logo_url || null,
     show_probabilities: payload.show_probabilities_to_players,
     has_pity_system: payload.pity_enabled,
     pity_threshold: payload.pity_enabled ? payload.pity_threshold : null,

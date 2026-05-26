@@ -70,6 +70,7 @@ export interface WheelFormValues {
   name: string;
   description: string;
   image_url: string;
+  center_logo_url: string;
   color_theme: string;
   is_active: boolean;
   pity_enabled: boolean;
@@ -89,6 +90,7 @@ export const wheelFormSchema = z
     name: z.string().min(2, 'Mínimo 2 caracteres').max(120, 'Máximo 120 caracteres'),
     description: z.string().max(2000, 'Máximo 2000 caracteres'),
     image_url: z.string().url('URL inválida').or(z.literal('')),
+    center_logo_url: z.string().url('URL inválida').or(z.literal('')),
     color_theme: z.string().regex(/^#[0-9A-Fa-f]{6}$/, 'Color hex inválido'),
     is_active: z.boolean(),
     pity_enabled: z.boolean(),
@@ -117,6 +119,7 @@ export function defaultWheelForm(): WheelFormValues {
     name: '',
     description: '',
     image_url: '',
+    center_logo_url: '',
     color_theme: '#FFD700',
     is_active: true,
     pity_enabled: false,
@@ -176,6 +179,7 @@ export function wheelToForm(wheel: WheelType): WheelFormValues {
     name: wheel.name,
     description: wheel.description,
     image_url: wheel.image_url,
+    center_logo_url: wheel.center_logo_url,
     color_theme: wheel.color_theme,
     is_active: wheel.is_active,
     pity_enabled: wheel.pity_enabled,
@@ -209,6 +213,7 @@ export function formToCreatePayload(
     name: values.name.trim(),
     description: values.description.trim(),
     image_url: values.image_url.trim(),
+    center_logo_url: values.center_logo_url.trim(),
     color_theme: values.color_theme,
     is_active: values.is_active,
     pity_enabled: values.pity_enabled,

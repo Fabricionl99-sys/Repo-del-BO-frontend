@@ -12,8 +12,10 @@ import { Button } from '@/components/ui/Button';
 import { Modal } from '@/components/ui/Modal';
 import { Switch } from '@/components/ui/Switch';
 import { WheelColorThemePicker } from '@/features/wheels/components/WheelColorThemePicker';
+import { WheelLivePreview } from '@/features/wheels/components/WheelLivePreview';
 import { WheelOccasionsEditor } from '@/features/wheels/components/WheelOccasionsEditor';
 import { WheelProbabilityBar } from '@/features/wheels/components/WheelProbabilityBar';
+import { segmentsFromPrizeForms } from '@/features/wheels/wheelDisplay';
 import { useCreateWheel, useUpdateWheel } from '@/features/wheels/wheelsApi';
 import {
   defaultOccasions,
@@ -70,6 +72,8 @@ export function WheelFormModal({
   } = form;
 
   const colorTheme = useWatch({ control, name: 'color_theme' });
+  const backgroundUrl = useWatch({ control, name: 'image_url' });
+  const centerLogoUrl = useWatch({ control, name: 'center_logo_url' });
   const isActive = useWatch({ control, name: 'is_active' });
   const pityEnabled = useWatch({ control, name: 'pity_enabled' });
   const spinsExpire = useWatch({ control, name: 'spins_expire' });
@@ -85,6 +89,15 @@ export function WheelFormModal({
     [prizes],
   );
   const canSave = probabilitiesValid(prizePayloads) && prizes.length >= 2;
+
+  const livePreview = useMemo(
+    () => ({
+      backgroundImageUrl: backgroundUrl || null,
+      centerLogoUrl: centerLogoUrl || null,
+      segments: segmentsFromPrizeForms(prizes),
+    }),
+    [backgroundUrl, centerLogoUrl, prizes],
+  );
 
   useEffect(() => {
     if (!open) return;
@@ -163,7 +176,10 @@ export function WheelFormModal({
       }
     >
       <ConfiguratorScaffold>
-        <ConfigSection title="Datos básicos" description="Identidad visual de la rueda">
+        <ConfigSection
+          title="Datos básicos"
+          description="Fondo del disco, logo central y colores de segmentos"
+        >
           <div className="grid gap-3 sm:grid-cols-2">
             <div>
               <label className="mb-1.5 block text-[14px] text-text-secondary">code</label>
@@ -180,18 +196,42 @@ export function WheelFormModal({
             <label className="mb-1.5 block text-[14px] text-text-secondary">description</label>
             <textarea className="field min-h-16" {...register('description')} />
           </div>
-          <div>
-            <label className="mb-1.5 block text-[14px] text-text-secondary">Imagen de la rueda</label>
-            <MediaUploaderRhf
-              control={control}
-              name="image_url"
-              context={{ module: 'wheels', purpose: 'main_image' }}
-              error={errors.image_url?.message}
-            />
-          </div>
-          <div>
-            <label className="mb-1.5 block text-[14px] text-text-secondary">color_theme</label>
-            <WheelColorThemePicker value={colorTheme} onChange={(v) => setValue('color_theme', v)} />
+          <div className="grid gap-4 lg:grid-cols-[1fr_auto] lg:items-start">
+            <div className="space-y-4">
+              <div>
+                <label className="mb-1.5 block text-[14px] text-text-secondary">
+                  Fondo de la rueda
+                </label>
+                <p className="mb-2 text-[12px] text-text-tertiary">
+                  Marco o textura del disco. Dejá el centro libre o transparente; el logo va aparte.
+                </p>
+                <MediaUploaderRhf
+                  control={control}
+                  name="image_url"
+                  context={{ module: 'wheels', purpose: 'main_image' }}
+                  error={errors.image_url?.message}
+                />
+              </div>
+              <div>
+                <label className="mb-1.5 block text-[14px] text-text-secondary">
+                  Logo central
+                </label>
+                <p className="mb-2 text-[12px] text-text-tertiary">
+                  Marca del operador en el hub del disco (cuadrado, se muestra circular).
+                </p>
+                <MediaUploaderRhf
+                  control={control}
+                  name="center_logo_url"
+                  context={{ module: 'wheels', purpose: 'logo' }}
+                  error={errors.center_logo_url?.message}
+                />
+              </div>
+              <div>
+                <label className="mb-1.5 block text-[14px] text-text-secondary">color_theme</label>
+                <WheelColorThemePicker value={colorTheme} onChange={(v) => setValue('color_theme', v)} />
+              </div>
+            </div>
+            <WheelLivePreview config={livePreview} size={220} className="lg:sticky lg:top-4" />
           </div>
           <div className="flex items-center justify-between rounded-lg border border-border-subtle bg-bg-tertiary px-3 py-2">
             <span className="text-[14px] text-text-secondary">Activa</span>
@@ -241,12 +281,20 @@ export function WheelFormModal({
                         value={prize.name}
                         onChange={(e) => updatePrize(idx, { name: e.target.value })}
                       />
-                      <MediaUploader
-                        context={{ module: 'wheels', purpose: 'prize_image' }}
-                        value={mediaValueFromUrl(prize.image_url)}
-                        onChange={(v) => updatePrize(idx, { image_url: v?.url ?? '' })}
-                        compact
-                      />
+                      <div>
+                        <label className="mb-1 block text-[12px] text-text-tertiary">
+                          Ícono del premio (en el segmento, no en el centro)
+                        </label>
+                        <MediaUploader
+                          context={{ module: 'wheels', purpose: 'prize_image' }}
+                          value={mediaValueFromUrl(prize.image_url)}
+                          onChange={(v) => updatePrize(idx, { image_url: v?.url ?? '' })}
+                          compact
+                        />
+                        <p className="mt-1 text-[11px] text-text-tertiary">
+                          PNG cuadrado transparente · se ubica sobre cada slice al girar
+                        </p>
+                      </div>
                       <RewardSelector
                         moduleKey="wheels"
                         value={prize.reward}

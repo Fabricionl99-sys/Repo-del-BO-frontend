@@ -151,6 +151,7 @@ export const wheelsHandlers = [
       name: body.name,
       description: body.description,
       image_url: body.image_url,
+      center_logo_url: body.center_logo_url ?? '',
       color_theme: body.color_theme,
       is_active: body.is_active,
       pity_enabled: body.pity_enabled,

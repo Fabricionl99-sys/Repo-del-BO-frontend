@@ -14,7 +14,7 @@ function filesForModule(module: MediaModule, count: number): StorageFileItem[] {
     tournaments: ['banner'],
     bonuses: ['thumbnail'],
     rankings: ['thumbnail'],
-    wheels: ['main_image'],
+    wheels: ['main_image', 'logo', 'prize_image'],
     login_popups: ['banner'],
   } as const;
 

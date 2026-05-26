@@ -40,7 +40,10 @@ export interface WheelType {
   code: string;
   name: string;
   description: string;
+  /** Fondo / marco del disco (dejar centro libre para logo). */
   image_url: string;
+  /** Logo del operador en el hub central del disco. */
+  center_logo_url: string;
   color_theme: string;
   is_active: boolean;
   pity_enabled: boolean;
@@ -87,6 +90,7 @@ export interface WheelTypeCreatePayload {
   name: string;
   description: string;
   image_url: string;
+  center_logo_url: string;
   color_theme: string;
   is_active: boolean;
   pity_enabled: boolean;

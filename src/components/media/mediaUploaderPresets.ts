@@ -127,6 +127,13 @@ const PRESETS: Record<string, MediaUploaderConfig> = {
     maxDimensions: { width: 1024, height: 1024 },
     aspectRatio: 'square',
   },
+  'wheels:logo': {
+    maxSizeKB: 300,
+    allowedFormats: DEFAULT_FORMATS,
+    minDimensions: { width: 128, height: 128 },
+    maxDimensions: { width: 512, height: 512 },
+    aspectRatio: 'circle',
+  },
   'wheels:prize_image': {
     maxSizeKB: 300,
     allowedFormats: DEFAULT_FORMATS,
