@@ -13,180 +13,164 @@ export const billingSnapshot: OperatorBillingSnapshot = {
   status: 'active',
 };
 
+/** Catálogo alineado con migración pricing 2026-05-26 (GET /admin/modules/catalog). */
 export const moduleCatalog: ModulePublic[] = [
   {
     code: 'xp_engine',
     name: 'Motor de XP',
     description: 'Reglas de XP, niveles y curva de progresión',
-    price_usd_monthly: 199,
+    price_usd_monthly: 1000,
     category: 'core',
   },
   {
     code: 'coins',
     name: 'Monedas',
     description: 'Monedas virtuales y economía interna',
-    price_usd_monthly: 149,
+    price_usd_monthly: 0,
     category: 'core',
   },
   {
     code: 'streaks',
     name: 'Rachas',
     description: 'Programas de racha y recompensas diarias',
-    price_usd_monthly: 129,
+    price_usd_monthly: 250,
     category: 'engagement',
   },
   {
     code: 'missions',
     name: 'Misiones',
     description: 'Misiones diarias, semanales y especiales',
-    price_usd_monthly: 179,
+    price_usd_monthly: 500,
     category: 'engagement',
   },
   {
     code: 'shop',
     name: 'Tienda virtual',
     description: 'Catálogo de ítems canjeables por monedas',
-    price_usd_monthly: 159,
+    price_usd_monthly: 350,
     category: 'operations',
   },
   {
     code: 'rewards_delivery',
     name: 'Entrega de premios',
     description: 'Bandeja de premios y webhooks de fulfillment',
-    price_usd_monthly: 99,
+    price_usd_monthly: 0,
     category: 'operations',
   },
   {
     code: 'chests',
     name: 'Cofres',
     description: 'Cofres con recompensas aleatorias',
-    price_usd_monthly: 119,
+    price_usd_monthly: 250,
     category: 'engagement',
   },
   {
     code: 'wheels',
     name: 'Ruedas de la fortuna',
     description: 'Ruletas configurables con premios y ocasiones',
-    price_usd_monthly: 129,
+    price_usd_monthly: 250,
     category: 'engagement',
   },
   {
     code: 'tournaments',
     name: 'Torneos',
     description: 'Competencias con ranking y premios',
-    price_usd_monthly: 189,
+    price_usd_monthly: 500,
     category: 'engagement',
   },
   {
     code: 'predictions',
     name: 'Predicciones',
     description: 'Eventos deportivos con apuestas sociales',
-    price_usd_monthly: 169,
+    price_usd_monthly: 300,
     category: 'engagement',
   },
   {
     code: 'raffles',
     name: 'Sorteos',
     description: 'Sorteos provably-fair con moneda dedicada',
-    price_usd_monthly: 159,
+    price_usd_monthly: 250,
     category: 'engagement',
   },
   {
     code: 'rankings',
     name: 'Rankings',
     description: 'Leaderboards por categoría y período',
-    price_usd_monthly: 139,
+    price_usd_monthly: 350,
     category: 'engagement',
   },
   {
     code: 'avatars',
     name: 'Avatares',
     description: 'Personalización visual del jugador',
-    price_usd_monthly: 89,
+    price_usd_monthly: 150,
     category: 'customization',
   },
   {
     code: 'branding',
     name: 'Branding',
     description: 'Paleta, logos y estilo del widget',
-    price_usd_monthly: 79,
+    price_usd_monthly: 0,
     category: 'customization',
   },
   {
     code: 'multi_currency',
     name: 'Multi-moneda',
     description: 'Múltiples monedas virtuales por operador',
-    price_usd_monthly: 109,
+    price_usd_monthly: 150,
     category: 'core',
   },
   {
     code: 'notifications',
     name: 'Notificaciones',
     description: 'Templates y envío de notificaciones in-app',
-    price_usd_monthly: 99,
+    price_usd_monthly: 150,
     category: 'operations',
   },
   {
     code: 'news',
     name: 'Noticias',
     description: 'Novedades y banners en el widget del jugador',
-    price_usd_monthly: 79,
+    price_usd_monthly: 200,
     category: 'operations',
   },
   {
     code: 'social',
-    name: 'Social',
+    name: 'Bet Sharing',
     description: 'Feed social, perfiles y moderación de posts',
-    price_usd_monthly: 99,
+    price_usd_monthly: 1000,
     category: 'engagement',
   },
 ];
 
-/** Operator-specific pricing overrides (catalog price * 0.9 or custom). */
-export const operatorModulePricing: Partial<Record<ModuleCode, number>> = {
-  xp_engine: 179,
-  coins: 134,
-  streaks: 116,
-  missions: 161,
-  shop: 143,
-  rewards_delivery: 89,
-  chests: 107,
-  wheels: 116,
-  tournaments: 170,
-  predictions: 152,
-  raffles: 145,
-  rankings: 125,
-  avatars: 80,
-  branding: 71,
-  multi_currency: 98,
-  notifications: 89,
-  news: 71,
-};
-
-export function operatorPriceForModule(code: ModuleCode, catalogPrice: number): number {
-  return operatorModulePricing[code] ?? Math.round(catalogPrice * 0.9 * 100) / 100;
+export function operatorPriceForModule(_code: ModuleCode, catalogPrice: number): number {
+  return catalogPrice;
 }
 
 const iso = (daysAgo: number) => new Date(Date.now() - daysAgo * 86400000).toISOString();
 
+function catalogPrice(code: ModuleCode): number {
+  return moduleCatalog.find((m) => m.code === code)?.price_usd_monthly ?? 0;
+}
+
 export const activeModules: OperatorActiveModulePublic[] = [
   { code: 'xp_engine', activated_at: iso(120), pending_deactivation: false, pending_deactivation_at: null, operator_price_usd_monthly: 179 },
-  { code: 'coins', activated_at: iso(120), pending_deactivation: false, pending_deactivation_at: null, operator_price_usd_monthly: 134 },
-  { code: 'streaks', activated_at: iso(90), pending_deactivation: false, pending_deactivation_at: null, operator_price_usd_monthly: 116 },
+  { code: 'coins', activated_at: iso(120), pending_deactivation: false, pending_deactivation_at: null, operator_price_usd_monthly: 0 },
+  { code: 'streaks', activated_at: iso(90), pending_deactivation: false, pending_deactivation_at: null, operator_price_usd_monthly: catalogPrice('streaks') },
   { code: 'missions', activated_at: iso(90), pending_deactivation: false, pending_deactivation_at: null, operator_price_usd_monthly: 161 },
-  { code: 'shop', activated_at: iso(60), pending_deactivation: false, pending_deactivation_at: null, operator_price_usd_monthly: 143 },
-  { code: 'rewards_delivery', activated_at: iso(60), pending_deactivation: false, pending_deactivation_at: null, operator_price_usd_monthly: 89 },
-  { code: 'chests', activated_at: iso(45), pending_deactivation: false, pending_deactivation_at: null, operator_price_usd_monthly: 107 },
-  { code: 'wheels', activated_at: iso(40), pending_deactivation: false, pending_deactivation_at: null, operator_price_usd_monthly: 116 },
-  { code: 'tournaments', activated_at: iso(30), pending_deactivation: false, pending_deactivation_at: null, operator_price_usd_monthly: 170 },
-  { code: 'predictions', activated_at: iso(30), pending_deactivation: false, pending_deactivation_at: null, operator_price_usd_monthly: 152 },
-  { code: 'raffles', activated_at: iso(30), pending_deactivation: false, pending_deactivation_at: null, operator_price_usd_monthly: 145 },
-  { code: 'rankings', activated_at: iso(20), pending_deactivation: false, pending_deactivation_at: null, operator_price_usd_monthly: 125 },
-  { code: 'avatars', activated_at: iso(18), pending_deactivation: false, pending_deactivation_at: null, operator_price_usd_monthly: 80 },
-  { code: 'branding', activated_at: iso(15), pending_deactivation: false, pending_deactivation_at: null, operator_price_usd_monthly: 71 },
-  { code: 'notifications', activated_at: iso(10), pending_deactivation: true, pending_deactivation_at: iso(-7), operator_price_usd_monthly: 89 },
-  { code: 'news', activated_at: iso(8), pending_deactivation: false, pending_deactivation_at: null, operator_price_usd_monthly: 71 },
-  { code: 'social', activated_at: iso(5), pending_deactivation: false, pending_deactivation_at: null, operator_price_usd_monthly: 89 },
+  { code: 'shop', activated_at: iso(60), pending_deactivation: false, pending_deactivation_at: null, operator_price_usd_monthly: catalogPrice('shop') },
+  { code: 'rewards_delivery', activated_at: iso(60), pending_deactivation: false, pending_deactivation_at: null, operator_price_usd_monthly: 0 },
+  { code: 'chests', activated_at: iso(45), pending_deactivation: false, pending_deactivation_at: null, operator_price_usd_monthly: catalogPrice('chests') },
+  { code: 'wheels', activated_at: iso(40), pending_deactivation: false, pending_deactivation_at: null, operator_price_usd_monthly: catalogPrice('wheels') },
+  { code: 'tournaments', activated_at: iso(30), pending_deactivation: false, pending_deactivation_at: null, operator_price_usd_monthly: catalogPrice('tournaments') },
+  { code: 'predictions', activated_at: iso(30), pending_deactivation: false, pending_deactivation_at: null, operator_price_usd_monthly: catalogPrice('predictions') },
+  { code: 'raffles', activated_at: iso(30), pending_deactivation: false, pending_deactivation_at: null, operator_price_usd_monthly: catalogPrice('raffles') },
+  { code: 'rankings', activated_at: iso(20), pending_deactivation: false, pending_deactivation_at: null, operator_price_usd_monthly: catalogPrice('rankings') },
+  { code: 'avatars', activated_at: iso(18), pending_deactivation: false, pending_deactivation_at: null, operator_price_usd_monthly: catalogPrice('avatars') },
+  { code: 'branding', activated_at: iso(15), pending_deactivation: false, pending_deactivation_at: null, operator_price_usd_monthly: 0 },
+  { code: 'notifications', activated_at: iso(10), pending_deactivation: true, pending_deactivation_at: iso(-7), operator_price_usd_monthly: catalogPrice('notifications') },
+  { code: 'news', activated_at: iso(8), pending_deactivation: false, pending_deactivation_at: null, operator_price_usd_monthly: catalogPrice('news') },
+  { code: 'social', activated_at: iso(5), pending_deactivation: false, pending_deactivation_at: null, operator_price_usd_monthly: 450 },
 ];
 
 export const walletTransactions: WalletTransaction[] = [

@@ -16,7 +16,6 @@ import {
   useModuleCatalog,
 } from '@/features/billing/modulesApi';
 import { useWalletBalance } from '@/features/billing/walletApi';
-import { operatorPriceForModule } from '@/features/billing/pricing';
 import type { ModuleCode, ModulePublic } from '@/types/billing';
 import { toast } from '@/stores/toastStore';
 
@@ -28,7 +27,7 @@ interface ModuleCardData extends ModulePublic {
   active: boolean;
   pendingDeactivation: boolean;
   pendingDeactivationAt: string | null;
-  operatorPrice: number;
+  lockedOperatorPrice: number | null;
 }
 
 export default function ModulesPage() {
@@ -63,7 +62,7 @@ export default function ModulesPage() {
         active: Boolean(active),
         pendingDeactivation: active?.pending_deactivation ?? false,
         pendingDeactivationAt: active?.pending_deactivation_at ?? null,
-        operatorPrice: active?.operator_price_usd_monthly ?? operatorPriceForModule(mod.code, mod.price_usd_monthly),
+        lockedOperatorPrice: active?.operator_price_usd_monthly ?? null,
       };
     });
   }, [catalogQ.data, activeQ.data]);
@@ -135,11 +134,18 @@ export default function ModulesPage() {
             />
             <div className="mt-auto space-y-3 px-4 pb-4">
               <div className="flex items-baseline justify-between">
-                <span className="text-[14px] text-text-tertiary">Precio operador</span>
-                <span className="text-[16px] font-bold">{formatUsd(mod.operatorPrice)}<span className="text-[13px] font-medium text-text-tertiary">/mes</span></span>
+                <span className="text-[14px] text-text-tertiary">Precio mensual</span>
+                <span className="text-[16px] font-bold">
+                  {formatUsd(mod.price_usd_monthly)}
+                  <span className="text-[13px] font-medium text-text-tertiary">/mes</span>
+                </span>
               </div>
-              {mod.price_usd_monthly !== mod.operatorPrice ? (
-                <p className="text-[13px] text-text-tertiary line-through">Catálogo: {formatUsd(mod.price_usd_monthly)}/mes</p>
+              {mod.active &&
+              mod.lockedOperatorPrice != null &&
+              mod.lockedOperatorPrice !== mod.price_usd_monthly ? (
+                <p className="text-[13px] text-text-tertiary">
+                  Tu tarifa actual: {formatUsd(mod.lockedOperatorPrice)}/mes
+                </p>
               ) : null}
               {mod.pendingDeactivation ? (
                 <div className="flex items-center gap-2 rounded-lg border border-warning/30 bg-warning/10 px-3 py-2 text-[13px] text-warning">
@@ -214,7 +220,7 @@ export default function ModulesPage() {
         {selected ? (
           <p className="text-[15px] text-text-secondary">
             {confirmAction === 'activate'
-              ? `Se activará ${selected.name} con un cargo mensual de ${formatUsd(selected.operatorPrice)} USD.`
+              ? `Se activará ${selected.name} con un cargo mensual de ${formatUsd(selected.price_usd_monthly)} USD.`
               : `${selected.name} seguirá activo hasta el fin del período facturado y luego se desactivará.`}
           </p>
         ) : null}
