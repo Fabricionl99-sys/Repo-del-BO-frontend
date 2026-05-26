@@ -1,6 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 import { apiClient } from '@/api/client';
+import { getApiErrorMessage } from '@/api/errors';
 import { unwrapData } from '@/api/response';
 import { toast } from '@/stores/toastStore';
 import type {
@@ -102,18 +103,29 @@ export function useAvatar(id: string | null) {
   });
 }
 
+/** Backend `.strict()` no acepta `is_premium` hasta que exista en schema. */
+function adaptAvatarBody<T extends AvatarCreatePayload | AvatarMetadataPayload>(
+  payload: T,
+): Omit<T, 'is_premium'> {
+  const { is_premium: _omit, ...body } = payload as T & { is_premium?: boolean };
+  void _omit;
+  return body;
+}
+
 export function useCreateAvatar() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: (payload: AvatarCreatePayload) =>
-      apiClient.post('/admin/avatars', payload).then((r) => unwrapData<Avatar>(r.data)),
+      apiClient
+        .post('/admin/avatars', adaptAvatarBody(payload))
+        .then((r) => unwrapData<Avatar>(r.data)),
     onSuccess: () => {
       toast.success('Avatar creado');
       qc.invalidateQueries({ queryKey: ['avatars'] });
       qc.invalidateQueries({ queryKey: ['avatar-categories'] });
     },
-    onError: (err: Error) => {
-      toast.error(err.message || 'No se pudo crear el avatar');
+    onError: (error) => {
+      toast.error(getApiErrorMessage(error, 'No se pudo crear el avatar'));
     },
   });
 }
@@ -122,11 +134,16 @@ export function useUpdateAvatar() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: ({ id, ...payload }: AvatarMetadataPayload & { id: string; image_url?: string }) =>
-      apiClient.patch(`/admin/avatars/${id}`, payload).then((r) => unwrapData<Avatar>(r.data)),
+      apiClient
+        .patch(`/admin/avatars/${id}`, adaptAvatarBody(payload))
+        .then((r) => unwrapData<Avatar>(r.data)),
     onSuccess: (_data, vars) => {
       toast.success('Avatar actualizado');
       qc.invalidateQueries({ queryKey: ['avatars'] });
       qc.invalidateQueries({ queryKey: ['avatars', vars.id] });
+    },
+    onError: (error) => {
+      toast.error(getApiErrorMessage(error, 'No se pudo actualizar el avatar'));
     },
   });
 }
