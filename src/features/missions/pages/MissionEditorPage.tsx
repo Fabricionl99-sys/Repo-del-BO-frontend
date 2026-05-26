@@ -4,6 +4,7 @@ import { Link, useNavigate, useParams } from 'react-router-dom';
 import { FormProvider, useForm, useWatch } from 'react-hook-form';
 
 import { DayOfWeekSelector } from '@/components/ui/DayOfWeekSelector';
+import { FieldHint } from '@/components/ui/FieldHint';
 import { ErrorState } from '@/components/ui/ErrorState';
 import { Loading } from '@/components/ui/Loading';
 import { PageHeader } from '@/components/ui/PageHeader';
@@ -107,7 +108,10 @@ export default function MissionEditorPage() {
                 </select>
               </div>
               <div>
-                <label className="mb-1.5 block text-[14px] text-text-secondary">categoría</label>
+                <label className="mb-1.5 block text-[14px] text-text-secondary">
+                  categoría
+                  <FieldHint text="Tag libre para agrupar misiones (ej. casino, sportsbook, evento-mundial). Lo elegís vos." />
+                </label>
                 <input className="field" {...register('category')} />
               </div>
             </div>
@@ -146,9 +150,17 @@ export default function MissionEditorPage() {
                   </Link>
                 </p>
               )}
+              {(trigger === 'play_casino' || trigger === 'play_slots') && (
+                <p className="mt-2 text-[13px] text-text-tertiary">
+                  Casino = todos los juegos de casino (slots, mesa, vivo). Slots = solo tragamonedas.
+                </p>
+              )}
             </div>
             <div>
-              <label className="mb-1.5 block text-[14px] text-text-secondary">valor objetivo</label>
+              <label className="mb-1.5 block text-[14px] text-text-secondary">
+                valor objetivo
+                <FieldHint text="Monto o cantidad según el trigger: en wager es el total acumulado; en depósito, el monto a depositar." />
+              </label>
               <input className="field" type="number" min={1} {...register('targetValue', { valueAsNumber: true })} />
               {errors.targetValue && <p className="mt-1 text-[13px] text-danger">{errors.targetValue.message}</p>}
             </div>

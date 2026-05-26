@@ -11,7 +11,7 @@ export function ConfigSection({
   children,
 }: {
   icon?: ReactNode;
-  title: string;
+  title: ReactNode;
   description?: string;
   children: ReactNode;
 }) {

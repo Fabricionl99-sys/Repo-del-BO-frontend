@@ -25,6 +25,7 @@ import {
 } from '@/features/streaks/streakEditorForm';
 import { ConfiguratorScaffold, ConfigSection } from '@/components/configurator/ConfiguratorScaffold';
 import { Button } from '@/components/ui/Button';
+import { FieldHint } from '@/components/ui/FieldHint';
 import { ErrorState } from '@/components/ui/ErrorState';
 import { Loading } from '@/components/ui/Loading';
 import { PageHeader } from '@/components/ui/PageHeader';
@@ -199,7 +200,10 @@ export default function StreakProgramEditorPage() {
           ) : null}
           {resetPolicy === 'soft_reset' ? (
             <div className="mt-4">
-              <label className="mb-1 block text-[14px] text-text-secondary">Días que pierde al romper racha</label>
+              <label className="mb-1 block text-[14px] text-text-secondary">
+                Días que pierde al romper racha
+                <FieldHint text="Días de gracia: si el jugador rompe la racha, tiene este margen para retomarla sin perder todo el progreso. 0 = se reinicia de inmediato." />
+              </label>
               <input
                 className="field max-w-xs"
                 type="number"
@@ -217,11 +221,19 @@ export default function StreakProgramEditorPage() {
           {resetPolicy === 'strict' ? <p className="mt-2 text-[14px] text-text-tertiary">Sin parámetros adicionales.</p> : null}
         </ConfigSection>
 
-        <ConfigSection icon="🎁" title="Micro recompensa diaria">
+        <ConfigSection
+          icon="🎁"
+          title="Micro recompensa diaria"
+          description="Premio pequeño por completar el objetivo del día (no requiere terminar toda la racha)."
+        >
           <DailyRewardFields />
         </ConfigSection>
 
-        <ConfigSection icon="🏁" title="Milestones">
+        <ConfigSection
+          icon="🏁"
+          title="Milestones"
+          description="Premios extra al alcanzar días específicos (ej. día 7, día 30). Suman al premio final."
+        >
           {milestoneListError ? <p className="mb-2 text-[14px] text-danger">{milestoneListError}</p> : null}
           <p className="mb-3 text-[14px] text-text-tertiary">Hasta 20 hitos · días únicos entre 1 y 365 · se ordenan al guardar.</p>
           <div className="space-y-3">

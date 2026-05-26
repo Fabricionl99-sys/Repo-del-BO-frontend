@@ -9,6 +9,7 @@ import { mediaValueFromUrl } from '@/components/media/mediaUrl';
 import { MediaUploaderRhf } from '@/components/media/MediaUploaderRhf';
 import { RewardSelector } from '@/components/rewards/RewardSelector';
 import { Button } from '@/components/ui/Button';
+import { FieldHint } from '@/components/ui/FieldHint';
 import { Modal } from '@/components/ui/Modal';
 import { Switch } from '@/components/ui/Switch';
 import { WheelColorThemePicker } from '@/features/wheels/components/WheelColorThemePicker';
@@ -201,6 +202,7 @@ export function WheelFormModal({
               <div>
                 <label className="mb-1.5 block text-[14px] text-text-secondary">
                   Fondo de la rueda
+                  <FieldHint text="Imagen de fondo de la ruleta entera. Los segmentos y premios se configuran abajo, cada uno con su ícono en el slice." />
                 </label>
                 <p className="mb-2 text-[12px] text-text-tertiary">
                   Marco o textura del disco. Dejá el centro libre o transparente; el logo va aparte.

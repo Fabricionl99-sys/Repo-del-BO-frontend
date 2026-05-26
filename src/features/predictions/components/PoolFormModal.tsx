@@ -1,6 +1,7 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { ArrowDown, ArrowUp, Plus } from 'lucide-react';
 import { useEffect, useMemo } from 'react';
+import { Link } from 'react-router-dom';
 import { useFieldArray, useForm, useWatch } from 'react-hook-form';
 
 import { MediaUploaderRhf } from '@/components/media/MediaUploaderRhf';
@@ -191,7 +192,11 @@ export function PoolFormModal({
     >
       {readOnly && (
         <p className="mb-4 rounded-lg bg-warning/10 px-3 py-2 text-[13px] text-warning">
-          Este prode ya está abierto o cerrado. Solo podés cancelarlo desde el catálogo.
+          Estás en Predicciones → Edición. Para cancelar este prode, andá al{' '}
+          <Link to="/predicciones" className="font-semibold underline">
+            catálogo de predicciones
+          </Link>
+          .
         </p>
       )}
       {pool?.id && poolDetailQ.isLoading ? (
