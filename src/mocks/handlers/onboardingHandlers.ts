@@ -24,7 +24,7 @@ export const onboardingHandlers = [
   http.get('*/auth/check-email', async ({ request }) => {
     await wait();
     const email = new URL(request.url).searchParams.get('email')?.toLowerCase() ?? '';
-    return HttpResponse.json({ data: { available: !isEmailTaken(email) } });
+    return HttpResponse.json({ available: !isEmailTaken(email) });
   }),
 
   http.post('*/auth/signup', async ({ request }) => {

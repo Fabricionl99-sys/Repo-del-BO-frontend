@@ -104,7 +104,10 @@ apiClient.interceptors.response.use(
     } else if (error.response && error.response.status >= 500) {
       toast.error('Error del servidor · intentá de nuevo en unos minutos');
     } else if (!error.response) {
-      toast.error('Conexión perdida · revisá tu red');
+      const url = originalRequest?.url ?? '';
+      if (!url.includes('/auth/check-email')) {
+        toast.error('Conexión perdida · revisá tu red');
+      }
     }
 
     return Promise.reject(error);

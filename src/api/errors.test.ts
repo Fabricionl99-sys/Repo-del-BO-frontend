@@ -27,4 +27,19 @@ describe('signup API errors', () => {
   it('check-email 404 → servicio no disponible', () => {
     expect(getCheckEmailErrorMessage(axiosError(404))).toMatch(/no disponible/i);
   });
+
+  it('check-email 422 → formato inválido', () => {
+    expect(getCheckEmailErrorMessage(axiosError(422))).toMatch(/formato de email inválido/i);
+  });
+
+  it('check-email 429 → rate limit', () => {
+    const err = new AxiosError('fail', '429', undefined, undefined, {
+      status: 429,
+      data: { retry_after_seconds: 30 },
+      statusText: '',
+      headers: {},
+      config: {} as never,
+    });
+    expect(getCheckEmailErrorMessage(err)).toMatch(/30 segundos/i);
+  });
 });

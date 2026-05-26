@@ -33,6 +33,7 @@ describe('SignupPage', () => {
     const inputs = screen.getAllByRole('textbox');
     const passwords = document.querySelectorAll<HTMLInputElement>('input[type="password"]');
     await user.type(inputs[0], 'nuevo@operador.com');
+    await waitFor(() => expect(screen.getByText(/Email disponible/i)).toBeInTheDocument(), { timeout: 3000 });
     await user.type(passwords[0], 'Wingoat123');
     await user.type(passwords[1], 'Wingoat123');
     await user.type(inputs[1], 'Nuevo Casino');

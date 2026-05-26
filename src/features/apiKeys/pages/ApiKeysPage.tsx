@@ -450,9 +450,15 @@ function ReferenceTab() {
 
   if (refQ.isLoading) return <Loading label="Cargando referencia..." />;
   if (refQ.isError || !refQ.data) return <ErrorState onRetry={() => refQ.refetch()} />;
+  if (!refQ.data.categories.length) {
+    return <p className="text-[14px] text-text-tertiary">No hay endpoints documentados todavía.</p>;
+  }
 
   const category =
     refQ.data.categories.find((c) => c.id === categoryId) ?? refQ.data.categories[0];
+  if (!category) {
+    return <ErrorState onRetry={() => refQ.refetch()} />;
+  }
 
   return (
     <div className="grid grid-cols-[220px_1fr] gap-6 max-lg:grid-cols-1">

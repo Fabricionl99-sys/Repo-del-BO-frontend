@@ -6,8 +6,9 @@ import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 
 import { getCheckEmailErrorMessage, getSignupErrorMessage } from '@/api/errors';
 import { Button } from '@/components/ui/Button';
+import { useDebounce } from '@/hooks/useDebounce';
 import { trackEvent, trackSignup } from '@/lib/analytics';
-import { useCheckEmailAvailable, useSignup } from '@/features/onboarding/signupApi';
+import { isSignupEmailFormatValid, useCheckEmailAvailable, useSignup } from '@/features/onboarding/signupApi';
 import { useSignupStore } from '@/stores/signupStore';
 import { toast } from '@/stores/toastStore';
 import type { PricingTierId } from '@/types/onboarding';
@@ -41,7 +42,10 @@ export default function SignupPage() {
 
   const email = useWatch({ control, name: 'email' });
   const password = useWatch({ control, name: 'password' }) ?? '';
-  const emailCheck = useCheckEmailAvailable(email ?? '');
+  const debouncedEmail = useDebounce(email ?? '', 600);
+  const emailCheck = useCheckEmailAvailable(debouncedEmail);
+  const emailFormatValid = isSignupEmailFormatValid(email ?? '');
+  const checkingEmail = emailFormatValid && (email ?? '').trim().toLowerCase() !== debouncedEmail.trim().toLowerCase();
 
   useEffect(() => {
     if (tier) setSelectedTier(tier);
@@ -59,7 +63,11 @@ export default function SignupPage() {
   }, [tier, signup.isSuccess]);
 
   const onSubmit = handleSubmit(async (values) => {
-    if (emailCheck.data === false) {
+    if (emailCheck.isFetching || checkingEmail) {
+      toast.error('Esperá a que terminemos de verificar el email');
+      return;
+    }
+    if (emailCheck.data?.available === false) {
       toast.error('Ese email ya está registrado');
       return;
     }
@@ -110,13 +118,16 @@ export default function SignupPage() {
               }}
             />
             {errors.email && <p className="mt-1 text-[13px] text-danger">{errors.email.message}</p>}
-            {emailCheck.isError && email?.includes('@') && (
+            {checkingEmail && emailFormatValid && (
+              <p className="mt-1 text-[13px] text-text-tertiary">Verificando email…</p>
+            )}
+            {emailCheck.isError && emailFormatValid && !checkingEmail && (
               <p className="mt-1 text-[13px] text-danger">{getCheckEmailErrorMessage(emailCheck.error)}</p>
             )}
-            {emailCheck.data === false && !emailCheck.isError && (
+            {emailCheck.data?.available === false && !emailCheck.isError && !checkingEmail && (
               <p className="mt-1 text-[13px] text-danger">Este email ya está registrado</p>
             )}
-            {emailCheck.data === true && !emailCheck.isError && email?.includes('@') && (
+            {emailCheck.data?.available === true && !emailCheck.isError && !checkingEmail && emailFormatValid && (
               <p className="mt-1 text-[13px] text-success">Email disponible</p>
             )}
           </div>
