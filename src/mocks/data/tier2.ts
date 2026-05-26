@@ -97,6 +97,14 @@ export function buildDefaultLevelsCurve(): LevelsCurve {
 
 export const levelsCurve: LevelsCurve = buildDefaultLevelsCurve();
 
+/** Shape GET/PUT /admin/curve (prod). */
+export const adminCurveLevels = DEFAULT_LEVEL_THRESHOLDS.map((xp, i) => ({
+  level: i + 1,
+  xp_required: xp,
+}));
+
+export const adminLevelConfig = { max_level: adminCurveLevels.length };
+
 export const curvePresets: CurvePreset[] = [];
 export const distribution: PlayerDistribution[] = [];
 

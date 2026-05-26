@@ -1,16 +1,22 @@
 import { useMemo, useState } from 'react';
 import { Download } from 'lucide-react';
-import { useSearchParams } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import { Button } from '@/components/ui/Button';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { ErrorState } from '@/components/ui/ErrorState';
 import { Loading } from '@/components/ui/Loading';
 import { PageHeader } from '@/components/ui/PageHeader';
-import { StickyBottomBar } from '@/features/rules/components/RuleBlocks';
-import { useCurve, usePublishCurve, useUpdateDraft } from '@/features/levelsApi';
+import { apiClient } from '@/api/client';
+import { unwrapData } from '@/api/response';
+import { validateCoinIconFile } from '@/lib/coinIconUpload';
+import {
+  useCurve,
+  useSaveCurve,
+  XpEngineModuleRequiredError,
+} from '@/features/levels/levelsCurveApi';
+import { toast } from '@/stores/toastStore';
 import type { LevelEntry, LevelsCurve } from '@/types/levels';
 import { AddLevelButton, LevelRow } from '../components/LevelRow';
-import { apiClient } from '@/api/client';
 
 function suggestNextXp(levels: LevelEntry[]): number {
   if (levels.length === 0) return 100;
@@ -30,23 +36,45 @@ function validateCurve(levels: LevelEntry[]): string | null {
   return null;
 }
 
+function XpEngineGate() {
+  return (
+    <EmptyState
+      title="Activá Motor de XP"
+      description="Activá el módulo XP Engine ($1,000/mes) en Módulos para configurar la curva de niveles."
+      action={
+        <Link to="/modulos">
+          <Button variant="primary">Ir a Módulos</Button>
+        </Link>
+      }
+    />
+  );
+}
+
 export default function LevelsPage() {
   const [params] = useSearchParams();
   const mock = params.get('mockState');
   const q = useCurve();
-  const update = useUpdateDraft();
-  const publish = usePublishCurve();
+  const save = useSaveCurve();
   const [draft, setDraft] = useState<LevelsCurve | null>(null);
 
   const current = draft ?? q.data ?? null;
-
   const invalidMsg = useMemo(() => (current ? validateCurve(current.levels) : null), [current]);
 
   const uploadBadge = async (file: File) => {
+    const validation = await validateCoinIconFile(file);
+    if (!validation.ok) {
+      toast.error(validation.error ?? 'Imagen inválida');
+      throw new Error(validation.error);
+    }
     const fd = new FormData();
     fd.append('file', file);
-    const { data } = await apiClient.post<{ url: string }>('/admin/levels/badge-upload', fd);
-    return data.url;
+    const res = await apiClient.post('/admin/upload-image', fd, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    });
+    const raw = unwrapData<{ url?: string }>(res.data);
+    const url = raw.url;
+    if (!url) throw new Error('Sin URL de imagen');
+    return url;
   };
 
   const download = () => {
@@ -70,7 +98,24 @@ export default function LevelsPage() {
   };
 
   const addLevel = () => {
-    if (!current) return;
+    if (!current) {
+      const xp = 100;
+      setDraft({
+        version: 1,
+        totalLevels: 1,
+        levels: [
+          {
+            level: 1,
+            xpRequired: xp,
+            milestoneEnabled: false,
+            milestoneUnlock: null,
+          },
+        ],
+        updatedAt: new Date().toISOString(),
+        publishedAt: null,
+      });
+      return;
+    }
     const nextN = current.levels.length + 1;
     const xp = suggestNextXp(current.levels);
     setLevels([
@@ -88,17 +133,42 @@ export default function LevelsPage() {
 
   if (mock === 'empty') {
     return (
-      <EmptyState
-        title="No hay curva configurada"
-        description="Guardá la configuración inicial desde el entorno de staging o contactá soporte."
-      />
+      <>
+        <PageHeader title="Curva de niveles" subtitle="Configurá niveles y XP requerido por nivel." />
+        <EmptyState
+          title="No hay curva configurada"
+          description="Creá tu primera curva de niveles para el operador."
+          action={<Button variant="primary" onClick={addLevel}>Crear primera curva</Button>}
+        />
+      </>
     );
   }
+
   if (mock === 'loading' || q.isLoading) return <Loading label="Cargando curva..." />;
-  if (mock === 'error' || q.isError) return <ErrorState onRetry={() => q.refetch()} />;
+
+  if (q.error instanceof XpEngineModuleRequiredError) {
+    return (
+      <>
+        <PageHeader title="Curva de niveles" subtitle="Configurá niveles y XP requerido por nivel." />
+        <XpEngineGate />
+      </>
+    );
+  }
+
+  if (mock === 'error' || q.isError) {
+    return <ErrorState onRetry={() => q.refetch()} />;
+  }
+
   if (!current) {
     return (
-      <EmptyState title="No hay curva configurada" description="No se pudo cargar la curva de niveles." />
+      <>
+        <PageHeader title="Curva de niveles" subtitle="Configurá niveles y XP requerido por nivel." />
+        <EmptyState
+          title="Sin curva configurada"
+          description="Todavía no hay niveles definidos para este operador."
+          action={<Button variant="primary" onClick={addLevel}>Crear primera curva</Button>}
+        />
+      </>
     );
   }
 
@@ -113,10 +183,6 @@ export default function LevelsPage() {
           </Button>
         }
       />
-
-      <p className="mb-4 max-w-3xl text-[15px] text-text-secondary">
-        Configurá los niveles que tendrán tus jugadores. Cada nivel requiere XP acumulado para desbloquearse.
-      </p>
 
       <div className="card overflow-x-auto p-5">
         <table className="w-full min-w-[720px] border-collapse text-left">
@@ -149,18 +215,26 @@ export default function LevelsPage() {
         {invalidMsg ? <p className="mt-3 text-[15px] text-danger">{invalidMsg}</p> : null}
       </div>
 
-      <StickyBottomBar
-        onCancel={() => setDraft(null)}
-        onSaveDraft={async () => {
-          if (!current || invalidMsg) return;
-          await update.mutateAsync(current);
-        }}
-        onActivate={async () => {
-          if (!current || invalidMsg) return;
-          await publish.mutateAsync(current);
-        }}
-        loading={update.isPending || publish.isPending}
-      />
+      <div className="sticky bottom-0 z-20 -mx-7 mt-8 flex items-center justify-between border-t border-border-default bg-bg-primary px-7 py-4">
+        <button
+          type="button"
+          onClick={() => setDraft(null)}
+          className="text-[15px] text-text-secondary hover:text-text-primary"
+        >
+          Descartar cambios
+        </button>
+        <Button
+          variant="primary"
+          loading={save.isPending}
+          disabled={Boolean(invalidMsg)}
+          onClick={() => {
+            if (!current || invalidMsg) return;
+            save.mutate(current);
+          }}
+        >
+          Guardar curva
+        </Button>
+      </div>
     </>
   );
 }

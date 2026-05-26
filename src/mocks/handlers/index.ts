@@ -21,7 +21,15 @@ http.post('*/admin/team/invitations/:id/resend',async()=>{await wait(); return H
 handlers.push(...apiKeysHandlers);
 handlers.push(...webhooksHandlers);
 
-import { coins, coinsConfig, coinsGlobalRules, levelsCurve, ruleListItems, xpRules } from '@/mocks/data/tier2';
+import {
+  adminCurveLevels,
+  adminLevelConfig,
+  coins,
+  coinsConfig,
+  coinsGlobalRules,
+  ruleListItems,
+  xpRules,
+} from '@/mocks/data/tier2';
 
 handlers.push(
   http.get('*/admin/xp-rules', async ({ request }) => {
@@ -85,15 +93,38 @@ handlers.push(
   http.delete('*/admin/coins/:id', async ({ params }) => { await wait(); const index = coins.findIndex((item) => item.id === params.id); if (index >= 0) coins.splice(index, 1); return new HttpResponse(null, { status: 204 }); }),
   http.get('*/admin/coins/global-rules', async () => { await wait(); return HttpResponse.json(coinsGlobalRules); }),
   http.patch('*/admin/coins/global-rules', async ({ request }) => { await wait(); Object.assign(coinsGlobalRules, await request.json()); return HttpResponse.json(coinsGlobalRules); }),
-  http.get('*/admin/coins-config', async () => { await wait(); return HttpResponse.json(coinsConfig); }),
-  http.patch('*/admin/coins-config', async ({ request }) => { await wait(); Object.assign(coinsConfig, await request.json()); return HttpResponse.json(coinsConfig); }),
+  http.get('*/admin/coins-config', async () => { await wait(); return HttpResponse.json({ data: coinsConfig }); }),
+  http.patch('*/admin/coins-config', async ({ request }) => {
+    await wait();
+    Object.assign(coinsConfig, await request.json());
+    return HttpResponse.json({ data: coinsConfig });
+  }),
   http.post('*/admin/coins/upload-image', async () => { await wait(); return HttpResponse.json({ url: 'https://images.unsplash.com/photo-1529626455594-4ff0802cfb7e?w=64&h=64&fit=crop' }); }),
-  http.get('*/admin/levels/curve', async () => { await wait(); return HttpResponse.json(levelsCurve); }),
-  http.put('*/admin/levels/curve/draft', async ({ request }) => { await wait(); const body = (await request.json()) as typeof levelsCurve; Object.assign(levelsCurve, body); return HttpResponse.json(levelsCurve); }),
-  http.post('*/admin/levels/curve/publish', async ({ request }) => { await wait(); const body = (await request.json()) as typeof levelsCurve; Object.assign(levelsCurve, body); levelsCurve.publishedAt = new Date().toISOString(); return HttpResponse.json(levelsCurve); }),
-  http.post('*/admin/levels/curve/preview', async () => { await wait(); return HttpResponse.json({ affectedPlayers: 12847, levelChanges: [{ fromLevel: 24, toLevel: 23, playersCount: 412 }] }); }),
-  http.get('*/admin/levels/curve/draft', async () => { await wait(); return HttpResponse.json(levelsCurve); }),
-  http.post('*/admin/levels/badge-upload', async () => { await wait(); return HttpResponse.json({ url: 'https://images.unsplash.com/photo-1529626455594-4ff0802cfb7e?w=64&h=64&fit=crop' }); }),
+  http.post('*/admin/upload-image', async () => {
+    await wait();
+    return HttpResponse.json({
+      data: { url: 'https://cdn.social2game.com/defaults/coin-placeholder.png' },
+    });
+  }),
+  http.get('*/admin/curve', async () => {
+    await wait();
+    return HttpResponse.json({ data: { levels: adminCurveLevels } });
+  }),
+  http.put('*/admin/curve', async ({ request }) => {
+    await wait();
+    const body = (await request.json()) as { levels: typeof adminCurveLevels };
+    adminCurveLevels.splice(0, adminCurveLevels.length, ...body.levels);
+    return HttpResponse.json({ data: { levels: adminCurveLevels } });
+  }),
+  http.get('*/admin/level-config', async () => {
+    await wait();
+    return HttpResponse.json({ data: adminLevelConfig });
+  }),
+  http.put('*/admin/level-config', async ({ request }) => {
+    await wait();
+    Object.assign(adminLevelConfig, await request.json());
+    return HttpResponse.json({ data: adminLevelConfig });
+  }),
 );
 
 import { missions } from '@/mocks/data/tier3';
