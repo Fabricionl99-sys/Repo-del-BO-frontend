@@ -1,5 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { apiClient } from '@/api/client';
+import { getApiErrorMessage } from '@/api/errors';
 import { unwrapData } from '@/api/response';
 import { toast } from '@/stores/toastStore';
 import type { Coin, CoinsConfig, CoinsGlobalRules } from '@/types/coins';
@@ -25,9 +26,6 @@ function adaptCoinForBackend(payload: Partial<Coin>): Record<string, unknown> {
     payload.deliveryMode === 'auto_xp' || payload.deliveryMode === undefined ? 'auto' : 'manual';
   const xp_per_unit =
     earning_mode === 'auto' ? payload.xpPerUnit ?? 1 : null;
-  // Backend exige icon_url URL válida. Si BO no la dio, usamos un placeholder
-  // genérico (operador puede editarla después). Fallback a la URL del logo
-  // brand default — coin amarilla minimalista.
   const icon_url =
     payload.imageUrl?.trim() ||
     'https://cdn.social2game.com/defaults/coin-placeholder.png';
@@ -43,17 +41,11 @@ function adaptCoinForBackend(payload: Partial<Coin>): Record<string, unknown> {
   return body;
 }
 
-/**
- * Normaliza una currency tal como la devuelve el backend al shape rico
- * que el BO espera (con `p2p`, `caps`, métricas, etc.). El backend MVP
- * NO persiste P2P ni caps — son features Sprint #7. Por ahora rellenamos
- * con defaults seguros para que el BO no crashee.
- */
 function normalizeBackendCoin(raw: Record<string, unknown>): Coin {
   const deliveryMode: 'auto_xp' | 'manual' =
     raw.earning_mode === 'manual' ? 'manual' : 'auto_xp';
   return {
-    id: String(raw.id ?? ''),
+    id: String(raw.id ?? raw.code ?? ''),
     name: String(raw.name ?? raw.code ?? 'Coin'),
     symbol: String(raw.code ?? ''),
     imageUrl: typeof raw.icon_url === 'string' ? raw.icon_url : undefined,
@@ -101,7 +93,6 @@ export function useCoins() {
 }
 
 export function useCoinsGlobalRules() {
-  // Backend MVP no tiene este endpoint. Stub con defaults.
   return useQuery({
     queryKey: ['coins', 'global-rules'],
     queryFn: async (): Promise<CoinsGlobalRules> => ({} as CoinsGlobalRules),
@@ -109,10 +100,12 @@ export function useCoinsGlobalRules() {
 }
 
 export function useCoinsConfig() {
-  // Backend MVP no tiene este endpoint. Stub con defaults.
   return useQuery({
     queryKey: ['coins-config'],
-    queryFn: async (): Promise<CoinsConfig> => ({} as CoinsConfig),
+    queryFn: async () => {
+      const r = await apiClient.get('/admin/coins-config');
+      return unwrapData<CoinsConfig>(r.data);
+    },
   });
 }
 
@@ -120,12 +113,15 @@ export function useSaveCoinsConfig() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: async (payload: CoinsConfig) => {
-      // Stub: backend MVP no persiste config global de coins.
-      toast.success('Configuración global no soportada — Sprint #7');
-      return payload;
+      const r = await apiClient.patch('/admin/coins-config', payload);
+      return unwrapData<CoinsConfig>(r.data);
     },
-    onSuccess: (data) => {
-      qc.setQueryData(['coins-config'], data);
+    onSuccess: () => {
+      toast.success('Configuración de monedas guardada');
+      qc.invalidateQueries({ queryKey: ['coins-config'] });
+    },
+    onError: (error) => {
+      toast.error(getApiErrorMessage(error, 'No se pudo guardar la configuración'));
     },
   });
 }
@@ -142,8 +138,30 @@ export function useSaveCoin() {
       return normalizeBackendCoin(raw);
     },
     onSuccess: () => {
-      toast.success('moneda guardada');
+      toast.success('Moneda guardada');
       qc.invalidateQueries({ queryKey: ['coins'] });
+    },
+    onError: (error) => {
+      toast.error(getApiErrorMessage(error, 'No se pudo guardar la moneda'));
+    },
+  });
+}
+
+/** Solo cambia is_active — evita pisar code/name/icon con defaults del adapter. */
+export function useSetCoinActive() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ id, active }: { id: string; active: boolean }) => {
+      const r = await apiClient.put(`/admin/currencies/${id}`, { is_active: active });
+      const raw = unwrapData<Record<string, unknown>>(r.data);
+      return normalizeBackendCoin(raw);
+    },
+    onSuccess: (_data, { active }) => {
+      toast.success(active ? 'Moneda activada' : 'Moneda desactivada');
+      qc.invalidateQueries({ queryKey: ['coins'] });
+    },
+    onError: (error) => {
+      toast.error(getApiErrorMessage(error, 'No se pudo cambiar el estado de la moneda'));
     },
   });
 }
@@ -152,13 +170,14 @@ export function useDeleteCoin() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: async (id: string) => {
-      // Backend NO tiene DELETE de currencies (solo soft-delete via PUT
-      // is_active=false). Hacemos eso.
       return apiClient.put(`/admin/currencies/${id}`, { is_active: false });
     },
     onSuccess: () => {
-      toast.success('moneda desactivada');
+      toast.success('Moneda desactivada');
       qc.invalidateQueries({ queryKey: ['coins'] });
+    },
+    onError: (error) => {
+      toast.error(getApiErrorMessage(error, 'No se pudo desactivar la moneda'));
     },
   });
 }
@@ -179,11 +198,20 @@ export function useSaveGlobalRules() {
 export function useUploadCoinImage() {
   return useMutation({
     mutationFn: async (file: File) => {
-      // Backend usa /admin/upload-image genérico (no /admin/coins/upload-image).
       const fd = new FormData();
       fd.append('file', file);
-      const { data } = await apiClient.post<{ url: string }>('/admin/upload-image', fd);
-      return data.url;
+      const res = await apiClient.post('/admin/upload-image', fd, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      });
+      const raw = unwrapData<{ url?: string }>(res.data);
+      const url = raw.url ?? (typeof res.data === 'object' && res.data && 'url' in res.data
+        ? String((res.data as { url?: string }).url)
+        : undefined);
+      if (!url) throw new Error('El servidor no devolvió la URL de la imagen');
+      return url;
+    },
+    onError: (error) => {
+      toast.error(getApiErrorMessage(error, 'No se pudo subir la imagen'));
     },
   });
 }

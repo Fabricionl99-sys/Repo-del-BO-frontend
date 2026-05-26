@@ -11,7 +11,7 @@ import { StatCard } from '@/components/ui/StatCard';
 import { Switch } from '@/components/ui/Switch';
 import { Table, type Column } from '@/components/ui/Table';
 import { formatNumber } from '@/lib/format';
-import { useCoins, useDeleteCoin, useSaveCoin } from '@/features/coinsApi';
+import { useCoins, useDeleteCoin, useSetCoinActive } from '@/features/coinsApi';
 import type { Coin, CoinDeliveryMode } from '@/types/coins';
 import { CurrencyEditorModal } from '../components/CurrencyEditorModal';
 
@@ -21,7 +21,7 @@ export default function CoinsPage() {
   const [params] = useSearchParams();
   const mock = params.get('mockState');
   const q = useCoins();
-  const save = useSaveCoin();
+  const setActive = useSetCoinActive();
   const del = useDeleteCoin();
   const coins = mock === 'empty' ? [] : (q.data ?? []);
   const [editor, setEditor] = useState(false);
@@ -57,7 +57,8 @@ export default function CoinsPage() {
       render: (c) => (
         <Switch
           checked={c.active}
-          onChange={(active) => save.mutate({ id: c.id, active })}
+          disabled={setActive.isPending}
+          onChange={(active) => setActive.mutate({ id: c.id, active })}
           aria-label={`activar ${c.name}`}
         />
       ),
