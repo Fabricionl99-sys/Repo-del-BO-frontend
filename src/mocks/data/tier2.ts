@@ -1,4 +1,4 @@
-import type { Coin, CoinsConfig, CoinsGlobalRules } from '@/types/coins';
+import type { Coin, CoinsGlobalRules } from '@/types/coins';
 import type { CurvePreset, LevelEntry, LevelsCurve, PlayerDistribution } from '@/types/levels';
 import type { RuleListItem, XPRule } from '@/types/rules';
 
@@ -78,8 +78,6 @@ export const coinsGlobalRules: CoinsGlobalRules = {
   maxDailyEmissionPerPlayer: 10000,
   allowP2P: false,
 };
-
-export const coinsConfig: CoinsConfig = { xp_per_coin: 3 };
 
 export const DEFAULT_LEVEL_THRESHOLDS = [
   100, 250, 500, 1000, 2500, 5000, 10000, 17500, 27500, 40000, 55000, 72500, 92500, 115000, 140000,

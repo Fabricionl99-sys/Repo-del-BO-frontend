@@ -3,7 +3,7 @@ import { apiClient } from '@/api/client';
 import { getApiErrorMessage } from '@/api/errors';
 import { unwrapData } from '@/api/response';
 import { toast } from '@/stores/toastStore';
-import type { Coin, CoinsConfig, CoinsGlobalRules } from '@/types/coins';
+import type { Coin, CoinsGlobalRules } from '@/types/coins';
 
 /**
  * Sprint #6 fix — backend usa `/admin/currencies` (no `/admin/coins`).
@@ -36,7 +36,6 @@ function adaptCoinForBackend(payload: Partial<Coin>): Record<string, unknown> {
     xp_per_unit,
     icon_url,
   };
-  if (payload.active !== undefined) body.is_active = payload.active;
   if (payload.caps?.expiryDays != null) body.expiration_days = payload.caps.expiryDays;
   return body;
 }
@@ -99,33 +98,6 @@ export function useCoinsGlobalRules() {
   });
 }
 
-export function useCoinsConfig() {
-  return useQuery({
-    queryKey: ['coins-config'],
-    queryFn: async () => {
-      const r = await apiClient.get('/admin/coins-config');
-      return unwrapData<CoinsConfig>(r.data);
-    },
-  });
-}
-
-export function useSaveCoinsConfig() {
-  const qc = useQueryClient();
-  return useMutation({
-    mutationFn: async (payload: CoinsConfig) => {
-      const r = await apiClient.patch('/admin/coins-config', payload);
-      return unwrapData<CoinsConfig>(r.data);
-    },
-    onSuccess: () => {
-      toast.success('Configuración de monedas guardada');
-      qc.invalidateQueries({ queryKey: ['coins-config'] });
-    },
-    onError: (error) => {
-      toast.error(getApiErrorMessage(error, 'No se pudo guardar la configuración'));
-    },
-  });
-}
-
 export function useSaveCoin() {
   const qc = useQueryClient();
   return useMutation({
@@ -147,14 +119,16 @@ export function useSaveCoin() {
   });
 }
 
-/** Solo cambia is_active — evita pisar code/name/icon con defaults del adapter. */
+/** Activa/desactiva por código de moneda (prod: POST activate / DELETE active/:code). */
 export function useSetCoinActive() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async ({ id, active }: { id: string; active: boolean }) => {
-      const r = await apiClient.put(`/admin/currencies/${id}`, { is_active: active });
-      const raw = unwrapData<Record<string, unknown>>(r.data);
-      return normalizeBackendCoin(raw);
+    mutationFn: async ({ code, active }: { code: string; active: boolean }) => {
+      if (active) {
+        await apiClient.post('/admin/currencies/activate', { code });
+      } else {
+        await apiClient.delete(`/admin/currencies/active/${encodeURIComponent(code)}`);
+      }
     },
     onSuccess: (_data, { active }) => {
       toast.success(active ? 'Moneda activada' : 'Moneda desactivada');
@@ -169,8 +143,8 @@ export function useSetCoinActive() {
 export function useDeleteCoin() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async (id: string) => {
-      return apiClient.put(`/admin/currencies/${id}`, { is_active: false });
+    mutationFn: async (code: string) => {
+      return apiClient.delete(`/admin/currencies/active/${encodeURIComponent(code)}`);
     },
     onSuccess: () => {
       toast.success('Moneda desactivada');

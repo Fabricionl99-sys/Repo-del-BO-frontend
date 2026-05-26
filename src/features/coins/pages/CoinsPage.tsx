@@ -58,7 +58,7 @@ export default function CoinsPage() {
         <Switch
           checked={c.active}
           disabled={setActive.isPending}
-          onChange={(active) => setActive.mutate({ id: c.id, active })}
+          onChange={(active) => setActive.mutate({ code: c.symbol, active })}
           aria-label={`activar ${c.name}`}
         />
       ),
@@ -81,7 +81,7 @@ export default function CoinsPage() {
               title="eliminar"
               size="sm"
               onClick={() => {
-                if (confirm(`¿Eliminar moneda ${c.name}?`)) del.mutate(c.id);
+                if (confirm(`¿Desactivar moneda ${c.name}?`)) del.mutate(c.symbol);
               }}
             />
           ) : null}

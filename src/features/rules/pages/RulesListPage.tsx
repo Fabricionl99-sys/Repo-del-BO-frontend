@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Copy, MoreVertical, Pencil, Plus, Upload } from 'lucide-react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { NewRuleModal } from '@/features/rules/components/NewRuleModal';
 import { Button } from '@/components/ui/Button';
 import { EmptyState } from '@/components/ui/EmptyState';
@@ -16,7 +16,6 @@ import { Table, type Column } from '@/components/ui/Table';
 import { Toolbar } from '@/components/ui/Toolbar';
 import { useDebounce } from '@/hooks/useDebounce';
 import { formatRelativeDate } from '@/lib/format';
-import { useCoinsConfig, useSaveCoinsConfig } from '@/features/coinsApi';
 import { useDuplicateRule, useRulesList, useToggleRule } from '@/features/rulesApi';
 import { CATEGORIES } from '@/types/expandedTier5';
 import type { RuleCategory, RuleListItem, RuleStatus } from '@/types/rules';
@@ -35,55 +34,6 @@ const isBoostActive = (rule: RuleListItem) => {
     new Date(rule.boost.starts_at).getTime() <= now && new Date(rule.boost.ends_at).getTime() >= now
   );
 };
-
-function CoinsGlobalSection() {
-  const q = useCoinsConfig();
-  const save = useSaveCoinsConfig();
-  const [xpPerCoin, setXpPerCoin] = useState(3);
-
-  useEffect(() => {
-    if (q.data?.xp_per_coin != null) setXpPerCoin(q.data.xp_per_coin);
-  }, [q.data]);
-
-  if (q.isLoading) return <Loading label="Cargando configuración de monedas..." />;
-  if (q.isError) return <ErrorState onRetry={() => q.refetch()} />;
-
-  return (
-    <div className="card mt-8 p-6">
-      <div className="mb-4 border-b border-border-subtle pb-3">
-        <h2 className="section-title">Configuración general de monedas</h2>
-        <p className="section-help">Aplica a todas las monedas en modo &quot;Por XP&quot;.</p>
-      </div>
-      <label className="block max-w-xs">
-        <span className="mb-1.5 block text-[14px] text-text-secondary">Cada cuántos XP se otorga 1 coin</span>
-        <input
-          type="number"
-          min={1}
-          className="field"
-          value={xpPerCoin}
-          onChange={(e) => {
-            const raw = e.target.value;
-            if (raw === '') {
-              setXpPerCoin(0);
-              return;
-            }
-            const n = Number(raw);
-            if (Number.isFinite(n) && n >= 1) setXpPerCoin(n);
-          }}
-        />
-      </label>
-      <Button
-        className="mt-4"
-        variant="primary"
-        loading={save.isPending}
-        disabled={xpPerCoin < 1}
-        onClick={() => save.mutate({ xp_per_coin: Math.max(1, xpPerCoin) })}
-      >
-        Guardar
-      </Button>
-    </div>
-  );
-}
 
 export default function RulesListPage() {
   const [params, setParams] = useSearchParams();
@@ -210,7 +160,7 @@ export default function RulesListPage() {
     <>
       <PageHeader
         title="Reglas de XP"
-        subtitle="Listado de reglas activas y tasa global de monedas por XP."
+        subtitle="Listado de reglas activas por categoría y evento bet_placed."
         actions={
           <>
             <Button icon={<Upload size={14} />}>Importar</Button>
@@ -290,9 +240,11 @@ export default function RulesListPage() {
           }
         />
       )}
-      <CoinsGlobalSection />
       <p className="mt-5 text-center text-[14px] font-medium italic text-text-tertiary">
-        Una regla activa por categoría · evento bet_placed · coins por XP según configuración general
+        Una regla activa por categoría · evento bet_placed · tasa XP por moneda en{' '}
+        <Link to="/monedas" className="text-accent hover:underline">
+          Monedas
+        </Link>
       </p>
       <NewRuleModal open={newRuleOpen} onClose={() => setNewRuleOpen(false)} />
     </>

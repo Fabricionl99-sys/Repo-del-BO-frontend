@@ -25,7 +25,6 @@ import {
   adminCurveLevels,
   adminLevelConfig,
   coins,
-  coinsConfig,
   coinsGlobalRules,
   ruleListItems,
   xpRules,
@@ -93,12 +92,6 @@ handlers.push(
   http.delete('*/admin/coins/:id', async ({ params }) => { await wait(); const index = coins.findIndex((item) => item.id === params.id); if (index >= 0) coins.splice(index, 1); return new HttpResponse(null, { status: 204 }); }),
   http.get('*/admin/coins/global-rules', async () => { await wait(); return HttpResponse.json(coinsGlobalRules); }),
   http.patch('*/admin/coins/global-rules', async ({ request }) => { await wait(); Object.assign(coinsGlobalRules, await request.json()); return HttpResponse.json(coinsGlobalRules); }),
-  http.get('*/admin/coins-config', async () => { await wait(); return HttpResponse.json({ data: coinsConfig }); }),
-  http.patch('*/admin/coins-config', async ({ request }) => {
-    await wait();
-    Object.assign(coinsConfig, await request.json());
-    return HttpResponse.json({ data: coinsConfig });
-  }),
   http.post('*/admin/coins/upload-image', async () => { await wait(); return HttpResponse.json({ url: 'https://images.unsplash.com/photo-1529626455594-4ff0802cfb7e?w=64&h=64&fit=crop' }); }),
   http.post('*/admin/upload-image', async () => {
     await wait();

@@ -177,7 +177,9 @@ export function CurrencyEditorModal({ open, onClose, initial }: Props) {
           </div>
           {deliveryMode === 'auto_xp' ? (
             <label className="mt-3 block">
-              <span className="mb-1.5 block text-[14px] text-text-secondary">Cada cuántos XP se otorga 1</span>
+              <span className="mb-1.5 block text-[14px] text-text-secondary">
+                Cada cuántos XP se otorga 1 unidad (xp_per_unit de esta moneda)
+              </span>
               <input
                 type="number"
                 min={1}
