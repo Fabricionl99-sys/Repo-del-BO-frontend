@@ -1,6 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 import { apiClient } from '@/api/client';
+import { getApiErrorMessage } from '@/api/errors';
 import { unwrapData } from '@/api/response';
 import { normalizeRankingConfig, normalizeRankingConfigs } from '@/features/rankings/rankingShape';
 import { toast } from '@/stores/toastStore';
@@ -148,6 +149,9 @@ export function useCreateRanking() {
       toast.success('Ranking creado');
       qc.invalidateQueries({ queryKey: ['rankings'] });
     },
+    onError: (error) => {
+      toast.error(getApiErrorMessage(error, 'No se pudo crear el ranking'));
+    },
   });
 }
 
@@ -167,6 +171,9 @@ export function useUpdateRanking() {
       toast.success('Ranking actualizado');
       qc.invalidateQueries({ queryKey: ['rankings'] });
       qc.invalidateQueries({ queryKey: ['rankings', vars.code] });
+    },
+    onError: (error) => {
+      toast.error(getApiErrorMessage(error, 'No se pudo actualizar el ranking'));
     },
   });
 }
@@ -193,6 +200,9 @@ export function useAddRankingPrize() {
       toast.success('Premio agregado');
       qc.invalidateQueries({ queryKey: ['rankings'] });
       qc.invalidateQueries({ queryKey: ['rankings', vars.code] });
+    },
+    onError: (error) => {
+      toast.error(getApiErrorMessage(error, 'No se pudo agregar el premio'));
     },
   });
 }

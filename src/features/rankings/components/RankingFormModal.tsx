@@ -33,7 +33,19 @@ import {
   formToPrizePayload,
   summarizeRankingReward,
 } from '@/features/rankings/rankingPrizeForm';
-import type { RankingConfig, RankingPrize } from '@/types/rankings';
+import type { RankingConfig, RankingPrize, RankingPrizePayload } from '@/types/rankings';
+import { getApiErrorMessage } from '@/api/errors';
+import { toast } from '@/stores/toastStore';
+
+function rankingPrizeToPayload(prize: RankingPrize): RankingPrizePayload {
+  return {
+    position_from: prize.position_from,
+    position_to: prize.position_to,
+    reward_type: prize.reward_type,
+    reward_config: prize.reward_config,
+    is_active: prize.is_active,
+  };
+}
 
 import { RankingPrizeFormModal } from './RankingPrizeFormModal';
 
@@ -88,20 +100,25 @@ export function RankingFormModal({
     payload: ReturnType<typeof formToPrizePayload>,
     prizeId?: string,
   ) => {
-    if (ranking) {
-      if (prizeId) {
-        const updated = await updatePrize.mutateAsync({ code: ranking.code, prizeId, ...payload });
-        setPrizes((prev) => prev.map((p) => (p.id === prizeId ? updated : p)));
-      } else {
-        const created = await addPrize.mutateAsync({ code: ranking.code, ...payload });
-        setPrizes((prev) => [...prev, created]);
+    try {
+      if (ranking) {
+        if (prizeId) {
+          const updated = await updatePrize.mutateAsync({ code: ranking.code, prizeId, ...payload });
+          setPrizes((prev) => prev.map((p) => (p.id === prizeId ? updated : p)));
+        } else {
+          const created = await addPrize.mutateAsync({ code: ranking.code, ...payload });
+          setPrizes((prev) => [...prev, created]);
+        }
+        return;
       }
-      return;
-    }
-    if (prizeId) {
-      setPrizes((prev) => prev.map((p) => (p.id === prizeId ? { ...p, ...payload, id: prizeId } : p)));
-    } else {
-      setPrizes((prev) => [...prev, { ...payload, id: `local_prize_${Date.now()}` }]);
+      if (prizeId) {
+        setPrizes((prev) => prev.map((p) => (p.id === prizeId ? { ...p, ...payload, id: prizeId } : p)));
+      } else {
+        setPrizes((prev) => [...prev, { ...payload, id: `local_prize_${Date.now()}` } as RankingPrize]);
+      }
+    } catch (error) {
+      toast.error(getApiErrorMessage(error, 'No se pudo guardar el premio'));
+      throw error;
     }
   };
 
@@ -121,16 +138,22 @@ export function RankingFormModal({
 
     if (ranking) {
       await updateRanking.mutateAsync({ code: ranking.code, ...formToMetadataPayload(values) });
+      const pending = prizes.filter((p) => p.id.startsWith('local_'));
+      for (const p of pending) {
+        const created = await addPrize.mutateAsync({
+          code: ranking.code,
+          ...rankingPrizeToPayload(p),
+        });
+        setPrizes((prev) => prev.map((x) => (x.id === p.id ? created : x)));
+      }
     } else {
-      await createRanking.mutateAsync(
-        formToCreatePayload(
-          values,
-          prizes.map(({ id: _prizeId, ...rest }) => {
-            void _prizeId;
-            return rest;
-          }),
-        ),
-      );
+      const prizePayloads = prizes.map(rankingPrizeToPayload);
+      const created = await createRanking.mutateAsync(formToCreatePayload(values, prizePayloads));
+      if (prizePayloads.length > 0 && (created.prizes?.length ?? 0) < prizePayloads.length) {
+        for (const payload of prizePayloads) {
+          await addPrize.mutateAsync({ code: created.code, ...payload });
+        }
+      }
     }
     onClose();
   });
