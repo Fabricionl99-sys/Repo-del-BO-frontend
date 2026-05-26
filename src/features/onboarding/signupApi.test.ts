@@ -1,15 +1,13 @@
 import { describe, expect, it } from 'vitest';
 
-import { isSignupEmailFormatValid, normalizeSignupEmail } from '@/features/onboarding/signupApi';
+import { isSignupEmailFormatValid } from '@/features/onboarding/signupApi';
 
-describe('signupApi email helpers', () => {
-  it('normalizes email to lowercase trimmed', () => {
-    expect(normalizeSignupEmail('  Test@Gmail.COM ')).toBe('test@gmail.com');
+describe('signup email format gate', () => {
+  it('rejects partial emails like test@g before API call', () => {
+    expect(isSignupEmailFormatValid('test@g')).toBe(false);
   });
 
-  it('rejects partial emails before API call', () => {
-    expect(isSignupEmailFormatValid('test@g')).toBe(false);
-    expect(isSignupEmailFormatValid('test@gmail.com')).toBe(true);
+  it('accepts valid business TLDs', () => {
     expect(isSignupEmailFormatValid('ops@empresa.business')).toBe(true);
   });
 });

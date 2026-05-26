@@ -45,7 +45,13 @@ export default function SignupPage() {
   const debouncedEmail = useDebounce(email ?? '', 600);
   const emailCheck = useCheckEmailAvailable(debouncedEmail);
   const emailFormatValid = isSignupEmailFormatValid(email ?? '');
+  const debouncedFormatValid = isSignupEmailFormatValid(debouncedEmail);
   const checkingEmail = emailFormatValid && (email ?? '').trim().toLowerCase() !== debouncedEmail.trim().toLowerCase();
+  const showFormatError =
+    !checkingEmail &&
+    debouncedEmail.length > 0 &&
+    !debouncedFormatValid &&
+    debouncedEmail.includes('@');
 
   useEffect(() => {
     if (tier) setSelectedTier(tier);
@@ -117,17 +123,22 @@ export default function SignupPage() {
                 }
               }}
             />
-            {errors.email && <p className="mt-1 text-[13px] text-danger">{errors.email.message}</p>}
-            {checkingEmail && emailFormatValid && (
+            {errors.email && !showFormatError && (
+              <p className="mt-1 text-[13px] text-danger">{errors.email.message}</p>
+            )}
+            {showFormatError && (
+              <p className="mt-1 text-[13px] text-danger">Formato de email inválido</p>
+            )}
+            {checkingEmail && debouncedFormatValid && (
               <p className="mt-1 text-[13px] text-text-tertiary">Verificando email…</p>
             )}
-            {emailCheck.isError && emailFormatValid && !checkingEmail && (
+            {emailCheck.isError && debouncedFormatValid && !checkingEmail && (
               <p className="mt-1 text-[13px] text-danger">{getCheckEmailErrorMessage(emailCheck.error)}</p>
             )}
             {emailCheck.data?.available === false && !emailCheck.isError && !checkingEmail && (
               <p className="mt-1 text-[13px] text-danger">Este email ya está registrado</p>
             )}
-            {emailCheck.data?.available === true && !emailCheck.isError && !checkingEmail && emailFormatValid && (
+            {emailCheck.data?.available === true && !emailCheck.isError && !checkingEmail && debouncedFormatValid && (
               <p className="mt-1 text-[13px] text-success">Email disponible</p>
             )}
           </div>

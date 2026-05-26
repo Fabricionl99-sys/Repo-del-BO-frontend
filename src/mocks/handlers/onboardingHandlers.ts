@@ -24,6 +24,18 @@ export const onboardingHandlers = [
   http.get('*/auth/check-email', async ({ request }) => {
     await wait();
     const email = new URL(request.url).searchParams.get('email')?.toLowerCase() ?? '';
+    if (!email.includes('@') || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      return HttpResponse.json(
+        {
+          type: 'https://docs.tugamificacion.com/errors/validation-failed',
+          title: 'Validation failed',
+          status: 400,
+          detail: 'One or more fields are invalid',
+          issues: [{ path: 'email', message: 'Invalid email address', code: 'invalid_format' }],
+        },
+        { status: 400 },
+      );
+    }
     return HttpResponse.json({ available: !isEmailTaken(email) });
   }),
 
