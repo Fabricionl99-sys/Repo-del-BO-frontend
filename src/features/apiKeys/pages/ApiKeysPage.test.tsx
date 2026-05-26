@@ -28,7 +28,8 @@ describe('ApiKeysPage', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Quick Start' }));
     expect(await screen.findByText(/paso 1/i)).toBeInTheDocument();
     fireEvent.click(screen.getByRole('button', { name: 'API Reference' }));
-    expect(await screen.findByText('Events')).toBeInTheDocument();
+    expect(await screen.findByRole('button', { name: 'Events (ingest)' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Player' })).toBeInTheDocument();
   });
 
   it('crea key y muestra plain text una vez', async () => {

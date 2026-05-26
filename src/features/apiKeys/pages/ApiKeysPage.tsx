@@ -17,7 +17,7 @@ import type {
   ApiConnectedIp,
   ApiKey,
   ApiKeyEnvironment,
-  ApiReferenceCategory,
+  ApiReferenceSection,
   ApiRequestLog,
 } from '@/types/apiKeys';
 
@@ -445,44 +445,55 @@ function QuickStartTab({ onPing, onGoKeys }: { onPing: () => void; onGoKeys: () 
 
 function ReferenceTab() {
   const refQ = useApiReference();
-  const [categoryId, setCategoryId] = useState<string>('events');
+  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [tryResponse, setTryResponse] = useState<string | null>(null);
 
   if (refQ.isLoading) return <Loading label="Cargando referencia..." />;
   if (refQ.isError || !refQ.data) return <ErrorState onRetry={() => refQ.refetch()} />;
-  if (!refQ.data.categories.length) {
-    return <p className="text-[14px] text-text-tertiary">No hay endpoints documentados todavía.</p>;
+
+  const sections = refQ.data.sections ?? [];
+  if (!sections.length) {
+    return (
+      <EmptyState
+        title="Sin documentación"
+        description="No hay endpoints documentados todavía."
+      />
+    );
   }
 
-  const category =
-    refQ.data.categories.find((c) => c.id === categoryId) ?? refQ.data.categories[0];
-  if (!category) {
+  const activeSection =
+    sections.find((s) => s.category === selectedCategory) ?? sections[0];
+  if (!activeSection) {
     return <ErrorState onRetry={() => refQ.refetch()} />;
   }
 
   return (
     <div className="grid grid-cols-[220px_1fr] gap-6 max-lg:grid-cols-1">
       <nav className="space-y-1">
-        {refQ.data.categories.map((c) => (
+        {sections.map((section) => (
           <button
-            key={c.id}
+            key={section.category}
             type="button"
             onClick={() => {
-              setCategoryId(c.id);
+              setSelectedCategory(section.category);
               setTryResponse(null);
             }}
             className={cn(
               'block w-full rounded-md px-3 py-2 text-left text-[15px]',
-              categoryId === c.id ? 'bg-accent/10 font-medium text-accent' : 'text-text-secondary hover:bg-bg-tertiary',
+              activeSection.category === section.category
+                ? 'bg-accent/10 font-medium text-accent'
+                : 'text-text-secondary hover:bg-bg-tertiary',
             )}
           >
-            {c.label}
+            {section.category}
           </button>
         ))}
       </nav>
       <div>
-        <p className="mb-4 text-[14px] text-text-tertiary">Base URL: {refQ.data.base_url}</p>
-        {category && <CategoryEndpoints category={category} onTry={(res) => setTryResponse(res)} />}
+        {refQ.data.base_url && (
+          <p className="mb-4 text-[14px] text-text-tertiary">Base URL: {refQ.data.base_url}</p>
+        )}
+        <SectionEndpoints section={activeSection} onTry={(res) => setTryResponse(res)} />
         {tryResponse && (
           <pre className="mt-4 overflow-x-auto rounded-lg border border-border-subtle bg-bg-tertiary p-3 font-mono text-[13px]">
             {tryResponse}
@@ -493,50 +504,59 @@ function ReferenceTab() {
   );
 }
 
-function CategoryEndpoints({
-  category,
+function SectionEndpoints({
+  section,
   onTry,
 }: {
-  category: ApiReferenceCategory;
+  section: ApiReferenceSection;
   onTry: (res: string) => void;
 }) {
   return (
     <div className="space-y-4">
-      {category.endpoints.map((ep) => (
-        <div key={`${ep.method}-${ep.path}`} className="rounded-xl border border-border-subtle bg-bg-secondary p-4">
-          <div className="mb-2 flex flex-wrap items-center gap-2">
-            <span className="rounded bg-info/15 px-2 py-0.5 text-[12px] font-semibold text-info">{ep.method}</span>
-            <code className="font-mono text-[14px]">{ep.path}</code>
-          </div>
-          <p className="mb-2 text-[15px] font-medium">{ep.summary}</p>
-          <p className="mb-3 text-[14px] text-text-tertiary">{ep.description}</p>
-          {ep.request_body && (
-            <pre className="mb-3 overflow-x-auto rounded-lg bg-bg-tertiary p-2 font-mono text-[13px]">
-              {JSON.stringify(ep.request_body, null, 2)}
-            </pre>
-          )}
-          {ep.response_example && (
-            <pre className="mb-3 overflow-x-auto rounded-lg bg-bg-tertiary p-2 font-mono text-[13px] text-success/90">
-              {JSON.stringify(ep.response_example, null, 2)}
-            </pre>
-          )}
-          <Button
-            size="sm"
-            variant="secondary"
-            onClick={() =>
-              onTry(
-                JSON.stringify(
-                  { sandbox: true, method: ep.method, path: ep.path, status: 200, ...ep.response_example },
-                  null,
-                  2,
-                ),
-              )
-            }
+      <h3 className="text-[17px] font-semibold">{section.category}</h3>
+      <ul className="space-y-3">
+        {section.endpoints.map((ep) => (
+          <li
+            key={`${ep.method}-${ep.path}`}
+            className="rounded-xl border border-border-subtle bg-bg-secondary p-4"
           >
-            Try it
-          </Button>
-        </div>
-      ))}
+            <div className="mb-2 flex flex-wrap items-center gap-2">
+              <span className="rounded bg-info/15 px-2 py-0.5 text-[12px] font-semibold text-info">{ep.method}</span>
+              <code className="font-mono text-[14px]">{ep.path}</code>
+            </div>
+            {ep.summary && <p className="mb-2 text-[15px] font-medium">{ep.summary}</p>}
+            <p className="text-[14px] text-text-tertiary">{ep.description}</p>
+            {ep.request_body && (
+              <pre className="mt-3 overflow-x-auto rounded-lg bg-bg-tertiary p-2 font-mono text-[13px]">
+                {JSON.stringify(ep.request_body, null, 2)}
+              </pre>
+            )}
+            {ep.response_example && (
+              <pre className="mt-3 overflow-x-auto rounded-lg bg-bg-tertiary p-2 font-mono text-[13px] text-success/90">
+                {JSON.stringify(ep.response_example, null, 2)}
+              </pre>
+            )}
+            {ep.response_example && (
+              <Button
+                className="mt-3"
+                size="sm"
+                variant="secondary"
+                onClick={() =>
+                  onTry(
+                    JSON.stringify(
+                      { sandbox: true, method: ep.method, path: ep.path, status: 200, ...ep.response_example },
+                      null,
+                      2,
+                    ),
+                  )
+                }
+              >
+                Try it
+              </Button>
+            )}
+          </li>
+        ))}
+      </ul>
     </div>
   );
 }

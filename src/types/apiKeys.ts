@@ -85,23 +85,23 @@ export interface RotateApiKeyResult {
 export interface ApiReferenceEndpoint {
   method: string;
   path: string;
-  summary: string;
   description: string;
+  /** Present in MSW / legacy docs only */
+  summary?: string;
   parameters?: Array<{ name: string; in: string; type: string; required: boolean; description: string }>;
   request_body?: Record<string, unknown>;
   response_example?: Record<string, unknown>;
   errors?: Array<{ code: number; message: string }>;
 }
 
-export interface ApiReferenceCategory {
-  id: string;
-  label: string;
+export interface ApiReferenceSection {
+  category: string;
   endpoints: ApiReferenceEndpoint[];
 }
 
 export interface ApiReferenceDoc {
-  base_url: string;
-  categories: ApiReferenceCategory[];
+  base_url?: string;
+  sections: ApiReferenceSection[];
 }
 
 export interface PingTestResult {

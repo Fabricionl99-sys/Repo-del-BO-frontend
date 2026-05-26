@@ -199,10 +199,9 @@ Todas las requests usan el header \`Authorization: Bearer YOUR_API_KEY\`.
 
 export const apiReferenceDoc: ApiReferenceDoc = {
   base_url: 'https://api.social2game.com',
-  categories: [
+  sections: [
     {
-      id: 'events',
-      label: 'Events',
+      category: 'Events (ingest)',
       endpoints: [
         {
           method: 'POST',
@@ -227,8 +226,7 @@ export const apiReferenceDoc: ApiReferenceDoc = {
       ],
     },
     {
-      id: 'players',
-      label: 'Players',
+      category: 'Player',
       endpoints: [
         {
           method: 'GET',
@@ -251,8 +249,7 @@ export const apiReferenceDoc: ApiReferenceDoc = {
       ],
     },
     {
-      id: 'rewards',
-      label: 'Rewards',
+      category: 'Rewards',
       endpoints: [
         {
           method: 'POST',
@@ -265,8 +262,7 @@ export const apiReferenceDoc: ApiReferenceDoc = {
       ],
     },
     {
-      id: 'webhooks',
-      label: 'Webhooks',
+      category: 'Webhooks',
       endpoints: [
         {
           method: 'GET',
@@ -278,8 +274,7 @@ export const apiReferenceDoc: ApiReferenceDoc = {
       ],
     },
     {
-      id: 'currencies',
-      label: 'Currencies',
+      category: 'Currencies',
       endpoints: [
         {
           method: 'GET',
@@ -294,8 +289,7 @@ export const apiReferenceDoc: ApiReferenceDoc = {
       ],
     },
     {
-      id: 'missions',
-      label: 'Missions',
+      category: 'Missions',
       endpoints: [
         {
           method: 'GET',
@@ -307,8 +301,7 @@ export const apiReferenceDoc: ApiReferenceDoc = {
       ],
     },
     {
-      id: 'streaks',
-      label: 'Streaks',
+      category: 'Streaks',
       endpoints: [
         {
           method: 'GET',
@@ -320,8 +313,7 @@ export const apiReferenceDoc: ApiReferenceDoc = {
       ],
     },
     {
-      id: 'shop',
-      label: 'Shop',
+      category: 'Shop',
       endpoints: [
         {
           method: 'GET',
@@ -333,8 +325,7 @@ export const apiReferenceDoc: ApiReferenceDoc = {
       ],
     },
     {
-      id: 'chests',
-      label: 'Chests',
+      category: 'Chests',
       endpoints: [
         {
           method: 'POST',
@@ -347,8 +338,7 @@ export const apiReferenceDoc: ApiReferenceDoc = {
       ],
     },
     {
-      id: 'rankings',
-      label: 'Rankings',
+      category: 'Rankings',
       endpoints: [
         {
           method: 'GET',
@@ -360,8 +350,7 @@ export const apiReferenceDoc: ApiReferenceDoc = {
       ],
     },
     {
-      id: 'avatars',
-      label: 'Avatars',
+      category: 'Avatars',
       endpoints: [
         {
           method: 'GET',
