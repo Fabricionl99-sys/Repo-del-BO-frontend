@@ -5,7 +5,13 @@ import type { Tournament } from '@/types/tier3';
 
 // Sprint #6: Missions movidas a `missionsApi.ts` con adapter dedicado
 // (BO flat shape ↔ backend nested steps). Re-export para retrocompat.
-export { useMissions, useMission, useSaveMission } from '@/features/missionsApi';
+export {
+  useMissions,
+  useMission,
+  useSaveMission,
+  useSetMissionActive,
+  useDeleteMission,
+} from '@/features/missionsApi';
 
 function useList<T>(key:string,path:string){return useQuery({queryKey:[key],queryFn:()=>apiClient.get(path).then(r=>r.data as T[])})}
 function useItem<T>(key:string,path:string,id:string|null){return useQuery({queryKey:[key,id],enabled:!!id,queryFn:()=>apiClient.get(`${path}/${id}`).then(r=>r.data as T)})}

@@ -1,5 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { apiClient } from '@/api/client';
+import { getApiErrorMessage } from '@/api/errors';
 import { unwrapData } from '@/api/response';
 import { toast } from '@/stores/toastStore';
 import type { Mission } from '@/types/tier3';
@@ -352,6 +353,38 @@ export function useSaveMission() {
     onSuccess: () => {
       toast.success('misión guardada');
       qc.invalidateQueries({ queryKey: ['missions'] });
+    },
+    onError: (error) => {
+      toast.error(getApiErrorMessage(error, 'No se pudo guardar la misión'));
+    },
+  });
+}
+
+export function useSetMissionActive() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, active }: { id: string; active: boolean }) =>
+      apiClient.patch(`/admin/missions/${id}`, { is_active: active }),
+    onSuccess: (_data, { active }) => {
+      toast.success(active ? 'Misión activada' : 'Misión pausada');
+      qc.invalidateQueries({ queryKey: ['missions'] });
+    },
+    onError: (error) => {
+      toast.error(getApiErrorMessage(error, 'No se pudo cambiar el estado de la misión'));
+    },
+  });
+}
+
+export function useDeleteMission() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (id: string) => apiClient.delete(`/admin/missions/${id}`),
+    onSuccess: () => {
+      toast.success('Misión eliminada');
+      qc.invalidateQueries({ queryKey: ['missions'] });
+    },
+    onError: (error) => {
+      toast.error(getApiErrorMessage(error, 'No se pudo eliminar la misión'));
     },
   });
 }

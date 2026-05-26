@@ -1,4 +1,4 @@
-import { Plus, MoreVertical } from 'lucide-react';
+import { MoreVertical, Pencil, Plus, Trash2 } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 
@@ -14,7 +14,7 @@ import { StatusPill } from '@/components/ui/StatusPill';
 import { Table, type Column } from '@/components/ui/Table';
 import { Toolbar } from '@/components/ui/Toolbar';
 import { getTriggerLabel, MISSION_TRIGGER_GROUPS } from '@/features/missions/missionTriggers';
-import { useMissions } from '@/features/tier3Api';
+import { useDeleteMission, useMissions, useSetMissionActive } from '@/features/tier3Api';
 import { useDebounce } from '@/hooks/useDebounce';
 import { formatRelativeDate } from '@/lib/format';
 import type { Mission } from '@/types/tier3';
@@ -24,9 +24,12 @@ export default function MissionsPage() {
   const mock = params.get('mockState');
   const q = useMissions();
   const nav = useNavigate();
+  const setActive = useSetMissionActive();
+  const del = useDeleteMission();
 
   const [triggerFilter, setTriggerFilter] = useState<string | 'all'>('all');
   const [search, setSearch] = useState('');
+  const [menuId, setMenuId] = useState<string | null>(null);
   const debouncedSearch = useDebounce(search, 250);
 
   const allRows = mock === 'empty' ? [] : (q.data ?? []);
@@ -35,8 +38,8 @@ export default function MissionsPage() {
     return allRows.filter((m) => {
       if (triggerFilter !== 'all' && m.objective.event !== triggerFilter) return false;
       if (debouncedSearch) {
-        const q = debouncedSearch.toLowerCase();
-        if (!m.name.toLowerCase().includes(q) && !getTriggerLabel(m.objective.event).toLowerCase().includes(q)) {
+        const qStr = debouncedSearch.toLowerCase();
+        if (!m.name.toLowerCase().includes(qStr) && !getTriggerLabel(m.objective.event).toLowerCase().includes(qStr)) {
           return false;
         }
       }
@@ -112,7 +115,63 @@ export default function MissionsPage() {
       key: 'actions',
       header: '',
       align: 'right',
-      render: () => <IconButton icon={MoreVertical} title="acciones" />,
+      render: (m) => (
+        <div className="relative flex justify-end">
+          <IconButton
+            icon={MoreVertical}
+            title="acciones"
+            size="sm"
+            onClick={(e) => {
+              e.stopPropagation();
+              setMenuId(menuId === m.id ? null : m.id);
+            }}
+          />
+          {menuId === m.id && (
+            <>
+              <button
+                type="button"
+                className="fixed inset-0 z-10 cursor-default"
+                aria-label="cerrar menú"
+                onClick={() => setMenuId(null)}
+              />
+              <div className="absolute right-0 top-full z-20 mt-1 min-w-[160px] rounded-lg border border-border-subtle bg-bg-secondary py-1 shadow-modal">
+                <button
+                  type="button"
+                  className="flex w-full items-center gap-2 px-3 py-2 text-left text-[14px] hover:bg-bg-tertiary"
+                  onClick={() => {
+                    setMenuId(null);
+                    nav(`/misiones/${m.id}`);
+                  }}
+                >
+                  <Pencil size={14} /> Editar
+                </button>
+                <button
+                  type="button"
+                  className="flex w-full items-center gap-2 px-3 py-2 text-left text-[14px] hover:bg-bg-tertiary"
+                  onClick={() => {
+                    setMenuId(null);
+                    void setActive.mutateAsync({ id: m.id, active: m.status !== 'active' });
+                  }}
+                >
+                  {m.status === 'active' ? 'Pausar' : 'Activar'}
+                </button>
+                <button
+                  type="button"
+                  className="flex w-full items-center gap-2 px-3 py-2 text-left text-[14px] text-danger hover:bg-bg-tertiary"
+                  onClick={() => {
+                    setMenuId(null);
+                    if (window.confirm(`¿Eliminar la misión "${m.name}"?`)) {
+                      void del.mutateAsync(m.id);
+                    }
+                  }}
+                >
+                  <Trash2 size={14} /> Eliminar
+                </button>
+              </div>
+            </>
+          )}
+        </div>
+      ),
     },
   ];
 
