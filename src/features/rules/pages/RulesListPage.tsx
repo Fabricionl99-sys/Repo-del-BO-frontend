@@ -42,7 +42,7 @@ function CoinsGlobalSection() {
   const [xpPerCoin, setXpPerCoin] = useState(3);
 
   useEffect(() => {
-    if (q.data) setXpPerCoin(q.data.xp_per_coin);
+    if (q.data?.xp_per_coin != null) setXpPerCoin(q.data.xp_per_coin);
   }, [q.data]);
 
   if (q.isLoading) return <Loading label="Cargando configuración de monedas..." />;
@@ -61,14 +61,23 @@ function CoinsGlobalSection() {
           min={1}
           className="field"
           value={xpPerCoin}
-          onChange={(e) => setXpPerCoin(Number(e.target.value) || 1)}
+          onChange={(e) => {
+            const raw = e.target.value;
+            if (raw === '') {
+              setXpPerCoin(0);
+              return;
+            }
+            const n = Number(raw);
+            if (Number.isFinite(n) && n >= 1) setXpPerCoin(n);
+          }}
         />
       </label>
       <Button
         className="mt-4"
         variant="primary"
         loading={save.isPending}
-        onClick={() => save.mutate({ xp_per_coin: xpPerCoin })}
+        disabled={xpPerCoin < 1}
+        onClick={() => save.mutate({ xp_per_coin: Math.max(1, xpPerCoin) })}
       >
         Guardar
       </Button>
@@ -140,11 +149,17 @@ export default function RulesListPage() {
     {
       key: 'cat',
       header: 'categoría',
-      render: (r) => (
-        <span className={`rounded-full px-2 py-0.5 text-[12px] font-medium ${category[r.category].color}`}>
-          {category[r.category].label}
-        </span>
-      ),
+      render: (r) => {
+        const cat = category[r.category] ?? {
+          label: r.category,
+          color: 'bg-bg-tertiary text-text-tertiary',
+        };
+        return (
+          <span className={`rounded-full px-2 py-0.5 text-[12px] font-medium ${cat.color}`}>
+            {cat.label}
+          </span>
+        );
+      },
     },
     {
       key: 'xp',
@@ -180,7 +195,12 @@ export default function RulesListPage() {
         <div className="flex justify-end gap-1">
           <IconButton icon={Copy} title="duplicar" size="sm" onClick={() => dup.mutate(r.id)} />
           <IconButton icon={Pencil} title="editar" size="sm" onClick={() => nav(`/reglas-xp/${r.id}`)} />
-          <IconButton icon={MoreVertical} title="más" size="sm" />
+          <IconButton
+            icon={MoreVertical}
+            title="pausar o activar"
+            size="sm"
+            onClick={() => toggle.mutate({ id: r.id, active: !r.active })}
+          />
         </div>
       ),
     },
