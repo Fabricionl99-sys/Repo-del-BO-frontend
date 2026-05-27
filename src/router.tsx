@@ -5,6 +5,7 @@ import { ProtectedRoute } from '@/auth/ProtectedRoute';
 import { AppShell } from '@/components/layout/AppShell';
 import { Loading } from '@/components/ui/Loading';
 
+const AcceptInvitationPage = lazy(() => import('@/features/public/pages/AcceptInvitationPage'));
 const LoginPage = lazy(() => import('@/pages/LoginPage'));
 const LandingPage = lazy(() => import('@/features/public/pages/LandingPage'));
 const SignupPage = lazy(() => import('@/features/public/pages/SignupPage'));
@@ -69,6 +70,7 @@ const comingSoonRoutes = [
 export const router = createBrowserRouter([
   { path: '/', element: wrap(<LandingPage />) },
   { path: '/login', element: wrap(<LoginPage />) },
+  { path: '/accept-invitation', element: wrap(<AcceptInvitationPage />) },
   { path: '/signup', element: wrap(<SignupPage />) },
   { path: '/signup/email-sent', element: wrap(<EmailSentPage />) },
   { path: '/signup/confirm-email', element: wrap(<ConfirmEmailPage />) },

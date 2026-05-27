@@ -108,6 +108,12 @@ export async function loginWithCredentials(email: string, password: string): Pro
   return normalizeAuthPayload(body);
 }
 
+export async function acceptInvitation(token: string, password: string): Promise<LoginResult> {
+  const res = await authHttp.post('/auth/accept-invitation', { token, password });
+  const body = unwrapData<RawAuthPayload>(res.data);
+  return normalizeAuthPayload(body);
+}
+
 export async function refreshSession(refreshToken: string): Promise<LoginResult> {
   const res = await authHttp.post('/auth/refresh', { refreshToken });
   const body = unwrapData<RawAuthPayload>(res.data);
