@@ -13,6 +13,7 @@ import { Switch } from '@/components/ui/Switch';
 import { Table, type Column } from '@/components/ui/Table';
 import { ConfigSection, ConfiguratorScaffold } from '@/components/configurator/ConfiguratorScaffold';
 import { cn } from '@/lib/cn';
+import { getApiErrorMessage } from '@/api/errors';
 import { COUNTRY_OPTIONS } from '@/mocks/data/operatorConfigMeta';
 import type {
   BusinessDayHours,
@@ -146,9 +147,13 @@ export default function SettingsPage() {
       setFormError(err);
       return;
     }
-    await update.mutateAsync(toUpdatePayload(draft));
-    setDraft(null);
-    setFormError(undefined);
+    try {
+      await update.mutateAsync(toUpdatePayload(draft));
+      setDraft(null);
+      setFormError(undefined);
+    } catch (error) {
+      setFormError(getApiErrorMessage(error, 'No se pudo guardar la configuración'));
+    }
   };
 
   const handleDiscard = () => {
@@ -250,7 +255,7 @@ export default function SettingsPage() {
                   </label>
                   <SelectField label="país" value={config.company_info.country} options={COUNTRY_OPTIONS} onChange={(v) => patch({ company_info: { country: v } })} />
                   <SelectField label="jurisdicción" value={config.company_info.jurisdiction} options={COUNTRY_OPTIONS} onChange={(v) => patch({ company_info: { jurisdiction: v } })} />
-                  <Field label="tax_id" value={config.company_info.tax_id} onChange={(v) => patch({ company_info: { tax_id: v } })} />
+                  <Field label="Identificación fiscal (RUT/CUIT/RFC)" value={config.company_info.tax_id} onChange={(v) => patch({ company_info: { tax_id: v } })} />
                   <Field label="número de licencia" value={config.company_info.license_number} onChange={(v) => patch({ company_info: { license_number: v } })} />
                   <Field label="organismo regulador" className="col-span-2 max-md:col-span-1" value={config.company_info.license_authority} onChange={(v) => patch({ company_info: { license_authority: v } })} />
                 </div>
@@ -261,7 +266,7 @@ export default function SettingsPage() {
           {tab === 'Contacto' && (
             <ConfigSection title="contacto">
               <div className="grid grid-cols-2 gap-3 max-md:grid-cols-1">
-                <Field label="email principal" value={config.contact_info.primary_email} onChange={(v) => patch({ contact_info: { primary_email: v } })} />
+                <Field label="Email de contacto" value={config.contact_info.primary_email} onChange={(v) => patch({ contact_info: { primary_email: v } })} />
                 <Field label="soporte" value={config.contact_info.support_email} onChange={(v) => patch({ contact_info: { support_email: v } })} />
                 <Field label="ventas" value={config.contact_info.sales_email} onChange={(v) => patch({ contact_info: { sales_email: v } })} />
                 <Field label="facturación" value={config.contact_info.billing_email} onChange={(v) => patch({ contact_info: { billing_email: v } })} />
