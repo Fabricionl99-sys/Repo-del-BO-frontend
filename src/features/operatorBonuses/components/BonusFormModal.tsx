@@ -8,7 +8,9 @@ import { Button } from '@/components/ui/Button';
 import { Modal } from '@/components/ui/Modal';
 import { Switch } from '@/components/ui/Switch';
 import { ConfigSection, ConfiguratorScaffold } from '@/components/configurator/ConfiguratorScaffold';
+import { FieldHint } from '@/components/ui/FieldHint';
 import {
+  useOperatorBonuses,
   useReactivateOperatorBonus,
   useSaveOperatorBonus,
   useValidateBonusId,
@@ -38,6 +40,7 @@ export function BonusFormModal({
   const validate = useValidateBonusId();
   const verify = useVerifyOperatorBonus();
   const reactivate = useReactivateOperatorBonus();
+  const syncedBonusesQ = useOperatorBonuses({ source: 'api_sync', status: 'all' });
 
   const [validationState, setValidationState] = useState<'idle' | 'loading' | 'valid' | 'invalid'>('idle');
 
@@ -111,7 +114,31 @@ export function BonusFormModal({
       <ConfiguratorScaffold>
         <ConfigSection icon="🎫" title="Identificación">
           <div>
-            <label className="mb-1.5 block text-[14px] text-text-secondary">external_id</label>
+            <label className="mb-1.5 flex items-center text-[14px] text-text-secondary">
+              ID en tu plataforma (external_id)
+              <FieldHint text="ID del bono en TU sistema (ej. el ID que Betby Bonus u otro provider asigna al bono)." />
+            </label>
+            {!isEdit && (syncedBonusesQ.data?.length ?? 0) > 0 ? (
+              <select
+                className="field mb-2"
+                defaultValue=""
+                onChange={(e) => {
+                  const id = e.target.value;
+                  if (!id) return;
+                  setValue('external_id', id, { shouldValidate: true });
+                  const match = syncedBonusesQ.data?.find((b) => b.external_id === id);
+                  if (match?.name) setValue('name', match.name);
+                  if (match?.bonus_type) setValue('bonus_type', match.bonus_type);
+                }}
+              >
+                <option value="">Autocompletar desde bonos sincronizados…</option>
+                {(syncedBonusesQ.data ?? []).map((b) => (
+                  <option key={b.id} value={b.external_id}>
+                    {b.external_id} · {b.name}
+                  </option>
+                ))}
+              </select>
+            ) : null}
             <div className="flex gap-2">
               <input
                 className="field flex-1"
