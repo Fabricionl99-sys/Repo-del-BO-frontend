@@ -73,6 +73,8 @@ export function useDeactivateModule() {
       apiClient.post(`/admin/modules/${code}/deactivate`).then((r) => unwrapData<OperatorActiveModulePublic>(r.data)),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['active-modules'] });
+      qc.invalidateQueries({ queryKey: ['module-catalog'] });
+      qc.invalidateQueries({ queryKey: ['operator-billing'] });
     },
   });
 }
