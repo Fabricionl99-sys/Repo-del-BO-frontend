@@ -1,5 +1,5 @@
 import { AlertTriangle, Plus, Wallet } from 'lucide-react';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 
 import { CryptoTopupPanel } from '../components/CryptoTopupPanel';
@@ -70,6 +70,8 @@ export default function WalletPage() {
   };
   const [txFilter, setTxFilter] = useState<TransactionType | 'all'>('all');
   const [topupOpen, setTopupOpen] = useState(false);
+  const [topupChoiceOpen, setTopupChoiceOpen] = useState(false);
+  const tabsRef = useRef<HTMLDivElement>(null);
   const [amount, setAmount] = useState('500');
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('crypto');
   const [paymentReference, setPaymentReference] = useState('');
@@ -89,6 +91,12 @@ export default function WalletPage() {
     if (!balance) return false;
     return balance.wallet_balance_usd < balance.wallet_low_balance_threshold_usd;
   }, [balance]);
+
+  useEffect(() => {
+    if (tab === 'crypto' || tab === 'topups') {
+      tabsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  }, [tab]);
 
   if (mock === 'loading' || balanceQ.isLoading) return <Loading label="Cargando wallet..." />;
   if (mock === 'error' || balanceQ.isError || !balance) return <ErrorState onRetry={() => balanceQ.refetch()} />;
@@ -165,7 +173,7 @@ export default function WalletPage() {
             <Button variant="ghost" onClick={() => setTopupOpen(true)}>
               Banco / tarjeta
             </Button>
-            <Button variant="primary" icon={<Plus size={14} />} onClick={() => setTab('crypto')}>
+            <Button variant="primary" icon={<Plus size={14} />} onClick={() => setTopupChoiceOpen(true)}>
               Recargar saldo
             </Button>
           </>
@@ -215,7 +223,7 @@ export default function WalletPage() {
         </div>
       ) : null}
 
-      <div className="mb-4 flex flex-wrap gap-2 border-b border-border-subtle pb-2">
+      <div ref={tabsRef} className="mb-4 flex flex-wrap gap-2 border-b border-border-subtle pb-2">
         {(
           [
             ['movements', 'Movimientos'],
@@ -273,6 +281,43 @@ export default function WalletPage() {
           />
         </>
       ) : null}
+
+      <Modal
+        open={topupChoiceOpen}
+        onClose={() => setTopupChoiceOpen(false)}
+        title="Recargar saldo"
+        description="Elegí cómo querés recargar tu wallet"
+        footer={
+          <Button variant="ghost" onClick={() => setTopupChoiceOpen(false)}>
+            Cancelar
+          </Button>
+        }
+      >
+        <div className="grid gap-3 sm:grid-cols-2">
+          <Button
+            variant="primary"
+            className="h-auto flex-col py-4"
+            onClick={() => {
+              setTopupChoiceOpen(false);
+              setTab('crypto');
+            }}
+          >
+            <span className="font-semibold">Cripto (USDT)</span>
+            <span className="mt-1 text-[13px] font-normal text-text-secondary">Nueva recarga on-chain</span>
+          </Button>
+          <Button
+            variant="secondary"
+            className="h-auto flex-col py-4"
+            onClick={() => {
+              setTopupChoiceOpen(false);
+              setTopupOpen(true);
+            }}
+          >
+            <span className="font-semibold">Banco / tarjeta</span>
+            <span className="mt-1 text-[13px] font-normal text-text-secondary">Transferencia o tarjeta</span>
+          </Button>
+        </div>
+      </Modal>
 
       <Modal
         open={topupOpen}
