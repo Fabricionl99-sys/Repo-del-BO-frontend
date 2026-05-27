@@ -12,6 +12,36 @@ export interface UploadMediaPayload {
   context: MediaContext;
 }
 
+function resolveUploadPath(context: MediaContext): string {
+  if (context.module === 'branding') {
+    if (context.purpose === 'logo') return '/admin/branding/upload-logo';
+    if (context.purpose === 'icon') return '/admin/branding/upload-favicon';
+    if (context.purpose === 'background') return '/admin/branding/upload-background';
+  }
+  return '/admin/storage/upload';
+}
+
+function mapUploadResponse(raw: Record<string, unknown>): MediaUploadResponse {
+  const url = String(raw.public_url ?? raw.url ?? '');
+  const sizeBytes = Number(raw.size_bytes ?? 0);
+  const sizeKb = sizeBytes > 0 ? Math.round(sizeBytes / 1024) : Number(raw.size_kb ?? 0);
+  const width = Number(raw.width ?? 0);
+  const height = Number(raw.height ?? 0);
+  return {
+    url,
+    filename: String(raw.filename ?? ''),
+    size_kb: sizeKb,
+    width,
+    height,
+    variants: {
+      thumb_64: url,
+      thumb_128: url,
+      thumb_256: url,
+      full: url,
+    },
+  };
+}
+
 export function useUploadMedia() {
   const tenantId = useOperatorStore((s) => s.current?.id ?? 'demo');
 
@@ -19,43 +49,22 @@ export function useUploadMedia() {
     mutationFn: async ({ file, context }: UploadMediaPayload) => {
       const fd = new FormData();
       fd.append('file', file);
-      fd.append('module', context.module);
-      fd.append('purpose', context.purpose);
-      fd.append('tenant_id', tenantId);
-      // Sub-etapa avatares S6: el backend hace auto-resize a 512x512 PNG
-      // con sharp (cover crop centrado) cuando se le manda este flag.
-      // Operador sube cualquier imagen → queda normalizada para el círculo.
-      if (context.module === 'avatars') {
-        fd.append('resize_to_square', '512');
+      const uploadPath = resolveUploadPath(context);
+
+      if (uploadPath === '/admin/storage/upload') {
+        fd.append('module', context.module);
+        fd.append('purpose', context.purpose);
+        fd.append('tenant_id', tenantId);
+        if (context.module === 'avatars') {
+          fd.append('resize_to_square', '512');
+        }
       }
-      const res = await apiClient.post('/admin/storage/upload', fd, {
+
+      const res = await apiClient.post(uploadPath, fd, {
         headers: { 'Content-Type': 'multipart/form-data' },
       });
-      // Backend devuelve shape distinto al que BO espera. Mapeamos:
-      //   backend `public_url` → BO `url`
-      //   backend `size_bytes` → BO `size_kb` (dividido /1024)
-      //   backend `variants.full.url` → BO `variants.thumb_*` (mismo URL hasta que
-      //   tengamos thumbs reales generados sharp)
       const raw = unwrapData<Record<string, unknown>>(res.data);
-      const url = String(raw.public_url ?? raw.url ?? '');
-      const sizeBytes = Number(raw.size_bytes ?? 0);
-      const sizeKb = sizeBytes > 0 ? Math.round(sizeBytes / 1024) : 0;
-      const width = Number(raw.width ?? 0);
-      const height = Number(raw.height ?? 0);
-      const result: MediaUploadResponse = {
-        url,
-        filename: String(raw.filename ?? ''),
-        size_kb: sizeKb,
-        width,
-        height,
-        variants: {
-          thumb_64: url,
-          thumb_128: url,
-          thumb_256: url,
-          full: url,
-        },
-      };
-      return result;
+      return mapUploadResponse(raw);
     },
     onError: (error) => {
       toast.error(getApiErrorMessage(error, 'No se pudo subir la imagen'));
@@ -66,7 +75,7 @@ export function useUploadMedia() {
 export function useStorageFiles(module: MediaModule | null) {
   return useQuery({
     queryKey: ['storage-files', module],
-    enabled: Boolean(module),
+    enabled: Boolean(module) && module !== 'branding',
     queryFn: async () => {
       const res = await apiClient.get(`/admin/storage/files?module=${module}`);
       return unwrapData<StorageFileItem[]>(res.data);

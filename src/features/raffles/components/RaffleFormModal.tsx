@@ -141,7 +141,7 @@ export function RaffleFormModal({
           </label>
           <div>
             <label className="mb-1.5 block text-sm text-text-secondary">Imagen</label>
-            <MediaUploaderRhf control={control} name="image_url" context={{ module: 'chests', purpose: 'main_image' }} error={errors.image_url?.message} />
+            <MediaUploaderRhf control={control} name="image_url" context={{ module: 'raffles', purpose: 'main_image' }} error={errors.image_url?.message} />
           </div>
           <div className="grid grid-cols-2 gap-3">
             <label className="block text-sm">
@@ -232,7 +232,7 @@ export function RaffleFormModal({
                     <MediaUploaderRhf
                       control={control}
                       name={`prizes.${index}.prize_physical_image_url`}
-                      context={{ module: 'chests', purpose: 'prize_image' }}
+                      context={{ module: 'raffles', purpose: 'prize_image' }}
                     />
                   </div>
                   <input placeholder="Valor USD (opcional)" type="number" className="w-full rounded-md border border-border-default bg-bg-primary px-3 py-2 text-sm" {...register(`prizes.${index}.prize_physical_value_usd`, { valueAsNumber: true })} />

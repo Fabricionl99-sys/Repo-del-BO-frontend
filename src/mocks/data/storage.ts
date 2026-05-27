@@ -15,6 +15,7 @@ function filesForModule(module: MediaModule, count: number): StorageFileItem[] {
     bonuses: ['thumbnail'],
     rankings: ['thumbnail'],
     wheels: ['main_image', 'logo', 'prize_image'],
+    raffles: ['main_image', 'prize_image'],
     login_popups: ['banner'],
   } as const;
 
@@ -49,6 +50,7 @@ export const storageFilesByModule: Record<MediaModule, StorageFileItem[]> = {
   bonuses: filesForModule('bonuses', 8),
   rankings: filesForModule('rankings', 5),
   wheels: filesForModule('wheels', 5),
+  raffles: filesForModule('raffles', 6),
   login_popups: filesForModule('login_popups', 6),
 };
 

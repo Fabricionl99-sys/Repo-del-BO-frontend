@@ -141,6 +141,20 @@ const PRESETS: Record<string, MediaUploaderConfig> = {
     maxDimensions: { width: 512, height: 512 },
     aspectRatio: 'square',
   },
+  'raffles:main_image': {
+    maxSizeKB: 500,
+    allowedFormats: DEFAULT_FORMATS,
+    minDimensions: { width: 256, height: 256 },
+    maxDimensions: { width: 1024, height: 1024 },
+    aspectRatio: 'square',
+  },
+  'raffles:prize_image': {
+    maxSizeKB: 300,
+    allowedFormats: DEFAULT_FORMATS,
+    minDimensions: { width: 64, height: 64 },
+    maxDimensions: { width: 512, height: 512 },
+    aspectRatio: 'square',
+  },
 };
 
 const FALLBACK: MediaUploaderConfig = {
