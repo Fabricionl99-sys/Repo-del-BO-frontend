@@ -15,15 +15,16 @@ import { Table, type Column } from '@/components/ui/Table';
 const problemStatuses: PendingRewardStatus[] = ['failed_exhausted', 'delivery_window_expired', 'manual_pending_operator'];
 
 const statusLabels: Partial<Record<PendingRewardStatus, string>> = {
-  pending_delivery: 'pendiente',
-  in_flight: 'en vuelo',
-  delivered: 'entregado',
-  failed_retrying: 'reintentando',
-  failed_exhausted: 'falló',
-  delivered_manually: 'manual',
-  cancelled_by_wingoat: 'cancelado',
-  delivery_window_expired: 'ventana vencida',
-  manual_pending_operator: 'MANUAL',
+  pending_delivery: 'Pendiente',
+  in_flight: 'En vuelo',
+  delivered: 'Entregado',
+  failed_retrying: 'Reintentando',
+  failed_exhausted: 'Falló',
+  delivered_manually: 'Entregado manualmente',
+  cancelled_by_wingoat: 'Cancelado por plataforma',
+  cancelled_by_operator: 'Cancelado por operador',
+  delivery_window_expired: 'Ventana vencida',
+  manual_pending_operator: 'Pendiente manual',
 };
 
 export default function DeliveriesPage() {

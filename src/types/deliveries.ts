@@ -6,6 +6,7 @@ export type PendingRewardStatus =
   | 'failed_exhausted'
   | 'delivered_manually'
   | 'cancelled_by_wingoat'
+  | 'cancelled_by_operator'
   | 'delivery_window_expired'
   | 'manual_pending_operator';
 
