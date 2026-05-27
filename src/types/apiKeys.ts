@@ -73,7 +73,9 @@ export interface CreateApiKeyPayload {
 
 export interface CreateApiKeyResult {
   key: ApiKey;
+  /** Backend real devuelve `plain_key`; mocks legacy usan `plain_text`. */
   plain_text: string;
+  plain_key?: string;
 }
 
 export interface RotateApiKeyResult {

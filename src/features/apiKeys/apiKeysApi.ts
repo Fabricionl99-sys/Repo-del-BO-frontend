@@ -77,7 +77,13 @@ export function useCreateApiKey() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: (payload: CreateApiKeyPayload) =>
-      apiClient.post('/admin/api-keys', payload).then((r) => unwrapData<CreateApiKeyResult>(r.data)),
+      apiClient.post('/admin/api-keys', payload).then((r) => {
+        const raw = unwrapData<CreateApiKeyResult & { plain_key?: string }>(r.data);
+        return {
+          ...raw,
+          plain_text: raw.plain_text ?? raw.plain_key ?? '',
+        };
+      }),
     onSuccess: (_data, variables) => {
       trackEvent('api_key_generated', { environment: variables.environment });
       qc.invalidateQueries({ queryKey: ['api-keys'] });
@@ -100,7 +106,13 @@ export function useRotateApiKey() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: (id: string) =>
-      apiClient.post(`/admin/api-keys/${id}/rotate`).then((r) => unwrapData<RotateApiKeyResult>(r.data)),
+      apiClient.post(`/admin/api-keys/${id}/rotate`).then((r) => {
+        const raw = unwrapData<RotateApiKeyResult & { plain_key?: string }>(r.data);
+        return {
+          ...raw,
+          plain_text: raw.plain_text ?? raw.plain_key ?? '',
+        };
+      }),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['api-keys'] });
     },
