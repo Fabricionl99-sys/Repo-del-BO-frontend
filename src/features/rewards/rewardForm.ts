@@ -110,8 +110,10 @@ export function rewardValueToForm(value: RewardValue): RewardFormFields {
     case 'freespin':
     case 'freebet':
     case 'cashback':
-    case 'bonus_deposit':
-      return { ...base, bonus_id: String(cfg.bonus_id ?? '') };
+    case 'bonus_deposit': {
+      const bonusId = String(cfg.bonus_id ?? cfg.external_bonus_id ?? '');
+      return { ...base, bonus_id: bonusId };
+    }
     case 'chest':
       return {
         ...base,
@@ -137,7 +139,10 @@ export function rewardValueToForm(value: RewardValue): RewardFormFields {
   }
 }
 
-export function formToRewardValue(fields: RewardFormFields): RewardValue {
+export function formToRewardValue(
+  fields: RewardFormFields,
+  context?: Pick<RewardOperatorContext, 'operator_bonuses'>,
+): RewardValue {
   const currency_mode = fields.currency_mode;
   const currencyExtras =
     currency_mode === 'manual_per_currency' && Object.keys(fields.currency_amounts).length > 0
@@ -160,12 +165,20 @@ export function formToRewardValue(fields: RewardFormFields): RewardValue {
     case 'freespin':
     case 'freebet':
     case 'cashback':
-    case 'bonus_deposit':
+    case 'bonus_deposit': {
+      const bonus = context?.operator_bonuses.find((b) => b.id === fields.bonus_id);
       return {
         reward_type: fields.reward_type,
-        reward_config: { bonus_id: fields.bonus_id, ...currencyExtras },
+        reward_config: {
+          bonus_id: fields.bonus_id,
+          external_bonus_id: bonus?.external_id ?? fields.bonus_id,
+          amount: bonus?.default_value_usd,
+          currency: 'USD',
+          ...currencyExtras,
+        },
         currency_mode,
       };
+    }
     case 'chest':
       return {
         reward_type: 'chest',
@@ -365,7 +378,7 @@ export function bonusesForRewardType(
   rewardType: RewardTypeCode,
 ) {
   if (!BONUS_REWARD_TYPES.includes(rewardType)) return [];
-  return context.operator_bonuses.filter((b) => b.bonus_type === rewardType);
+  return context.operator_bonuses.filter((b) => b.bonus_type === rewardType && b.is_active);
 }
 
 export const GATED_MODULE_LABELS: Record<string, string> = {

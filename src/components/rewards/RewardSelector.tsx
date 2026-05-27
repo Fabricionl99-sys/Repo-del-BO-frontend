@@ -2,6 +2,7 @@ import { AlertTriangle } from 'lucide-react';
 import { useMemo } from 'react';
 import { Link } from 'react-router-dom';
 
+import { FieldHint } from '@/components/ui/FieldHint';
 import { useCapabilityChecks } from '@/features/capabilities/useCapabilityChecks';
 import {
   bonusesForRewardType,
@@ -37,8 +38,12 @@ export interface RewardSelectorProps {
   disabled?: boolean;
 }
 
-function patchFields(current: RewardFormFields, patch: Partial<RewardFormFields>): RewardValue {
-  return formToRewardValue({ ...current, ...patch });
+function patchFields(
+  current: RewardFormFields,
+  patch: Partial<RewardFormFields>,
+  context?: RewardOperatorContext,
+): RewardValue {
+  return formToRewardValue({ ...current, ...patch }, context);
 }
 
 export function RewardSelector({
@@ -52,7 +57,16 @@ export function RewardSelector({
   const { context: fetchedContext, isLoading } = useRewardOperatorContext();
   const { isBonusTypeActive, capabilityDisabledTooltip } = useCapabilityChecks();
   const context = contextProp ?? fetchedContext;
-  const fields = useMemo(() => rewardValueToForm(value), [value]);
+  const fields = useMemo(() => {
+    const base = rewardValueToForm(value);
+    if (!BONUS_REWARD_TYPES.includes(base.reward_type) || !base.bonus_id) return base;
+    const byId = context.operator_bonuses.find((b) => b.id === base.bonus_id);
+    if (byId) return base;
+    const cfg = value.reward_config ?? {};
+    const externalId = String(cfg.external_bonus_id ?? base.bonus_id);
+    const byExternal = context.operator_bonuses.find((b) => b.external_id === externalId);
+    return byExternal ? { ...base, bonus_id: byExternal.id } : base;
+  }, [context.operator_bonuses, value]);
 
   const effectiveTypes = useMemo(
     () => getEffectiveRewardTypes(moduleKey, context.activeModuleCodes, availableRewardTypes),
@@ -67,7 +81,7 @@ export function RewardSelector({
   const gatedTypes = allTypes.filter((t) => !effectiveTypes.includes(t));
 
   const update = (patch: Partial<RewardFormFields>) => {
-    onChange(patchFields(fields, patch));
+    onChange(patchFields(fields, patch, context));
   };
 
   const bonusOptions = bonusesForRewardType(context, fields.reward_type);
@@ -85,7 +99,7 @@ export function RewardSelector({
           value={fields.reward_type}
           onChange={(e) => {
             const nextType = e.target.value as RewardTypeCode;
-            onChange(formToRewardValue({ ...defaultRewardFormFields(nextType), reward_type: nextType }));
+            onChange(formToRewardValue({ ...defaultRewardFormFields(nextType), reward_type: nextType }, context));
           }}
         >
           {moduleAllowedTypes.map((t) => {
@@ -193,16 +207,19 @@ export function RewardSelector({
 
       {BONUS_REWARD_TYPES.includes(fields.reward_type) && (
         <div>
-          <label className="mb-1.5 block text-[14px] text-text-secondary">Bono del catálogo</label>
+          <label className="mb-1.5 flex items-center text-[14px] text-text-secondary">
+            Bono del catálogo
+            <FieldHint text="Si no aparecen bonos, primero configurá tu integración en Operaciones > Bonos y hacé clic en 'Sync ahora'." />
+          </label>
           {isLoading ? (
             <p className="text-[13px] text-text-tertiary">Cargando bonos…</p>
           ) : bonusOptions.length === 0 ? (
-            <p className="text-[13px] text-text-secondary">
-              No hay bonos de tipo {fields.reward_type}.{' '}
-              <Link to="/bonos" className="text-accent hover:underline">
-                Cargá tus bonos primero
+            <div className="rounded-lg border border-border-subtle bg-bg-tertiary px-4 py-3 text-[13px] text-text-secondary">
+              <p>No hay bonos de tipo {REWARD_TYPE_LABELS[fields.reward_type]} sincronizados.</p>
+              <Link to="/bonos" className="mt-2 inline-block font-medium text-accent hover:underline">
+                Ir a Operaciones → Bonos
               </Link>
-            </p>
+            </div>
           ) : (
             <>
               <select
@@ -214,22 +231,22 @@ export function RewardSelector({
                 <option value="">Elegí un bono…</option>
                 {bonusOptions.map((b) => (
                   <option key={b.id} value={b.id}>
-                    {b.name} · {b.external_id} [{b.status}]
+                    {b.name} · {b.external_id}
                   </option>
                 ))}
               </select>
               {selectedBonus && (
                 <div className="mt-2 flex flex-wrap items-center gap-2">
                   <span className={cn('rounded-full px-2 py-0.5 text-[12px] font-semibold', statusBadge[selectedBonus.status])}>
-                    {selectedBonus.status}
+                    {selectedBonus.is_active ? 'activo' : selectedBonus.status}
                   </span>
                   <span className="text-[13px] text-text-tertiary">{selectedBonus.external_id}</span>
                 </div>
               )}
-              {selectedBonus?.status === 'deprecated' && (
+              {selectedBonus && !selectedBonus.is_active && (
                 <div className="mt-2 flex items-start gap-2 rounded-lg border border-warning/30 bg-warning/10 px-3 py-2 text-[13px] text-warning">
                   <AlertTriangle size={14} className="mt-0.5 shrink-0" />
-                  <span>⚠ Inactivo en plataforma — el bono está deprecated pero podés usarlo con precaución.</span>
+                  <span>Este bono no está activo en tu plataforma. Elegí otro o reactivá el bono en Operaciones → Bonos.</span>
                 </div>
               )}
             </>

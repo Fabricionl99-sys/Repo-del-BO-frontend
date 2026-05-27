@@ -64,6 +64,8 @@ export interface OperatorBonusCatalogStats {
 
 export interface OperatorBonusFilters {
   bonus_type?: OperatorBonusType | 'all';
+  /** Alias backend query param `?type=` (p. ej. freebet). */
+  type?: OperatorBonusType | 'all';
   source?: OperatorBonusSource | 'all';
   status?: OperatorBonusStatus | 'all';
   search?: string;

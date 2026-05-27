@@ -21,6 +21,7 @@ import type {
 function buildBonusQuery(filters: OperatorBonusFilters): string {
   const sp = new URLSearchParams();
   if (filters.bonus_type && filters.bonus_type !== 'all') sp.set('bonus_type', filters.bonus_type);
+  if (filters.type && filters.type !== 'all') sp.set('type', filters.type);
   if (filters.source && filters.source !== 'all') sp.set('source', filters.source);
   if (filters.status && filters.status !== 'all') sp.set('status', filters.status);
   if (filters.search) sp.set('search', filters.search);
