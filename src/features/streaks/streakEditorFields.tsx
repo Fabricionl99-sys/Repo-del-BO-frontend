@@ -3,7 +3,8 @@ import type { Path } from 'react-hook-form';
 
 import { RewardSelector } from '@/components/rewards/RewardSelector';
 import { useChestTypeOptions } from '@/features/chests/chestsApi';
-import { useCoins } from '@/features/coinsApi';
+import { useCoins, useDefaultCurrency } from '@/features/coinsApi';
+import { operatorCurrencyHint } from '@/lib/formatOperatorAmount';
 import {
   coinCodeForSelect,
   type StreakEditorFormValues,
@@ -56,6 +57,9 @@ export function FieldErr({ path }: { path: string }) {
 export function ActivityConfigFields() {
   const { register, watch } = useFormContext<StreakEditorFormValues>();
   const activityType = watch('activity_type') as StreakActivityType;
+  const defaultCurrencyQ = useDefaultCurrency();
+  const fiatCode = defaultCurrencyQ.data?.code ?? 'USD';
+  const fiatHint = operatorCurrencyHint(defaultCurrencyQ.data);
 
   if (activityType === 'login') {
     return (
@@ -70,8 +74,9 @@ export function ActivityConfigFields() {
   if (activityType === 'deposit_individual') {
     return (
       <div className="mt-3 max-w-xs">
-        <label className="mb-1 block text-[14px] text-text-secondary">Monto mínimo por depósito (USD)</label>
+        <label className="mb-1 block text-[14px] text-text-secondary">Monto mínimo por depósito ({fiatCode})</label>
         <input className="field" type="number" min={0.01} step={0.01} {...register('minimum_amount_per_deposit', { valueAsNumber: true })} />
+        {fiatHint ? <p className="mt-1 text-[13px] text-text-tertiary">{fiatHint}</p> : null}
         <FieldErr path="minimum_amount_per_deposit" />
       </div>
     );
@@ -80,8 +85,9 @@ export function ActivityConfigFields() {
   if (activityType === 'deposit_cumulative') {
     return (
       <div className="mt-3 max-w-xs">
-        <label className="mb-1 block text-[14px] text-text-secondary">Monto acumulado mínimo por día (USD)</label>
+        <label className="mb-1 block text-[14px] text-text-secondary">Monto acumulado mínimo por día ({fiatCode})</label>
         <input className="field" type="number" min={0.01} step={0.01} {...register('minimum_amount_total_per_day', { valueAsNumber: true })} />
+        {fiatHint ? <p className="mt-1 text-[13px] text-text-tertiary">{fiatHint}</p> : null}
         <FieldErr path="minimum_amount_total_per_day" />
       </div>
     );
@@ -91,8 +97,9 @@ export function ActivityConfigFields() {
     return (
       <div className="mt-3 grid max-w-lg grid-cols-2 gap-3">
         <div>
-          <label className="mb-1 block text-[14px] text-text-secondary">Monto mínimo por apuesta (USD)</label>
+          <label className="mb-1 block text-[14px] text-text-secondary">Monto mínimo por apuesta ({fiatCode})</label>
           <input className="field" type="number" min={0.01} step={0.01} {...register('minimum_amount_per_bet', { valueAsNumber: true })} />
+          {fiatHint ? <p className="mt-1 text-[13px] text-text-tertiary">{fiatHint}</p> : null}
           <FieldErr path="minimum_amount_per_bet" />
         </div>
         <div>
@@ -108,8 +115,9 @@ export function ActivityConfigFields() {
     return (
       <div className="mt-3 grid max-w-lg grid-cols-2 gap-3">
         <div>
-          <label className="mb-1 block text-[14px] text-text-secondary">Monto acumulado mínimo por día (USD)</label>
+          <label className="mb-1 block text-[14px] text-text-secondary">Monto acumulado mínimo por día ({fiatCode})</label>
           <input className="field" type="number" min={0.01} step={0.01} {...register('minimum_amount_total_bet_per_day', { valueAsNumber: true })} />
+          {fiatHint ? <p className="mt-1 text-[13px] text-text-tertiary">{fiatHint}</p> : null}
           <FieldErr path="minimum_amount_total_bet_per_day" />
         </div>
         <div>

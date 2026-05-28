@@ -181,6 +181,10 @@ handlers.push(
   http.get('*/admin/coins/global-rules', async () => { await wait(); return HttpResponse.json(coinsGlobalRules); }),
   http.patch('*/admin/coins/global-rules', async ({ request }) => { await wait(); Object.assign(coinsGlobalRules, await request.json()); return HttpResponse.json(coinsGlobalRules); }),
   http.post('*/admin/coins/upload-image', async () => { await wait(); return HttpResponse.json({ url: 'https://images.unsplash.com/photo-1529626455594-4ff0802cfb7e?w=64&h=64&fit=crop' }); }),
+  http.get('*/admin/currencies/default', async () => {
+    await wait();
+    return HttpResponse.json({ data: { code: 'CLP', symbol: '$', name: 'Peso chileno' } });
+  }),
   http.get('*/admin/currencies', async () => {
     await wait();
     return HttpResponse.json({

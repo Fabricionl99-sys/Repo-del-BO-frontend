@@ -1,5 +1,6 @@
 import type { FieldPath, UseFormReturn } from 'react-hook-form';
 
+import { formatOperatorAmount } from '@/lib/formatOperatorAmount';
 import type {
   StreakActivityConfig,
   StreakActivityType,
@@ -557,7 +558,12 @@ export function applyValidationErrors<T extends StreakEditorFormValues>(
   }
 }
 
-export function rewardPreviewLabel(kind: StreakRewardKind, row: StreakMilestoneFormRow | StreakEditorFormValues, isDaily: boolean): string {
+export function rewardPreviewLabel(
+  kind: StreakRewardKind,
+  row: StreakMilestoneFormRow | StreakEditorFormValues,
+  isDaily: boolean,
+  fiatCurrency?: { code: string; symbol?: string } | null,
+): string {
   if (kind === 'none' && isDaily) return 'sin micro-recompensa';
   if (kind === 'manual' && 'manual_description' in row) {
     const t = row.manual_description.trim().slice(0, 40);
@@ -582,7 +588,11 @@ export function rewardPreviewLabel(kind: StreakRewardKind, row: StreakMilestoneF
   if (kind === 'freebet') {
     const a = isDaily ? (row as StreakEditorFormValues).daily_freebet_amount : (row as StreakMilestoneFormRow).freebet_amount;
     const c = isDaily ? (row as StreakEditorFormValues).daily_freebet_currency : (row as StreakMilestoneFormRow).freebet_currency;
-    return `${c} ${a} freebet`;
+    const cur =
+      fiatCurrency?.code && c === fiatCurrency.code
+        ? fiatCurrency
+        : { code: c ?? 'USD', symbol: c === fiatCurrency?.code ? fiatCurrency?.symbol : undefined };
+    return `${formatOperatorAmount(Number(a) || 0, cur)} freebet`;
   }
   if (kind === 'cashback') {
     const p = isDaily ? (row as StreakEditorFormValues).daily_cashback_percentage : (row as StreakMilestoneFormRow).cashback_percentage;

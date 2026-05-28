@@ -5,6 +5,12 @@ import { unwrapData } from '@/api/response';
 import { toast } from '@/stores/toastStore';
 import type { Coin, CoinsGlobalRules } from '@/types/coins';
 
+export interface OperatorCurrency {
+  code: string;
+  symbol?: string;
+  name?: string;
+}
+
 /**
  * Sprint #6 fix — backend usa `/admin/currencies` (no `/admin/coins`).
  * Plus: backend usa PUT para edit (no PATCH). No tiene endpoint
@@ -88,6 +94,30 @@ export function useCoins() {
       const arr = unwrapData<unknown[]>(r.data) ?? [];
       return arr.map((raw) => normalizeBackendCoin(raw as Record<string, unknown>));
     },
+  });
+}
+
+/** Moneda fiat por defecto del operador (CLP, PEN, USD, …). Solo presentación en UI. */
+export function useDefaultCurrency() {
+  return useQuery({
+    queryKey: ['coins', 'default'],
+    queryFn: async (): Promise<OperatorCurrency | null> => {
+      try {
+        const raw = await apiClient
+          .get('/admin/currencies/default')
+          .then((r) => unwrapData<Record<string, unknown>>(r.data));
+        const code = typeof raw.code === 'string' ? raw.code : undefined;
+        if (!code) return null;
+        return {
+          code,
+          symbol: typeof raw.symbol === 'string' ? raw.symbol : undefined,
+          name: typeof raw.name === 'string' ? raw.name : undefined,
+        };
+      } catch {
+        return null;
+      }
+    },
+    staleTime: 5 * 60 * 1000,
   });
 }
 

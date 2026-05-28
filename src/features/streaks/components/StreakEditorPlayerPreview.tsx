@@ -1,8 +1,10 @@
 import { useMemo, useState } from 'react';
 import { ChevronDown } from 'lucide-react';
 
+import { useDefaultCurrency } from '@/features/coinsApi';
 import type { StreakEditorFormValues } from '@/features/streaks/streakEditorForm';
 import { rewardPreviewLabel } from '@/features/streaks/streakEditorForm';
+import { operatorCurrencyHint } from '@/lib/formatOperatorAmount';
 
 function getErr(errors: unknown, path: string): string | undefined {
   const parts = path.split('.');
@@ -17,11 +19,14 @@ function getErr(errors: unknown, path: string): string | undefined {
 
 export function StreakEditorPlayerPreview({ values, formErrors }: { values: StreakEditorFormValues; formErrors: unknown }) {
   const [open, setOpen] = useState(false);
+  const defaultCurrencyQ = useDefaultCurrency();
+  const fiatCurrency = defaultCurrencyQ.data;
+  const fiatHint = operatorCurrencyHint(fiatCurrency);
   const sorted = useMemo(() => [...values.milestones].sort((a, b) => a.day_number - b.day_number), [values.milestones]);
 
   const nextMilestone = sorted[0];
   const nextLabel = nextMilestone
-    ? `Día ${nextMilestone.day_number} → ${rewardPreviewLabel(nextMilestone.reward_kind, nextMilestone, false)}`
+    ? `Día ${nextMilestone.day_number} → ${rewardPreviewLabel(nextMilestone.reward_kind, nextMilestone, false, fiatCurrency)}`
     : 'Sin hitos configurados';
 
   const lastMilestoneDay = sorted.length ? sorted[sorted.length - 1].day_number : 0;
@@ -33,14 +38,14 @@ export function StreakEditorPlayerPreview({ values, formErrors }: { values: Stre
     for (let d = 1; d <= cap; d++) {
       const hit = sorted.find((h) => h.day_number === d);
       const label = hit
-        ? rewardPreviewLabel(hit.reward_kind, hit, false)
+        ? rewardPreviewLabel(hit.reward_kind, hit, false, fiatCurrency)
         : values.daily_reward_kind !== 'none'
-          ? rewardPreviewLabel(values.daily_reward_kind, values, true)
+          ? rewardPreviewLabel(values.daily_reward_kind, values, true, fiatCurrency)
           : '—';
       out.push({ d, label, hit });
     }
     return out;
-  }, [sorted, cap, values]);
+  }, [sorted, cap, values, fiatCurrency]);
 
   return (
     <section className="mt-8 rounded-xl border border-border-subtle bg-bg-secondary">
@@ -54,6 +59,7 @@ export function StreakEditorPlayerPreview({ values, formErrors }: { values: Stre
       </button>
       {open ? (
         <div className="border-t border-border-subtle px-4 py-4">
+          {fiatHint ? <p className="mb-2 text-[13px] text-text-tertiary">{fiatHint}</p> : null}
           <div className="rounded-lg border border-border-default bg-bg-primary p-4 font-sans text-[15px] shadow-sm">
             <p className="mb-1 font-medium text-text-primary">Tu racha actual: Día 0 (no iniciada)</p>
             <p className="mb-4 text-text-secondary">
