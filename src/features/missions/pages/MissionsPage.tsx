@@ -9,6 +9,7 @@ import { FilterPill } from '@/components/ui/FilterPill';
 import { IconButton } from '@/components/ui/IconButton';
 import { Loading } from '@/components/ui/Loading';
 import { PageHeader } from '@/components/ui/PageHeader';
+import { RowContextMenu, openRowContextMenu, type RowContextMenuAnchor } from '@/components/ui/RowContextMenu';
 import { SearchInput } from '@/components/ui/SearchInput';
 import { StatusPill } from '@/components/ui/StatusPill';
 import { Table, type Column } from '@/components/ui/Table';
@@ -29,7 +30,7 @@ export default function MissionsPage() {
 
   const [triggerFilter, setTriggerFilter] = useState<string | 'all'>('all');
   const [search, setSearch] = useState('');
-  const [menuId, setMenuId] = useState<string | null>(null);
+  const [menuAnchor, setMenuAnchor] = useState<RowContextMenuAnchor | null>(null);
   const debouncedSearch = useDebounce(search, 250);
 
   const allRows = mock === 'empty' ? [] : (q.data ?? []);
@@ -46,6 +47,8 @@ export default function MissionsPage() {
       return true;
     });
   }, [allRows, triggerFilter, debouncedSearch]);
+
+  const menuMission = menuAnchor ? allRows.find((m) => m.id === menuAnchor.id) : undefined;
 
   const cols: Column<Mission>[] = [
     {
@@ -123,53 +126,9 @@ export default function MissionsPage() {
             size="sm"
             onClick={(e) => {
               e.stopPropagation();
-              setMenuId(menuId === m.id ? null : m.id);
+              setMenuAnchor(openRowContextMenu(e, m.id, menuAnchor));
             }}
           />
-          {menuId === m.id && (
-            <>
-              <button
-                type="button"
-                className="fixed inset-0 z-10 cursor-default"
-                aria-label="cerrar menú"
-                onClick={() => setMenuId(null)}
-              />
-              <div className="absolute right-0 top-full z-20 mt-1 min-w-[160px] rounded-lg border border-border-subtle bg-bg-secondary py-1 shadow-modal">
-                <button
-                  type="button"
-                  className="flex w-full items-center gap-2 px-3 py-2 text-left text-[14px] hover:bg-bg-tertiary"
-                  onClick={() => {
-                    setMenuId(null);
-                    nav(`/misiones/${m.id}`);
-                  }}
-                >
-                  <Pencil size={14} /> Editar
-                </button>
-                <button
-                  type="button"
-                  className="flex w-full items-center gap-2 px-3 py-2 text-left text-[14px] hover:bg-bg-tertiary"
-                  onClick={() => {
-                    setMenuId(null);
-                    void setActive.mutateAsync({ id: m.id, active: m.status !== 'active' });
-                  }}
-                >
-                  {m.status === 'active' ? 'Pausar' : 'Activar'}
-                </button>
-                <button
-                  type="button"
-                  className="flex w-full items-center gap-2 px-3 py-2 text-left text-[14px] text-danger hover:bg-bg-tertiary"
-                  onClick={() => {
-                    setMenuId(null);
-                    if (window.confirm(`¿Eliminar la misión "${m.name}"?`)) {
-                      void del.mutateAsync(m.id);
-                    }
-                  }}
-                >
-                  <Trash2 size={14} /> Eliminar
-                </button>
-              </div>
-            </>
-          )}
         </div>
       ),
     },
@@ -243,6 +202,44 @@ export default function MissionsPage() {
           }
         />
       )}
+      <RowContextMenu anchor={menuAnchor} onClose={() => setMenuAnchor(null)}>
+        {menuMission && (
+          <>
+            <button
+              type="button"
+              className="flex w-full items-center gap-2 px-3 py-2 text-left text-[14px] hover:bg-bg-tertiary"
+              onClick={() => {
+                setMenuAnchor(null);
+                nav(`/misiones/${menuMission.id}`);
+              }}
+            >
+              <Pencil size={14} /> Editar
+            </button>
+            <button
+              type="button"
+              className="flex w-full items-center gap-2 px-3 py-2 text-left text-[14px] hover:bg-bg-tertiary"
+              onClick={() => {
+                setMenuAnchor(null);
+                void setActive.mutateAsync({ id: menuMission.id, active: menuMission.status !== 'active' });
+              }}
+            >
+              {menuMission.status === 'active' ? 'Pausar misión' : 'Reanudar misión'}
+            </button>
+            <button
+              type="button"
+              className="flex w-full items-center gap-2 px-3 py-2 text-left text-[14px] text-danger hover:bg-bg-tertiary"
+              onClick={() => {
+                setMenuAnchor(null);
+                if (window.confirm(`¿Eliminar la misión "${menuMission.name}"?`)) {
+                  void del.mutateAsync(menuMission.id);
+                }
+              }}
+            >
+              <Trash2 size={14} /> Eliminar
+            </button>
+          </>
+        )}
+      </RowContextMenu>
     </>
   );
 }

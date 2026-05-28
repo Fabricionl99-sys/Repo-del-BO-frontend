@@ -1,6 +1,6 @@
 import type { GameCategory } from './expandedTier5';
 import type { RuleCondition } from './shared';
-export type RuleStatus = 'active' | 'paused' | 'draft' | 'archived' | 'published';
+export type RuleStatus = 'active' | 'paused' | 'draft' | 'archived';
 export type RuleCategory = GameCategory;
 export type TriggerEvent = 'bet_placed';
 export interface XPAction { xpBase: number; xpPerAmount?: { xp: number; amount: number; currency?: string }; xpMaxPerEvent?: number | null }

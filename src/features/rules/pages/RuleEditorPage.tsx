@@ -117,7 +117,7 @@ export default function RuleEditorPage() {
                     setStatus.mutate({ id: sourceRule.id, status: 'paused' }, { onSuccess: () => nav('/reglas-xp') })
                   }
                 >
-                  Pausar
+                  Pausar regla
                 </Button>
               ) : sourceRule.status === 'paused' ? (
                 <Button
@@ -127,7 +127,7 @@ export default function RuleEditorPage() {
                     setStatus.mutate({ id: sourceRule.id, status: 'active' }, { onSuccess: () => nav('/reglas-xp') })
                   }
                 >
-                  Reanudar
+                  Reanudar regla
                 </Button>
               ) : null}
               <Button

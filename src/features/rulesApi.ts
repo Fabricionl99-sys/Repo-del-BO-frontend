@@ -57,11 +57,10 @@ interface BackendBoostRow {
   category_code?: string;
 }
 
-/** Backend puede devolver `published`; en UI lo tratamos como activa/publicada. */
+/** Backend legacy: `published` → tratamos como `active` (semántica FE-only). */
 export function normalizeRuleStatus(raw?: string, isActive?: boolean): RuleStatus {
   const s = (raw ?? '').toLowerCase();
-  if (s === 'published') return 'published';
-  if (s === 'active') return 'active';
+  if (s === 'published' || s === 'active') return 'active';
   if (s === 'paused') return 'paused';
   if (s === 'draft') return 'draft';
   if (s === 'archived') return 'archived';
@@ -69,7 +68,7 @@ export function normalizeRuleStatus(raw?: string, isActive?: boolean): RuleStatu
 }
 
 export function isPublishedLikeStatus(status: RuleStatus): boolean {
-  return status === 'active' || status === 'published';
+  return status === 'active';
 }
 
 function parseBoost(raw: BackendBoostRow | null | undefined): RuleBoost | undefined {
@@ -100,7 +99,7 @@ function backendRowToListItem(r: BackendRuleRow): RuleListItem {
     category: catSlug,
     currency,
     status,
-    active: r.is_active || isPublishedLikeStatus(status),
+    active: isPublishedLikeStatus(status),
     boost: parseBoost(r.boost ?? undefined),
     updatedAt: r.updated_at ?? r.created_at ?? new Date().toISOString(),
     xpDisplay: {

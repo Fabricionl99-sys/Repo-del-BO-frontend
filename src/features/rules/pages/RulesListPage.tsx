@@ -9,12 +9,13 @@ import { FilterPill } from '@/components/ui/FilterPill';
 import { IconButton } from '@/components/ui/IconButton';
 import { Loading } from '@/components/ui/Loading';
 import { PageHeader } from '@/components/ui/PageHeader';
+import { RowContextMenu, openRowContextMenu, type RowContextMenuAnchor } from '@/components/ui/RowContextMenu';
 import { SearchInput } from '@/components/ui/SearchInput';
 import { StatusPill } from '@/components/ui/StatusPill';
 import { Switch } from '@/components/ui/Switch';
 import { Table, type Column } from '@/components/ui/Table';
-import { Toolbar } from '@/components/ui/Toolbar';
 import { useDebounce } from '@/hooks/useDebounce';
+import { Toolbar } from '@/components/ui/Toolbar';
 import { formatRelativeDate } from '@/lib/format';
 import {
   isPublishedLikeStatus,
@@ -49,7 +50,7 @@ function statusPillStatus(rule: RuleListItem): 'active' | 'paused' | 'draft' | '
 }
 
 function statusPillLabel(rule: RuleListItem): string | undefined {
-  if (rule.status === 'published') return 'publicada';
+  if (isPublishedLikeStatus(rule.status)) return 'publicada';
   return undefined;
 }
 
@@ -59,7 +60,7 @@ export default function RulesListPage() {
   const mock = params.get('mockState');
   const [newRuleOpen, setNewRuleOpen] = useState(false);
   const [search, setSearch] = useState('');
-  const [menuId, setMenuId] = useState<string | null>(null);
+  const [menuAnchor, setMenuAnchor] = useState<RowContextMenuAnchor | null>(null);
 
   useEffect(() => {
     if (params.get('create') !== '1') return;
@@ -85,6 +86,7 @@ export default function RulesListPage() {
     () => rules.filter((r) => !debounced || `${r.name} ${r.description}`.toLowerCase().includes(debounced.toLowerCase())),
     [rules, debounced],
   );
+  const menuRule = menuAnchor ? allRules.find((r) => r.id === menuAnchor.id) : undefined;
   const counts = useMemo(
     () => ({
       all: allRules.length,
@@ -104,8 +106,9 @@ export default function RulesListPage() {
         <div onClick={(e) => e.stopPropagation()}>
           <Switch
             checked={r.active}
+            disabled={toggle.isPending}
             onChange={(active) => toggle.mutate({ id: r.id, active })}
-            aria-label={`activar ${r.name}`}
+            aria-label={r.active ? `pausar ${r.name}` : `reanudar ${r.name}`}
           />
         </div>
       ),
@@ -179,75 +182,8 @@ export default function RulesListPage() {
             icon={MoreVertical}
             title="más acciones"
             size="sm"
-            onClick={() => setMenuId(menuId === r.id ? null : r.id)}
+            onClick={(e) => setMenuAnchor(openRowContextMenu(e, r.id, menuAnchor))}
           />
-          {menuId === r.id && (
-            <>
-              <button
-                type="button"
-                className="fixed inset-0 z-10 cursor-default"
-                aria-label="cerrar menú"
-                onClick={() => setMenuId(null)}
-              />
-              <div className="absolute right-0 top-full z-20 mt-1 min-w-[180px] rounded-lg border border-border-subtle bg-bg-secondary py-1 shadow-modal">
-                <button
-                  type="button"
-                  className="flex w-full items-center gap-2 px-3 py-2 text-left text-[14px] hover:bg-bg-tertiary"
-                  onClick={() => {
-                    setMenuId(null);
-                    nav(`/reglas-xp/${r.id}`);
-                  }}
-                >
-                  <Pencil size={14} /> Editar
-                </button>
-                <button
-                  type="button"
-                  className="flex w-full items-center gap-2 px-3 py-2 text-left text-[14px] hover:bg-bg-tertiary"
-                  onClick={() => {
-                    setMenuId(null);
-                    nav(`/reglas-xp/nueva?copyFrom=${encodeURIComponent(r.id)}`);
-                  }}
-                >
-                  <Copy size={14} /> Copiar
-                </button>
-                {isPublishedLikeStatus(r.status) ? (
-                  <button
-                    type="button"
-                    className="flex w-full items-center gap-2 px-3 py-2 text-left text-[14px] hover:bg-bg-tertiary"
-                    onClick={() => {
-                      setMenuId(null);
-                      void setStatus.mutateAsync({ id: r.id, status: 'paused' });
-                    }}
-                  >
-                    Pausar
-                  </button>
-                ) : r.status === 'paused' ? (
-                  <button
-                    type="button"
-                    className="flex w-full items-center gap-2 px-3 py-2 text-left text-[14px] hover:bg-bg-tertiary"
-                    onClick={() => {
-                      setMenuId(null);
-                      void setStatus.mutateAsync({ id: r.id, status: 'active' });
-                    }}
-                  >
-                    Reanudar
-                  </button>
-                ) : null}
-                <button
-                  type="button"
-                  className="flex w-full items-center gap-2 px-3 py-2 text-left text-[14px] text-danger hover:bg-bg-tertiary"
-                  onClick={() => {
-                    setMenuId(null);
-                    if (window.confirm(`¿Eliminar la regla "${r.name}"?`)) {
-                      void del.mutateAsync(r.id);
-                    }
-                  }}
-                >
-                  <Trash2 size={14} /> Eliminar
-                </button>
-              </div>
-            </>
-          )}
         </div>
       ),
     },
@@ -344,6 +280,67 @@ export default function RulesListPage() {
         </Link>
       </p>
       <NewRuleModal open={newRuleOpen} onClose={() => setNewRuleOpen(false)} />
+      <RowContextMenu anchor={menuAnchor} onClose={() => setMenuAnchor(null)}>
+        {menuRule && (
+          <>
+            <button
+              type="button"
+              className="flex w-full items-center gap-2 px-3 py-2 text-left text-[14px] hover:bg-bg-tertiary"
+              onClick={() => {
+                setMenuAnchor(null);
+                nav(`/reglas-xp/${menuRule.id}?mode=edit`);
+              }}
+            >
+              <Pencil size={14} /> Editar
+            </button>
+            <button
+              type="button"
+              className="flex w-full items-center gap-2 px-3 py-2 text-left text-[14px] hover:bg-bg-tertiary"
+              onClick={() => {
+                setMenuAnchor(null);
+                nav(`/reglas-xp/nueva?copyFrom=${encodeURIComponent(menuRule.id)}`);
+              }}
+            >
+              <Copy size={14} /> Copiar
+            </button>
+            {isPublishedLikeStatus(menuRule.status) ? (
+              <button
+                type="button"
+                className="flex w-full items-center gap-2 px-3 py-2 text-left text-[14px] hover:bg-bg-tertiary"
+                onClick={() => {
+                  setMenuAnchor(null);
+                  void setStatus.mutateAsync({ id: menuRule.id, status: 'paused' });
+                }}
+              >
+                Pausar regla
+              </button>
+            ) : menuRule.status === 'paused' ? (
+              <button
+                type="button"
+                className="flex w-full items-center gap-2 px-3 py-2 text-left text-[14px] hover:bg-bg-tertiary"
+                onClick={() => {
+                  setMenuAnchor(null);
+                  void setStatus.mutateAsync({ id: menuRule.id, status: 'active' });
+                }}
+              >
+                Reanudar regla
+              </button>
+            ) : null}
+            <button
+              type="button"
+              className="flex w-full items-center gap-2 px-3 py-2 text-left text-[14px] text-danger hover:bg-bg-tertiary"
+              onClick={() => {
+                setMenuAnchor(null);
+                if (window.confirm(`¿Eliminar la regla "${menuRule.name}"?`)) {
+                  void del.mutateAsync(menuRule.id);
+                }
+              }}
+            >
+              <Trash2 size={14} /> Eliminar
+            </button>
+          </>
+        )}
+      </RowContextMenu>
     </>
   );
 }
