@@ -70,10 +70,14 @@ export function ruleNameForCategory(category: GameCategory): string {
 
 export function buildRulePayload(
   values: RuleXpFormValues,
-  opts: { status: 'draft' | 'active'; existingRule?: Pick<XPRule, 'name' | 'description'> | null },
+  opts: {
+    status: 'draft' | 'active';
+    existingRule?: Pick<XPRule, 'name' | 'description'> | null;
+    nameOverride?: string;
+  },
 ): Partial<XPRule> {
   const boost = toIsoBoost(values.boost);
-  const name = opts.existingRule?.name?.trim() || ruleNameForCategory(values.category);
+  const name = opts.nameOverride?.trim() || opts.existingRule?.name?.trim() || ruleNameForCategory(values.category);
   const currency = (values.currency ?? 'USD').toUpperCase();
 
   return {

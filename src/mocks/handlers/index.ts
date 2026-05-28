@@ -65,6 +65,89 @@ handlers.push(
     xpRules.unshift(copy);
     return HttpResponse.json(copy, { status: 201 });
   }),
+  http.get('*/admin/rules', async () => {
+    await wait();
+    const rows = xpRules.map((rule) => ({
+      id: rule.id,
+      name: rule.name,
+      description: rule.description,
+      category_id: { deportes: 1, casino_vivo: 2, casino: 3, virtuales: 5, poker: 6 }[rule.category] ?? 1,
+      category: rule.category,
+      status: rule.status,
+      is_active: rule.status === 'active' || rule.status === 'published',
+      currency: rule.action.xpPerAmount?.currency ?? 'USD',
+      xp_per_unit: String(rule.usd_per_xp ?? rule.action.xpPerAmount?.amount ?? 0),
+      unit_field: 'amount',
+      boost: rule.boost ?? null,
+      created_at: rule.createdAt,
+      updated_at: rule.updatedAt,
+    }));
+    return HttpResponse.json({ data: rows });
+  }),
+  http.get('*/admin/rules/:id', async ({ params }) => {
+    await wait();
+    const rule = xpRules.find((item) => item.id === params.id) ?? xpRules[0];
+    return HttpResponse.json({
+      data: {
+        id: rule.id,
+        name: rule.name,
+        description: rule.description,
+        category_id: { deportes: 1, casino_vivo: 2, casino: 3, virtuales: 5, poker: 6 }[rule.category] ?? 1,
+        category: rule.category,
+        status: rule.status,
+        is_active: rule.status === 'active' || rule.status === 'published',
+        currency: rule.action.xpPerAmount?.currency ?? 'USD',
+        xp_per_unit: String(rule.usd_per_xp ?? rule.action.xpPerAmount?.amount ?? 0),
+        unit_field: 'amount',
+        boost: rule.boost ?? null,
+        created_at: rule.createdAt,
+        updated_at: rule.updatedAt,
+      },
+    });
+  }),
+  http.put('*/admin/rules/:id', async ({ params, request }) => {
+    await wait();
+    const body = (await request.json()) as Record<string, unknown>;
+    const rule = xpRules.find((item) => item.id === params.id) ?? xpRules[0];
+    if (typeof body.name === 'string') rule.name = body.name;
+    if (typeof body.xp_per_unit === 'number' || typeof body.xp_per_unit === 'string') {
+      rule.usd_per_xp = Number(body.xp_per_unit);
+    }
+    if (body.boost) rule.boost = body.boost as typeof rule.boost;
+    rule.updatedAt = new Date().toISOString();
+    return HttpResponse.json({ data: rule });
+  }),
+  http.post('*/admin/rules', async ({ request }) => {
+    await wait();
+    const body = (await request.json()) as Record<string, unknown>;
+    const baseRule = { ...xpRules[0], boost: undefined };
+    const rule = {
+      ...baseRule,
+      name: String(body.name ?? baseRule.name),
+      usd_per_xp: Number(body.xp_per_unit ?? 10),
+      status: (body.status as typeof baseRule.status) ?? 'active',
+      id: `rule_${Date.now()}`,
+      updatedAt: new Date().toISOString(),
+      createdAt: new Date().toISOString(),
+    };
+    xpRules.unshift(rule);
+    return HttpResponse.json({ data: rule }, { status: 201 });
+  }),
+  http.patch('*/admin/rules/:id/status', async ({ params, request }) => {
+    await wait();
+    const body = (await request.json()) as { status?: string };
+    const rule = xpRules.find((item) => item.id === params.id) ?? xpRules[0];
+    if (body.status === 'paused') rule.status = 'paused';
+    if (body.status === 'active' || body.status === 'draft') rule.status = body.status as typeof rule.status;
+    rule.updatedAt = new Date().toISOString();
+    return HttpResponse.json({ data: { ok: true } });
+  }),
+  http.delete('*/admin/rules/:id', async ({ params }) => {
+    await wait();
+    const idx = xpRules.findIndex((item) => item.id === params.id);
+    if (idx >= 0) xpRules.splice(idx, 1);
+    return HttpResponse.json({ data: { ok: true } });
+  }),
   http.get('*/admin/coins', async () => { await wait(); return HttpResponse.json(coins); }),
   http.post('*/admin/coins', async ({ request }) => {
     await wait();

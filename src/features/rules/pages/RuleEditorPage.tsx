@@ -1,84 +1,158 @@
+import { useMemo } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { Button } from '@/components/ui/Button';
 import { ErrorState } from '@/components/ui/ErrorState';
 import { Loading } from '@/components/ui/Loading';
 import { PageHeader } from '@/components/ui/PageHeader';
-import { useDuplicateRule, useRule, useSaveRule, useToggleRule } from '@/features/rulesApi';
+import {
+  isPublishedLikeStatus,
+  useDeleteRule,
+  useRule,
+  useSaveRule,
+  useSetRuleStatus,
+} from '@/features/rulesApi';
 import { useEnabledCategories } from '@/features/settingsApi';
 import type { GameCategory } from '@/types/expandedTier5';
-import type { XPRule } from '@/types/rules';
+import type { RuleStatus, XPRule } from '@/types/rules';
 import { Block, StickyBottomBar } from '../components/RuleBlocks';
 import { RuleBoostSection, RuleCategoryField, RuleUsdPerXpField } from '../components/RuleXpFormSections';
 import { buildRulePayload, fromRuleToFormValues, type RuleXpFormValues } from '../ruleXpForm';
 
 const fallbackCategories: GameCategory[] = ['deportes', 'casino', 'casino_vivo', 'virtuales', 'poker'];
 
+const defaultFormValues: RuleXpFormValues = {
+  category: 'deportes',
+  usd_per_xp: 10,
+  boost: undefined,
+};
+
 export default function RuleEditorPage() {
-  const { id } = useParams();
+  const { id: routeId } = useParams();
+  const [searchParams] = useSearchParams();
+  const copyFrom = searchParams.get('copyFrom');
+  const isNew = routeId === 'nueva';
+  const editId = isNew ? null : (routeId ?? null);
+  const fetchId = isNew ? copyFrom : editId;
+
   const nav = useNavigate();
-  const q = useRule(id!);
+  const ruleQ = useRule(fetchId);
   const enabledCategories = useEnabledCategories();
   const save = useSaveRule();
-  const dup = useDuplicateRule();
-  const toggle = useToggleRule();
+  const setStatus = useSetRuleStatus();
+  const del = useDeleteRule();
+
+  const sourceRule = ruleQ.data;
+  const editingPublished = !isNew && sourceRule && isPublishedLikeStatus(sourceRule.status);
+
+  const initialFormValues = useMemo((): RuleXpFormValues => {
+    if (sourceRule) return fromRuleToFormValues(sourceRule);
+    return defaultFormValues;
+  }, [sourceRule]);
+
   const form = useForm<RuleXpFormValues>({
-    values: q.data ? fromRuleToFormValues(q.data) : undefined,
-    defaultValues: {
-      category: 'deportes',
-      usd_per_xp: 10,
-      boost: undefined,
-    },
+    values: initialFormValues,
+    defaultValues: defaultFormValues,
   });
 
-  if (q.isLoading) return <Loading label="Cargando regla..." />;
-  if (q.isError || !q.data) return <ErrorState onRetry={() => q.refetch()} />;
+  if (fetchId && ruleQ.isLoading) return <Loading label="Cargando regla..." />;
+  if (fetchId && (ruleQ.isError || !sourceRule)) return <ErrorState onRetry={() => ruleQ.refetch()} />;
 
   const cats = enabledCategories.length ? enabledCategories : fallbackCategories;
+  const pageTitle = isNew
+    ? copyFrom && sourceRule
+      ? `${sourceRule.name} (copia)`
+      : 'Nueva regla XP'
+    : (sourceRule?.name ?? 'Regla XP');
 
-  const submit = async (status: 'draft' | 'active') => {
+  const resolveSaveStatus = (): RuleStatus => {
+    if (isNew) return 'active';
+    if (!sourceRule) return 'active';
+    if (isPublishedLikeStatus(sourceRule.status)) return sourceRule.status;
+    return sourceRule.status === 'draft' ? 'draft' : 'active';
+  };
+
+  const submit = async (targetStatus: 'draft' | 'active') => {
     const values = form.getValues();
     const boost = values.boost;
     if (boost?.enabled && boost.scope === 'category' && !boost.category_code) {
       form.setError('boost.category_code', { message: 'Debés elegir una categoría' });
       return;
     }
-    const existing: Pick<XPRule, 'name' | 'description'> = { name: q.data.name, description: q.data.description };
-    const payload = buildRulePayload(values, { status, existingRule: existing });
-    await save.mutateAsync({ id: q.data.id, values: payload });
+
+    const existing: Pick<XPRule, 'name' | 'description'> | null = sourceRule
+      ? { name: sourceRule.name, description: sourceRule.description }
+      : null;
+
+    const payload = buildRulePayload(values, {
+      status: isNew ? targetStatus : resolveSaveStatus() === 'draft' ? 'draft' : 'active',
+      existingRule: existing,
+      nameOverride: isNew && copyFrom && sourceRule ? `${sourceRule.name} (copia)` : undefined,
+    });
+
+    await save.mutateAsync({ id: isNew ? null : sourceRule!.id, values: payload });
     nav('/reglas-xp');
   };
 
   return (
     <FormProvider {...form}>
       <PageHeader
-        title={q.data.name}
+        title={pageTitle}
         subtitle="Categoría, USD por XP y boost opcional. El evento siempre es bet_placed."
         actions={
-          <>
-            <Button
-              size="sm"
-              variant="ghost"
-              loading={dup.isPending}
-              onClick={() => dup.mutate(q.data.id, { onSuccess: () => nav('/reglas-xp') })}
-            >
-              Duplicar
-            </Button>
-            <Button
-              size="sm"
-              loading={toggle.isPending}
-              onClick={() =>
-                toggle.mutate(
-                  { id: q.data.id, active: false },
-                  { onSuccess: () => nav('/reglas-xp') },
-                )
-              }
-            >
-              Pausar
-            </Button>
-          </>
+          !isNew && sourceRule ? (
+            <>
+              <Button
+                size="sm"
+                variant="ghost"
+                onClick={() => nav(`/reglas-xp/nueva?copyFrom=${encodeURIComponent(sourceRule.id)}`)}
+              >
+                Copiar
+              </Button>
+              {isPublishedLikeStatus(sourceRule.status) ? (
+                <Button
+                  size="sm"
+                  loading={setStatus.isPending}
+                  onClick={() =>
+                    setStatus.mutate({ id: sourceRule.id, status: 'paused' }, { onSuccess: () => nav('/reglas-xp') })
+                  }
+                >
+                  Pausar
+                </Button>
+              ) : sourceRule.status === 'paused' ? (
+                <Button
+                  size="sm"
+                  loading={setStatus.isPending}
+                  onClick={() =>
+                    setStatus.mutate({ id: sourceRule.id, status: 'active' }, { onSuccess: () => nav('/reglas-xp') })
+                  }
+                >
+                  Reanudar
+                </Button>
+              ) : null}
+              <Button
+                size="sm"
+                variant="danger"
+                loading={del.isPending}
+                onClick={() => {
+                  if (window.confirm(`¿Eliminar la regla "${sourceRule.name}"?`)) {
+                    del.mutate(sourceRule.id, { onSuccess: () => nav('/reglas-xp') });
+                  }
+                }}
+              >
+                Eliminar
+              </Button>
+            </>
+          ) : undefined
         }
       />
+
+      {editingPublished && (
+        <div className="mb-6 rounded-xl border border-warning/30 bg-warning/10 px-4 py-3 text-[14px] text-warning">
+          Estás editando una regla publicada. Los cambios aplican a futuros eventos desde ya.
+        </div>
+      )}
+
       <div className="mx-auto max-w-2xl space-y-6">
         <Block num={1} kind="trigger" kindLabel="regla" title="Categoría" active>
           <RuleCategoryField enabledCategories={cats} />
@@ -90,10 +164,13 @@ export default function RuleEditorPage() {
           <RuleBoostSection enabledCategories={cats} />
         </Block>
       </div>
+
       <StickyBottomBar
         onCancel={() => nav('/reglas-xp')}
-        onSaveDraft={() => submit('draft')}
-        onActivate={() => submit('active')}
+        onSaveDraft={isNew || sourceRule?.status === 'draft' ? () => void submit('draft') : undefined}
+        onActivate={isNew || sourceRule?.status === 'draft' ? () => void submit('active') : undefined}
+        onSaveChanges={!isNew && sourceRule && sourceRule.status !== 'draft' ? () => void submit('active') : undefined}
+        saveChangesLabel={editingPublished ? 'Guardar cambios' : 'Guardar'}
         loading={save.isPending}
       />
     </FormProvider>

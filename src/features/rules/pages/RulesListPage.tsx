@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Copy, MoreVertical, Pencil, Plus, Upload } from 'lucide-react';
+import { Copy, MoreVertical, Pencil, Plus, Trash2, Upload } from 'lucide-react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { NewRuleModal } from '@/features/rules/components/NewRuleModal';
 import { Button } from '@/components/ui/Button';
@@ -16,7 +16,13 @@ import { Table, type Column } from '@/components/ui/Table';
 import { Toolbar } from '@/components/ui/Toolbar';
 import { useDebounce } from '@/hooks/useDebounce';
 import { formatRelativeDate } from '@/lib/format';
-import { useDuplicateRule, useRulesList, useToggleRule } from '@/features/rulesApi';
+import {
+  isPublishedLikeStatus,
+  useDeleteRule,
+  useRulesList,
+  useSetRuleStatus,
+  useToggleRule,
+} from '@/features/rulesApi';
 import { CATEGORIES } from '@/types/expandedTier5';
 import type { RuleCategory, RuleListItem, RuleStatus } from '@/types/rules';
 
@@ -35,12 +41,25 @@ const isBoostActive = (rule: RuleListItem) => {
   );
 };
 
+function statusPillStatus(rule: RuleListItem): 'active' | 'paused' | 'draft' | 'archived' {
+  if (isPublishedLikeStatus(rule.status)) return 'active';
+  if (rule.status === 'paused') return 'paused';
+  if (rule.status === 'draft') return 'draft';
+  return 'archived';
+}
+
+function statusPillLabel(rule: RuleListItem): string | undefined {
+  if (rule.status === 'published') return 'publicada';
+  return undefined;
+}
+
 export default function RulesListPage() {
   const [params, setParams] = useSearchParams();
   const status = (params.get('status') as RuleStatus | 'all') ?? 'all';
   const mock = params.get('mockState');
   const [newRuleOpen, setNewRuleOpen] = useState(false);
   const [search, setSearch] = useState('');
+  const [menuId, setMenuId] = useState<string | null>(null);
 
   useEffect(() => {
     if (params.get('create') !== '1') return;
@@ -49,22 +68,32 @@ export default function RulesListPage() {
     next.delete('create');
     setParams(next, { replace: true });
   }, [params, setParams]);
-  const q = useRulesList({ status: status === 'all' ? undefined : status });
+
+  const q = useRulesList();
   const nav = useNavigate();
   const debounced = useDebounce(search);
   const toggle = useToggleRule();
-  const dup = useDuplicateRule();
-  const rules = mock === 'empty' ? [] : (q.data ?? []);
+  const setStatus = useSetRuleStatus();
+  const del = useDeleteRule();
+  const allRules = mock === 'empty' ? [] : (q.data ?? []);
+  const rules = useMemo(() => {
+    if (status === 'all') return allRules;
+    if (status === 'active') return allRules.filter((r) => isPublishedLikeStatus(r.status));
+    return allRules.filter((r) => r.status === status);
+  }, [allRules, status]);
   const filtered = useMemo(
     () => rules.filter((r) => !debounced || `${r.name} ${r.description}`.toLowerCase().includes(debounced.toLowerCase())),
     [rules, debounced],
   );
-  const counts = {
-    all: rules.length,
-    active: rules.filter((r) => r.status === 'active').length,
-    paused: rules.filter((r) => r.status === 'paused').length,
-    draft: rules.filter((r) => r.status === 'draft').length,
-  };
+  const counts = useMemo(
+    () => ({
+      all: allRules.length,
+      active: allRules.filter((r) => isPublishedLikeStatus(r.status)).length,
+      paused: allRules.filter((r) => r.status === 'paused').length,
+      draft: allRules.filter((r) => r.status === 'draft').length,
+    }),
+    [allRules],
+  );
 
   const columns: Column<RuleListItem>[] = [
     {
@@ -72,11 +101,13 @@ export default function RulesListPage() {
       header: '',
       width: '50px',
       render: (r) => (
-        <Switch
-          checked={r.active}
-          onChange={(active) => toggle.mutate({ id: r.id, active })}
-          aria-label={`activar ${r.name}`}
-        />
+        <div onClick={(e) => e.stopPropagation()}>
+          <Switch
+            checked={r.active}
+            onChange={(active) => toggle.mutate({ id: r.id, active })}
+            aria-label={`activar ${r.name}`}
+          />
+        </div>
       ),
     },
     {
@@ -124,13 +155,7 @@ export default function RulesListPage() {
     {
       key: 'status',
       header: 'estado',
-      render: (r) => (
-        <StatusPill
-          status={
-            r.status === 'active' ? 'active' : r.status === 'paused' ? 'paused' : r.status === 'draft' ? 'draft' : 'archived'
-          }
-        />
-      ),
+      render: (r) => <StatusPill status={statusPillStatus(r)} label={statusPillLabel(r)} />,
     },
     {
       key: 'updated',
@@ -142,15 +167,87 @@ export default function RulesListPage() {
       header: 'acciones',
       align: 'right',
       render: (r) => (
-        <div className="flex justify-end gap-1">
-          <IconButton icon={Copy} title="duplicar" size="sm" onClick={() => dup.mutate(r.id)} />
+        <div className="relative flex justify-end gap-1" onClick={(e) => e.stopPropagation()}>
+          <IconButton
+            icon={Copy}
+            title="copiar"
+            size="sm"
+            onClick={() => nav(`/reglas-xp/nueva?copyFrom=${encodeURIComponent(r.id)}`)}
+          />
           <IconButton icon={Pencil} title="editar" size="sm" onClick={() => nav(`/reglas-xp/${r.id}`)} />
           <IconButton
             icon={MoreVertical}
-            title="pausar o activar"
+            title="más acciones"
             size="sm"
-            onClick={() => toggle.mutate({ id: r.id, active: !r.active })}
+            onClick={() => setMenuId(menuId === r.id ? null : r.id)}
           />
+          {menuId === r.id && (
+            <>
+              <button
+                type="button"
+                className="fixed inset-0 z-10 cursor-default"
+                aria-label="cerrar menú"
+                onClick={() => setMenuId(null)}
+              />
+              <div className="absolute right-0 top-full z-20 mt-1 min-w-[180px] rounded-lg border border-border-subtle bg-bg-secondary py-1 shadow-modal">
+                <button
+                  type="button"
+                  className="flex w-full items-center gap-2 px-3 py-2 text-left text-[14px] hover:bg-bg-tertiary"
+                  onClick={() => {
+                    setMenuId(null);
+                    nav(`/reglas-xp/${r.id}`);
+                  }}
+                >
+                  <Pencil size={14} /> Editar
+                </button>
+                <button
+                  type="button"
+                  className="flex w-full items-center gap-2 px-3 py-2 text-left text-[14px] hover:bg-bg-tertiary"
+                  onClick={() => {
+                    setMenuId(null);
+                    nav(`/reglas-xp/nueva?copyFrom=${encodeURIComponent(r.id)}`);
+                  }}
+                >
+                  <Copy size={14} /> Copiar
+                </button>
+                {isPublishedLikeStatus(r.status) ? (
+                  <button
+                    type="button"
+                    className="flex w-full items-center gap-2 px-3 py-2 text-left text-[14px] hover:bg-bg-tertiary"
+                    onClick={() => {
+                      setMenuId(null);
+                      void setStatus.mutateAsync({ id: r.id, status: 'paused' });
+                    }}
+                  >
+                    Pausar
+                  </button>
+                ) : r.status === 'paused' ? (
+                  <button
+                    type="button"
+                    className="flex w-full items-center gap-2 px-3 py-2 text-left text-[14px] hover:bg-bg-tertiary"
+                    onClick={() => {
+                      setMenuId(null);
+                      void setStatus.mutateAsync({ id: r.id, status: 'active' });
+                    }}
+                  >
+                    Reanudar
+                  </button>
+                ) : null}
+                <button
+                  type="button"
+                  className="flex w-full items-center gap-2 px-3 py-2 text-left text-[14px] text-danger hover:bg-bg-tertiary"
+                  onClick={() => {
+                    setMenuId(null);
+                    if (window.confirm(`¿Eliminar la regla "${r.name}"?`)) {
+                      void del.mutateAsync(r.id);
+                    }
+                  }}
+                >
+                  <Trash2 size={14} /> Eliminar
+                </button>
+              </div>
+            </>
+          )}
         </div>
       ),
     },
@@ -182,7 +279,7 @@ export default function RulesListPage() {
           <>
             <FilterPill label="todas" count={counts.all} active={status === 'all'} onClick={() => setParams({})} />
             <FilterPill
-              label="activas"
+              label="publicadas"
               count={counts.active}
               active={status === 'active'}
               onClick={() => setParams({ status: 'active' })}

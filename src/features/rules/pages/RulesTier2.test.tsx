@@ -28,7 +28,7 @@ describe('Tier2 reglas', () => {
 
     fireEvent.click(screen.getByText('pausadas'));
     expect(await screen.findByText('Promo finde Champions League')).toBeInTheDocument();
-    fireEvent.click(screen.getAllByTitle('duplicar')[0]);
+    fireEvent.click(screen.getAllByTitle('copiar')[0]);
   });
 
   it('lista muestra empty forzado', () => {
@@ -44,14 +44,14 @@ describe('Tier2 reglas', () => {
       '/reglas-xp/rule_sports_win',
     );
 
-    expect(await screen.findByText('Cuánto se apuesta para 1 XP')).toBeInTheDocument();
-    fireEvent.click(screen.getByText('Activar'));
+    expect((await screen.findAllByText('Cuánto se apuesta para 1 XP')).length).toBeGreaterThan(0);
+    fireEvent.click(screen.getByText('Guardar cambios'));
   });
 
   it('modal nueva regla activa boost y persiste', async () => {
     const createdRules: XPRule[] = [];
     server.use(
-      http.post('*/admin/xp-rules', async ({ request }) => {
+      http.post('*/admin/rules', async ({ request }) => {
         const body = (await request.json()) as Partial<XPRule>;
         const rule = {
           id: 'rule_boost_test',
@@ -70,24 +70,26 @@ describe('Tier2 reglas', () => {
           createdBy: { name: 'Test', initials: 'TT' },
         } as XPRule;
         createdRules.unshift(rule);
-        return HttpResponse.json(rule, { status: 201 });
+        return HttpResponse.json({ data: rule }, { status: 201 });
       }),
-      http.get('*/admin/xp-rules', () =>
-        HttpResponse.json(
-          createdRules.map(
-            (rule): RuleListItem => ({
-              id: rule.id,
-              name: rule.name,
-              description: rule.description,
-              category: rule.category,
-              xpDisplay: { value: `$${rule.usd_per_xp ?? 10}`, perUnit: 'por 1 XP' },
-              status: rule.status,
-              updatedAt: rule.updatedAt,
-              active: rule.status === 'active',
-              boost: rule.boost,
-            }),
-          ),
-        ),
+      http.get('*/admin/rules', () =>
+        HttpResponse.json({
+          data: createdRules.map((rule) => ({
+            id: rule.id,
+            name: rule.name,
+            description: rule.description,
+            category_id: 1,
+            category: rule.category,
+            status: rule.status,
+            is_active: rule.status === 'active',
+            currency: 'USD',
+            xp_per_unit: String(rule.usd_per_xp ?? 10),
+            unit_field: 'amount',
+            boost: rule.boost ?? null,
+            created_at: rule.createdAt,
+            updated_at: rule.updatedAt,
+          })),
+        }),
       ),
     );
 
