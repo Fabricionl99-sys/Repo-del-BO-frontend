@@ -14,6 +14,7 @@ import { formatNumber } from '@/lib/format';
 import { useCoins, useDeleteCoin, useSetCoinActive } from '@/features/coinsApi';
 import type { Coin, CoinDeliveryMode } from '@/types/coins';
 import { CurrencyEditorModal } from '../components/CurrencyEditorModal';
+import { CurrencyIcon } from '../components/CurrencyIcon';
 
 const modeLabel = (m: CoinDeliveryMode) => (m === 'auto_xp' ? 'Por XP' : 'Manual');
 
@@ -38,15 +39,10 @@ export default function CoinsPage() {
 
   const columns: Column<Coin>[] = [
     {
-      key: 'img',
-      header: '',
-      width: '56px',
-      render: (c) =>
-        c.imageUrl ? (
-          <img src={c.imageUrl} alt="" className="h-9 w-9 rounded-md border border-border-subtle object-cover" />
-        ) : (
-          <span className="text-xl">{c.emoji ?? '🪙'}</span>
-        ),
+      key: 'icon',
+      header: 'Ícono',
+      width: '64px',
+      render: (c) => <CurrencyIcon coin={c} />,
     },
     { key: 'name', header: 'Moneda', render: (c) => <span className="font-medium">{c.name}</span> },
     { key: 'sym', header: 'Símbolo', render: (c) => <span className="text-mono text-text-secondary">{c.symbol}</span> },

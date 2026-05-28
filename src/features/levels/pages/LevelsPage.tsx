@@ -68,9 +68,7 @@ export default function LevelsPage() {
     }
     const fd = new FormData();
     fd.append('file', file);
-    const res = await apiClient.post('/admin/upload-image', fd, {
-      headers: { 'Content-Type': 'multipart/form-data' },
-    });
+    const res = await apiClient.post('/admin/upload-image', fd);
     const raw = unwrapData<{ url?: string }>(res.data);
     const url = raw.url;
     if (!url) throw new Error('Sin URL de imagen');

@@ -127,7 +127,7 @@ export function CurrencyEditorModal({ open, onClose, initial }: Props) {
             <label className="cursor-pointer rounded-lg border border-border-default bg-bg-tertiary px-3 py-2 text-[14px] hover:border-accent/40">
               <input
                 type="file"
-                accept="image/png"
+                accept="image/png,image/jpeg,image/webp,image/avif,.png,.jpg,.jpeg,.webp,.avif"
                 className="hidden"
                 disabled={upload.isPending}
                 onChange={async (e) => {

@@ -176,8 +176,88 @@ handlers.push(
   http.get('*/admin/coins/global-rules', async () => { await wait(); return HttpResponse.json(coinsGlobalRules); }),
   http.patch('*/admin/coins/global-rules', async ({ request }) => { await wait(); Object.assign(coinsGlobalRules, await request.json()); return HttpResponse.json(coinsGlobalRules); }),
   http.post('*/admin/coins/upload-image', async () => { await wait(); return HttpResponse.json({ url: 'https://images.unsplash.com/photo-1529626455594-4ff0802cfb7e?w=64&h=64&fit=crop' }); }),
-  http.post('*/admin/upload-image', async () => {
+  http.get('*/admin/currencies', async () => {
     await wait();
+    return HttpResponse.json({
+      data: coins.map((c) => ({
+        id: c.id,
+        code: c.symbol,
+        name: c.name,
+        icon_url: c.imageUrl ?? 'https://cdn.social2game.com/defaults/coin-placeholder.png',
+        earning_mode: c.deliveryMode === 'manual' ? 'manual' : 'auto',
+        xp_per_unit: c.xpPerUnit,
+        is_active: c.active,
+        is_default: c.isDefault,
+        expiration_days: c.caps?.expiryDays ?? null,
+      })),
+    });
+  }),
+  http.post('*/admin/currencies', async ({ request }) => {
+    await wait();
+    const body = (await request.json()) as Record<string, unknown>;
+    const coin = {
+      id: `coin_${Date.now()}`,
+      name: String(body.name ?? 'Moneda'),
+      symbol: String(body.code ?? 'M').toUpperCase(),
+      imageUrl: typeof body.icon_url === 'string' ? body.icon_url : undefined,
+      emoji: '🪙',
+      deliveryMode: body.earning_mode === 'manual' ? ('manual' as const) : ('auto_xp' as const),
+      xpPerUnit: body.earning_mode === 'manual' ? null : Number(body.xp_per_unit ?? 3),
+      caps: {},
+      p2p: { enabled: false },
+      isDefault: false,
+      active: true,
+      totalInCirculation: 0,
+      emittedThisWeek: 0,
+      redeemedThisWeek: 0,
+    };
+    coins.push(coin);
+    return HttpResponse.json(
+      {
+        data: {
+          id: coin.id,
+          code: coin.symbol,
+          name: coin.name,
+          icon_url: coin.imageUrl,
+          earning_mode: coin.deliveryMode === 'manual' ? 'manual' : 'auto',
+          xp_per_unit: coin.xpPerUnit,
+          is_active: true,
+          is_default: false,
+        },
+      },
+      { status: 201 },
+    );
+  }),
+  http.put('*/admin/currencies/:id', async ({ params, request }) => {
+    await wait();
+    const body = (await request.json()) as Record<string, unknown>;
+    const coin = coins.find((item) => item.id === params.id) ?? coins[0];
+    if (typeof body.name === 'string') coin.name = body.name;
+    if (typeof body.code === 'string') coin.symbol = body.code;
+    if (typeof body.icon_url === 'string') coin.imageUrl = body.icon_url;
+    return HttpResponse.json({
+      data: {
+        id: coin.id,
+        code: coin.symbol,
+        name: coin.name,
+        icon_url: coin.imageUrl,
+        earning_mode: coin.deliveryMode === 'manual' ? 'manual' : 'auto',
+        xp_per_unit: coin.xpPerUnit,
+        is_active: coin.active,
+        is_default: coin.isDefault,
+      },
+    });
+  }),
+  http.post('*/admin/upload-image', async ({ request }) => {
+    await wait();
+    const fd = await request.formData();
+    const file = fd.get('file');
+    if (!file || typeof file === 'string') {
+      return HttpResponse.json(
+        { issues: [{ path: '', message: 'Falta archivo. Enviar multipart/form-data con campo file', code: 'invalid_type' }] },
+        { status: 400 },
+      );
+    }
     return HttpResponse.json({
       data: { url: 'https://cdn.social2game.com/defaults/coin-placeholder.png' },
     });

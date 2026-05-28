@@ -19,6 +19,7 @@ describe('Monedas', () => {
   it('muestra tabla de monedas y abre editor', async () => {
     wrap();
     expect(await screen.findByText('Monedas oro')).toBeInTheDocument();
+    expect(screen.getByText('Ícono')).toBeInTheDocument();
     fireEvent.click(screen.getByText('nueva moneda'));
     expect(screen.getByText('Nueva moneda')).toBeInTheDocument();
     fireEvent.change(screen.getByPlaceholderText('Ruby, Esmeralda…'), { target: { value: 'Estrellas VIP' } });
