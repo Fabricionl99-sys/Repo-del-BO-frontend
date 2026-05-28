@@ -5,7 +5,6 @@ import { useForm, useWatch } from 'react-hook-form';
 import { MediaUploader } from '@/components/media/MediaUploader';
 import { mediaValueFromUrl } from '@/components/media/mediaUrl';
 import { Button } from '@/components/ui/Button';
-import { FieldHint } from '@/components/ui/FieldHint';
 import { Modal } from '@/components/ui/Modal';
 import { Switch } from '@/components/ui/Switch';
 import { ConfigSection, ConfiguratorScaffold } from '@/components/configurator/ConfiguratorScaffold';
@@ -62,7 +61,6 @@ export function AvatarFormModal({
   } = form;
 
   const isActive = useWatch({ control, name: 'is_active' });
-  const isPremium = useWatch({ control, name: 'is_premium' });
   const isEdit = Boolean(avatar);
   const atLimit = !isEdit && activeCount >= MAX_ACTIVE_AVATARS;
 
@@ -180,13 +178,6 @@ export function AvatarFormModal({
               <div className="flex items-center gap-2">
                 <Switch checked={isActive} onChange={(v) => setValue('is_active', v)} aria-label="activo" />
                 <span className="text-[14px] text-text-secondary">activo</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <Switch checked={isPremium} onChange={(v) => setValue('is_premium', v)} aria-label="premium" />
-                <span className="text-[14px] text-text-secondary">
-                  premium
-                  <FieldHint text="Avatar reservado para jugadores con condiciones especiales (nivel alto, compra, evento). Por ahora es solo referencia en el BO." />
-                </span>
               </div>
             </div>
           </div>

@@ -202,7 +202,7 @@ export default function StreakProgramEditorPage() {
             <div className="mt-4">
               <label className="mb-1 block text-[14px] text-text-secondary">
                 Días que pierde al romper racha
-                <FieldHint text="Días de gracia: si el jugador rompe la racha, tiene este margen para retomarla sin perder todo el progreso. 0 = se reinicia de inmediato." />
+                <FieldHint text="Días de gracia tras romper la racha. Si el jugador retoma dentro de este período, no pierde progreso. 0 = se reinicia inmediatamente al fallar 1 día." />
               </label>
               <input
                 className="field max-w-xs"
@@ -223,19 +223,28 @@ export default function StreakProgramEditorPage() {
 
         <ConfigSection
           icon="🎁"
-          title="Micro recompensa diaria"
-          description="Premio pequeño por completar el objetivo del día (no requiere terminar toda la racha)."
+          title={
+            <>
+              Micro recompensa diaria
+              <FieldHint text="Premio pequeño que recibe el jugador POR DÍA al completar el objetivo diario. Independiente del premio final de la racha." />
+            </>
+          }
+          description="Se entrega cada día que el jugador cumple el objetivo, sin esperar a terminar toda la racha."
         >
           <DailyRewardFields />
         </ConfigSection>
 
         <ConfigSection
           icon="🏁"
-          title="Milestones"
-          description="Premios extra al alcanzar días específicos (ej. día 7, día 30). Suman al premio final."
+          title={
+            <>
+              Milestones
+              <FieldHint text="Premios EXTRA al alcanzar días específicos (día 7, día 30, etc). Se suman a las micro recompensas y al premio final." />
+            </>
+          }
+          description="Hasta 20 hitos · días únicos entre 1 y 365 · se ordenan al guardar."
         >
           {milestoneListError ? <p className="mb-2 text-[14px] text-danger">{milestoneListError}</p> : null}
-          <p className="mb-3 text-[14px] text-text-tertiary">Hasta 20 hitos · días únicos entre 1 y 365 · se ordenan al guardar.</p>
           <div className="space-y-3">
             {milestoneOrder.map((i) => (
               <div key={fields[i]?.id ?? i} className="relative">

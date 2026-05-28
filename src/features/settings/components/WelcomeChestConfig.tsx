@@ -24,7 +24,7 @@ export function WelcomeChestConfig() {
   return (
     <ConfigSection icon="🎁" title="Cofre de bienvenida">
       <p className="mb-4 text-[14px] text-text-secondary">
-        Premio que reciben jugadores nuevos al completar onboarding.
+        Cofre que reciben automáticamente los jugadores nuevos en su primer login. Configurá acá el contenido que va a recibir.
       </p>
       <RewardSelector moduleKey="welcome_chest" value={reward} onChange={setReward} />
       <div className="mt-4 flex items-center gap-3">

@@ -1,5 +1,5 @@
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { FormProvider, useForm, useWatch } from 'react-hook-form';
 
@@ -27,7 +27,7 @@ import {
 } from '@/features/missions/missionTriggers';
 import { useCapabilityChecks } from '@/features/capabilities/useCapabilityChecks';
 import { trackEvent } from '@/lib/analytics';
-import { useMission, useSaveMission } from '@/features/tier3Api';
+import { useMission, useMissions, useSaveMission } from '@/features/tier3Api';
 
 const ICONS = ['🎯', '💰', '🎰', '🃏', '⚡', '🔥', '🏦', '⚽', '🤝', '👤'];
 
@@ -35,6 +35,7 @@ export default function MissionEditorPage() {
   const { id } = useParams();
   const isNew = !id || id === 'nueva';
   const q = useMission(isNew ? null : id!);
+  const missionsQ = useMissions();
   const save = useSaveMission();
   const nav = useNavigate();
   const [days, setDays] = useState([1, 2, 3, 4, 5, 6, 0]);
@@ -50,6 +51,15 @@ export default function MissionEditorPage() {
   const triggerDef = getTriggerDef(trigger);
   const name = watch('name');
   const targetValue = watch('targetValue');
+
+  const categorySuggestions = useMemo(() => {
+    const tags = new Set<string>();
+    for (const m of missionsQ.data ?? []) {
+      const tag = m.category?.trim();
+      if (tag) tags.add(tag);
+    }
+    return [...tags].sort((a, b) => a.localeCompare(b, 'es'));
+  }, [missionsQ.data]);
 
   useEffect(() => {
     if (q.data) {
@@ -110,9 +120,14 @@ export default function MissionEditorPage() {
               <div>
                 <label className="mb-1.5 block text-[14px] text-text-secondary">
                   categoría
-                  <FieldHint text="Tag libre para agrupar misiones (ej. casino, sportsbook, evento-mundial). Lo elegís vos." />
+                  <FieldHint text="Tag libre para agrupar misiones relacionadas. Lo elegís vos (ej: 'casino', 'sportsbook', 'evento-mundial')." />
                 </label>
-                <input className="field" {...register('category')} />
+                <input className="field" list="mission-category-suggestions" {...register('category')} />
+                <datalist id="mission-category-suggestions">
+                  {categorySuggestions.map((tag) => (
+                    <option key={tag} value={tag} />
+                  ))}
+                </datalist>
               </div>
             </div>
           </ConfigSection>
@@ -121,6 +136,9 @@ export default function MissionEditorPage() {
             <div>
               <label className="mb-1.5 block text-[14px] text-text-secondary" htmlFor="mission-trigger">
                 trigger
+                {(trigger === 'play_casino' || trigger === 'play_slots') && (
+                  <FieldHint text="Casino = todos los juegos del catálogo casino (incluye slots, mesa, vivo). Slots = solo tragamonedas." />
+                )}
               </label>
               <select id="mission-trigger" className="field" {...register('trigger')}>
                 {MISSION_TRIGGER_GROUPS.map((group) => (
@@ -152,14 +170,14 @@ export default function MissionEditorPage() {
               )}
               {(trigger === 'play_casino' || trigger === 'play_slots') && (
                 <p className="mt-2 text-[13px] text-text-tertiary">
-                  Casino = todos los juegos de casino (slots, mesa, vivo). Slots = solo tragamonedas.
+                  Casino = todos los juegos del catálogo casino (incluye slots, mesa, vivo). Slots = solo tragamonedas.
                 </p>
               )}
             </div>
             <div>
               <label className="mb-1.5 block text-[14px] text-text-secondary">
                 valor objetivo
-                <FieldHint text="Monto o cantidad según el trigger: en wager es el total acumulado; en depósito, el monto a depositar." />
+                <FieldHint text="Monto total acumulado para completar la misión, en la moneda especificada abajo. Para 'jugar', es el monto apostado. Para 'depositar', el monto total a depositar." />
               </label>
               <input className="field" type="number" min={1} {...register('targetValue', { valueAsNumber: true })} />
               {errors.targetValue && <p className="mt-1 text-[13px] text-danger">{errors.targetValue.message}</p>}

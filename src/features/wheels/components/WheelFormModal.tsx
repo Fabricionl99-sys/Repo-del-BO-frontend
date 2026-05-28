@@ -201,11 +201,11 @@ export function WheelFormModal({
             <div className="space-y-4">
               <div>
                 <label className="mb-1.5 block text-[14px] text-text-secondary">
-                  Fondo de la rueda
-                  <FieldHint text="Imagen de fondo de la ruleta entera. Los segmentos y premios se configuran abajo, cada uno con su ícono en el slice." />
+                  Imagen de la rueda
+                  <FieldHint text="Es la imagen DE FONDO de la ruleta entera (el círculo de decoración). Los segmentos y premios se configuran abajo, cada uno con su propia imagen pequeña." />
                 </label>
                 <p className="mb-2 text-[12px] text-text-tertiary">
-                  Marco o textura del disco. Dejá el centro libre o transparente; el logo va aparte.
+                  Fondo del disco completo · los slices y premios van en la sección de abajo, cada uno con su ícono.
                 </p>
                 <MediaUploaderRhf
                   control={control}
