@@ -8,6 +8,8 @@ import { MediaUploader } from '@/components/media/MediaUploader';
 import { mediaValueFromUrl } from '@/components/media/mediaUrl';
 import { MediaUploaderRhf } from '@/components/media/MediaUploaderRhf';
 import { RewardSelector } from '@/components/rewards/RewardSelector';
+import { formToRewardValue, rewardValueToForm } from '@/features/rewards/rewardForm';
+import { useRewardOperatorContext } from '@/features/rewards/useRewardOperatorContext';
 import { Button } from '@/components/ui/Button';
 import { FieldHint } from '@/components/ui/FieldHint';
 import { Modal } from '@/components/ui/Modal';
@@ -17,6 +19,7 @@ import { WheelLivePreview } from '@/features/wheels/components/WheelLivePreview'
 import { WheelOccasionsEditor } from '@/features/wheels/components/WheelOccasionsEditor';
 import { WheelProbabilityBar } from '@/features/wheels/components/WheelProbabilityBar';
 import { segmentsFromPrizeForms } from '@/features/wheels/wheelDisplay';
+import type { WheelSegmentDisplayMode } from '@/features/wheels/wheelDisplay';
 import { useCreateWheel, useUpdateWheel } from '@/features/wheels/wheelsApi';
 import {
   defaultOccasions,
@@ -51,11 +54,13 @@ export function WheelFormModal({
 }) {
   const createWheel = useCreateWheel();
   const updateWheel = useUpdateWheel();
+  const { context: rewardContext } = useRewardOperatorContext();
   const [prizes, setPrizes] = useState<WheelPrizeFormValues[]>([]);
   const [occasions, setOccasions] = useState(defaultOccasions());
   const [expanded, setExpanded] = useState<Record<number, boolean>>({ 0: true });
   const [probabilityError, setProbabilityError] = useState<string | undefined>();
   const [pityError, setPityError] = useState<string | undefined>();
+  const [segmentDisplayMode, setSegmentDisplayMode] = useState<WheelSegmentDisplayMode>('equal');
 
   const form = useForm<WheelFormValues>({
     resolver: zodResolver(wheelFormSchema),
@@ -84,10 +89,16 @@ export function WheelFormModal({
   const prizePayloads = useMemo(
     () =>
       prizes.map((p, i) => ({
-        ...formToPrizePayload(p, i),
+        ...formToPrizePayload(
+          {
+            ...p,
+            reward: formToRewardValue(rewardValueToForm(p.reward), rewardContext),
+          },
+          i,
+        ),
         ...(p.id ? { id: p.id } : {}),
       })),
-    [prizes],
+    [prizes, rewardContext],
   );
   const canSave = probabilitiesValid(prizePayloads) && prizes.length >= 2;
 
@@ -96,8 +107,9 @@ export function WheelFormModal({
       backgroundImageUrl: backgroundUrl || null,
       centerLogoUrl: centerLogoUrl || null,
       segments: segmentsFromPrizeForms(prizes),
+      displayMode: segmentDisplayMode,
     }),
-    [backgroundUrl, centerLogoUrl, prizes],
+    [backgroundUrl, centerLogoUrl, prizes, segmentDisplayMode],
   );
 
   useEffect(() => {
@@ -242,6 +254,36 @@ export function WheelFormModal({
         </ConfigSection>
 
         <ConfigSection title="Premios de la rueda" description="Mínimo 2 · suma exacta 100%">
+          <div className="mb-4 flex flex-wrap items-center gap-3 rounded-lg border border-border-subtle bg-bg-tertiary px-3 py-2">
+            <span className="text-[14px] text-text-secondary">
+              Estilo visual
+              <FieldHint text="Proporcional: cada segment ocupa el % visual real (premio del 5% es chiquito, del 80% es grande). Matemáticamente honesto. Segments iguales: todos del mismo tamaño visual (ruleta clásica); el ganador sigue calculándose por las probabilidades configuradas." />
+            </span>
+            <div className="flex flex-wrap gap-2">
+              <button
+                type="button"
+                className={`rounded-full border px-3 py-1 text-[13px] font-medium transition ${
+                  segmentDisplayMode === 'proportional'
+                    ? 'border-accent bg-accent text-text-onAccent'
+                    : 'border-border-default text-text-secondary hover:text-text-primary'
+                }`}
+                onClick={() => setSegmentDisplayMode('proportional')}
+              >
+                Proporcional al %
+              </button>
+              <button
+                type="button"
+                className={`rounded-full border px-3 py-1 text-[13px] font-medium transition ${
+                  segmentDisplayMode === 'equal'
+                    ? 'border-accent bg-accent text-text-onAccent'
+                    : 'border-border-default text-text-secondary hover:text-text-primary'
+                }`}
+                onClick={() => setSegmentDisplayMode('equal')}
+              >
+                Segments iguales
+              </button>
+            </div>
+          </div>
           <WheelProbabilityBar prizes={prizePayloads} />
           {probabilityError && <p className="text-[13px] text-danger">{probabilityError}</p>}
           {pityError && <p className="text-[13px] text-danger">{pityError}</p>}

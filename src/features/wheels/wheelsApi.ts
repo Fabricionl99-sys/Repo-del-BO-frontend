@@ -3,6 +3,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { apiClient } from '@/api/client';
 import { unwrapData, unwrapPaginatedList } from '@/api/response';
 import { toast } from '@/stores/toastStore';
+import { buildBackendBonusRewardConfig } from '@/lib/bonusRewardConfig';
 import type {
   SpinHistoryEntry,
   SpinHistoryQuery,
@@ -73,10 +74,17 @@ function adaptPrizeForBackend(p: WheelPrizePayload, index = 0): Record<string, u
     cfg = { kind: 'manual', description: `${xpAmount} XP bonus`, value_usd: 0 };
   } else if (VALID_KINDS.has(rawType)) {
     kind = rawType;
-    cfg = {
-      ...(p.reward_config as unknown as Record<string, unknown>),
-      kind: rawType,
-    };
+    if (['freespin', 'freebet', 'cashback', 'bonus_deposit'].includes(kind)) {
+      cfg = buildBackendBonusRewardConfig(
+        kind as 'freespin' | 'freebet' | 'cashback' | 'bonus_deposit',
+        (p.reward_config as unknown as Record<string, unknown>) ?? {},
+      );
+    } else {
+      cfg = {
+        ...(p.reward_config as unknown as Record<string, unknown>),
+        kind: rawType,
+      };
+    }
     if (kind === 'manual') {
       const desc = cfg.description;
       if (typeof desc !== 'string' || !desc.trim()) cfg.description = safeName;

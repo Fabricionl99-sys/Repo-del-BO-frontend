@@ -231,7 +231,7 @@ export function RewardSelector({
                 <option value="">Elegí un bono…</option>
                 {bonusOptions.map((b) => (
                   <option key={b.id} value={b.id}>
-                    {b.name} · {b.external_id}
+                    {b.name} ({b.external_id})
                   </option>
                 ))}
               </select>
@@ -240,7 +240,9 @@ export function RewardSelector({
                   <span className={cn('rounded-full px-2 py-0.5 text-[12px] font-semibold', statusBadge[selectedBonus.status])}>
                     {selectedBonus.is_active ? 'activo' : selectedBonus.status}
                   </span>
-                  <span className="text-[13px] text-text-tertiary">{selectedBonus.external_id}</span>
+                  <span className="text-[13px] text-text-tertiary">
+                    ID en tu sistema: {selectedBonus.external_id}
+                  </span>
                 </div>
               )}
               {selectedBonus && !selectedBonus.is_active && (

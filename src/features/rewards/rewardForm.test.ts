@@ -3,13 +3,37 @@ import { describe, expect, it } from 'vitest';
 import { formToRewardValue, rewardValueToForm, summarizeReward } from './rewardForm';
 
 describe('rewardForm', () => {
-  it('convierte freespin con bonus_id', () => {
-    const value = formToRewardValue({
-      ...rewardValueToForm({ reward_type: 'freespin', reward_config: {} }),
-      bonus_id: 'ob_fs_book_dead',
+  it('convierte freespin con bonus_id interno', () => {
+    const value = formToRewardValue(
+      {
+        ...rewardValueToForm({ reward_type: 'freespin', reward_config: {} }),
+        bonus_id: '550e8400-e29b-41d4-a716-446655440000',
+      },
+      {
+        operator_bonuses: [
+          {
+            id: '550e8400-e29b-41d4-a716-446655440000',
+            external_id: 'FS_BOOK',
+            bonus_type: 'freespin',
+            name: '50 FS Book',
+            description: '',
+            image_url: '',
+            default_value_usd: 10,
+            metadata: null,
+            source: 'manual',
+            status: 'active',
+            is_active: true,
+            verified_at: null,
+            created_at: '',
+            updated_at: '',
+          },
+        ],
+      },
+    );
+    expect(value.reward_config).toEqual({
+      kind: 'freespin',
+      bonus_id: '550e8400-e29b-41d4-a716-446655440000',
     });
-    expect(value.reward_config.bonus_id).toBe('ob_fs_book_dead');
-    expect(rewardValueToForm(value).bonus_id).toBe('ob_fs_book_dead');
   });
 
   it('resume bono con contexto', () => {

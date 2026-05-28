@@ -8,6 +8,7 @@ import type {
   RewardValue,
 } from '@/types/rewards';
 import { BONUS_REWARD_TYPES, CURRENCY_AWARE_REWARD_TYPES } from '@/types/rewards';
+import { buildBackendBonusRewardConfig, resolveOperatorBonusId } from '@/lib/bonusRewardConfig';
 
 export const ALL_REWARD_TYPES: RewardTypeCode[] = [
   'xp',
@@ -166,16 +167,10 @@ export function formToRewardValue(
     case 'freebet':
     case 'cashback':
     case 'bonus_deposit': {
-      const bonus = context?.operator_bonuses.find((b) => b.id === fields.bonus_id);
+      const bonusId = resolveOperatorBonusId(fields.bonus_id, context?.operator_bonuses);
       return {
         reward_type: fields.reward_type,
-        reward_config: {
-          bonus_id: fields.bonus_id,
-          external_bonus_id: bonus?.external_id ?? fields.bonus_id,
-          amount: bonus?.default_value_usd,
-          currency: 'USD',
-          ...currencyExtras,
-        },
+        reward_config: buildBackendBonusRewardConfig(fields.reward_type, { bonus_id: bonusId }),
         currency_mode,
       };
     }

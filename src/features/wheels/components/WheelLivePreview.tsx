@@ -1,7 +1,7 @@
 import {
   buildWheelConicGradient,
   buildWheelDividerOverlay,
-  getSliceIconStyle,
+  getSliceIconStyleForSegments,
   normalizeWheelSegments,
   type WheelVisualConfig,
 } from '@/features/wheels/wheelDisplay';
@@ -16,9 +16,9 @@ export function WheelLivePreview({
   className?: string;
 }) {
   const normalized = normalizeWheelSegments(config.segments);
-  const count = normalized.length;
-  const gradient = buildWheelConicGradient(normalized);
-  const dividers = buildWheelDividerOverlay(count);
+  const displayMode = config.displayMode ?? 'equal';
+  const gradient = buildWheelConicGradient(normalized, undefined, displayMode);
+  const dividers = buildWheelDividerOverlay(normalized, undefined, displayMode);
 
   return (
     <div className={className}>
@@ -49,7 +49,7 @@ export function WheelLivePreview({
               src={segment.imageUrl}
               alt=""
               className="pointer-events-none object-contain"
-              style={getSliceIconStyle(index, count, 12)}
+              style={getSliceIconStyleForSegments(index, normalized, displayMode, 12)}
             />
           ) : null,
         )}
@@ -72,7 +72,9 @@ export function WheelLivePreview({
         <div className="pointer-events-none absolute left-1/2 top-0 z-10 h-0 w-0 -translate-x-1/2 border-x-[6px] border-t-[10px] border-x-transparent border-t-accent" />
       </div>
       <p className="mt-2 text-center text-[12px] text-text-tertiary">
-        Íconos en cada segmento · logo en el centro · fondo opcional
+        {displayMode === 'proportional'
+          ? 'Segmentos proporcionales al % · el ganador real sigue las probabilidades configuradas'
+          : 'Segmentos iguales · el ganador real sigue las probabilidades configuradas'}
       </p>
     </div>
   );
