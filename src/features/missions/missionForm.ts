@@ -2,7 +2,7 @@ import { z } from 'zod';
 
 import {
   actionFromBackend,
-  actionToBackendPayload,
+  actionToBackendStep,
   MISSION_ACTION_TYPES,
   newMissionAction,
   type MissionActionFormValues,
@@ -76,6 +76,25 @@ export const missionFormSchema = z.object({
 
 export type MissionFormValues = z.infer<typeof missionFormSchema>;
 
+export const MISSION_CODE_REGEX = /^[a-z0-9_-]+$/;
+
+export function slugifyMissionCode(input: string): string {
+  return (
+    input
+      .toLowerCase()
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .replace(/[^a-z0-9_-]+/g, '_')
+      .replace(/^_+|_+$/g, '')
+      .slice(0, 64) || 'mission'
+  );
+}
+
+function resolveMissionCode(values: MissionFormValues, existingCode?: string): string {
+  const raw = existingCode?.trim() || values.code.trim() || values.name.trim();
+  return slugifyMissionCode(raw);
+}
+
 export function defaultMissionForm(): MissionFormValues {
   return {
     name: '',
@@ -93,18 +112,6 @@ export function defaultMissionForm(): MissionFormValues {
     primaryReward: { reward_type: 'xp', reward_config: { amount: 500 } },
     availability_window: emptyAvailabilityWindow(),
   };
-}
-
-function slugifyCode(name: string): string {
-  return (
-    name
-      .toLowerCase()
-      .normalize('NFD')
-      .replace(/[\u0300-\u036f]/g, '')
-      .replace(/[^a-z0-9_-]+/g, '_')
-      .replace(/^_+|_+$/g, '')
-      .slice(0, 40) || 'mission'
-  );
 }
 
 function buildRewardsFromForm(reward: RewardValue): Array<Record<string, unknown>> {
@@ -162,10 +169,7 @@ export function formToBackendPayload(
   values: MissionFormValues,
   opts: { existingCode?: string },
 ): Record<string, unknown> {
-  const code =
-    opts.existingCode?.trim() ||
-    values.code.trim() ||
-    `${slugifyCode(values.name)}_${Date.now().toString(36)}`.slice(0, 64);
+  const code = resolveMissionCode(values, opts.existingCode);
 
   const { available_from, available_until } = availabilityWindowToIso(values.availability_window);
 
@@ -189,10 +193,7 @@ export function formToBackendPayload(
       {
         name: null,
         description: null,
-        actions: values.actions.map((a, i) => ({
-          ...actionToBackendPayload(a),
-          display_order: i,
-        })),
+        actions: values.actions.map((a, i) => actionToBackendStep(a, i)),
         rewards: buildRewardsFromForm(values.primaryReward),
       },
     ],

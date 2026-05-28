@@ -22,10 +22,12 @@ export const adminMissions: BackendMissionRecord[] = [
         description: null,
         actions: [
           {
-            type: 'bet_amount',
-            amount: 500,
-            currency_code: 'USD',
-            aggregation_mode: 'cumulative',
+            config: {
+              type: 'bet_amount',
+              amount: 500,
+              currency_code: 'USD',
+              aggregation_mode: 'cumulative',
+            },
             display_order: 0,
           },
         ],
@@ -58,7 +60,7 @@ export const adminMissions: BackendMissionRecord[] = [
     progress: { started: 1200, completed: 430 },
     steps: [
       {
-        actions: [{ type: 'first_deposit', min_amount: 50, currency_code: 'USD', display_order: 0 }],
+        actions: [{ config: { type: 'first_deposit', min_amount: 50 }, display_order: 0 }],
         rewards: [
           {
             reward_type_id: 5,
@@ -84,9 +86,9 @@ export const adminMissions: BackendMissionRecord[] = [
     steps: [
       {
         actions: [
-          { type: 'bet_amount', amount: 100, currency_code: 'USD', aggregation_mode: 'cumulative', display_order: 0 },
-          { type: 'bet_category', category_slug: 'casino', display_order: 1 },
-          { type: 'verify_kyc', display_order: 2 },
+          { config: { type: 'bet_amount', amount: 100, aggregation_mode: 'cumulative' }, display_order: 0 },
+          { config: { type: 'bet_category', category_slug: 'casino' }, display_order: 1 },
+          { config: { type: 'verify_kyc' }, display_order: 2 },
         ],
         rewards: [
           {

@@ -115,7 +115,7 @@ export async function acceptInvitation(token: string, password: string): Promise
 }
 
 export async function refreshSession(refreshToken: string): Promise<LoginResult> {
-  const res = await authHttp.post('/auth/refresh', { refreshToken });
+  const res = await authHttp.post('/auth/refresh', { refresh_token: refreshToken });
   const body = unwrapData<RawAuthPayload>(res.data);
   return normalizeAuthPayload(body);
 }

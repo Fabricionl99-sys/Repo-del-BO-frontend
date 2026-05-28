@@ -4,9 +4,11 @@ import {
   backendToForm,
   defaultMissionForm,
   formToBackendPayload,
+  MISSION_CODE_REGEX,
   missionFormSchema,
+  slugifyMissionCode,
 } from '@/features/missions/missionForm';
-import { newMissionAction } from '@/features/missions/missionActions';
+import { buildActionConfig, newMissionAction } from '@/features/missions/missionActions';
 
 describe('missionFormSchema', () => {
   it('requiere al menos un requisito', () => {
@@ -80,9 +82,20 @@ describe('formToBackendPayload', () => {
       },
       {},
     );
-    const steps = payload.steps as Array<{ actions: Array<{ type: string }> }>;
+    const steps = payload.steps as Array<{ actions: Array<{ config: { type: string }; display_order: number }> }>;
     expect(steps[0].actions).toHaveLength(3);
-    expect(steps[0].actions.map((a) => a.type)).toEqual(['bet_amount', 'bet_category', 'verify_kyc']);
+    expect(steps[0].actions.map((a) => a.config.type)).toEqual(['bet_amount', 'bet_category', 'verify_kyc']);
+    expect(steps[0].actions[0].display_order).toBe(0);
+    expect(steps[0].actions[2].config).toEqual({ type: 'verify_kyc' });
+  });
+
+  it('slugifica code desde el nombre', () => {
+    const payload = formToBackendPayload(
+      { ...defaultMissionForm(), name: 'Misión VIP Casino', code: '' },
+      {},
+    );
+    expect(payload.code).toBe('mision_vip_casino');
+    expect(MISSION_CODE_REGEX.test(String(payload.code))).toBe(true);
   });
 
   it('incluye available_from y available_until en el payload', () => {
@@ -122,9 +135,12 @@ describe('backendToForm', () => {
       steps: [
         {
           actions: [
-            { type: 'bet_amount', amount: 100, aggregation_mode: 'cumulative' },
-            { type: 'bet_category', category_slug: 'casino' },
-            { type: 'verify_kyc' },
+            {
+              config: { type: 'bet_amount', amount: 100, aggregation_mode: 'cumulative' },
+              display_order: 0,
+            },
+            { config: { type: 'bet_category', category_slug: 'casino' }, display_order: 1 },
+            { config: { type: 'verify_kyc' }, display_order: 2 },
           ],
           rewards: [],
         },
@@ -148,5 +164,15 @@ describe('backendToForm', () => {
     });
     expect(form.availability_window.from_date).toBeTruthy();
     expect(form.availability_window.until_date).toBeTruthy();
+  });
+});
+
+describe('buildActionConfig', () => {
+  it('verify_kyc no incluye campos extra', () => {
+    expect(buildActionConfig({ type: 'verify_kyc' })).toEqual({ type: 'verify_kyc' });
+  });
+
+  it('slugifyMissionCode normaliza acentos y espacios', () => {
+    expect(slugifyMissionCode('Misión VIP Casino')).toBe('mision_vip_casino');
   });
 });

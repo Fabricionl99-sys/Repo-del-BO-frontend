@@ -78,47 +78,68 @@ export function newMissionAction(type: MissionActionType = 'bet_amount'): Missio
     aggregation_mode: type === 'bet_amount' ? 'cumulative' : undefined,
     category_slug: type === 'bet_category' ? 'casino' : undefined,
     count: type === 'cumulative_bets' ? 10 : undefined,
-    currency_code: 'USD',
   };
 }
 
-export function actionToBackendPayload(action: MissionActionFormValues): Record<string, unknown> {
-  const type = action.type;
-  const base: Record<string, unknown> = { type };
-  switch (type) {
+function omitUndefined<T extends Record<string, unknown>>(obj: T): T {
+  return Object.fromEntries(Object.entries(obj).filter(([, v]) => v !== undefined)) as T;
+}
+
+/** Strict discriminated union for backend MissionActionConfigSchema. */
+export function buildActionConfig(action: MissionActionFormValues): Record<string, unknown> {
+  switch (action.type) {
     case 'bet_amount':
-      return {
-        ...base,
+      return omitUndefined({
+        type: 'bet_amount',
         amount: Math.max(0.01, Number(action.amount ?? 1)),
-        currency_code: action.currency_code ?? 'USD',
+        currency_code: action.currency_code?.trim() || undefined,
         aggregation_mode: action.aggregation_mode ?? 'cumulative',
-      };
+      });
     case 'deposit_amount':
-      return {
-        ...base,
+      return omitUndefined({
+        type: 'deposit_amount',
         amount: Math.max(0.01, Number(action.amount ?? 1)),
-        currency_code: action.currency_code ?? 'USD',
-      };
+        currency_code: action.currency_code?.trim() || undefined,
+      });
     case 'bet_category':
-      return {
-        ...base,
+      return omitUndefined({
+        type: 'bet_category',
         category_slug: action.category_slug ?? 'casino',
-        ...(action.amount && action.amount > 0 ? { amount: action.amount, currency_code: action.currency_code ?? 'USD' } : {}),
-      };
+        amount: action.amount && action.amount > 0 ? action.amount : undefined,
+      });
     case 'cumulative_bets':
-      return { ...base, count: Math.max(1, Math.floor(Number(action.count ?? 1))) };
+      return {
+        type: 'cumulative_bets',
+        count: Math.max(1, Math.floor(Number(action.count ?? 1))),
+      };
     case 'first_deposit':
-      return action.min_amount && action.min_amount > 0
-        ? { ...base, min_amount: action.min_amount, currency_code: action.currency_code ?? 'USD' }
-        : base;
+      return omitUndefined({
+        type: 'first_deposit',
+        min_amount: action.min_amount && action.min_amount > 0 ? action.min_amount : undefined,
+      });
     case 'login':
     case 'verify_email':
     case 'verify_kyc':
     case 'verify_phone':
-      return base;
+      return { type: action.type };
     default:
-      return base;
+      return { type: action.type };
   }
+}
+
+export function actionToBackendStep(
+  action: MissionActionFormValues,
+  displayOrder: number,
+): { config: Record<string, unknown>; display_order: number } {
+  return {
+    config: buildActionConfig(action),
+    display_order: displayOrder,
+  };
+}
+
+/** @deprecated Use buildActionConfig + actionToBackendStep */
+export function actionToBackendPayload(action: MissionActionFormValues): Record<string, unknown> {
+  return buildActionConfig(action);
 }
 
 export function actionFromBackend(raw: Record<string, unknown>): MissionActionFormValues {

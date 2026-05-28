@@ -16,6 +16,7 @@ import { availabilityWindowToIso } from '@/features/missions/missionAvailability
 import {
   defaultMissionForm,
   missionFormSchema,
+  slugifyMissionCode,
   type MissionFormValues,
 } from '@/features/missions/missionForm';
 import { StickyBottomBar } from '@/features/rules/components/RuleBlocks';
@@ -34,8 +35,9 @@ export default function MissionEditorPage() {
     defaultValues: defaultMissionForm(),
   });
 
-  const { register, handleSubmit, reset, control, watch, formState: { errors } } = form;
+  const { register, handleSubmit, reset, control, watch, setValue, formState: { errors } } = form;
   const name = watch('name');
+  const code = watch('code');
   const actions = watch('actions');
   const dailyHours = watch('daily_validity_hours');
   const availabilityWindow = watch('availability_window');
@@ -44,6 +46,12 @@ export default function MissionEditorPage() {
   useEffect(() => {
     if (q.data) reset(q.data);
   }, [q.data, reset]);
+
+  useEffect(() => {
+    if (!isNew || !name.trim()) return;
+    const slug = slugifyMissionCode(name);
+    if (slug !== code) setValue('code', slug, { shouldDirty: true });
+  }, [isNew, name, code, setValue]);
 
   if (!isNew && q.isLoading) return <Loading label="Cargando misión..." />;
   if (q.isError) return <ErrorState onRetry={() => q.refetch()} />;
@@ -86,9 +94,19 @@ export default function MissionEditorPage() {
               <div>
                 <label className="mb-1.5 block text-[14px] text-text-secondary">
                   Código (slug)
-                  <FieldHint text="Identificador único. Si lo dejás vacío se genera automáticamente al guardar." />
+                  <FieldHint text="Se genera automáticamente del nombre (minúsculas, números, _ o -). Podés ajustarlo antes de guardar." />
                 </label>
-                <input className="field" placeholder="ej: apuesta_casino_kyc" {...register('code')} />
+                <input
+                  className="field font-mono text-[13px]"
+                  placeholder="ej: mision_vip_casino"
+                  readOnly={isNew}
+                  {...register('code', {
+                    onBlur: (e) => {
+                      const slug = slugifyMissionCode(e.target.value || name);
+                      if (slug) setValue('code', slug, { shouldDirty: true });
+                    },
+                  })}
+                />
               </div>
             </div>
           </ConfigSection>
