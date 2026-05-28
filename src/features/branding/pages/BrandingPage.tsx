@@ -172,8 +172,13 @@ export default function BrandingPage() {
       setCssError(cssErr);
       return;
     }
-    await update.mutateAsync(formToUpdatePayload(configToFormValues(config)));
-    setDraft(null);
+    try {
+      await update.mutateAsync(formToUpdatePayload(configToFormValues(config)));
+      setDraft(null);
+      await configQ.refetch();
+    } catch {
+      /* toast desde API — draft local se mantiene */
+    }
   };
 
   /**
@@ -503,6 +508,9 @@ export default function BrandingPage() {
             <div className="card overflow-hidden">
               <header className="section-head">
                 <h2 className="label-section">preview en vivo</h2>
+                <p className="mt-1 text-[12px] font-normal text-text-tertiary">
+                  Refleja colores y fuentes del formulario al instante — guardá para publicar al widget real.
+                </p>
               </header>
               <div className="bg-bg-tertiary p-4">
                 <WidgetPreviewMock config={config} viewport="mobile" />
