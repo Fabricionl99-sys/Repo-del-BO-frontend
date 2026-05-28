@@ -436,7 +436,7 @@ export default function ChestsPage() {
 
       <ChestTypeFormModal
         open={editorType !== null}
-        chestType={editorType === 'new' ? null : editorType}
+        chestTypeCode={editorType === 'new' || editorType === null ? null : editorType.code}
         existingCodes={existingCodes}
         chestTypeOptions={chestTypeOptions}
         onClose={() => setEditorType(null)}

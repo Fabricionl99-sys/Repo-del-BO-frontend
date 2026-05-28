@@ -404,7 +404,7 @@ export default function WheelsPage() {
 
       <WheelFormModal
         open={editorWheel !== null}
-        wheel={editorWheel === 'new' ? null : editorWheel}
+        wheelCode={editorWheel === 'new' || editorWheel === null ? null : editorWheel.code}
         existingCodes={existingCodes}
         onClose={() => setEditorWheel(null)}
       />

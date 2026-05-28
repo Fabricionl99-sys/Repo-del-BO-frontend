@@ -4,6 +4,7 @@ import { apiClient } from '@/api/client';
 import { unwrapData, unwrapPaginatedList } from '@/api/response';
 import { toast } from '@/stores/toastStore';
 import { buildBackendBonusRewardConfig } from '@/lib/bonusRewardConfig';
+import { extractWheelPrizes } from '@/features/wheels/wheelDetailShape';
 import type {
   SpinHistoryEntry,
   SpinHistoryQuery,
@@ -166,7 +167,7 @@ function normalizeBackendWheel(raw: Record<string, unknown>): WheelType {
     archive === 'emergency' ? 'emergency' : 'normal';
   const spinExpirationHours =
     typeof raw.spin_expiration_hours === 'number' ? (raw.spin_expiration_hours as number) : null;
-  const prizesRaw = Array.isArray(raw.prizes) ? (raw.prizes as Array<Record<string, unknown>>) : [];
+  const prizesRaw = extractWheelPrizes(raw);
   return {
     code: String(raw.code ?? ''),
     name: String(raw.name ?? ''),

@@ -5,15 +5,11 @@ import { useForm, useWatch } from 'react-hook-form';
 
 import { MediaUploaderRhf } from '@/components/media/MediaUploaderRhf';
 import { Button } from '@/components/ui/Button';
+import { ErrorState } from '@/components/ui/ErrorState';
+import { Loading } from '@/components/ui/Loading';
 import { Modal } from '@/components/ui/Modal';
 import { Switch } from '@/components/ui/Switch';
-import {
-  useAddChestPrize,
-  useCreateChestType,
-  useDeleteChestPrize,
-  useUpdateChestPrize,
-  useUpdateChestType,
-} from '@/features/chests/chestsApi';
+import { useAddChestPrize, useCreateChestType, useDeleteChestPrize, useChestType, useUpdateChestPrize, useUpdateChestType } from '@/features/chests/chestsApi';
 import {
   formToPrizePayload,
   probabilitiesValid,
@@ -36,16 +32,20 @@ import { ProbabilityBar } from './ProbabilityBar';
 
 export function ChestTypeFormModal({
   open,
-  chestType,
+  chestTypeCode,
   existingCodes,
   onClose,
 }: {
   open: boolean;
-  chestType: ChestType | null;
+  /** null = crear; string = editar (fetch detail con todos los prizes) */
+  chestTypeCode: string | null;
   existingCodes: string[];
   chestTypeOptions?: { code: string; name: string }[];
   onClose: () => void;
 }) {
+  const isEdit = Boolean(chestTypeCode);
+  const chestTypeQ = useChestType(open && chestTypeCode ? chestTypeCode : null);
+  const chestType = isEdit ? (chestTypeQ.data ?? null) : null;
   const createType = useCreateChestType();
   const updateType = useUpdateChestType();
   const addPrize = useAddChestPrize();
@@ -81,11 +81,17 @@ export function ChestTypeFormModal({
 
   useEffect(() => {
     if (!open) return;
+    if (isEdit && chestTypeQ.isLoading) return;
+    if (isEdit && !chestType) return;
+
     reset(chestType ? chestTypeToForm(chestType) : defaultChestTypeForm());
     setPrizes(chestType?.prizes ?? []);
     setProbabilityError(undefined);
     setPrizeEditor(null);
-  }, [open, chestType, reset]);
+  }, [open, isEdit, chestType, chestTypeQ.isLoading, reset]);
+
+  const loadingDetail = open && isEdit && chestTypeQ.isLoading;
+  const detailError = open && isEdit && chestTypeQ.isError;
 
   const handlePrizeSave = async (
     payload: ReturnType<typeof formToPrizePayload>,
@@ -144,12 +150,30 @@ export function ChestTypeFormModal({
     onClose();
   });
 
+  if (!open) return null;
+
+  if (loadingDetail) {
+    return (
+      <Modal open={open} onClose={onClose} title="Editar tipo de cofre" size="lg">
+        <Loading label="Cargando premios del cofre…" />
+      </Modal>
+    );
+  }
+
+  if (detailError) {
+    return (
+      <Modal open={open} onClose={onClose} title="Editar tipo de cofre" size="lg">
+        <ErrorState onRetry={() => void chestTypeQ.refetch()} />
+      </Modal>
+    );
+  }
+
   return (
     <>
       <Modal
         open={open}
         onClose={onClose}
-        title={chestType ? 'Editar tipo de cofre' : 'Nuevo tipo de cofre'}
+        title={isEdit ? 'Editar tipo de cofre' : 'Nuevo tipo de cofre'}
         description="Catálogo de cofres · premios embebidos y sistema de pity"
         size="lg"
         footer={
@@ -172,7 +196,7 @@ export function ChestTypeFormModal({
             <div className="grid gap-3 sm:grid-cols-2">
               <div>
                 <label className="mb-1.5 block text-[14px] text-text-secondary">code</label>
-                <input className="field font-mono text-[14px]" disabled={Boolean(chestType)} {...register('code')} />
+                <input className="field font-mono text-[14px]" disabled={isEdit} {...register('code')} />
                 {errors.code && <p className="mt-1 text-[13px] text-danger">{errors.code.message}</p>}
               </div>
               <div>

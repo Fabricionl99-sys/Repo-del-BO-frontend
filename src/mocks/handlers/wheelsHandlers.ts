@@ -30,25 +30,124 @@ function activeOccasionCount(wheel: WheelType) {
   return wheel.occasions.filter((o) => o.is_active).length;
 }
 
-export const wheelsHandlers = [
-  http.get('*/admin/wheels', async ({ request }) => {
-    await wait();
-    const url = new URL(request.url);
-    const status = url.searchParams.get('status');
-    const search = (url.searchParams.get('search') ?? '').toLowerCase();
-    let list = [...wheelTypes];
-    if (status === 'active') list = list.filter((w) => w.status === 'active');
-    if (status === 'archived') list = list.filter((w) => w.status === 'archived');
-    if (search) {
-      list = list.filter(
-        (w) => w.name.toLowerCase().includes(search) || w.code.toLowerCase().includes(search),
-      );
-    }
-    const items = list.map((w) => ({
-      ...w,
+function catalogListItems(list: WheelType[]) {
+  return list.map((w) => {
+    const { prizes: _prizes, occasions: _occasions, ...meta } = w;
+    void _prizes;
+    void _occasions;
+    return {
+      ...meta,
       active_occasions_count: activeOccasionCount(w),
       prizes_count: w.prizes.length,
+    };
+  });
+}
+
+async function handleWheelCatalog(request: Request) {
+  await wait();
+  const url = new URL(request.url);
+  const status = url.searchParams.get('status');
+  const search = (url.searchParams.get('search') ?? '').toLowerCase();
+  let list = [...wheelTypes];
+  if (status === 'active') list = list.filter((w) => w.status === 'active');
+  if (status === 'archived') list = list.filter((w) => w.status === 'archived');
+  if (search) {
+    list = list.filter(
+      (w) => w.name.toLowerCase().includes(search) || w.code.toLowerCase().includes(search),
+    );
+  }
+  return catalogListItems(list);
+}
+
+export const wheelsHandlers = [
+  http.get('*/admin/wheels/types', async ({ request }) => {
+    const items = await handleWheelCatalog(request);
+    return HttpResponse.json({ data: items });
+  }),
+
+  http.get('*/admin/wheels/types/:code', async ({ params }) => {
+    await wait();
+    const item = findWheel(String(params.code));
+    if (!item) return new HttpResponse(null, { status: 404 });
+    return HttpResponse.json({ data: item });
+  }),
+
+  http.post('*/admin/wheels/types', async ({ request }) => {
+    await wait();
+    const body = (await request.json()) as WheelTypeCreatePayload;
+    if (findWheel(body.code)) {
+      return HttpResponse.json({ message: 'code duplicado' }, { status: 409 });
+    }
+    const prizes: WheelPrize[] = body.prizes.map((p, i) => ({
+      ...p,
+      id: `prize_${body.code}_${Date.now()}_${i}`,
     }));
+    const item: WheelType = {
+      code: body.code,
+      name: body.name,
+      description: body.description,
+      image_url: body.image_url,
+      center_logo_url: body.center_logo_url ?? '',
+      color_theme: body.color_theme,
+      is_active: body.is_active,
+      pity_enabled: body.pity_enabled,
+      pity_threshold: body.pity_threshold,
+      pity_guaranteed_prize_id: body.pity_guaranteed_prize_id,
+      show_probabilities_to_players: body.show_probabilities_to_players,
+      daily_cooldown_mode: body.daily_cooldown_mode,
+      daily_cooldown_hours: body.daily_cooldown_hours,
+      spins_expire: body.spins_expire,
+      spin_expiration_hours: body.spin_expiration_hours,
+      archive_mode_default: body.archive_mode_default,
+      prizes,
+      occasions: body.occasions,
+      status: 'active',
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    };
+    wheelTypes.unshift(item);
+    return HttpResponse.json({ data: item }, { status: 201 });
+  }),
+
+  http.patch('*/admin/wheels/types/:code', async ({ params, request }) => {
+    await wait();
+    const item = findWheel(String(params.code));
+    if (!item) return new HttpResponse(null, { status: 404 });
+    const body = (await request.json()) as Partial<WheelTypeMetadataPayload> & {
+      prizes?: WheelPrizePayload[];
+      occasions?: WheelOccasion[];
+    };
+    if (body.prizes) {
+      item.prizes = body.prizes.map((p, i) => {
+        const withId = p as WheelPrizePayload & { id?: string };
+        return {
+          ...p,
+          id: withId.id ?? item.prizes[i]?.id ?? `prize_${item.code}_${Date.now()}_${i}`,
+        };
+      });
+    }
+    if (body.occasions) item.occasions = body.occasions;
+    const { prizes: prizesPatch, occasions: occasionsPatch, ...meta } = body;
+    void prizesPatch;
+    void occasionsPatch;
+    Object.assign(item, meta, { updated_at: new Date().toISOString() });
+    return HttpResponse.json({ data: item });
+  }),
+
+  http.delete('*/admin/wheels/types/:code', async ({ params, request }) => {
+    await wait();
+    const item = findWheel(String(params.code));
+    if (!item) return new HttpResponse(null, { status: 404 });
+    const body = (await request.json().catch(() => ({}))) as WheelArchivePayload;
+    item.status = 'archived';
+    item.is_active = false;
+    item.updated_at = new Date().toISOString();
+    if (body.mode === 'emergency') clearSpinHistoryForWheel(item.code);
+    return new HttpResponse(null, { status: 204 });
+  }),
+
+  http.get('*/admin/wheels', async ({ request }) => {
+    const items = await handleWheelCatalog(request);
     return HttpResponse.json({
       data: { items, stats: computeWheelStats() },
     });

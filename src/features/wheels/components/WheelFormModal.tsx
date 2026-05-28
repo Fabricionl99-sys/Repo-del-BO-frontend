@@ -11,7 +11,9 @@ import { RewardSelector } from '@/components/rewards/RewardSelector';
 import { formToRewardValue, rewardValueToForm } from '@/features/rewards/rewardForm';
 import { useRewardOperatorContext } from '@/features/rewards/useRewardOperatorContext';
 import { Button } from '@/components/ui/Button';
+import { ErrorState } from '@/components/ui/ErrorState';
 import { FieldHint } from '@/components/ui/FieldHint';
+import { Loading } from '@/components/ui/Loading';
 import { Modal } from '@/components/ui/Modal';
 import { Switch } from '@/components/ui/Switch';
 import { WheelColorThemePicker } from '@/features/wheels/components/WheelColorThemePicker';
@@ -20,7 +22,7 @@ import { WheelOccasionsEditor } from '@/features/wheels/components/WheelOccasion
 import { WheelProbabilityBar } from '@/features/wheels/components/WheelProbabilityBar';
 import { segmentsFromPrizeForms } from '@/features/wheels/wheelDisplay';
 import type { WheelSegmentDisplayMode } from '@/features/wheels/wheelDisplay';
-import { useCreateWheel, useUpdateWheel } from '@/features/wheels/wheelsApi';
+import { useCreateWheel, useUpdateWheel, useWheel } from '@/features/wheels/wheelsApi';
 import {
   defaultOccasions,
   defaultWheelForm,
@@ -41,17 +43,26 @@ import {
 } from '@/features/wheels/wheelPrizeForm';
 import type { WheelType } from '@/types/wheels';
 
+function prizesToFormValues(wheel: WheelType | null | undefined): WheelPrizeFormValues[] {
+  if (!wheel?.prizes?.length) return [];
+  return [...wheel.prizes].sort((a, b) => a.display_order - b.display_order).map(prizeToForm);
+}
+
 export function WheelFormModal({
   open,
-  wheel,
+  wheelCode,
   existingCodes,
   onClose,
 }: {
   open: boolean;
-  wheel: WheelType | null;
+  /** null = crear nueva rueda; string = editar (fetch detail con todos los prizes) */
+  wheelCode: string | null;
   existingCodes: string[];
   onClose: () => void;
 }) {
+  const isEdit = Boolean(wheelCode);
+  const wheelQ = useWheel(open && wheelCode ? wheelCode : null);
+  const wheel = isEdit ? (wheelQ.data ?? null) : null;
   const createWheel = useCreateWheel();
   const updateWheel = useUpdateWheel();
   const { context: rewardContext } = useRewardOperatorContext();
@@ -114,17 +125,19 @@ export function WheelFormModal({
 
   useEffect(() => {
     if (!open) return;
+    if (isEdit && wheelQ.isLoading) return;
+    if (isEdit && !wheel) return;
+
     reset(wheel ? wheelToForm(wheel) : defaultWheelForm());
-    setPrizes(
-      wheel?.prizes?.length
-        ? [...wheel.prizes].sort((a, b) => a.display_order - b.display_order).map(prizeToForm)
-        : [defaultWheelPrizeForm('#FFD700'), defaultWheelPrizeForm('#FCD34D')],
-    );
+    setPrizes(prizesToFormValues(wheel));
     setOccasions(mergeOccasions(wheel));
     setExpanded({ 0: true });
     setProbabilityError(undefined);
     setPityError(undefined);
-  }, [open, wheel, reset]);
+  }, [open, isEdit, wheel, wheelQ.isLoading, reset]);
+
+  const loadingDetail = open && isEdit && wheelQ.isLoading;
+  const detailError = open && isEdit && wheelQ.isError;
 
   const movePrize = (index: number, dir: -1 | 1) => {
     const next = [...prizes];
@@ -139,7 +152,7 @@ export function WheelFormModal({
   };
 
   const submit = handleSubmit(async (values) => {
-    const validation = validateWheelSave(values, prizePayloads, existingCodes, wheel?.code);
+    const validation = validateWheelSave(values, prizePayloads, existingCodes, wheelCode ?? undefined);
     if (validation.probabilityError) setProbabilityError(validation.probabilityError);
     if (validation.pityError) setPityError(validation.pityError);
     for (const [key, message] of Object.entries(validation.fieldErrors)) {
@@ -157,21 +170,39 @@ export function WheelFormModal({
       prizePayloads,
       occasions,
     );
-    if (wheel) {
+    if (wheelCode) {
       const { code: _omit, ...updatePayload } = payload;
       void _omit;
-      await updateWheel.mutateAsync({ code: wheel.code, ...updatePayload });
+      await updateWheel.mutateAsync({ code: wheelCode, ...updatePayload });
     } else {
       await createWheel.mutateAsync(payload);
     }
     onClose();
   });
 
+  if (!open) return null;
+
+  if (loadingDetail) {
+    return (
+      <Modal open={open} onClose={onClose} title="Editar rueda" size="lg">
+        <Loading label="Cargando premios de la rueda…" />
+      </Modal>
+    );
+  }
+
+  if (detailError) {
+    return (
+      <Modal open={open} onClose={onClose} title="Editar rueda" size="lg">
+        <ErrorState onRetry={() => void wheelQ.refetch()} />
+      </Modal>
+    );
+  }
+
   return (
     <Modal
       open={open}
       onClose={onClose}
-      title={wheel ? 'Editar rueda' : 'Nueva rueda'}
+      title={isEdit ? 'Editar rueda' : 'Nueva rueda'}
       description="Catálogo · premios · ocasiones · avanzado"
       size="lg"
       footer={
@@ -196,7 +227,7 @@ export function WheelFormModal({
           <div className="grid gap-3 sm:grid-cols-2">
             <div>
               <label className="mb-1.5 block text-[14px] text-text-secondary">code</label>
-              <input className="field font-mono text-[14px]" disabled={Boolean(wheel)} {...register('code')} />
+              <input className="field font-mono text-[14px]" disabled={isEdit} {...register('code')} />
               {errors.code && <p className="mt-1 text-[13px] text-danger">{errors.code.message}</p>}
             </div>
             <div>
@@ -287,11 +318,16 @@ export function WheelFormModal({
           <WheelProbabilityBar prizes={prizePayloads} />
           {probabilityError && <p className="text-[13px] text-danger">{probabilityError}</p>}
           {pityError && <p className="text-[13px] text-danger">{pityError}</p>}
+          {prizes.length === 0 && (
+            <p className="rounded-lg border border-dashed border-border-subtle bg-bg-tertiary px-3 py-4 text-[14px] text-text-tertiary">
+              Agregá al menos 2 premios para guardar la rueda.
+            </p>
+          )}
           <div className="space-y-2">
             {prizes.map((prize, idx) => {
               const isOpen = expanded[idx] ?? false;
               return (
-                <div key={idx} className="rounded-lg border border-border-subtle">
+                <div key={prize.id ?? `prize-${idx}`} className="rounded-lg border border-border-subtle">
                   <button
                     type="button"
                     className="flex w-full items-center gap-2 px-3 py-2 text-left"
