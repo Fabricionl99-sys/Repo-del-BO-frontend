@@ -30,7 +30,7 @@ function suggestNextXp(levels: LevelEntry[]): number {
 function validateCurve(levels: LevelEntry[]): string | null {
   for (let i = 1; i < levels.length; i++) {
     if (levels[i].xpRequired <= levels[i - 1].xpRequired) {
-      return `El nivel ${levels[i].level} debe requerir más XP que el nivel ${levels[i - 1].level}.`;
+      return `El nivel ${i + 1} debe requerir más XP acumulado que el nivel ${i}.`;
     }
   }
   return null;
@@ -99,14 +99,13 @@ export default function LevelsPage() {
 
   const addLevel = () => {
     if (!current) {
-      const xp = 100;
       setDraft({
         version: 1,
         totalLevels: 1,
         levels: [
           {
             level: 1,
-            xpRequired: xp,
+            xpRequired: 0,
             milestoneEnabled: false,
             milestoneUnlock: null,
           },
@@ -116,12 +115,11 @@ export default function LevelsPage() {
       });
       return;
     }
-    const nextN = current.levels.length + 1;
     const xp = suggestNextXp(current.levels);
     setLevels([
       ...current.levels,
       {
-        level: nextN,
+        level: current.levels.length + 1,
         xpRequired: xp,
         displayName: undefined,
         badgeImageUrl: undefined,
@@ -129,6 +127,12 @@ export default function LevelsPage() {
         milestoneUnlock: null,
       },
     ]);
+  };
+
+  const removeLevel = (index: number) => {
+    if (!current || current.levels.length <= 1) return;
+    const next = current.levels.filter((_, i) => i !== index).map((row, i) => ({ ...row, level: i + 1 }));
+    setLevels(next);
   };
 
   if (mock === 'empty') {
@@ -185,23 +189,35 @@ export default function LevelsPage() {
       />
 
       <div className="card overflow-x-auto p-5">
+        <p className="mb-4 text-[14px] text-text-secondary">
+          Nivel inicial — el jugador arranca con 0 XP. Cada fila es un nivel; el número se asigna automáticamente según el
+          orden.
+        </p>
         <table className="w-full min-w-[720px] border-collapse text-left">
           <thead>
             <tr className="border-b border-border-default text-[13px] font-semibold uppercase tracking-wide text-text-tertiary">
               <th className="pb-3 pr-2">Nivel</th>
               <th className="pb-3 pr-2">Nombre opc.</th>
               <th className="pb-3 pr-2">Insignia</th>
-              <th className="pb-3 pr-2">XP necesario</th>
+              <th
+                className="pb-3 pr-2"
+                title="XP acumulado total para alcanzar este nivel. Nivel 1 = punto de partida (XP=0). Nivel 2 = 100 XP acumulados, etc."
+              >
+                XP necesario
+              </th>
               <th className="pb-3">Milestone</th>
             </tr>
           </thead>
           <tbody>
             {current.levels.map((row, index) => (
               <LevelRow
-                key={row.level}
+                key={`level-row-${index}`}
+                displayLevel={index + 1}
                 row={row}
                 prevXp={index === 0 ? null : current.levels[index - 1].xpRequired}
+                canDelete={current.levels.length > 1}
                 onPickBadge={uploadBadge}
+                onDelete={() => removeLevel(index)}
                 onChange={(next) => {
                   const copy = [...current.levels];
                   copy[index] = next;
@@ -229,7 +245,12 @@ export default function LevelsPage() {
           disabled={Boolean(invalidMsg)}
           onClick={() => {
             if (!current || invalidMsg) return;
-            save.mutate(current);
+            const normalized = {
+              ...current,
+              levels: current.levels.map((row, i) => ({ ...row, level: i + 1 })),
+              totalLevels: current.levels.length,
+            };
+            save.mutate(normalized, { onSuccess: () => setDraft(null) });
           }}
         >
           Guardar curva

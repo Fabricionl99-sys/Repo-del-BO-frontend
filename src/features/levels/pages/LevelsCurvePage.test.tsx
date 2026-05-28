@@ -21,7 +21,8 @@ describe('Curva de niveles', () => {
     expect(await screen.findByText('Curva de niveles')).toBeInTheDocument();
     expect(screen.getByText('Nivel')).toBeInTheDocument();
     expect(screen.getByText('+ Agregar nivel 16')).toBeInTheDocument();
-    fireEvent.click(screen.getByText('Guardar como borrador'));
+    expect(screen.getByText('Nivel 1')).toBeInTheDocument();
+    fireEvent.click(screen.getByText('Guardar curva'));
   });
 
   it('empty forzado', () => {

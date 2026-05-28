@@ -184,13 +184,16 @@ handlers.push(
   }),
   http.get('*/admin/curve', async () => {
     await wait();
-    return HttpResponse.json({ data: { levels: adminCurveLevels } });
+    return HttpResponse.json({ data: adminCurveLevels });
   }),
   http.put('*/admin/curve', async ({ request }) => {
     await wait();
-    const body = (await request.json()) as { levels: typeof adminCurveLevels };
-    adminCurveLevels.splice(0, adminCurveLevels.length, ...body.levels);
-    return HttpResponse.json({ data: { levels: adminCurveLevels } });
+    const body = (await request.json()) as unknown;
+    const rows = Array.isArray(body)
+      ? body
+      : ((body as { levels?: typeof adminCurveLevels }).levels ?? []);
+    adminCurveLevels.splice(0, adminCurveLevels.length, ...(rows as typeof adminCurveLevels));
+    return HttpResponse.json({ data: adminCurveLevels });
   }),
   http.get('*/admin/level-config', async () => {
     await wait();

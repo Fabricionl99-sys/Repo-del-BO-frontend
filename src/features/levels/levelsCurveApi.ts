@@ -1,9 +1,8 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { isAxiosError } from 'axios';
 
 import { apiClient } from '@/api/client';
-import { isXpEngineModuleForbidden } from '@/api/errors';
-import { unwrapData } from '@/api/response';
+import { getApiErrorMessage, isXpEngineModuleForbidden } from '@/api/errors';
+import { coerceToList, unwrapData } from '@/api/response';
 import { toast } from '@/stores/toastStore';
 import type { LevelEntry, LevelsCurve } from '@/types/levels';
 
@@ -19,12 +18,30 @@ export interface LevelConfig {
   [key: string]: unknown;
 }
 
-type BackendCurveRow = { level: number; xp_required: number };
+/** Shape GET/PUT /admin/curve — array directo en el body del PUT. */
+export type BackendCurveRow = {
+  level_number: number;
+  xp_required: number;
+  rewards: unknown[];
+};
 
-function backendToLevelsCurve(rows: BackendCurveRow[]): LevelsCurve {
-  const levels: LevelEntry[] = rows.map((row) => ({
-    level: row.level,
-    xpRequired: row.xp_required,
+type BackendCurveRowRaw = {
+  level_number?: number;
+  level?: number;
+  xp_required?: number;
+  rewards?: unknown[];
+};
+
+function parseCurveRows(body: unknown): BackendCurveRowRaw[] {
+  const unwrapped = unwrapData<unknown>(body);
+  if (Array.isArray(unwrapped)) return unwrapped as BackendCurveRowRaw[];
+  return coerceToList<BackendCurveRowRaw>(unwrapped, ['levels']);
+}
+
+function backendToLevelsCurve(rows: BackendCurveRowRaw[]): LevelsCurve {
+  const levels: LevelEntry[] = rows.map((row, index) => ({
+    level: row.level_number ?? row.level ?? index + 1,
+    xpRequired: row.xp_required ?? 0,
     displayName: undefined,
     badgeImageUrl: undefined,
     milestoneEnabled: false,
@@ -39,23 +56,13 @@ function backendToLevelsCurve(rows: BackendCurveRow[]): LevelsCurve {
   };
 }
 
-function levelsCurveToBackend(curve: LevelsCurve): BackendCurveRow[] {
-  return curve.levels.map((row) => ({
-    level: row.level,
-    xp_required: row.xpRequired,
+/** level_number auto-derivado del índice (1-based); rewards siempre array. */
+export function levelsCurveToBackend(curve: LevelsCurve): BackendCurveRow[] {
+  return curve.levels.map((row, index) => ({
+    level_number: index + 1,
+    xp_required: Math.max(0, Math.round(Number(row.xpRequired) || 0)),
+    rewards: [],
   }));
-}
-
-function parseCurveBody(body: unknown): BackendCurveRow[] {
-  const unwrapped = unwrapData<unknown>(body);
-  if (Array.isArray(unwrapped)) {
-    return unwrapped as BackendCurveRow[];
-  }
-  if (unwrapped && typeof unwrapped === 'object') {
-    const levels = (unwrapped as { levels?: unknown }).levels;
-    if (Array.isArray(levels)) return levels as BackendCurveRow[];
-  }
-  return [];
 }
 
 export function useCurve() {
@@ -64,7 +71,7 @@ export function useCurve() {
     queryFn: async () => {
       try {
         const r = await apiClient.get('/admin/curve');
-        const rows = parseCurveBody(r.data);
+        const rows = parseCurveRows(r.data);
         if (rows.length === 0) return null;
         return backendToLevelsCurve(rows);
       } catch (error) {
@@ -83,10 +90,10 @@ export function useSaveCurve() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: async (curve: LevelsCurve) => {
-      const body = { levels: levelsCurveToBackend(curve) };
+      const body = levelsCurveToBackend(curve);
       const r = await apiClient.put('/admin/curve', body);
-      const rows = parseCurveBody(r.data);
-      return backendToLevelsCurve(rows.length ? rows : levelsCurveToBackend(curve));
+      const rows = parseCurveRows(r.data);
+      return backendToLevelsCurve(rows.length ? rows : body);
     },
     onSuccess: () => {
       toast.success('Curva de niveles guardada');
@@ -94,15 +101,7 @@ export function useSaveCurve() {
     },
     onError: (error) => {
       if (isXpEngineModuleForbidden(error)) return;
-      if (isAxiosError(error)) {
-        const msg =
-          typeof error.response?.data === 'object' &&
-          error.response.data &&
-          'detail' in error.response.data
-            ? String((error.response.data as { detail: string }).detail)
-            : 'No se pudo guardar la curva';
-        toast.error(msg);
-      }
+      toast.error(getApiErrorMessage(error, 'No se pudo guardar la curva'));
     },
   });
 }

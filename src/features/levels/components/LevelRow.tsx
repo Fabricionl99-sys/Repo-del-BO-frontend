@@ -1,4 +1,6 @@
+import { Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
+import { IconButton } from '@/components/ui/IconButton';
 import { Switch } from '@/components/ui/Switch';
 import type { LevelEntry, MilestoneUnlock } from '@/types/levels';
 
@@ -9,19 +11,24 @@ const MILESTONE_OPTIONS: { value: MilestoneUnlock; label: string }[] = [
 ];
 
 type Props = {
+  displayLevel: number;
   row: LevelEntry;
   prevXp: number | null;
+  canDelete: boolean;
   onChange: (next: LevelEntry) => void;
+  onDelete: () => void;
   onPickBadge: (file: File) => Promise<string>;
 };
 
-export function LevelRow({ row, prevXp, onChange, onPickBadge }: Props) {
+export function LevelRow({ displayLevel, row, prevXp, canDelete, onChange, onDelete, onPickBadge }: Props) {
   const name = row.displayName ?? '';
   const milestoneOn = row.milestoneEnabled;
 
   return (
     <tr className="border-b border-border-subtle text-[15px]">
-      <td className="py-3 pr-2 align-middle font-mono text-text-secondary">{row.level}</td>
+      <td className="py-3 pr-2 align-middle">
+        <span className="font-mono font-semibold text-text-primary">Nivel {displayLevel}</span>
+      </td>
       <td className="py-3 pr-2 align-middle">
         <input
           className="field w-full max-w-[200px]"
@@ -29,7 +36,7 @@ export function LevelRow({ row, prevXp, onChange, onPickBadge }: Props) {
           placeholder="opcional"
           value={name}
           onChange={(e) => onChange({ ...row, displayName: e.target.value || undefined })}
-          aria-label={`Nombre nivel ${row.level}`}
+          aria-label={`Nombre nivel ${displayLevel}`}
         />
       </td>
       <td className="py-3 pr-2 align-middle">
@@ -37,7 +44,7 @@ export function LevelRow({ row, prevXp, onChange, onPickBadge }: Props) {
           {row.badgeImageUrl ? (
             <img src={row.badgeImageUrl} alt="" className="h-10 w-10 rounded-lg border border-border-subtle object-cover" />
           ) : (
-            <span className="grid h-10 w-10 place-items-center rounded-lg border border-dashed border-border-default text-text-tertiary text-lg">
+            <span className="grid h-10 w-10 place-items-center rounded-lg border border-dashed border-border-default text-lg text-text-tertiary">
               —
             </span>
           )}
@@ -62,46 +69,50 @@ export function LevelRow({ row, prevXp, onChange, onPickBadge }: Props) {
         <input
           type="number"
           min={0}
+          step={1}
           className="field w-full max-w-[140px]"
           value={row.xpRequired}
           onChange={(e) => onChange({ ...row, xpRequired: Number(e.target.value) || 0 })}
-          aria-label={`XP nivel ${row.level}`}
+          aria-label={`XP nivel ${displayLevel}`}
         />
         {prevXp !== null && row.xpRequired <= prevXp ? (
           <p className="mt-1 text-[13px] text-danger">Debe ser mayor que el nivel anterior</p>
         ) : null}
       </td>
       <td className="py-3 align-middle">
-        <div className="flex flex-col gap-2">
-          <div className="flex items-center gap-2">
-            <Switch
-              checked={milestoneOn}
-              onChange={(checked) =>
-                onChange({
-                  ...row,
-                  milestoneEnabled: checked,
-                  milestoneUnlock: checked ? row.milestoneUnlock ?? 'avatar_pack_1' : null,
-                })
-              }
-              aria-label={`Milestone nivel ${row.level}`}
-            />
-            <span className="text-text-secondary">{milestoneOn ? 'Sí' : 'No'}</span>
+        <div className="flex items-start justify-between gap-2">
+          <div className="flex flex-col gap-2">
+            <div className="flex items-center gap-2">
+              <Switch
+                checked={milestoneOn}
+                onChange={(checked) =>
+                  onChange({
+                    ...row,
+                    milestoneEnabled: checked,
+                    milestoneUnlock: checked ? row.milestoneUnlock ?? 'avatar_pack_1' : null,
+                  })
+                }
+                aria-label={`Milestone nivel ${displayLevel}`}
+              />
+              <span className="text-text-secondary">{milestoneOn ? 'Sí' : 'No'}</span>
+            </div>
+            {milestoneOn ? (
+              <select
+                className="field max-w-[220px] text-[14px]"
+                value={row.milestoneUnlock ?? 'avatar_pack_1'}
+                onChange={(e) => onChange({ ...row, milestoneUnlock: e.target.value as MilestoneUnlock })}
+                aria-label={`Qué desbloquea nivel ${displayLevel}`}
+              >
+                {MILESTONE_OPTIONS.map((o) => (
+                  <option key={o.value} value={o.value}>
+                    {o.label}
+                  </option>
+                ))}
+              </select>
+            ) : null}
           </div>
-          {milestoneOn ? (
-            <select
-              className="field max-w-[220px] text-[14px]"
-              value={row.milestoneUnlock ?? 'avatar_pack_1'}
-              onChange={(e) =>
-                onChange({ ...row, milestoneUnlock: e.target.value as MilestoneUnlock })
-              }
-              aria-label={`Qué desbloquea nivel ${row.level}`}
-            >
-              {MILESTONE_OPTIONS.map((o) => (
-                <option key={o.value} value={o.value}>
-                  {o.label}
-                </option>
-              ))}
-            </select>
+          {canDelete ? (
+            <IconButton icon={Trash2} title="eliminar nivel" size="sm" onClick={onDelete} />
           ) : null}
         </div>
       </td>
