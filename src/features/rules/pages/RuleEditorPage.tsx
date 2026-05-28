@@ -75,7 +75,11 @@ export default function RuleEditorPage() {
   const submit = async (targetStatus: 'draft' | 'active') => {
     const values = form.getValues();
     const boost = values.boost;
-    if (boost?.enabled && boost.scope === 'category' && !boost.category_code) {
+    if (boost?.enabled && boost !== null && !boost.category_code) {
+      form.setValue('boost.category_code', values.category, { shouldDirty: true });
+    }
+    const refreshed = form.getValues();
+    if (refreshed.boost?.enabled && refreshed.boost !== null && !refreshed.boost.category_code) {
       form.setError('boost.category_code', { message: 'Debés elegir una categoría' });
       return;
     }
@@ -84,7 +88,7 @@ export default function RuleEditorPage() {
       ? { name: sourceRule.name, description: sourceRule.description }
       : null;
 
-    const payload = buildRulePayload(values, {
+    const payload = buildRulePayload(refreshed, {
       status: isNew ? targetStatus : resolveSaveStatus() === 'draft' ? 'draft' : 'active',
       existingRule: existing,
       nameOverride: isNew && copyFrom && sourceRule ? `${sourceRule.name} (copia)` : undefined,

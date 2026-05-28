@@ -35,11 +35,15 @@ export function NewRuleModal({ open, onClose }: Props) {
   const submit = async () => {
     const values = form.getValues();
     const boost = values.boost;
-    if (boost?.enabled && boost.scope === 'category' && !boost.category_code) {
+    if (boost?.enabled && boost !== null && !boost.category_code) {
+      form.setValue('boost.category_code', values.category, { shouldDirty: true });
+    }
+    const refreshed = form.getValues();
+    if (refreshed.boost?.enabled && refreshed.boost !== null && !refreshed.boost.category_code) {
       form.setError('boost.category_code', { message: 'Debés elegir una categoría' });
       return;
     }
-    const payload = buildRulePayload(values, { status: 'active', existingRule: null });
+    const payload = buildRulePayload(refreshed, { status: 'active', existingRule: null });
     await save.mutateAsync({ id: null, values: payload });
     onClose();
   };

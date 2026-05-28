@@ -4,6 +4,7 @@ import { getApiErrorMessage } from '@/api/errors';
 import { unwrapData } from '@/api/response';
 import { toast } from '@/stores/toastStore';
 import type { RuleBoost, RuleCategory, RuleListItem, RuleStatus, XPRule } from '@/types/rules';
+import { normalizeBoostMultiplier, serializeBoostForApi } from '@/features/rules/ruleXpForm';
 
 /**
  * Sprint #6 fix — el BO llamaba `/admin/xp-rules` (404) pero el backend
@@ -71,19 +72,21 @@ export function isPublishedLikeStatus(status: RuleStatus): boolean {
   return status === 'active';
 }
 
-function parseBoost(raw: BackendBoostRow | null | undefined): RuleBoost | undefined {
-  if (!raw?.enabled) return undefined;
-  const multiplier = raw.multiplier;
-  if (!multiplier || !raw.starts_at || !raw.ends_at) return undefined;
-  const m = multiplier as RuleBoost['multiplier'];
-  if (![1.5, 2, 3, 5].includes(m)) return undefined;
+function parseBoost(
+  raw: BackendBoostRow | null | undefined,
+  fallbackCategory?: RuleCategory,
+): RuleBoost | undefined {
+  if (!raw) return undefined;
+  const multiplier = normalizeBoostMultiplier(raw.multiplier);
+  if (!raw.starts_at || !raw.ends_at) return undefined;
+
   return {
-    enabled: true,
-    multiplier: m,
+    enabled: raw.enabled ?? true,
+    multiplier: multiplier ?? 2,
     starts_at: raw.starts_at,
     ends_at: raw.ends_at,
-    scope: raw.scope ?? 'category',
-    category_code: raw.category_code as RuleCategory | undefined,
+    scope: 'category',
+    category_code: (raw.category_code as RuleCategory | undefined) ?? fallbackCategory,
   };
 }
 
@@ -100,7 +103,7 @@ function backendRowToListItem(r: BackendRuleRow): RuleListItem {
     currency,
     status,
     active: isPublishedLikeStatus(status),
-    boost: parseBoost(r.boost ?? undefined),
+    boost: parseBoost(r.boost ?? undefined, catSlug),
     updatedAt: r.updated_at ?? r.created_at ?? new Date().toISOString(),
     xpDisplay: {
       value: xpValue ? `${xpValue} XP` : '—',
@@ -237,8 +240,11 @@ function boRuleToBackendPayload(values: Partial<XPRule>): Record<string, unknown
     payload.xp_per_currency_unit = { [currency]: usdPerXp };
   }
 
-  const boost = (values as { boost?: XPRule['boost'] }).boost;
-  if (boost?.enabled) payload.boost = boost;
+  const boostRaw = (values as { boost?: RuleBoost | null }).boost;
+  const serializedBoost = serializeBoostForApi(boostRaw);
+  if (serializedBoost !== undefined) {
+    payload.boost = serializedBoost;
+  }
 
   return payload;
 }
@@ -258,9 +264,13 @@ export function useSaveRule() {
             .then((r) => unwrapData<BackendRuleRow>(r.data))
             .then(backendRowToXPRule);
     },
-    onSuccess: (_data, vars) => {
+    onSuccess: (data, vars) => {
       toast.success(vars.id ? 'Regla actualizada' : 'Regla creada');
       qc.invalidateQueries({ queryKey: ['rules'] });
+      qc.invalidateQueries({ queryKey: ['multipliers'] });
+      if (vars.id) {
+        qc.setQueryData(['rules', vars.id], data);
+      }
     },
     onError: (error) => {
       toast.error(getApiErrorMessage(error, 'No se pudo guardar la regla'));
