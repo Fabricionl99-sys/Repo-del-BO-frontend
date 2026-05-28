@@ -2,15 +2,18 @@ import { fireEvent, render, screen } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 import { CategorySelector } from './CategorySelector';
 
+const categories = [
+  { id: 1, display_name: 'Deportes', code: 'deportes' },
+  { id: 2, display_name: 'Casino', code: 'casino' },
+];
+
 describe('CategorySelector', () => {
-  it('filtra categorías activas sin granulares ni conflictos', () => {
+  it('renderiza categorías del backend por id', () => {
     const fn = vi.fn();
-    render(<CategorySelector value="casino" onChange={fn} enabledCategories={['casino', 'deportes']} />);
-    expect(screen.queryByText(/Conflicto/)).not.toBeInTheDocument();
-    expect(screen.queryByText(/Slot solo/)).not.toBeInTheDocument();
+    render(<CategorySelector value={2} onChange={fn} categories={categories} />);
     const combo = screen.getByRole('combobox');
-    expect(combo).toHaveValue('casino');
-    fireEvent.change(combo, { target: { value: 'deportes' } });
-    expect(fn).toHaveBeenCalledWith('deportes');
+    expect(combo).toHaveValue('2');
+    fireEvent.change(combo, { target: { value: '1' } });
+    expect(fn).toHaveBeenCalledWith(1);
   });
 });

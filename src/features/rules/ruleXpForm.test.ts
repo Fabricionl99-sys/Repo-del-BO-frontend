@@ -49,11 +49,12 @@ describe('ruleXpForm boost', () => {
 
   it('buildRulePayload incluye boost null para soft-delete', () => {
     const values: RuleXpFormValues = {
-      category: 'deportes',
+      category_id: 1,
       usd_per_xp: 10,
       boost: null,
     };
-    const payload = buildRulePayload(values, { status: 'active', existingRule: null });
+    const payload = buildRulePayload(values, { status: 'active', existingRule: null }, 'deportes');
     expect(payload.boost).toBe(null);
+    expect(payload.category_id).toBe(1);
   });
 });
