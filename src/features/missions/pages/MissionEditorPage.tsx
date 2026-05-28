@@ -1,81 +1,60 @@
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useEffect, useMemo, useState } from 'react';
-import { Link, useNavigate, useParams } from 'react-router-dom';
-import { FormProvider, useForm, useWatch } from 'react-hook-form';
+import { useEffect } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
+import { FormProvider, useForm, type Resolver } from 'react-hook-form';
 
-import { DayOfWeekSelector } from '@/components/ui/DayOfWeekSelector';
 import { FieldHint } from '@/components/ui/FieldHint';
 import { ErrorState } from '@/components/ui/ErrorState';
 import { Loading } from '@/components/ui/Loading';
 import { PageHeader } from '@/components/ui/PageHeader';
 import { ConfiguratorScaffold, ConfigSection } from '@/components/configurator/ConfiguratorScaffold';
 import { RewardSelectorRhf } from '@/components/rewards/RewardSelectorRhf';
-import { StickyBottomBar } from '@/features/rules/components/RuleBlocks';
+import { MissionRequirementsEditor } from '@/features/missions/components/MissionRequirementsEditor';
+import { MissionAvailabilityWindowEditor } from '@/features/missions/components/MissionAvailabilityWindowEditor';
+import { summarizeActions } from '@/features/missions/missionActions';
+import { availabilityWindowToIso } from '@/features/missions/missionAvailability';
 import {
   defaultMissionForm,
-  formToMissionPayload,
   missionFormSchema,
-  missionToForm,
   type MissionFormValues,
 } from '@/features/missions/missionForm';
-import {
-  getTriggerDef,
-  getTriggerLabel,
-  MISSION_TRIGGER_GROUPS,
-  TRIGGER_CONFIG_LABELS,
-  type TriggerConfigField,
-} from '@/features/missions/missionTriggers';
-import { useCapabilityChecks } from '@/features/capabilities/useCapabilityChecks';
+import { StickyBottomBar } from '@/features/rules/components/RuleBlocks';
+import { useMission, useSaveMission } from '@/features/missionsApi';
 import { trackEvent } from '@/lib/analytics';
-import { useMission, useMissions, useSaveMission } from '@/features/tier3Api';
-
-const ICONS = ['🎯', '💰', '🎰', '🃏', '⚡', '🔥', '🏦', '⚽', '🤝', '👤'];
 
 export default function MissionEditorPage() {
   const { id } = useParams();
   const isNew = !id || id === 'nueva';
   const q = useMission(isNew ? null : id!);
-  const missionsQ = useMissions();
   const save = useSaveMission();
   const nav = useNavigate();
-  const [days, setDays] = useState([1, 2, 3, 4, 5, 6, 0]);
 
   const form = useForm<MissionFormValues>({
-    resolver: zodResolver(missionFormSchema),
+    resolver: zodResolver(missionFormSchema) as Resolver<MissionFormValues>,
     defaultValues: defaultMissionForm(),
   });
 
-  const { register, handleSubmit, reset, setValue, control, watch, formState: { errors } } = form;
-  const { isEventActive, capabilityDisabledTooltip } = useCapabilityChecks();
-  const trigger = useWatch({ control, name: 'trigger' });
-  const triggerDef = getTriggerDef(trigger);
+  const { register, handleSubmit, reset, control, watch, formState: { errors } } = form;
   const name = watch('name');
-  const targetValue = watch('targetValue');
-
-  const categorySuggestions = useMemo(() => {
-    const tags = new Set<string>();
-    for (const m of missionsQ.data ?? []) {
-      const tag = m.category?.trim();
-      if (tag) tags.add(tag);
-    }
-    return [...tags].sort((a, b) => a.localeCompare(b, 'es'));
-  }, [missionsQ.data]);
+  const actions = watch('actions');
+  const dailyHours = watch('daily_validity_hours');
+  const availabilityWindow = watch('availability_window');
+  const availabilityIso = availabilityWindowToIso(availabilityWindow ?? defaultMissionForm().availability_window);
 
   useEffect(() => {
-    if (q.data) {
-      reset(missionToForm(q.data));
-      if (q.data.availability.daysOfWeek) setDays(q.data.availability.daysOfWeek);
-    }
+    if (q.data) reset(q.data);
   }, [q.data, reset]);
 
   if (!isNew && q.isLoading) return <Loading label="Cargando misión..." />;
   if (q.isError) return <ErrorState onRetry={() => q.refetch()} />;
 
-  const submit = async (status: 'draft' | 'active') => {
+  const submit = async (activate: boolean) => {
     await handleSubmit(async (values) => {
-      await save.mutateAsync(
-        formToMissionPayload(values, { id: isNew ? undefined : id, status, daysOfWeek: days }),
-      );
+      await save.mutateAsync({
+        id: isNew ? undefined : id,
+        values,
+        activate,
+      });
       if (isNew) trackEvent('mission_created');
       nav('/misiones');
     })();
@@ -85,7 +64,7 @@ export default function MissionEditorPage() {
     <FormProvider {...form}>
       <PageHeader
         title={isNew ? 'Crear misión' : q.data?.name ?? 'Misión'}
-        subtitle="Configurá un objetivo con recompensas para tus jugadores"
+        subtitle="Configurá requisitos y recompensas para tus jugadores"
       />
       <div className="grid grid-cols-[1fr_320px] gap-6 max-[1400px]:grid-cols-1">
         <ConfiguratorScaffold>
@@ -93,158 +72,92 @@ export default function MissionEditorPage() {
             <input className="field" placeholder="Nombre de la misión" {...register('name')} />
             {errors.name && <p className="mt-1 text-[13px] text-danger">{errors.name.message}</p>}
             <textarea className="field min-h-24" placeholder="Descripción" {...register('description')} />
-            {errors.description && <p className="mt-1 text-[13px] text-danger">{errors.description.message}</p>}
-            <div className="flex flex-wrap gap-2">
-              {ICONS.map((e) => (
-                <button
-                  type="button"
-                  key={e}
-                  className={`rounded-lg border p-3 text-lg ${watch('iconKey') === e ? 'border-accent bg-accent-subtle' : 'border-border-subtle bg-bg-tertiary'}`}
-                  onClick={() => setValue('iconKey', e)}
-                >
-                  {e}
-                </button>
-              ))}
-            </div>
+            {errors.description && (
+              <p className="mt-1 text-[13px] text-danger">{errors.description.message}</p>
+            )}
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className="mb-1.5 block text-[14px] text-text-secondary">tipo</label>
+                <label className="mb-1.5 block text-[14px] text-text-secondary">Tipo</label>
                 <select className="field" {...register('type')}>
-                  <option value="daily">diaria</option>
-                  <option value="weekly">semanal</option>
-                  <option value="monthly">mensual</option>
-                  <option value="one_time">única</option>
-                  <option value="event">evento</option>
+                  <option value="daily">Diaria</option>
+                  <option value="escalonada">Escalonada</option>
                 </select>
               </div>
               <div>
                 <label className="mb-1.5 block text-[14px] text-text-secondary">
-                  categoría
-                  <FieldHint text="Tag libre para agrupar misiones relacionadas. Lo elegís vos (ej: 'casino', 'sportsbook', 'evento-mundial')." />
+                  Código (slug)
+                  <FieldHint text="Identificador único. Si lo dejás vacío se genera automáticamente al guardar." />
                 </label>
-                <input className="field" list="mission-category-suggestions" {...register('category')} />
-                <datalist id="mission-category-suggestions">
-                  {categorySuggestions.map((tag) => (
-                    <option key={tag} value={tag} />
-                  ))}
-                </datalist>
+                <input className="field" placeholder="ej: apuesta_casino_kyc" {...register('code')} />
               </div>
             </div>
           </ConfigSection>
 
-          <ConfigSection icon="🎯" title="Objetivo">
-            <div>
-              <label className="mb-1.5 block text-[14px] text-text-secondary" htmlFor="mission-trigger">
-                trigger
-                {(trigger === 'play_casino' || trigger === 'play_slots') && (
-                  <FieldHint text="Casino = todos los juegos del catálogo casino (incluye slots, mesa, vivo). Slots = solo tragamonedas." />
-                )}
-              </label>
-              <select id="mission-trigger" className="field" {...register('trigger')}>
-                {MISSION_TRIGGER_GROUPS.map((group) => (
-                  <optgroup key={group.label} label={group.label}>
-                    {group.triggers.map((t) => {
-                      const eventDisabled = !isEventActive(t.code);
-                      return (
-                        <option
-                          key={t.code}
-                          value={t.code}
-                          disabled={eventDisabled}
-                          title={eventDisabled ? capabilityDisabledTooltip : undefined}
-                        >
-                          {t.label}
-                          {eventDisabled ? ' (no habilitado)' : ''}
-                        </option>
-                      );
-                    })}
-                  </optgroup>
-                ))}
-              </select>
-              {!isEventActive(trigger) && (
-                <p className="mt-2 text-[13px] text-text-tertiary">
-                  {capabilityDisabledTooltip}{' '}
-                  <Link to="/capabilities" className="text-accent hover:underline">
-                    Ir a Capacidades
-                  </Link>
-                </p>
-              )}
-              {(trigger === 'play_casino' || trigger === 'play_slots') && (
-                <p className="mt-2 text-[13px] text-text-tertiary">
-                  Casino = todos los juegos del catálogo casino (incluye slots, mesa, vivo). Slots = solo tragamonedas.
-                </p>
-              )}
-            </div>
-            <div>
-              <label className="mb-1.5 block text-[14px] text-text-secondary">
-                valor objetivo
-                <FieldHint text="Monto total acumulado para completar la misión, en la moneda especificada abajo. Para 'jugar', es el monto apostado. Para 'depositar', el monto total a depositar." />
-              </label>
-              <input className="field" type="number" min={1} {...register('targetValue', { valueAsNumber: true })} />
-              {errors.targetValue && <p className="mt-1 text-[13px] text-danger">{errors.targetValue.message}</p>}
-            </div>
-            {triggerDef && triggerDef.configFields.length > 0 && (
-              <div className="grid grid-cols-2 gap-3 rounded-lg border border-border-subtle bg-bg-tertiary/50 p-3">
-                {triggerDef.configFields.map((field: TriggerConfigField) => (
-                  <div key={field}>
-                    <label className="mb-1.5 block text-[14px] text-text-secondary">
-                      {TRIGGER_CONFIG_LABELS[field]}
-                    </label>
-                    <input
-                      className="field"
-                      type="number"
-                      min={1}
-                      {...register(`trigger_config.${field}`, { valueAsNumber: true })}
-                    />
-                    {errors.trigger_config?.[field] && (
-                      <p className="mt-1 text-[13px] text-danger">
-                        {(errors.trigger_config[field] as { message?: string })?.message}
-                      </p>
-                    )}
-                  </div>
-                ))}
-              </div>
-            )}
+          <ConfigSection icon="🎯" title="Requisitos">
+            <MissionRequirementsEditor />
           </ConfigSection>
 
           <ConfigSection icon="🎁" title="Recompensas">
             <RewardSelectorRhf moduleKey="missions" control={control} name="primaryReward" />
           </ConfigSection>
 
-          <ConfigSection icon="⏰" title="Disponibilidad">
-            <DayOfWeekSelector value={days} onChange={setDays} />
-            <label className="mt-3 flex items-center gap-2 text-[14px]">
-              <input type="checkbox" {...register('allPlayers')} />
-              todos los jugadores
-            </label>
+          <ConfigSection icon="⏰" title="Vigencia">
+            <div className="max-w-md">
+              <label className="mb-1.5 block text-[14px] text-text-secondary">
+                Horas de validez desde asignación
+                <FieldHint text="Cuántas horas vive la misión para el jugador una vez asignada (1–168). Daily suele ser 24h." />
+              </label>
+              <input
+                className="field"
+                type="number"
+                min={1}
+                max={168}
+                {...register('daily_validity_hours', { valueAsNumber: true })}
+              />
+              {errors.daily_validity_hours && (
+                <p className="mt-1 text-[13px] text-danger">{errors.daily_validity_hours.message}</p>
+              )}
+            </div>
+            <input type="hidden" {...register('timezone')} />
+          </ConfigSection>
+
+          <ConfigSection icon="📅" title="Ventana de disponibilidad">
+            <MissionAvailabilityWindowEditor />
           </ConfigSection>
         </ConfiguratorScaffold>
 
         <aside className="space-y-4">
           <div className="card p-5">
-            <h3 className="section-title mb-3">preview</h3>
+            <h3 className="section-title mb-3">Preview</h3>
             <div className="rounded-xl bg-bg-tertiary p-4">
-              <div className="text-2xl">{watch('iconKey')}</div>
               <h4 className="font-semibold">{name || 'Nueva misión'}</h4>
-              <p className="text-[14px] text-text-tertiary">
-                {getTriggerLabel(trigger)} · progreso 0/{targetValue}
+              <p className="mt-2 text-[14px] text-text-tertiary">{summarizeActions(actions)}</p>
+              <p className="mt-2 text-[12px] text-text-tertiary">
+                Vigencia: {dailyHours}h desde asignación
               </p>
+              {(availabilityIso.available_from || availabilityIso.available_until) && (
+                <p className="mt-1 text-[12px] text-text-tertiary">
+                  Disponible{' '}
+                  {availabilityIso.available_from
+                    ? `desde ${new Date(availabilityIso.available_from).toLocaleString('es-AR')}`
+                    : 'sin inicio'}
+                  {' · '}
+                  {availabilityIso.available_until
+                    ? `hasta ${new Date(availabilityIso.available_until).toLocaleString('es-AR')}`
+                    : 'sin cierre'}
+                </p>
+              )}
               <div className="mt-3 h-2 rounded-full bg-bg-elevated">
                 <div className="h-full w-1/4 rounded-full bg-accent" />
               </div>
             </div>
           </div>
-          <div className="card p-5">
-            <h3 className="section-title mb-2">tips</h3>
-            <p className="text-[14px] text-text-tertiary">
-              Las misiones weekly se renuevan cada lunes 00:00 UTC del operador.
-            </p>
-          </div>
         </aside>
       </div>
       <StickyBottomBar
         onCancel={() => nav('/misiones')}
-        onSaveDraft={() => void submit('draft')}
-        onActivate={() => void submit('active')}
+        onSaveDraft={() => void submit(false)}
+        onActivate={() => void submit(true)}
         loading={save.isPending}
       />
     </FormProvider>

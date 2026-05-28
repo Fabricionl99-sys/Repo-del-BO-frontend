@@ -295,7 +295,7 @@ handlers.push(
   }),
 );
 
-import { missions } from '@/mocks/data/tier3';
+import { adminMissions } from '@/mocks/data/adminMissions';
 import { streakPrograms } from '@/mocks/data/streakPrograms';
 import { playerStreakDetails, playerStreakSummaries } from '@/mocks/data/playerStreaks';
 import { pendingDeliveries } from '@/mocks/data/deliveries';
@@ -309,14 +309,70 @@ function crudHandlers<T extends { id: string }>(key: string, path: string, data:
     http.delete(`*/admin/${path}/:id`, async ({ params }) => { await wait(); const index = data.findIndex((entry) => entry.id === params.id); if (index >= 0) data.splice(index, 1); return new HttpResponse(null, { status: 204 }); }),
   );
 }
-crudHandlers('mission', 'missions', missions);
 handlers.push(
+  http.get('*/admin/missions', async () => {
+    await wait();
+    return HttpResponse.json({ data: adminMissions });
+  }),
+  http.get('*/admin/missions/:id', async ({ params }) => {
+    await wait();
+    const item = adminMissions.find((m) => m.id === params.id) ?? adminMissions[0];
+    return HttpResponse.json({ data: item });
+  }),
+  http.post('*/admin/missions', async ({ request }) => {
+    await wait();
+    const body = (await request.json()) as Record<string, unknown>;
+    const item: Record<string, unknown> = {
+      ...body,
+      id: `mission_${Date.now()}`,
+      is_active: false,
+      updated_at: new Date().toISOString(),
+      progress: { started: 0, completed: 0 },
+    };
+    adminMissions.unshift(item);
+    return HttpResponse.json({ data: item }, { status: 201 });
+  }),
+  http.put('*/admin/missions/:id', async ({ params, request }) => {
+    await wait();
+    const body = (await request.json()) as Record<string, unknown>;
+    const index = adminMissions.findIndex((m) => m.id === params.id);
+    const existing = index >= 0 ? adminMissions[index] : adminMissions[0];
+    const item = { ...existing, ...body, id: String(params.id), updated_at: new Date().toISOString() };
+    if (index >= 0) adminMissions[index] = item;
+    return HttpResponse.json({ data: item });
+  }),
+  http.post('*/admin/missions/:id/activate', async ({ params }) => {
+    await wait();
+    const item = adminMissions.find((m) => m.id === params.id) ?? adminMissions[0];
+    item.is_active = true;
+    item.updated_at = new Date().toISOString();
+    return HttpResponse.json({ data: item });
+  }),
+  http.post('*/admin/missions/:id/deactivate', async ({ params }) => {
+    await wait();
+    const item = adminMissions.find((m) => m.id === params.id) ?? adminMissions[0];
+    item.is_active = false;
+    item.updated_at = new Date().toISOString();
+    return HttpResponse.json({ data: item });
+  }),
+  http.delete('*/admin/missions/:id', async ({ params }) => {
+    await wait();
+    const index = adminMissions.findIndex((m) => m.id === params.id);
+    if (index >= 0) adminMissions.splice(index, 1);
+    return new HttpResponse(null, { status: 204 });
+  }),
   http.post('*/admin/missions/:id/duplicate', async ({ params }) => {
     await wait();
-    const item = missions.find((m) => m.id === params.id) ?? missions[0];
-    const copy = { ...item, id: `mission_copy_${Date.now()}`, name: `${item.name} copia`, status: 'draft' as const };
-    missions.unshift(copy);
-    return HttpResponse.json(copy, { status: 201 });
+    const item = adminMissions.find((m) => m.id === params.id) ?? adminMissions[0];
+    const copy = {
+      ...item,
+      id: `mission_copy_${Date.now()}`,
+      name: `${String(item.name)} copia`,
+      is_active: false,
+      code: `${String(item.code)}_copy`,
+    };
+    adminMissions.unshift(copy);
+    return HttpResponse.json({ data: copy }, { status: 201 });
   }),
   http.get('*/admin/missions/:id/progress', async () => {
     await wait();

@@ -12,13 +12,22 @@ import { PageHeader } from '@/components/ui/PageHeader';
 import { RowContextMenu, openRowContextMenu, type RowContextMenuAnchor } from '@/components/ui/RowContextMenu';
 import { SearchInput } from '@/components/ui/SearchInput';
 import { StatusPill } from '@/components/ui/StatusPill';
+import { Switch } from '@/components/ui/Switch';
 import { Table, type Column } from '@/components/ui/Table';
 import { Toolbar } from '@/components/ui/Toolbar';
-import { getTriggerLabel, MISSION_TRIGGER_GROUPS } from '@/features/missions/missionTriggers';
-import { useDeleteMission, useMissions, useSetMissionActive } from '@/features/tier3Api';
+import {
+  actionTypeLabel,
+  MISSION_ACTION_TYPES,
+  type MissionActionType,
+} from '@/features/missions/missionActions';
+import {
+  useDeleteMission,
+  useMissions,
+  useSetMissionActive,
+  type AdminMissionListItem,
+} from '@/features/missionsApi';
 import { useDebounce } from '@/hooks/useDebounce';
 import { formatRelativeDate } from '@/lib/format';
-import type { Mission } from '@/types/tier3';
 
 export default function MissionsPage() {
   const [params] = useSearchParams();
@@ -28,7 +37,7 @@ export default function MissionsPage() {
   const setActive = useSetMissionActive();
   const del = useDeleteMission();
 
-  const [triggerFilter, setTriggerFilter] = useState<string | 'all'>('all');
+  const [actionFilter, setActionFilter] = useState<MissionActionType | 'all'>('all');
   const [search, setSearch] = useState('');
   const [menuAnchor, setMenuAnchor] = useState<RowContextMenuAnchor | null>(null);
   const debouncedSearch = useDebounce(search, 250);
@@ -37,28 +46,44 @@ export default function MissionsPage() {
 
   const rows = useMemo(() => {
     return allRows.filter((m) => {
-      if (triggerFilter !== 'all' && m.objective.event !== triggerFilter) return false;
+      if (actionFilter !== 'all' && !m.actions.some((a) => a.type === actionFilter)) return false;
       if (debouncedSearch) {
         const qStr = debouncedSearch.toLowerCase();
-        if (!m.name.toLowerCase().includes(qStr) && !getTriggerLabel(m.objective.event).toLowerCase().includes(qStr)) {
+        if (
+          !m.name.toLowerCase().includes(qStr) &&
+          !m.requirementsSummary.toLowerCase().includes(qStr)
+        ) {
           return false;
         }
       }
       return true;
     });
-  }, [allRows, triggerFilter, debouncedSearch]);
+  }, [allRows, actionFilter, debouncedSearch]);
 
   const menuMission = menuAnchor ? allRows.find((m) => m.id === menuAnchor.id) : undefined;
 
-  const cols: Column<Mission>[] = [
+  const cols: Column<AdminMissionListItem>[] = [
+    {
+      key: 'switch',
+      header: '',
+      width: '50px',
+      render: (m) => (
+        <div onClick={(e) => e.stopPropagation()}>
+          <Switch
+            checked={m.isActive}
+            disabled={setActive.isPending}
+            onChange={(active) => setActive.mutate({ id: m.id, active })}
+            aria-label={m.isActive ? `Desactivar ${m.name}` : `Activar ${m.name}`}
+          />
+        </div>
+      ),
+    },
     {
       key: 'name',
       header: 'misión',
       render: (m) => (
         <button type="button" onClick={() => nav(`/misiones/${m.id}`)} className="text-left hover:text-accent">
-          <b>
-            {m.iconKey} {m.name}
-          </b>
+          <b>{m.name}</b>
           <div className="text-[13px] text-text-tertiary">{m.description}</div>
         </button>
       ),
@@ -66,29 +91,19 @@ export default function MissionsPage() {
     {
       key: 'type',
       header: 'tipo',
-      render: (m) => <span className="rounded-full bg-bg-tertiary px-2 py-0.5 text-[13px] font-medium">{m.type}</span>,
+      render: (m) => (
+        <span className="rounded-full bg-bg-tertiary px-2 py-0.5 text-[13px] font-medium">{m.type}</span>
+      ),
     },
     {
-      key: 'objective',
-      header: 'trigger',
-      render: (m) => (
-        <span className="text-[14px] font-medium">
-          {getTriggerLabel(m.objective.event)} · {m.objective.targetValue}
-        </span>
-      ),
+      key: 'requirements',
+      header: 'requisitos',
+      render: (m) => <span className="text-[14px] font-medium">{m.requirementsSummary}</span>,
     },
     {
       key: 'reward',
       header: 'recompensa',
-      render: (m) => (
-        <span>
-          {m.rewards
-            .map((r) =>
-              r.xpAmount ? `+${r.xpAmount} XP` : r.coinsAmount ? `+${r.coinsAmount} ${r.coinId}` : r.type,
-            )
-            .join(' · ')}
-        </span>
-      ),
+      render: (m) => <span>{m.rewardSummary}</span>,
     },
     {
       key: 'progress',
@@ -104,15 +119,19 @@ export default function MissionsPage() {
       header: 'estado',
       render: (m) => (
         <StatusPill
-          status={m.status === 'active' ? 'active' : m.status === 'paused' ? 'paused' : m.status === 'draft' ? 'draft' : 'finished'}
-          label={m.status}
+          status={m.isActive ? 'active' : 'draft'}
+          label={m.isActive ? 'activa' : 'inactiva'}
         />
       ),
     },
     {
       key: 'updated',
       header: 'actualizada',
-      render: (m) => <span className="text-[14px] text-text-secondary">{formatRelativeDate(m.updatedAt)}</span>,
+      render: (m) => (
+        <span className="text-[14px] text-text-secondary">
+          {m.updatedAt ? formatRelativeDate(m.updatedAt) : '—'}
+        </span>
+      ),
     },
     {
       key: 'actions',
@@ -149,24 +168,26 @@ export default function MissionsPage() {
       <Toolbar
         search={
           <SearchInput
-            placeholder="Buscar por nombre o trigger..."
+            placeholder="Buscar por nombre o requisito..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
           />
         }
         filters={
           <>
-            <FilterPill label="todos triggers" active={triggerFilter === 'all'} onClick={() => setTriggerFilter('all')} />
-            {MISSION_TRIGGER_GROUPS.map((group) =>
-              group.triggers.slice(0, 2).map((t) => (
-                <FilterPill
-                  key={t.code}
-                  label={t.label}
-                  active={triggerFilter === t.code}
-                  onClick={() => setTriggerFilter(triggerFilter === t.code ? 'all' : t.code)}
-                />
-              )),
-            )}
+            <FilterPill
+              label="todos"
+              active={actionFilter === 'all'}
+              onClick={() => setActionFilter('all')}
+            />
+            {MISSION_ACTION_TYPES.map((t) => (
+              <FilterPill
+                key={t}
+                label={actionTypeLabel(t)}
+                active={actionFilter === t}
+                onClick={() => setActionFilter(actionFilter === t ? 'all' : t)}
+              />
+            ))}
           </>
         }
       />
@@ -174,7 +195,7 @@ export default function MissionsPage() {
       {mock === 'empty' && rows.length === 0 && (
         <EmptyState
           title="No hay misiones"
-          description="Creá una misión semanal, diaria o por evento."
+          description="Creá una misión diaria con uno o más requisitos."
           action={
             <Button variant="primary" onClick={() => nav('/misiones/nueva')}>
               Crear misión
@@ -192,7 +213,7 @@ export default function MissionsPage() {
           emptyState={
             <EmptyState
               title="No hay misiones"
-              description="Creá una misión semanal, diaria o por evento."
+              description="Creá una misión diaria con uno o más requisitos."
               action={
                 <Button variant="primary" onClick={() => nav('/misiones/nueva')}>
                   Crear misión
@@ -214,16 +235,6 @@ export default function MissionsPage() {
               }}
             >
               <Pencil size={14} /> Editar
-            </button>
-            <button
-              type="button"
-              className="flex w-full items-center gap-2 px-3 py-2 text-left text-[14px] hover:bg-bg-tertiary"
-              onClick={() => {
-                setMenuAnchor(null);
-                void setActive.mutateAsync({ id: menuMission.id, active: menuMission.status !== 'active' });
-              }}
-            >
-              {menuMission.status === 'active' ? 'Pausar misión' : 'Reanudar misión'}
             </button>
             <button
               type="button"
