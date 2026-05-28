@@ -6,23 +6,24 @@ import { ErrorState } from '@/components/ui/ErrorState';
 import { Loading } from '@/components/ui/Loading';
 import { PageHeader } from '@/components/ui/PageHeader';
 import {
+  categorySlugForId,
+  FALLBACK_GAME_CATEGORIES,
+  useGameCategories,
+} from '@/features/gameCategories/gameCategoriesApi';
+import {
   isPublishedLikeStatus,
   useDeleteRule,
   useRule,
   useSaveRule,
   useSetRuleStatus,
 } from '@/features/rulesApi';
-import { useEnabledCategories } from '@/features/settingsApi';
-import type { GameCategory } from '@/types/expandedTier5';
 import type { RuleStatus, XPRule } from '@/types/rules';
 import { Block, StickyBottomBar } from '../components/RuleBlocks';
 import { RuleBoostSection, RuleCategoryField, RuleUsdPerXpField } from '../components/RuleXpFormSections';
 import { buildRulePayload, fromRuleToFormValues, type RuleXpFormValues } from '../ruleXpForm';
 
-const fallbackCategories: GameCategory[] = ['deportes', 'casino', 'casino_vivo', 'virtuales', 'poker'];
-
 const defaultFormValues: RuleXpFormValues = {
-  category: 'deportes',
+  category_id: 1,
   usd_per_xp: 10,
   boost: undefined,
 };
@@ -37,7 +38,7 @@ export default function RuleEditorPage() {
 
   const nav = useNavigate();
   const ruleQ = useRule(fetchId);
-  const enabledCategories = useEnabledCategories();
+  const categoriesQ = useGameCategories();
   const save = useSaveRule();
   const setStatus = useSetRuleStatus();
   const del = useDeleteRule();
@@ -58,7 +59,6 @@ export default function RuleEditorPage() {
   if (fetchId && ruleQ.isLoading) return <Loading label="Cargando regla..." />;
   if (fetchId && (ruleQ.isError || !sourceRule)) return <ErrorState onRetry={() => ruleQ.refetch()} />;
 
-  const cats = enabledCategories.length ? enabledCategories : fallbackCategories;
   const pageTitle = isNew
     ? copyFrom && sourceRule
       ? `${sourceRule.name} (copia)`
@@ -74,9 +74,11 @@ export default function RuleEditorPage() {
 
   const submit = async (targetStatus: 'draft' | 'active') => {
     const values = form.getValues();
+    const categories = categoriesQ.data ?? FALLBACK_GAME_CATEGORIES;
+    const categorySlug = categorySlugForId(categories, values.category_id);
     const boost = values.boost;
     if (boost?.enabled && boost !== null && !boost.category_code) {
-      form.setValue('boost.category_code', values.category, { shouldDirty: true });
+      form.setValue('boost.category_code', categorySlug, { shouldDirty: true });
     }
     const refreshed = form.getValues();
     if (refreshed.boost?.enabled && refreshed.boost !== null && !refreshed.boost.category_code) {
@@ -92,7 +94,7 @@ export default function RuleEditorPage() {
       status: isNew ? targetStatus : resolveSaveStatus() === 'draft' ? 'draft' : 'active',
       existingRule: existing,
       nameOverride: isNew && copyFrom && sourceRule ? `${sourceRule.name} (copia)` : undefined,
-    });
+    }, categorySlug);
 
     await save.mutateAsync({ id: isNew ? null : sourceRule!.id, values: payload });
     nav('/reglas-xp');
@@ -159,13 +161,13 @@ export default function RuleEditorPage() {
 
       <div className="mx-auto max-w-2xl space-y-6">
         <Block num={1} kind="trigger" kindLabel="regla" title="Categoría" active>
-          <RuleCategoryField enabledCategories={cats} />
+          <RuleCategoryField />
         </Block>
         <Block num={2} kind="action" kindLabel="economía" title="Cuánto se apuesta para 1 XP" active>
           <RuleUsdPerXpField />
         </Block>
         <Block num={3} kind="multiplier" kindLabel="boost" title="Boost temporal" active>
-          <RuleBoostSection enabledCategories={cats} />
+          <RuleBoostSection />
         </Block>
       </div>
 

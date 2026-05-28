@@ -2,13 +2,14 @@ import { useEffect } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 import { Button } from '@/components/ui/Button';
 import { Modal } from '@/components/ui/Modal';
+import {
+  categorySlugForId,
+  FALLBACK_GAME_CATEGORIES,
+  useGameCategories,
+} from '@/features/gameCategories/gameCategoriesApi';
 import { useSaveRule } from '@/features/rulesApi';
-import { useEnabledCategories } from '@/features/settingsApi';
-import type { GameCategory } from '@/types/expandedTier5';
 import { buildRulePayload, type RuleXpFormValues } from '@/features/rules/ruleXpForm';
 import { RuleBoostSection, RuleCategoryField, RuleUsdPerXpField } from './RuleXpFormSections';
-
-const fallbackCategories: GameCategory[] = ['deportes', 'casino', 'casino_vivo', 'virtuales', 'poker'];
 
 type Props = {
   open: boolean;
@@ -17,33 +18,34 @@ type Props = {
 
 export function NewRuleModal({ open, onClose }: Props) {
   const save = useSaveRule();
-  const enabledCategories = useEnabledCategories();
-  const cats = enabledCategories.length ? enabledCategories : fallbackCategories;
+  const categoriesQ = useGameCategories();
 
   const form = useForm<RuleXpFormValues>({
     defaultValues: {
-      category: 'deportes',
+      category_id: 1,
       usd_per_xp: 10,
       boost: undefined,
     },
   });
 
   useEffect(() => {
-    if (open) form.reset({ category: 'deportes', usd_per_xp: 10, boost: undefined });
+    if (open) form.reset({ category_id: 1, usd_per_xp: 10, boost: undefined });
   }, [open, form]);
 
   const submit = async () => {
     const values = form.getValues();
+    const categories = categoriesQ.data ?? FALLBACK_GAME_CATEGORIES;
+    const categorySlug = categorySlugForId(categories, values.category_id);
     const boost = values.boost;
     if (boost?.enabled && boost !== null && !boost.category_code) {
-      form.setValue('boost.category_code', values.category, { shouldDirty: true });
+      form.setValue('boost.category_code', categorySlug, { shouldDirty: true });
     }
     const refreshed = form.getValues();
     if (refreshed.boost?.enabled && refreshed.boost !== null && !refreshed.boost.category_code) {
       form.setError('boost.category_code', { message: 'Debés elegir una categoría' });
       return;
     }
-    const payload = buildRulePayload(refreshed, { status: 'active', existingRule: null });
+    const payload = buildRulePayload(refreshed, { status: 'active', existingRule: null }, categorySlug);
     await save.mutateAsync({ id: null, values: payload });
     onClose();
   };
@@ -68,13 +70,13 @@ export function NewRuleModal({ open, onClose }: Props) {
     >
       <FormProvider {...form}>
         <div className="space-y-6">
-          <RuleCategoryField enabledCategories={cats} />
+          <RuleCategoryField />
           <div className="border-t border-border-subtle pt-4">
             <RuleUsdPerXpField />
           </div>
           <div className="border-t border-border-subtle pt-4">
             <h3 className="mb-3 text-[15px] font-semibold text-text-primary">Boost temporal</h3>
-            <RuleBoostSection enabledCategories={cats} />
+            <RuleBoostSection />
           </div>
         </div>
       </FormProvider>

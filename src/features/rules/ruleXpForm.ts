@@ -1,5 +1,5 @@
 import { CATEGORIES, type GameCategory } from '@/types/expandedTier5';
-import type { RuleBoost, XPRule } from '@/types/rules';
+import type { RuleBoost, RuleCategory, XPRule } from '@/types/rules';
 
 /**
  * Sprint #4 Fix #3 — el operador define UNA moneda preferida en Configuración
@@ -14,7 +14,8 @@ export const ALLOWED_BOOST_MULTIPLIERS = [1.5, 2, 3, 5] as const;
 export type BoostMultiplier = (typeof ALLOWED_BOOST_MULTIPLIERS)[number];
 
 export type RuleXpFormValues = {
-  category: GameCategory;
+  /** Backend category_id from GET /admin/categories */
+  category_id: number;
   usd_per_xp: number;
   /**
    * Currency code (ISO 4217) del operador. Default 'USD'. NO se persiste
@@ -43,7 +44,7 @@ export function normalizeBoostMultiplier(raw: unknown): BoostMultiplier | undefi
 export const localDateTime = (date: Date) =>
   new Date(date.getTime() - date.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
 
-export const boostDefaults = (category: GameCategory): RuleBoost => {
+export const boostDefaults = (category: RuleCategory): RuleBoost => {
   const starts = new Date();
   const ends = new Date(starts);
   ends.setDate(starts.getDate() + 7);
@@ -59,7 +60,7 @@ export const boostDefaults = (category: GameCategory): RuleBoost => {
 };
 
 export const fromRuleToFormValues = (rule: XPRule): RuleXpFormValues => ({
-  category: rule.category,
+  category_id: rule.category_id ?? 1,
   usd_per_xp: rule.usd_per_xp ?? rule.action.xpPerAmount?.amount ?? rule.action.xpBase ?? 10,
   currency: rule.action.xpPerAmount?.currency ?? 'USD',
   boost: rule.boost
@@ -104,17 +105,19 @@ export function buildRulePayload(
     existingRule?: Pick<XPRule, 'name' | 'description'> | null;
     nameOverride?: string;
   },
+  categorySlug: RuleCategory = 'deportes',
 ): Partial<XPRule> & { boost?: RuleBoost | null } {
-  const name = opts.nameOverride?.trim() || opts.existingRule?.name?.trim() || ruleNameForCategory(values.category);
+  const name = opts.nameOverride?.trim() || opts.existingRule?.name?.trim() || ruleNameForCategory(categorySlug);
   const currency = (values.currency ?? 'USD').toUpperCase();
 
   const payload: Partial<XPRule> & { boost?: RuleBoost | null } = {
     name,
     description: opts.existingRule?.description ?? '',
-    category: values.category,
+    category: categorySlug,
+    category_id: values.category_id,
     usd_per_xp: values.usd_per_xp,
     status: opts.status,
-    trigger: { event: 'bet_placed', category: values.category },
+    trigger: { event: 'bet_placed', category: categorySlug },
     conditionsLogic: 'all',
     conditions: [],
     action: {

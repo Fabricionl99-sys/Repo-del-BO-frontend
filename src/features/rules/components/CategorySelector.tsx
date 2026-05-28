@@ -1,23 +1,29 @@
-import { CATEGORIES, type GameCategory } from '@/types/expandedTier5';
+import { FieldHint } from '@/components/ui/FieldHint';
+import type { GameCategoryRow } from '@/features/gameCategories/gameCategoriesApi';
 
 export function CategorySelector({
   value,
   onChange,
-  enabledCategories,
+  categories,
 }: {
-  value: GameCategory;
-  onChange: (value: GameCategory) => void;
-  enabledCategories: GameCategory[];
+  value: number;
+  onChange: (value: number) => void;
+  categories: GameCategoryRow[];
 }) {
-  const enabled = CATEGORIES.filter((category) => enabledCategories.includes(category.value));
-
   return (
     <label>
-      <span className="mb-1.5 block text-[14px] text-text-secondary">Categoría</span>
-      <select className="field" value={value} onChange={(event) => onChange(event.target.value as GameCategory)}>
-        {enabled.map((category) => (
-          <option key={category.value} value={category.value}>
-            {category.value}
+      <span className="mb-1.5 block text-[14px] text-text-secondary">
+        Categoría
+        <FieldHint text="Categoría de juego del catálogo del operador. Las opciones vienen del backend." />
+      </span>
+      <select
+        className="field"
+        value={value}
+        onChange={(event) => onChange(Number(event.target.value))}
+      >
+        {categories.map((category) => (
+          <option key={category.id} value={category.id}>
+            {category.display_name}
           </option>
         ))}
       </select>

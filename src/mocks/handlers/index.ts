@@ -29,8 +29,13 @@ import {
   ruleListItems,
   xpRules,
 } from '@/mocks/data/tier2';
+import { categoryIdFromSlug, mockGameCategories } from '@/mocks/data/gameCategories';
 
 handlers.push(
+  http.get('*/admin/categories', async () => {
+    await wait();
+    return HttpResponse.json({ data: mockGameCategories });
+  }),
   http.get('*/admin/xp-rules', async ({ request }) => {
     await wait();
     const status = new URL(request.url).searchParams.get('status');
@@ -71,7 +76,7 @@ handlers.push(
       id: rule.id,
       name: rule.name,
       description: rule.description,
-      category_id: { deportes: 1, casino_vivo: 2, casino: 3, virtuales: 5, poker: 6 }[rule.category] ?? 1,
+      category_id: categoryIdFromSlug(rule.category),
       category: rule.category,
       status: rule.status,
       is_active: rule.status === 'active',
@@ -92,7 +97,7 @@ handlers.push(
         id: rule.id,
         name: rule.name,
         description: rule.description,
-        category_id: { deportes: 1, casino_vivo: 2, casino: 3, virtuales: 5, poker: 6 }[rule.category] ?? 1,
+        category_id: categoryIdFromSlug(rule.category),
         category: rule.category,
         status: rule.status,
         is_active: rule.status === 'active',

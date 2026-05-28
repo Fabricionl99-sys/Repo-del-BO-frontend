@@ -4,6 +4,10 @@ import { getApiErrorMessage } from '@/api/errors';
 import { unwrapData } from '@/api/response';
 import { toast } from '@/stores/toastStore';
 import type { RuleBoost, RuleCategory, RuleListItem, RuleStatus, XPRule } from '@/types/rules';
+import {
+  FALLBACK_CATEGORY_ID_BY_SLUG,
+  FALLBACK_SLUG_BY_CATEGORY_ID,
+} from '@/features/gameCategories/gameCategoriesApi';
 import { normalizeBoostMultiplier, serializeBoostForApi } from '@/features/rules/ruleXpForm';
 
 /**
@@ -12,23 +16,6 @@ import { normalizeBoostMultiplier, serializeBoostForApi } from '@/features/rules
  * tiene endpoint `/duplicate`. Backend `/status` cambia status via
  * body `{ status: 'active'|'paused'|... }`.
  */
-
-const CATEGORY_ID_TO_SLUG: Record<number, RuleCategory> = {
-  1: 'deportes',
-  2: 'casino_vivo',
-  3: 'casino',
-  4: 'casino',
-  5: 'virtuales',
-  6: 'poker',
-};
-
-const CATEGORY_SLUG_TO_ID: Record<RuleCategory, number> = {
-  deportes: 1,
-  casino_vivo: 2,
-  casino: 3,
-  virtuales: 5,
-  poker: 6,
-};
 
 interface BackendRuleRow {
   id: string;
@@ -91,7 +78,8 @@ function parseBoost(
 }
 
 function backendRowToListItem(r: BackendRuleRow): RuleListItem {
-  const catSlug = (r.category as RuleCategory) ?? CATEGORY_ID_TO_SLUG[r.category_id] ?? 'deportes';
+  const catSlug =
+    (r.category as RuleCategory) ?? FALLBACK_SLUG_BY_CATEGORY_ID[r.category_id] ?? 'deportes';
   const status = normalizeRuleStatus(r.status, r.is_active);
   const xpValue = r.xp_per_unit ? parseFloat(r.xp_per_unit) : 0;
   const currency = r.currency ?? 'USD';
@@ -126,6 +114,7 @@ function backendRowToXPRule(r: BackendRuleRow): XPRule {
     description: r.description ?? '',
     status: listItem.status,
     category: listItem.category,
+    category_id: r.category_id,
     usd_per_xp: xpPerUnit,
     trigger: { event: 'bet_placed', category: listItem.category },
     conditionsLogic: 'all',
@@ -215,6 +204,10 @@ export function useDeleteRule() {
 
 function boRuleToBackendPayload(values: Partial<XPRule>): Record<string, unknown> {
   const category = (values as { category?: RuleCategory }).category;
+  const categoryId =
+    values.category_id ??
+    (category ? FALLBACK_CATEGORY_ID_BY_SLUG[category] : undefined) ??
+    1;
   const usdPerXp = (values as { usd_per_xp?: number }).usd_per_xp ?? 0;
   const action = (values as { action?: { xpPerAmount?: { currency?: string; amount?: number } } }).action;
   const currency = action?.xpPerAmount?.currency?.toUpperCase() ?? 'USD';
@@ -225,7 +218,7 @@ function boRuleToBackendPayload(values: Partial<XPRule>): Record<string, unknown
   const payload: Record<string, unknown> = {
     name: values.name,
     description: (values as { description?: string }).description ?? '',
-    category_id: category ? (CATEGORY_SLUG_TO_ID[category] ?? 1) : 1,
+    category_id: categoryId,
     currency,
     xp_per_unit: usdPerXp,
     unit_field: 'amount',

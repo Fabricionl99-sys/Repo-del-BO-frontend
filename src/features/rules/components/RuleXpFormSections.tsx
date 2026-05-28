@@ -1,8 +1,14 @@
-import { useEffect } from 'react';
+import { useEffect, useMemo } from 'react';
 import { useFormContext } from 'react-hook-form';
 import { Button } from '@/components/ui/Button';
 import { Switch } from '@/components/ui/Switch';
-import type { GameCategory } from '@/types/expandedTier5';
+import {
+  categorySlugForId,
+  FALLBACK_GAME_CATEGORIES,
+  filterCategoriesByEnabled,
+  useGameCategories,
+} from '@/features/gameCategories/gameCategoriesApi';
+import type { RuleCategory } from '@/types/rules';
 import type { RuleXpFormValues } from '@/features/rules/ruleXpForm';
 import {
   ALLOWED_BOOST_MULTIPLIERS,
@@ -13,12 +19,34 @@ import {
   useOperatorConfig,
   useOperatorCurrencies,
 } from '@/features/settings/operatorConfigApi';
+import { useEnabledCategories } from '@/features/settingsApi';
 import { CategorySelector } from './CategorySelector';
 
-export function RuleCategoryField({ enabledCategories }: { enabledCategories: GameCategory[] }) {
+export function RuleCategoryField() {
   const { watch, setValue } = useFormContext<RuleXpFormValues>();
-  const category = watch('category');
-  return <CategorySelector value={category} onChange={(v) => setValue('category', v)} enabledCategories={enabledCategories} />;
+  const categoryId = watch('category_id');
+  const enabledSlugs = useEnabledCategories();
+  const categoriesQ = useGameCategories();
+
+  const categories = useMemo(() => {
+    const rows = categoriesQ.data ?? FALLBACK_GAME_CATEGORIES;
+    return filterCategoriesByEnabled(rows, enabledSlugs);
+  }, [categoriesQ.data, enabledSlugs]);
+
+  useEffect(() => {
+    if (!categories.length) return;
+    if (!categories.some((c) => c.id === categoryId)) {
+      setValue('category_id', categories[0].id, { shouldDirty: false });
+    }
+  }, [categories, categoryId, setValue]);
+
+  return (
+    <CategorySelector
+      value={categoryId}
+      onChange={(v) => setValue('category_id', v, { shouldDirty: true })}
+      categories={categories}
+    />
+  );
 }
 
 /**
@@ -71,11 +99,20 @@ export function RuleUsdPerXpField() {
   );
 }
 
-export function RuleBoostSection({ enabledCategories }: { enabledCategories: GameCategory[] }) {
+export function RuleBoostSection() {
   const { register, watch, setValue, formState } = useFormContext<RuleXpFormValues>();
   const errors = formState.errors;
   const boost = watch('boost');
-  const category = watch('category');
+  const categoryId = watch('category_id');
+  const enabledSlugs = useEnabledCategories();
+  const categoriesQ = useGameCategories();
+
+  const categories = useMemo(() => {
+    const rows = categoriesQ.data ?? FALLBACK_GAME_CATEGORIES;
+    return filterCategoriesByEnabled(rows, enabledSlugs);
+  }, [categoriesQ.data, enabledSlugs]);
+
+  const categorySlug = categorySlugForId(categories, categoryId);
   const hasBoost = boost != null;
   const enabled = !!boost?.enabled;
   const multiplier = normalizeBoostMultiplier(boost?.multiplier) ?? 2;
@@ -91,8 +128,8 @@ export function RuleBoostSection({ enabledCategories }: { enabledCategories: Gam
               setValue(
                 'boost',
                 boost && boost !== null
-                  ? { ...boost, enabled: true, scope: 'category', category_code: boost.category_code ?? category }
-                  : boostDefaults(category),
+                  ? { ...boost, enabled: true, scope: 'category', category_code: boost.category_code ?? categorySlug }
+                  : boostDefaults(categorySlug),
                 { shouldDirty: true },
               );
             } else if (boost && boost !== null) {
@@ -138,15 +175,15 @@ export function RuleBoostSection({ enabledCategories }: { enabledCategories: Gam
             <select
               aria-label="categoría del boost"
               className="field"
-              value={boost?.category_code ?? category}
+              value={boost?.category_code ?? categorySlug}
               onChange={(e) => {
                 setValue('boost.scope', 'category', { shouldDirty: true });
-                setValue('boost.category_code', e.target.value as GameCategory, { shouldDirty: true });
+                setValue('boost.category_code', e.target.value as RuleCategory, { shouldDirty: true });
               }}
             >
-              {enabledCategories.map((c) => (
-                <option key={c} value={c}>
-                  {c}
+              {categories.map((c) => (
+                <option key={c.id} value={c.code}>
+                  {c.display_name}
                 </option>
               ))}
             </select>

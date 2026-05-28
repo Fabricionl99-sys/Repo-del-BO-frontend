@@ -11,6 +11,8 @@ export interface XPRule {
   description: string;
   status: RuleStatus;
   category: RuleCategory;
+  /** Backend category_id (1–5). Source of truth for saves. */
+  category_id?: number;
   /** USD apostados para otorgar 1 XP en esta categoría (MVP) */
   usd_per_xp?: number;
   trigger: { event: TriggerEvent; category?: RuleCategory };
