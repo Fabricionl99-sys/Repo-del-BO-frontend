@@ -6,32 +6,28 @@ export interface MediaUploaderConfig {
   minDimensions: { width: number; height: number } | null;
   maxDimensions: { width: number; height: number } | null;
   aspectRatio: MediaAspectRatio;
+  /** Backend sharp crop (cover, center) → PNG N×N. Skips FE square/dimension checks. */
+  serverResizeSquare?: number;
 }
 
 const DEFAULT_FORMATS = ['png', 'jpg', 'jpeg', 'webp'];
 
+/** Preset para imágenes cuadradas normalizadas server-side (POST /admin/storage/upload). */
+function autoSquarePreset(size: number, aspectRatio: MediaAspectRatio = 'square'): MediaUploaderConfig {
+  return {
+    maxSizeKB: 2048,
+    allowedFormats: DEFAULT_FORMATS,
+    minDimensions: null,
+    maxDimensions: null,
+    aspectRatio,
+    serverResizeSquare: size,
+  };
+}
+
 const PRESETS: Record<string, MediaUploaderConfig> = {
-  'chests:main_image': {
-    maxSizeKB: 500,
-    allowedFormats: DEFAULT_FORMATS,
-    minDimensions: { width: 256, height: 256 },
-    maxDimensions: { width: 1024, height: 1024 },
-    aspectRatio: 'square',
-  },
-  'chests:thumbnail': {
-    maxSizeKB: 200,
-    allowedFormats: DEFAULT_FORMATS,
-    minDimensions: { width: 64, height: 64 },
-    maxDimensions: { width: 512, height: 512 },
-    aspectRatio: 'square',
-  },
-  'shop:main_image': {
-    maxSizeKB: 500,
-    allowedFormats: DEFAULT_FORMATS,
-    minDimensions: { width: 256, height: 256 },
-    maxDimensions: { width: 1024, height: 1024 },
-    aspectRatio: 'square',
-  },
+  'chests:main_image': autoSquarePreset(512),
+  'chests:thumbnail': autoSquarePreset(256),
+  'shop:main_image': autoSquarePreset(512),
   'login_popups:banner': {
     maxSizeKB: 1000,
     allowedFormats: ['png', 'jpg', 'jpeg'],
@@ -46,13 +42,7 @@ const PRESETS: Record<string, MediaUploaderConfig> = {
     maxDimensions: null,
     aspectRatio: 'banner',
   },
-  'news:thumbnail': {
-    maxSizeKB: 200,
-    allowedFormats: DEFAULT_FORMATS,
-    minDimensions: { width: 200, height: 200 },
-    maxDimensions: { width: 400, height: 400 },
-    aspectRatio: 'square',
-  },
+  'news:thumbnail': autoSquarePreset(256),
   'predictions:banner': {
     maxSizeKB: 1000,
     allowedFormats: ['png', 'jpg', 'jpeg'],
@@ -60,13 +50,7 @@ const PRESETS: Record<string, MediaUploaderConfig> = {
     maxDimensions: null,
     aspectRatio: 'banner',
   },
-  'predictions:thumbnail': {
-    maxSizeKB: 200,
-    allowedFormats: DEFAULT_FORMATS,
-    minDimensions: { width: 200, height: 200 },
-    maxDimensions: { width: 512, height: 512 },
-    aspectRatio: 'square',
-  },
+  'predictions:thumbnail': autoSquarePreset(256),
   'tournaments:banner': {
     maxSizeKB: 1000,
     allowedFormats: ['png', 'jpg', 'jpeg'],
@@ -74,13 +58,7 @@ const PRESETS: Record<string, MediaUploaderConfig> = {
     maxDimensions: null,
     aspectRatio: 'banner',
   },
-  'bonuses:thumbnail': {
-    maxSizeKB: 200,
-    allowedFormats: DEFAULT_FORMATS,
-    minDimensions: { width: 64, height: 64 },
-    maxDimensions: { width: 512, height: 512 },
-    aspectRatio: 'square',
-  },
+  'bonuses:thumbnail': autoSquarePreset(256),
   'branding:logo': {
     maxSizeKB: 500,
     allowedFormats: [...DEFAULT_FORMATS, 'svg'],
@@ -109,24 +87,8 @@ const PRESETS: Record<string, MediaUploaderConfig> = {
     maxDimensions: { width: 1024, height: 1024 },
     aspectRatio: 'square',
   },
-  'avatars:main_image': {
-    // Avatar — backend hace auto-resize a 512x512 PNG con sharp (cover crop
-    // centrado). El operador puede subir cualquier cuadrado/rectángulo PNG/JPG;
-    // queda normalizado server-side. El preview se muestra circular para
-    // que el operador vea lo que verá el jugador en el widget.
-    maxSizeKB: 2000,
-    allowedFormats: ['png', 'jpg', 'jpeg', 'webp'],
-    minDimensions: { width: 128, height: 128 },
-    maxDimensions: null,
-    aspectRatio: 'circle',
-  },
-  'wheels:main_image': {
-    maxSizeKB: 500,
-    allowedFormats: DEFAULT_FORMATS,
-    minDimensions: { width: 256, height: 256 },
-    maxDimensions: { width: 1024, height: 1024 },
-    aspectRatio: 'square',
-  },
+  'avatars:main_image': autoSquarePreset(512, 'circle'),
+  'wheels:main_image': autoSquarePreset(512),
   'wheels:logo': {
     maxSizeKB: 300,
     allowedFormats: DEFAULT_FORMATS,
@@ -134,27 +96,9 @@ const PRESETS: Record<string, MediaUploaderConfig> = {
     maxDimensions: { width: 512, height: 512 },
     aspectRatio: 'circle',
   },
-  'wheels:prize_image': {
-    maxSizeKB: 300,
-    allowedFormats: DEFAULT_FORMATS,
-    minDimensions: { width: 64, height: 64 },
-    maxDimensions: { width: 512, height: 512 },
-    aspectRatio: 'square',
-  },
-  'raffles:main_image': {
-    maxSizeKB: 500,
-    allowedFormats: DEFAULT_FORMATS,
-    minDimensions: { width: 256, height: 256 },
-    maxDimensions: { width: 1024, height: 1024 },
-    aspectRatio: 'square',
-  },
-  'raffles:prize_image': {
-    maxSizeKB: 300,
-    allowedFormats: DEFAULT_FORMATS,
-    minDimensions: { width: 64, height: 64 },
-    maxDimensions: { width: 512, height: 512 },
-    aspectRatio: 'square',
-  },
+  'wheels:prize_image': autoSquarePreset(256),
+  'raffles:main_image': autoSquarePreset(512),
+  'raffles:prize_image': autoSquarePreset(256),
 };
 
 const FALLBACK: MediaUploaderConfig = {

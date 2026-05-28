@@ -49,33 +49,36 @@ export function validateExternalImageUrl(
     minDimensions?: { width: number; height: number } | null;
     maxDimensions?: { width: number; height: number } | null;
     aspectRatio?: MediaAspectRatio;
+    serverResizeSquare?: number;
   },
 ): Promise<MediaValidationResult> {
   return new Promise((resolve) => {
     const img = new Image();
     img.onload = () => {
       const { width, height } = { width: img.naturalWidth, height: img.naturalHeight };
-      if (opts.minDimensions) {
-        if (width < opts.minDimensions.width || height < opts.minDimensions.height) {
-          resolve({
-            ok: false,
-            error: `Dimensiones mínimas ${opts.minDimensions.width}×${opts.minDimensions.height}px.`,
-          });
+      if (!opts.serverResizeSquare) {
+        if (opts.minDimensions) {
+          if (width < opts.minDimensions.width || height < opts.minDimensions.height) {
+            resolve({
+              ok: false,
+              error: `Dimensiones mínimas ${opts.minDimensions.width}×${opts.minDimensions.height}px.`,
+            });
+            return;
+          }
+        }
+        if (opts.maxDimensions) {
+          if (width > opts.maxDimensions.width || height > opts.maxDimensions.height) {
+            resolve({
+              ok: false,
+              error: `Dimensiones máximas ${opts.maxDimensions.width}×${opts.maxDimensions.height}px.`,
+            });
+            return;
+          }
+        }
+        if (opts.aspectRatio === 'square' && width !== height) {
+          resolve({ ok: false, error: `Debe ser cuadrada (${width}×${height}px).` });
           return;
         }
-      }
-      if (opts.maxDimensions) {
-        if (width > opts.maxDimensions.width || height > opts.maxDimensions.height) {
-          resolve({
-            ok: false,
-            error: `Dimensiones máximas ${opts.maxDimensions.width}×${opts.maxDimensions.height}px.`,
-          });
-          return;
-        }
-      }
-      if (opts.aspectRatio === 'square' && width !== height) {
-        resolve({ ok: false, error: `Debe ser cuadrada (${width}×${height}px).` });
-        return;
       }
       if (opts.aspectRatio === 'banner' && width < height) {
         resolve({ ok: false, error: 'El banner debe ser más ancho que alto.' });
@@ -96,6 +99,7 @@ export async function validateMediaFile(
     minDimensions?: { width: number; height: number } | null;
     maxDimensions?: { width: number; height: number } | null;
     aspectRatio?: MediaAspectRatio;
+    serverResizeSquare?: number;
     label?: string;
   },
 ): Promise<MediaValidationResult> {
@@ -119,24 +123,26 @@ export async function validateMediaFile(
 
   try {
     const { width, height } = await readImageDimensions(file);
-    if (opts.minDimensions) {
-      if (width < opts.minDimensions.width || height < opts.minDimensions.height) {
-        return {
-          ok: false,
-          error: `${label}: mínimo ${opts.minDimensions.width}×${opts.minDimensions.height}px.`,
-        };
+    if (!opts.serverResizeSquare) {
+      if (opts.minDimensions) {
+        if (width < opts.minDimensions.width || height < opts.minDimensions.height) {
+          return {
+            ok: false,
+            error: `${label}: mínimo ${opts.minDimensions.width}×${opts.minDimensions.height}px.`,
+          };
+        }
       }
-    }
-    if (opts.maxDimensions) {
-      if (width > opts.maxDimensions.width || height > opts.maxDimensions.height) {
-        return {
-          ok: false,
-          error: `${label}: máximo ${opts.maxDimensions.width}×${opts.maxDimensions.height}px.`,
-        };
+      if (opts.maxDimensions) {
+        if (width > opts.maxDimensions.width || height > opts.maxDimensions.height) {
+          return {
+            ok: false,
+            error: `${label}: máximo ${opts.maxDimensions.width}×${opts.maxDimensions.height}px.`,
+          };
+        }
       }
-    }
-    if (opts.aspectRatio === 'square' && width !== height) {
-      return { ok: false, error: `${label}: debe ser cuadrada (${width}×${height}px).` };
+      if (opts.aspectRatio === 'square' && width !== height) {
+        return { ok: false, error: `${label}: debe ser cuadrada (${width}×${height}px).` };
+      }
     }
     if (opts.aspectRatio === 'banner' && width < height) {
       return { ok: false, error: `${label}: el banner debe ser más ancho que alto.` };
@@ -158,7 +164,16 @@ export function buildValidationHint(opts: {
   minDimensions?: { width: number; height: number } | null;
   maxDimensions?: { width: number; height: number } | null;
   aspectRatio?: MediaAspectRatio;
+  serverResizeSquare?: number;
 }): string {
+  if (opts.serverResizeSquare) {
+    const formats = opts.allowedFormats
+      .filter((f) => f !== 'jpeg')
+      .map((f) => f.toUpperCase())
+      .join(' / ');
+    const maxMb = opts.maxSizeKB >= 1024 ? `${Math.round(opts.maxSizeKB / 1024)} MB` : `${opts.maxSizeKB} KB`;
+    return `${formats} — cualquier tamaño. Si no es cuadrada, recortamos el centro automáticamente. Máximo ${maxMb}.`;
+  }
   const parts = [
     `${opts.maxSizeKB} KB max`,
     opts.allowedFormats.map((f) => f.toUpperCase()).join('/'),

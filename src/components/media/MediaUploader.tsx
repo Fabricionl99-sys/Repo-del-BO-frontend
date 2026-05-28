@@ -98,6 +98,7 @@ export function MediaUploader({
     minDimensions: config.minDimensions,
     maxDimensions: config.maxDimensions,
     aspectRatio: config.aspectRatio,
+    serverResizeSquare: config.serverResizeSquare,
     label: purposeLabel(context.purpose),
   };
 
@@ -144,6 +145,7 @@ export function MediaUploader({
       minDimensions: config.minDimensions,
       maxDimensions: config.maxDimensions,
       aspectRatio: config.aspectRatio,
+      serverResizeSquare: config.serverResizeSquare,
     });
     setValidatingExternal(false);
     if (!result.ok) {
@@ -179,6 +181,14 @@ export function MediaUploader({
 
   return (
     <div className="space-y-3">
+      <input
+        ref={inputRef}
+        type="file"
+        accept={accept}
+        className="hidden"
+        onChange={(e) => void handleFile(e.target.files?.[0])}
+      />
+
       {showExternalUrlOption && (
         <div className="flex flex-wrap gap-2">
           <Button
@@ -253,13 +263,6 @@ export function MediaUploader({
               </p>
             )}
           </div>
-          <input
-            ref={inputRef}
-            type="file"
-            accept={accept}
-            className="hidden"
-            onChange={(e) => void handleFile(e.target.files?.[0])}
-          />
         </div>
       ) : (
         <div className="space-y-2 rounded-xl border border-border-subtle bg-bg-secondary p-4">

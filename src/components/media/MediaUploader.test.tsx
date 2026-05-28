@@ -25,7 +25,7 @@ describe('MediaUploader', () => {
       />,
     );
     expect(screen.getByText('Cargar archivo')).toBeInTheDocument();
-    expect(screen.getByText(/500 KB max/)).toBeInTheDocument();
+    expect(screen.getByText(/Máximo 2 MB/)).toBeInTheDocument();
   });
 
   it('cambia a modo URL externa', () => {
@@ -72,5 +72,22 @@ describe('MediaUploader', () => {
       expect(screen.getByText(/Máximo 1 KB/)).toBeInTheDocument();
     });
     expect(onChange).not.toHaveBeenCalled();
+  });
+
+  it('abre file picker desde modo URL externa', () => {
+    wrap(
+      <MediaUploader
+        value={{ url: 'https://images.example.com/pic.png', source: 'external' }}
+        onChange={() => undefined}
+        context={{ module: 'chests', purpose: 'main_image' }}
+      />,
+    );
+
+    const input = document.querySelector('input[type="file"]') as HTMLInputElement;
+    const clickSpy = vi.spyOn(input, 'click');
+
+    fireEvent.click(screen.getByText('Cargar archivo'));
+
+    expect(clickSpy).toHaveBeenCalled();
   });
 });

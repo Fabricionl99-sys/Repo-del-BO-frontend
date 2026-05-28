@@ -3,6 +3,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { apiClient } from '@/api/client';
 import { getApiErrorMessage } from '@/api/errors';
 import { unwrapData } from '@/api/response';
+import { resolveMediaUploaderConfig } from '@/components/media/mediaUploaderPresets';
 import { toast } from '@/stores/toastStore';
 import { useOperatorStore } from '@/stores/operatorStore';
 import type { MediaContext, MediaModule, MediaUploadResponse, StorageFileItem } from '@/types/media';
@@ -55,8 +56,9 @@ export function useUploadMedia() {
         fd.append('module', context.module);
         fd.append('purpose', context.purpose);
         fd.append('tenant_id', tenantId);
-        if (context.module === 'avatars') {
-          fd.append('resize_to_square', '512');
+        const { serverResizeSquare } = resolveMediaUploaderConfig(context);
+        if (serverResizeSquare) {
+          fd.append('resize_to_square', String(serverResizeSquare));
         }
       }
 
