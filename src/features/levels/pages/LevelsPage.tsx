@@ -14,26 +14,22 @@ import {
   useSaveCurve,
   XpEngineModuleRequiredError,
 } from '@/features/levels/levelsCurveApi';
+import { normalizeXpRequired, validateLevelsMonotonicity } from '@/features/levels/levelsCurveUtils';
 import { toast } from '@/stores/toastStore';
 import type { LevelEntry, LevelsCurve } from '@/types/levels';
 import { AddLevelButton, LevelRow } from '../components/LevelRow';
 
 function suggestNextXp(levels: LevelEntry[]): number {
   if (levels.length === 0) return 100;
-  const last = levels[levels.length - 1];
-  const prev = levels.length > 1 ? levels[levels.length - 2] : null;
-  const diff = prev ? last.xpRequired - prev.xpRequired : last.xpRequired;
+  const last = normalizeXpRequired(levels[levels.length - 1].xpRequired);
+  const prev = levels.length > 1 ? normalizeXpRequired(levels[levels.length - 2].xpRequired) : null;
+  const diff = prev !== null ? last - prev : last;
   const bump = Math.max(5000, Math.round(diff * 1.15));
-  return last.xpRequired + bump;
+  return last + bump;
 }
 
 function validateCurve(levels: LevelEntry[]): string | null {
-  for (let i = 1; i < levels.length; i++) {
-    if (levels[i].xpRequired <= levels[i - 1].xpRequired) {
-      return `El nivel ${i + 1} debe requerir más XP acumulado que el nivel ${i}.`;
-    }
-  }
-  return null;
+  return validateLevelsMonotonicity(levels);
 }
 
 function XpEngineGate() {
@@ -218,7 +214,7 @@ export default function LevelsPage() {
                 onDelete={() => removeLevel(index)}
                 onChange={(next) => {
                   const copy = [...current.levels];
-                  copy[index] = next;
+                  copy[index] = { ...next, xpRequired: normalizeXpRequired(next.xpRequired) };
                   setLevels(copy);
                 }}
               />

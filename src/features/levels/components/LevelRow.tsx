@@ -3,6 +3,11 @@ import { Button } from '@/components/ui/Button';
 import { IconButton } from '@/components/ui/IconButton';
 import { Switch } from '@/components/ui/Switch';
 import type { LevelEntry, MilestoneUnlock } from '@/types/levels';
+import {
+  isXpMonotonicInvalid,
+  normalizeXpRequired,
+  XP_REQUIRED_MAX,
+} from '@/features/levels/levelsCurveUtils';
 
 const MILESTONE_OPTIONS: { value: MilestoneUnlock; label: string }[] = [
   { value: 'avatar_pack_1', label: 'Avatar pack 1' },
@@ -23,6 +28,9 @@ type Props = {
 export function LevelRow({ displayLevel, row, prevXp, canDelete, onChange, onDelete, onPickBadge }: Props) {
   const name = row.displayName ?? '';
   const milestoneOn = row.milestoneEnabled;
+  const xpRequired = normalizeXpRequired(row.xpRequired);
+  const prevXpValue = prevXp === null ? null : normalizeXpRequired(prevXp);
+  const xpInvalid = prevXpValue !== null && isXpMonotonicInvalid(xpRequired, prevXpValue);
 
   return (
     <tr className="border-b border-border-subtle text-[15px]">
@@ -69,13 +77,20 @@ export function LevelRow({ displayLevel, row, prevXp, canDelete, onChange, onDel
         <input
           type="number"
           min={0}
+          max={XP_REQUIRED_MAX}
           step={1}
           className="field w-full max-w-[140px]"
-          value={row.xpRequired}
-          onChange={(e) => onChange({ ...row, xpRequired: Number(e.target.value) || 0 })}
+          value={xpRequired}
+          onChange={(e) => {
+            const raw = e.target.value;
+            onChange({
+              ...row,
+              xpRequired: raw === '' ? 0 : normalizeXpRequired(raw),
+            });
+          }}
           aria-label={`XP nivel ${displayLevel}`}
         />
-        {prevXp !== null && row.xpRequired <= prevXp ? (
+        {xpInvalid ? (
           <p className="mt-1 text-[13px] text-danger">Debe ser mayor que el nivel anterior</p>
         ) : null}
       </td>

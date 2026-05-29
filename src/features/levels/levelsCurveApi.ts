@@ -5,6 +5,7 @@ import { getApiErrorMessage, isXpEngineModuleForbidden } from '@/api/errors';
 import { coerceToList, unwrapData } from '@/api/response';
 import { toast } from '@/stores/toastStore';
 import type { LevelEntry, LevelsCurve } from '@/types/levels';
+import { normalizeXpRequired } from '@/features/levels/levelsCurveUtils';
 
 export class XpEngineModuleRequiredError extends Error {
   constructor() {
@@ -41,7 +42,7 @@ function parseCurveRows(body: unknown): BackendCurveRowRaw[] {
 function backendToLevelsCurve(rows: BackendCurveRowRaw[]): LevelsCurve {
   const levels: LevelEntry[] = rows.map((row, index) => ({
     level: row.level_number ?? row.level ?? index + 1,
-    xpRequired: row.xp_required ?? 0,
+    xpRequired: normalizeXpRequired(row.xp_required),
     displayName: undefined,
     badgeImageUrl: undefined,
     milestoneEnabled: false,
