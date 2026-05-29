@@ -37,7 +37,8 @@ import {
   useUploadFavicon,
   useUploadLogo,
 } from '../brandingApi';
-import { formToUpdatePayload, configToFormValues } from '../brandingForm';
+import { formToApiPatchPayload } from '../brandingApiMappers';
+import { configToFormValues } from '../brandingForm';
 import { PALETTE_PRESETS, presetPalette } from '../brandingPresets';
 
 import {
@@ -181,7 +182,7 @@ export default function BrandingPage() {
       return;
     }
     try {
-      await update.mutateAsync(formToUpdatePayload(configToFormValues(config)));
+      await update.mutateAsync(formToApiPatchPayload(configToFormValues(config)));
       setDraft(null);
       await configQ.refetch();
     } catch {

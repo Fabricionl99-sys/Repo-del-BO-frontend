@@ -71,12 +71,11 @@ describe('BrandingPage', () => {
     expect(screen.getByText('Título del widget')).toBeInTheDocument();
   });
 
-  it('muestra MediaUploader en tab logo e imágenes', async () => {
+  it('muestra upload zones en tab logo e imágenes', async () => {
     wrap();
     await screen.findByText('Logo e imágenes');
     fireEvent.click(screen.getByRole('button', { name: 'Logo e imágenes' }));
-    expect((await screen.findAllByText('Cargar archivo')).length).toBeGreaterThan(0);
-    expect(screen.getAllByText('Usar URL externa').length).toBeGreaterThan(0);
+    expect((await screen.findAllByText(/Arrastrá o hacé click para subir/i)).length).toBeGreaterThan(0);
   });
 
   it('cambia posición y tamaño del widget', async () => {
