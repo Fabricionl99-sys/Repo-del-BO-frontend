@@ -80,16 +80,21 @@ export function DetectNowModal({
               <p className="mt-1 text-[14px] text-text-secondary">{result.summary}</p>
             </div>
           </div>
-          {(result.new_bonus_types.length > 0 || result.new_events.length > 0) && (
+          {(result.new_bonus_types?.length ?? 0) > 0 ||
+          (result.new_events?.length ?? 0) > 0 ||
+          (result.new_products?.length ?? 0) > 0 ? (
             <ul className="list-inside list-disc text-[13px] text-text-secondary">
-              {result.new_bonus_types.map((b) => (
+              {(result.new_bonus_types ?? []).map((b) => (
                 <li key={b}>Nuevo bonus_type: {b}</li>
               ))}
-              {result.new_events.map((e) => (
+              {(result.new_events ?? []).map((e) => (
                 <li key={e}>Nuevo event: {e}</li>
               ))}
+              {(result.new_products ?? []).map((p) => (
+                <li key={p}>Nuevo product: {p}</li>
+              ))}
             </ul>
-          )}
+          ) : null}
         </div>
       )}
       {phase === 'error' && (

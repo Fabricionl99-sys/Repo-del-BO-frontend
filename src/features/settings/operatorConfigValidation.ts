@@ -54,6 +54,18 @@ export function validateBusinessHours(day: BusinessDayHours, label: string): str
   return undefined;
 }
 
+export function validateOperatorSettings(settings: {
+  notification_email: string;
+  timezone: string;
+  language: string;
+}): string | undefined {
+  const emailErr = validateEmail(settings.notification_email);
+  if (emailErr) return emailErr;
+  if (!settings.timezone.trim()) return 'Zona horaria requerida';
+  if (!settings.language.trim()) return 'Idioma requerido';
+  return undefined;
+}
+
 export function validateOperatorConfig(config: OperatorConfig): string | undefined {
   const emails = [
     validateEmail(config.contact_info.primary_email),

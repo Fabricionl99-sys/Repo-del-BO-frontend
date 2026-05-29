@@ -14,6 +14,7 @@ http.get('*/admin/dashboard/activity',async()=>{await wait(); return HttpRespons
 http.get('*/admin/internal-metrics',async()=>{await wait(); return HttpResponse.json({ data: mockInternalMetrics })}),
 http.get('*/admin/system/status',async()=>{await wait(); return HttpResponse.json({ data: systemStatus })}),
 http.get('*/admin/team/members',async()=>{await wait(); return HttpResponse.json(teamMembers)}),
+http.post('*/admin/team/invitations',async({request})=>{await wait(); const body=await request.json() as {email:string;role:'admin'|'member'|'viewer'}; const invitation_id=`inv_${Date.now()}`; return HttpResponse.json({ data: { invitation_id, invitation_url:`https://bo.social2game.com/invite/${invitation_id}`, email: body.email, role: body.role, expires_at: new Date(Date.now()+7*86400000).toISOString() } },{status:201})}),
 http.post('*/admin/team/members',async({request})=>{await wait(); const body=await request.json() as {email:string;role:'admin'|'editor'|'moderator'|'viewer'}; teamMembers.push({id:'01HQK3J9ZRT8KM7PQNX2NEW'+teamMembers.length,name:body.email.split('@')[0],email:body.email,initials:'??',avatarColor:'linear-gradient(135deg,#7D8590,#484F58)',role:body.role,status:'pending',isYou:false,lastAccessAt:null,joinedAt:new Date().toISOString()}); return HttpResponse.json({ok:true},{status:201})}),
 http.post('*/admin/team/invitations/:id/resend',async()=>{await wait(); return HttpResponse.json({ok:true})}),
 ];
@@ -962,7 +963,22 @@ handlers.push(
   }),
   http.patch('*/admin/operator-config', async ({ request }) => {
     await wait();
-    const body = (await request.json()) as Partial<OperatorConfig>;
+    const body = (await request.json()) as Partial<OperatorConfig> & {
+      notification_email?: string;
+      timezone?: string;
+      language?: string;
+    };
+    if (body.notification_email) {
+      operatorConfigFull.contact_info.primary_email = body.notification_email;
+      operatorConfigFull.notifications_preferences.notification_emails = [body.notification_email];
+    }
+    if (body.timezone) {
+      operatorConfigFull.localization.timezone = body.timezone;
+      operatorConfigFull.business_hours.timezone = body.timezone;
+    }
+    if (body.language) {
+      operatorConfigFull.localization.primary_language = body.language;
+    }
     Object.assign(operatorConfigFull, deepMerge(operatorConfigFull as unknown as Record<string, unknown>, body as unknown as Record<string, unknown>));
     if (body.localization?.timezone) {
       operatorConfigFull.business_hours.timezone = body.localization.timezone;

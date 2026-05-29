@@ -110,7 +110,12 @@ export type OperatorConfigApiResponse = OperatorConfig &
     game_catalog: Record<GameCategory, boolean>;
   };
 
-export type OperatorConfigUpdatePayload = Partial<OperatorConfig>;
+export type OperatorConfigUpdatePayload = Partial<OperatorConfig> & {
+  /** Campos planos persistidos por el backend MVP. */
+  notification_email?: string;
+  timezone?: string;
+  language?: string;
+};
 
 /** Parches anidados por sección (formulario BO). */
 export type OperatorConfigPatch = {

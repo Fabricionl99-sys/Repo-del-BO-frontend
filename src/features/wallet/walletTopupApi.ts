@@ -3,6 +3,8 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { apiClient } from '@/api/client';
 import { unwrapData } from '@/api/response';
 import type {
+  CryptoAsset,
+  CryptoNetwork,
   WalletCryptoTopup,
   WalletCryptoTopupRequest,
   WalletTopupsListParams,
@@ -19,6 +21,39 @@ function toBackendCryptoCurrency(crypto: string, network: string): string {
   return `${crypto.toLowerCase()}${network.toLowerCase()}`;
 }
 
+/** Backend wallet topup row (field names vary by provider). */
+type BackendWalletTopup = Partial<WalletCryptoTopup> & {
+  pay_address?: string;
+  payment_url?: string;
+  invoice_url?: string;
+};
+
+/** QR must encode pay_address / qr_payload — never payment_url or invoice_url. */
+function mapWalletTopup(
+  raw: BackendWalletTopup,
+  request?: WalletCryptoTopupRequest,
+): WalletCryptoTopup {
+  const payAddress = String(raw.pay_address ?? raw.deposit_address ?? '');
+  const qrPayload = String(raw.qr_payload ?? raw.pay_address ?? raw.deposit_address ?? '');
+
+  return {
+    id: String(raw.id ?? ''),
+    amount_usd: Number(raw.amount_usd ?? 0),
+    crypto: request?.crypto ?? (raw.crypto as CryptoAsset) ?? 'USDT',
+    network: request?.network ?? (raw.network as CryptoNetwork) ?? 'TRC20',
+    amount_crypto: String(raw.amount_crypto ?? ''),
+    deposit_address: payAddress,
+    qr_payload: qrPayload,
+    status: (raw.status as WalletTopupStatus) ?? 'pending',
+    confirmations: raw.confirmations ?? 0,
+    confirmations_required: raw.confirmations_required ?? 1,
+    created_at: String(raw.created_at ?? new Date().toISOString()),
+    expires_at: String(raw.expires_at ?? new Date().toISOString()),
+    completed_at: raw.completed_at ?? null,
+    tx_hash: raw.tx_hash ?? null,
+  };
+}
+
 export function useCreateCryptoTopup() {
   const qc = useQueryClient();
   return useMutation({
@@ -28,20 +63,8 @@ export function useCreateCryptoTopup() {
           amount_usd: payload.amount_usd,
           crypto_currency: toBackendCryptoCurrency(payload.crypto, payload.network),
         })
-        .then((r) => unwrapData<WalletCryptoTopup>(r.data))
-        .then((res) => ({
-          // Backend devuelve campos con nombres distintos. Mapeamos a lo
-          // que el componente BO espera. Defaults para los que backend MVP
-          // no expone aún (Sprint #7: confirmations, tx_hash).
-          ...res,
-          crypto: payload.crypto,
-          network: payload.network,
-          confirmations: (res as unknown as { confirmations?: number }).confirmations ?? 0,
-          confirmations_required:
-            (res as unknown as { confirmations_required?: number }).confirmations_required ?? 1,
-          tx_hash: (res as unknown as { tx_hash?: string | null }).tx_hash ?? null,
-          completed_at: (res as unknown as { completed_at?: string | null }).completed_at ?? null,
-        })),
+        .then((r) => unwrapData<BackendWalletTopup>(r.data))
+        .then((res) => mapWalletTopup(res, payload)),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['wallet-topups'] });
     },
@@ -52,7 +75,11 @@ export function useWalletTopup(id: string | null) {
   return useQuery({
     queryKey: ['wallet-topup', id],
     enabled: Boolean(id),
-    queryFn: () => apiClient.get(`/admin/wallet/crypto/topup/${id}`).then((r) => unwrapData<WalletCryptoTopup>(r.data)),
+    queryFn: () =>
+      apiClient
+        .get(`/admin/wallet/crypto/topup/${id}`)
+        .then((r) => unwrapData<BackendWalletTopup>(r.data))
+        .then((res) => mapWalletTopup(res)),
     refetchInterval: (q) => {
       const status = q.state.data?.status;
       if (status === 'pending' || status === 'confirming') return 3000;

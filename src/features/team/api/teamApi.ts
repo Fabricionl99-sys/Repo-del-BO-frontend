@@ -7,7 +7,7 @@ import { unwrapData } from '@/api/response';
 import { toast } from '@/stores/toastStore';
 import type { TeamMember } from '@/mocks/data/team';
 
-export type TeamInviteRole = 'admin' | 'viewer';
+export type TeamInviteRole = 'admin' | 'member' | 'viewer';
 
 export interface TeamInvitationPayload {
   email: string;
@@ -47,7 +47,8 @@ function getTeamInviteErrorMessage(error: unknown): string {
 export function useTeamMembers() {
   return useQuery({
     queryKey: ['team', 'members'],
-    queryFn: () => apiClient.get('/admin/team/members').then((r) => r.data as TeamMember[]),
+    queryFn: () =>
+      apiClient.get('/admin/team/members').then((r) => unwrapData<TeamMember[]>(r.data)),
   });
 }
 

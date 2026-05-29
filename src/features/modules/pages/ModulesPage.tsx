@@ -17,6 +17,7 @@ import {
 } from '@/features/billing/modulesApi';
 import { useWalletBalance } from '@/features/billing/walletApi';
 import type { ModuleCode, ModulePublic } from '@/types/billing';
+import { getApiErrorMessage } from '@/api/errors';
 import { toast } from '@/stores/toastStore';
 
 function formatUsd(n: number) {
@@ -90,15 +91,19 @@ export default function ModulesPage() {
 
   const handleConfirm = async () => {
     if (!confirmCode || !confirmAction) return;
-    if (confirmAction === 'activate') {
-      await activate.mutateAsync(confirmCode);
-      toast.success('Módulo activado');
-    } else {
-      await deactivate.mutateAsync(confirmCode);
-      toast.success('Desactivación programada');
+    try {
+      if (confirmAction === 'activate') {
+        await activate.mutateAsync(confirmCode);
+        toast.success('Módulo activado');
+      } else {
+        await deactivate.mutateAsync(confirmCode);
+        toast.success('Desactivación programada');
+      }
+      setConfirmCode(null);
+      setConfirmAction(null);
+    } catch (error) {
+      toast.error(getApiErrorMessage(error, 'No se pudo completar la acción'));
     }
-    setConfirmCode(null);
-    setConfirmAction(null);
   };
 
   const selected = cards.find((c) => c.code === confirmCode);

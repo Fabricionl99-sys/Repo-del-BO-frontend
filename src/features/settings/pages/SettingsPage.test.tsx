@@ -1,5 +1,5 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
+import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { createMemoryRouter, RouterProvider } from 'react-router-dom';
 import { describe, expect, it, vi } from 'vitest';
 
@@ -7,18 +7,6 @@ import { BO_LOCAL_STORAGE_KEYS } from '@/lib/boLocalStorage';
 import { useOperatorStore } from '@/stores/operatorStore';
 
 import SettingsPage from './SettingsPage';
-
-vi.stubGlobal(
-  'Image',
-  class {
-    naturalWidth = 512;
-    naturalHeight = 512;
-    onload: (() => void) | null = null;
-    set src(_: string) {
-      this.onload?.();
-    }
-  },
-);
 
 function wrap(route = '/configuracion') {
   cleanup();
@@ -42,19 +30,19 @@ function wrap(route = '/configuracion') {
 }
 
 describe('SettingsPage', () => {
-  it('carga datos de empresa y muestra tabs', async () => {
+  it('carga preferencias persistidas y muestra tabs', async () => {
     wrap();
-    expect(await screen.findByText('datos de la empresa')).toBeInTheDocument();
-    expect(screen.getByDisplayValue('Casino Astral S.A.')).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'Contacto' })).toBeInTheDocument();
+    expect(await screen.findByText('preferencias')).toBeInTheDocument();
+    expect(screen.getByDisplayValue('admin@casinoastral.com')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Cofre bienvenida' })).toBeInTheDocument();
   });
 
-  it('navega tabs y guarda cambios de contacto', async () => {
+  it('guarda email de notificaciones', async () => {
     wrap();
-    await screen.findByText('datos de la empresa');
-    fireEvent.click(screen.getByRole('button', { name: 'Contacto' }));
-    expect(await screen.findByText('contacto')).toBeInTheDocument();
-    fireEvent.change(screen.getByDisplayValue('admin@casinoastral.com'), { target: { value: 'ops@casinoastral.com' } });
+    await screen.findByText('preferencias');
+    fireEvent.change(screen.getByDisplayValue('admin@casinoastral.com'), {
+      target: { value: 'ops@casinoastral.com' },
+    });
     expect(screen.getByText('Tenés cambios sin guardar')).toBeInTheDocument();
     fireEvent.click(screen.getByText('Guardar cambios'));
     await waitFor(() => {
@@ -63,64 +51,25 @@ describe('SettingsPage', () => {
     expect(screen.getByDisplayValue('ops@casinoastral.com')).toBeInTheDocument();
   });
 
-  it('cambia localización y formato fecha', async () => {
+  it('navega al tab cofre de bienvenida', async () => {
     wrap();
-    await screen.findByText('datos de la empresa');
-    fireEvent.click(screen.getByRole('button', { name: 'Localización' }));
-    await screen.findByText('localización');
-    fireEvent.click(screen.getByText('05/16/2026'));
-    fireEvent.click(screen.getByText('1,000.00'));
-    fireEvent.click(screen.getByText('Guardar cambios'));
-    await waitFor(() => {
-      expect(screen.getByText('05/16/2026').closest('button')).toHaveClass('border-accent');
-    });
-  });
-
-  it('muestra MediaUploader para logo de empresa', async () => {
-    wrap();
-    await screen.findByText('datos de la empresa');
-    expect(screen.getByText('Cargar archivo')).toBeInTheDocument();
-    expect(screen.getByText('Usar URL externa')).toBeInTheDocument();
-  });
-
-  it('agrega feriado en tab horarios', async () => {
-    wrap();
-    await screen.findByText('datos de la empresa');
-    fireEvent.click(screen.getByRole('button', { name: 'Horarios' }));
-    await screen.findByText('días festivos');
-    fireEvent.click(screen.getByText('Agregar feriado'));
-    const dialog = await screen.findByRole('dialog');
-    const dateInput = dialog.querySelector('input[type="date"]') as HTMLInputElement;
-    fireEvent.change(dateInput, { target: { value: '2026-07-09' } });
-    const descInput = dialog.querySelectorAll('input.field')[1] as HTMLInputElement;
-    fireEvent.change(descInput, { target: { value: 'Día de la Independencia' } });
-    fireEvent.click(within(dialog).getByRole('button', { name: 'Guardar' }));
-    await waitFor(() => {
-      expect(screen.getByText('Día de la Independencia')).toBeInTheDocument();
-    });
-  });
-
-  it('envía test de notificaciones', async () => {
-    wrap();
-    await screen.findByText('datos de la empresa');
-    fireEvent.click(screen.getByRole('button', { name: 'Notificaciones' }));
-    await screen.findByText('notificaciones del equipo');
-    fireEvent.click(screen.getByRole('button', { name: 'Enviar test' }));
-    const dialog = await screen.findByRole('dialog');
-    fireEvent.click(within(dialog).getByRole('button', { name: 'Enviar test' }));
-    await waitFor(() => {
-      expect(within(dialog).getByText(/Test enviado a/i)).toBeInTheDocument();
-    });
+    await screen.findByText('preferencias');
+    fireEvent.click(screen.getByRole('button', { name: 'Cofre bienvenida' }));
+    expect(await screen.findByText('Cofre de bienvenida')).toBeInTheDocument();
   });
 
   it('descarta cambios con confirmación', async () => {
     const confirm = vi.spyOn(window, 'confirm').mockReturnValue(true);
     wrap();
-    await screen.findByDisplayValue('Casino Astral S.A.');
-    fireEvent.change(screen.getByDisplayValue('Casino Astral S.A.'), { target: { value: 'Otro nombre' } });
+    await screen.findByText('preferencias');
+    const emailInput = screen.getByRole('textbox', { name: /email de notificaciones/i }) as HTMLInputElement;
+    const original = emailInput.value;
+    fireEvent.change(emailInput, { target: { value: 'otro@test.com' } });
     fireEvent.click(screen.getByText('Descartar'));
     expect(confirm).toHaveBeenCalled();
-    expect(screen.getByDisplayValue('Casino Astral S.A.')).toBeInTheDocument();
+    expect((screen.getByRole('textbox', { name: /email de notificaciones/i }) as HTMLInputElement).value).toBe(
+      original,
+    );
     confirm.mockRestore();
   });
 

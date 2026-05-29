@@ -278,7 +278,7 @@ function AccessHistory() {
 
 const inviteSchema = z.object({
   email: z.string().email('email inválido'),
-  role: z.enum(['admin', 'viewer']),
+  role: z.enum(['admin', 'member', 'viewer']),
 });
 
 type InviteValues = z.infer<typeof inviteSchema>;
@@ -337,6 +337,7 @@ function InviteModal({ open, onClose }: { open: boolean; onClose: () => void }) 
             <label className="mb-1.5 block text-[14px] text-text-secondary">rol</label>
             <select className="field" {...register('role')}>
               <option value="admin">★ admin · acceso total</option>
+              <option value="member">✎ member · operación diaria</option>
               <option value="viewer">👁 viewer · solo lectura</option>
             </select>
           </div>

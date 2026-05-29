@@ -62,17 +62,38 @@ export function useOperatorConfig() {
   });
 }
 
+export type OperatorConfigUpdateInput =
+  | OperatorConfigUpdatePayload
+  | { payload: OperatorConfigUpdatePayload; successMessage?: string };
+
+function resolveUpdateInput(input: OperatorConfigUpdateInput): {
+  payload: OperatorConfigUpdatePayload;
+  successMessage: string;
+} {
+  if (input !== null && typeof input === 'object' && 'payload' in input) {
+    return {
+      payload: input.payload,
+      successMessage: input.successMessage ?? 'Configuración guardada',
+    };
+  }
+  return { payload: input as OperatorConfigUpdatePayload, successMessage: 'Configuración guardada' };
+}
+
 export function useUpdateOperatorConfig() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: (payload: OperatorConfigUpdatePayload) =>
-      apiClient.patch('/admin/operator-config', payload).then((r) => unwrapData<OperatorConfigApiResponse>(r.data)),
-    onSuccess: (data) => {
+    mutationFn: (input: OperatorConfigUpdateInput) => {
+      const { payload } = resolveUpdateInput(input);
+      return apiClient
+        .patch('/admin/operator-config', payload)
+        .then((r) => unwrapData<OperatorConfigApiResponse>(r.data));
+    },
+    onSuccess: (data, input) => {
       if (!isOperatorConfigApiResponse(data)) {
         removeLocalStorageKey(STORAGE_KEY);
         return;
       }
-      toast.success('Configuración guardada');
+      toast.success(resolveUpdateInput(input).successMessage);
       storeConfig(data);
       qc.setQueryData(['operator-config'], data);
       qc.invalidateQueries({ queryKey: ['operator-config'] });

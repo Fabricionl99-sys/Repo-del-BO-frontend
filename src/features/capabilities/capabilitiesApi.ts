@@ -16,13 +16,35 @@ import type {
 
 export const CAPABILITIES_QUERY_KEY = ['operator-capabilities'] as const;
 
+function normalizeCapabilitiesSnapshot(data: unknown): OperatorCapabilitiesSnapshot {
+  if (Array.isArray(data)) {
+    return { capabilities: data, last_detection_at: null };
+  }
+  const snap = data as OperatorCapabilitiesSnapshot | null | undefined;
+  return {
+    capabilities: snap?.capabilities ?? [],
+    last_detection_at: snap?.last_detection_at ?? null,
+  };
+}
+
+function normalizeDetectNowResult(data: unknown): DetectNowResult {
+  const raw = (data ?? {}) as Partial<DetectNowResult>;
+  return {
+    summary: raw.summary ?? 'Detección completada',
+    new_bonus_types: raw.new_bonus_types ?? [],
+    new_events: raw.new_events ?? [],
+    new_products: raw.new_products ?? [],
+    last_detection_at: raw.last_detection_at ?? new Date().toISOString(),
+  };
+}
+
 export function useCapabilities() {
   return useQuery({
     queryKey: CAPABILITIES_QUERY_KEY,
     queryFn: () =>
       apiClient
         .get('/admin/capabilities')
-        .then((r) => unwrapData<OperatorCapabilitiesSnapshot>(r.data)),
+        .then((r) => normalizeCapabilitiesSnapshot(unwrapData<unknown>(r.data))),
   });
 }
 
@@ -85,7 +107,7 @@ export function useDetectCapabilitiesNow() {
     mutationFn: () =>
       apiClient
         .post('/admin/capabilities/detect-now')
-        .then((r) => unwrapData<DetectNowResult>(r.data)),
+        .then((r) => normalizeDetectNowResult(unwrapData<unknown>(r.data))),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: CAPABILITIES_QUERY_KEY });
       qc.invalidateQueries({ queryKey: ['operator-capabilities', 'audit-log'] });

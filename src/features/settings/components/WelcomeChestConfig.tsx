@@ -1,5 +1,6 @@
 import { useState } from 'react';
 
+import { FieldHint } from '@/components/ui/FieldHint';
 import { RewardSelector } from '@/components/rewards/RewardSelector';
 import { Button } from '@/components/ui/Button';
 import { ConfigSection } from '@/components/configurator/ConfiguratorScaffold';
@@ -22,7 +23,15 @@ export function WelcomeChestConfig() {
   const [saved, setSaved] = useState(false);
 
   return (
-    <ConfigSection icon="🎁" title="Cofre de bienvenida">
+    <ConfigSection
+      icon="🎁"
+      title={
+        <span className="inline-flex items-center">
+          Cofre de bienvenida
+          <FieldHint text="Cofre que se entrega automáticamente al primer login del jugador. Configurá los premios en Cofres > tipo 'welcome'. Si no está configurado, no se entrega nada." />
+        </span>
+      }
+    >
       <p className="mb-4 text-[14px] text-text-secondary">
         Cofre que reciben automáticamente los jugadores nuevos en su primer login. Configurá acá el contenido que va a recibir.
       </p>
