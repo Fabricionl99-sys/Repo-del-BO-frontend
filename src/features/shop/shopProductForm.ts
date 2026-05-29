@@ -1,6 +1,8 @@
 import { z } from 'zod';
 
 import { rewardValueSchema } from '@/features/rewards/rewardForm';
+import { resolveShopCurrencyCode } from '@/features/shop/shopProductPayload';
+import type { Coin } from '@/types/coins';
 import type { ShopProduct, ShopProductPayload, ShopRewardType } from '@/types/shop';
 import type { RewardValue } from '@/types/rewards';
 
@@ -9,8 +11,9 @@ export const SHOP_REWARD_TYPES: ShopRewardType[] = [
   'freebet',
   'cashback',
   'bonus_deposit',
+  'coins',
+  'chest',
   'avatar_pack',
-  'theme',
   'manual',
 ];
 
@@ -50,7 +53,10 @@ export const shopProductFormSchema = z
     code: codeSchema,
     name: z.string().min(2, 'Mínimo 2 caracteres').max(120, 'Máximo 120 caracteres'),
     description: z.string().max(2000, 'Máximo 2000 caracteres'),
-    image_url: z.string().url('URL inválida').or(z.literal('')),
+    image_url: z
+      .string()
+      .min(1, 'Imagen requerida')
+      .regex(/^https:\/\/.+/i, 'La imagen debe ser URL HTTPS (https://…)'),
     cost_in_coins: z.number().int('Debe ser entero').min(1, 'Mínimo 1 moneda'),
     currency_code: z.string().min(1, 'Seleccioná moneda'),
     unlimited_stock: z.boolean(),
@@ -60,8 +66,9 @@ export const shopProductFormSchema = z
       'freebet',
       'cashback',
       'bonus_deposit',
+      'coins',
+      'chest',
       'avatar_pack',
-      'theme',
       'manual',
     ]),
     reward: rewardValueSchema,
@@ -80,9 +87,6 @@ export const shopProductFormSchema = z
     if (values.valid_from && values.valid_until && values.valid_from > values.valid_until) {
       ctx.addIssue({ code: 'custom', path: ['valid_until'], message: 'Debe ser posterior a valid_from' });
     }
-    if (values.reward_type === 'theme' && !values.theme_id.trim()) {
-      ctx.addIssue({ code: 'custom', path: ['theme_id'], message: 'theme_id requerido' });
-    }
   });
 
 export function defaultShopProductForm(): ShopProductFormValues {
@@ -90,7 +94,7 @@ export function defaultShopProductForm(): ShopProductFormValues {
     code: '',
     name: '',
     description: '',
-    image_url: '',
+    image_url: 'https://cdn.social2game.com/defaults/shop-product.png',
     cost_in_coins: 100,
     currency_code: 'main',
     unlimited_stock: true,
@@ -115,15 +119,15 @@ export function defaultShopProductForm(): ShopProductFormValues {
 }
 
 export function buildRewardConfig(values: ShopProductFormValues): ShopProduct['reward_config'] {
-  if (values.reward_type === 'theme') {
-    return { theme_id: values.theme_id.trim() };
-  }
-  return values.reward.reward_config as unknown as ShopProduct['reward_config'];
+  const cfg = values.reward.reward_config as unknown as Record<string, unknown>;
+  const kind = values.reward.reward_type;
+  return { ...cfg, kind } as unknown as ShopProduct['reward_config'];
 }
 
-export function productToForm(product: ShopProduct): ShopProductFormValues {
+export function productToForm(product: ShopProduct, coins: Coin[] = []): ShopProductFormValues {
   const base = defaultShopProductForm();
   const cfg = product.reward_config as unknown as Record<string, unknown>;
+  const rewardType = product.reward_type as ShopRewardType;
   return {
     ...base,
     code: product.code,
@@ -131,19 +135,15 @@ export function productToForm(product: ShopProduct): ShopProductFormValues {
     description: product.description,
     image_url: product.image_url,
     cost_in_coins: product.cost_in_coins,
-    currency_code: product.currency_code,
+    currency_code: resolveShopCurrencyCode(product.currency_code, coins),
     unlimited_stock: product.stock === null,
     stock: product.stock ?? 0,
-    reward_type: product.reward_type,
-    reward:
-      product.reward_type === 'theme'
-        ? base.reward
-        : {
-            reward_type: product.reward_type as RewardValue['reward_type'],
-            reward_config: cfg,
-            currency_mode: 'auto_usd',
-          },
-    theme_id: String(cfg.theme_id ?? ''),
+    reward_type: rewardType,
+    reward: {
+      reward_type: rewardType as RewardValue['reward_type'],
+      reward_config: cfg,
+      currency_mode: 'auto_usd',
+    },
     min_level: product.min_level,
     vip_only: product.vip_only,
     max_per_player: product.max_per_player,
@@ -153,15 +153,15 @@ export function productToForm(product: ShopProduct): ShopProductFormValues {
   };
 }
 
-export function formToPayload(values: ShopProductFormValues): ShopProductPayload {
-  const rewardType = values.reward_type === 'theme' ? 'theme' : values.reward.reward_type;
+export function formToPayload(values: ShopProductFormValues, coins: Coin[] = []): ShopProductPayload {
+  const rewardType = values.reward.reward_type;
   return {
     code: values.code.trim(),
     name: values.name.trim(),
     description: values.description.trim(),
     image_url: values.image_url.trim(),
-    cost_in_coins: values.cost_in_coins,
-    currency_code: values.currency_code,
+    cost_in_coins: Math.max(1, Math.floor(values.cost_in_coins)),
+    currency_code: resolveShopCurrencyCode(values.currency_code, coins),
     stock: values.unlimited_stock ? null : values.stock,
     reward_type: rewardType as ShopRewardType,
     reward_config: buildRewardConfig(values),

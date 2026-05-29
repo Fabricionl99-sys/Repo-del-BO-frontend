@@ -1,9 +1,13 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 import { apiClient } from '@/api/client';
+import { getApiErrorMessage, getValidationIssuesMessage } from '@/api/errors';
 import { unwrapData, unwrapPaginatedList } from '@/api/response';
 import { toast } from '@/stores/toastStore';
+import type { Coin } from '@/types/coins';
 import type { ShopProduct, ShopProductPayload, ShopPurchase, ShopPurchasesQuery } from '@/types/shop';
+
+import { adaptShopPayloadForBackend, formatShopApiErrorBody } from './shopProductPayload';
 
 export interface ShopProductsFilters {
   status?: 'active' | 'archived' | 'all';
@@ -41,66 +45,16 @@ export function useShopProduct(id: string | null) {
  * Sprint #6 fix — BO usaba PATCH pero backend espera PUT (405 → "algo salió mal").
  * Backend usa POST /admin/shop/products/:id/archive en vez de DELETE.
  *
- * Adapter de reward_config:
- *   - Backend espera discriminated union por `.kind`. BO manda `reward_type`
- *     slug separado y reward_config sin kind.
- *   - 'xp' (BO-only) → 'manual' con descripción "N XP bonus".
- *   - manual sin value_usd → default 0.
- *   - coins sin amount → default 1, sin currency_code → default 'main'.
+ * v0.1.24 — ShopProductUpsertSchema:
+ *   currency_code (string code, no UUID), cost_in_coins int, reward_config.kind,
+ *   image_url HTTPS. Ver shopProductPayload.ts.
  */
-const SHOP_VALID_KINDS = new Set([
-  'freespin',
-  'freebet',
-  'cashback',
-  'bonus_deposit',
-  'manual',
-  'chest',
-  'coins',
-  'avatar_pack',
-  'wheel_spin',
-]);
-
-function adaptShopPayloadForBackend(
-  payload: ShopProductPayload,
-): Record<string, unknown> {
-  const rawType = String(payload.reward_type ?? 'manual');
-  const rawCfg = ((payload.reward_config ?? {}) as unknown) as Record<string, unknown>;
-  let kind: string;
-  let cfg: Record<string, unknown>;
-  if (rawType === 'xp') {
-    const xp = Number(rawCfg.amount ?? 0);
-    kind = 'manual';
-    cfg = { kind: 'manual', description: `${xp} XP bonus`, value_usd: 0 };
-  } else if (SHOP_VALID_KINDS.has(rawType)) {
-    kind = rawType;
-    cfg = { ...rawCfg, kind: rawType };
-    if (kind === 'manual') {
-      const desc = cfg.description;
-      if (typeof desc !== 'string' || !desc.trim()) cfg.description = payload.name;
-      if (typeof cfg.value_usd !== 'number') cfg.value_usd = 0;
-    }
-    if (kind === 'coins') {
-      if (typeof cfg.amount !== 'number' || (cfg.amount as number) <= 0) cfg.amount = 1;
-      if (!cfg.currency_code) cfg.currency_code = payload.currency_code;
-    }
-    if (kind === 'chest' && !cfg.chest_type_code) cfg.chest_type_code = 'default_chest';
-    if (kind === 'wheel_spin' && !cfg.wheel_type_code) cfg.wheel_type_code = 'default_wheel';
-  } else {
-    kind = 'manual';
-    cfg = { kind: 'manual', description: payload.name, value_usd: 0 };
-  }
-  return {
-    ...payload,
-    reward_type: kind,
-    reward_config: cfg,
-  };
-}
-
 export function useSaveShopProduct() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: ({ id, ...payload }: ShopProductPayload & { id?: string }) => {
-      const body = adaptShopPayloadForBackend(payload);
+      const coins = (qc.getQueryData(['coins']) as Coin[] | undefined) ?? [];
+      const body = adaptShopPayloadForBackend(payload, coins);
       return id
         ? apiClient.put(`/admin/shop/products/${id}`, body).then((r) => unwrapData<ShopProduct>(r.data))
         : apiClient.post('/admin/shop/products', body).then((r) => unwrapData<ShopProduct>(r.data));
@@ -108,6 +62,15 @@ export function useSaveShopProduct() {
     onSuccess: () => {
       toast.success('Producto guardado');
       qc.invalidateQueries({ queryKey: ['shop-products'] });
+    },
+    onError: (error) => {
+      const issuesMsg = getValidationIssuesMessage(error);
+      const rawBody = formatShopApiErrorBody(error);
+      const message =
+        issuesMsg ??
+        rawBody ??
+        getApiErrorMessage(error, 'No se pudo guardar el producto');
+      toast.error(message.length > 500 ? `${message.slice(0, 497)}…` : message);
     },
   });
 }

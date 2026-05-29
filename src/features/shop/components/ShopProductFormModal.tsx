@@ -7,6 +7,7 @@ import { Modal } from '@/components/ui/Modal';
 import { Switch } from '@/components/ui/Switch';
 import { ConfigSection, ConfiguratorScaffold } from '@/components/configurator/ConfiguratorScaffold';
 import { useCoins } from '@/features/coinsApi';
+import { coinToCurrencyCode } from '@/features/shop/shopProductPayload';
 import {
   defaultShopProductForm,
   formToPayload,
@@ -54,16 +55,13 @@ export function ShopProductFormModal({
     formState: { errors },
   } = form;
 
-  const rewardType = useWatch({ control, name: 'reward_type' });
   const unlimitedStock = useWatch({ control, name: 'unlimited_stock' });
   const isActive = useWatch({ control, name: 'is_active' });
 
   useEffect(() => {
     if (!open) return;
-    const base = product ? productToForm(product) : defaultShopProductForm();
-    // Si el default 'main' no existe en las currencies del operador,
-    // usamos la primera disponible. Evita el 400 backend "currency not found".
-    const availableCodes = operatorCurrencies.map((c) => c.symbol || c.name);
+    const base = product ? productToForm(product, operatorCurrencies) : defaultShopProductForm();
+    const availableCodes = operatorCurrencies.map(coinToCurrencyCode);
     if (
       !product &&
       availableCodes.length > 0 &&
@@ -79,7 +77,7 @@ export function ShopProductFormModal({
       form.setError('code', { message: 'El code ya existe' });
       return;
     }
-    const payload = formToPayload(values);
+    const payload = formToPayload(values, operatorCurrencies);
     await save.mutateAsync({ ...payload, id: product?.id });
     onClose();
   });
@@ -145,8 +143,8 @@ export function ShopProductFormModal({
                   <option value="">Sin monedas — creá una primero</option>
                 )}
                 {operatorCurrencies.map((c) => (
-                  <option key={c.id} value={c.symbol || c.name}>
-                    {c.name} ({c.symbol || c.name})
+                  <option key={c.id} value={coinToCurrencyCode(c)}>
+                    {c.name} ({coinToCurrencyCode(c)})
                   </option>
                 ))}
               </select>
@@ -172,7 +170,19 @@ export function ShopProductFormModal({
         <ConfigSection title="Premio (reward_config)">
           <div className="mb-3">
             <label className="mb-1.5 block text-[14px] text-text-secondary">reward_type</label>
-            <select className="field" {...register('reward_type')}>
+            <select
+              className="field"
+              {...register('reward_type')}
+              onChange={(e) => {
+                const next = e.target.value as ShopProductFormValues['reward_type'];
+                setValue('reward_type', next);
+                setValue('reward', {
+                  reward_type: next,
+                  reward_config: {},
+                  currency_mode: 'auto_usd',
+                } as ShopProductFormValues['reward']);
+              }}
+            >
               {SHOP_REWARD_TYPES.map((t) => (
                 <option key={t} value={t}>
                   {t}
@@ -180,20 +190,12 @@ export function ShopProductFormModal({
               ))}
             </select>
           </div>
-          {rewardType === 'theme' ? (
-            <div>
-              <label className="mb-1.5 block text-[14px] text-text-secondary">theme_id</label>
-              <input className="field" {...register('theme_id')} />
-              {errors.theme_id && <p className="mt-1 text-[13px] text-danger">{errors.theme_id.message}</p>}
-            </div>
-          ) : (
-            <RewardSelectorRhf
-              moduleKey="shop"
-              control={control}
-              name="reward"
-              availableRewardTypes={SHOP_REWARD_TYPES.filter((t) => t !== 'theme') as RewardTypeCode[]}
-            />
-          )}
+          <RewardSelectorRhf
+            moduleKey="shop"
+            control={control}
+            name="reward"
+            availableRewardTypes={SHOP_REWARD_TYPES as RewardTypeCode[]}
+          />
         </ConfigSection>
 
         <ConfigSection title="Restricciones">

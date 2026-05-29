@@ -3,8 +3,9 @@ export type ShopRewardType =
   | 'freebet'
   | 'cashback'
   | 'bonus_deposit'
+  | 'coins'
+  | 'chest'
   | 'avatar_pack'
-  | 'theme'
   | 'manual';
 
 export type ShopProductStatus = 'active' | 'archived';

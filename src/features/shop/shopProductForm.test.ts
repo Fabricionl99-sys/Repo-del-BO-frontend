@@ -51,13 +51,13 @@ describe('shopProductFormSchema', () => {
 });
 
 describe('buildRewardConfig / formToPayload', () => {
-  it('arma reward_config freebet con bonus_id', () => {
+  it('arma reward_config freebet con bonus_id y kind', () => {
     const values = {
       ...defaultShopProductForm(),
       reward_type: 'freebet' as const,
       reward: { reward_type: 'freebet' as const, reward_config: { bonus_id: 'ob_fb_sports_25' } },
     };
-    expect(buildRewardConfig(values)).toEqual({ bonus_id: 'ob_fb_sports_25' });
+    expect(buildRewardConfig(values)).toEqual({ bonus_id: 'ob_fb_sports_25', kind: 'freebet' });
   });
 
   it('payload incluye stock null si ilimitado', () => {
