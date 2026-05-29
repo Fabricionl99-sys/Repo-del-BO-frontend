@@ -123,4 +123,12 @@ describe('PredictionsPage', () => {
     wrap('/predicciones?mockState=empty');
     expect(await screen.findByText('Sin prodes')).toBeInTheDocument();
   });
+
+  it('menú ⋮ incluye Archivar para prode en borrador', async () => {
+    wrap();
+    await screen.findByText('Clausura 2026 (borrador)');
+    fireEvent.click(screen.getAllByTitle('Acciones')[0]!);
+    expect(screen.getByRole('button', { name: /Archivar/i })).toBeInTheDocument();
+    expect(screen.queryByText('Cancelar')).not.toBeInTheDocument();
+  });
 });

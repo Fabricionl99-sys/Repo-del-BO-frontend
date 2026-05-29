@@ -4,9 +4,12 @@ import { MOCK_PREVIEW_VARIABLES } from './notificationVariables';
 
 export function renderTemplateText(
   text: string,
-  overrides: Record<string, string> = {},
+  overrides: Record<string, string | number> = {},
 ): string {
-  const vars = { ...MOCK_PREVIEW_VARIABLES, ...overrides };
+  const vars: Record<string, string> = { ...MOCK_PREVIEW_VARIABLES };
+  for (const [k, v] of Object.entries(overrides)) {
+    vars[k.toLowerCase()] = String(v);
+  }
   return text.replace(/\{\{\s*([a-z_]+)\s*\}\}/gi, (_, key: string) => vars[key.toLowerCase()] ?? `{{${key}}}`);
 }
 
@@ -15,7 +18,7 @@ export function buildPreviewFromTemplate(
     name?: string;
   },
   channel: ChannelType,
-  overrides: Record<string, string> = {},
+  overrides: Record<string, string | number> = {},
 ) {
   const body = renderTemplateText(template.body, overrides);
   const subject = template.subject ? renderTemplateText(template.subject, overrides) : null;

@@ -1,12 +1,15 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 import { apiClient } from '@/api/client';
+import { getApiErrorMessage } from '@/api/errors';
 import { unwrapData, unwrapPaginatedList } from '@/api/response';
 import { toast } from '@/stores/toastStore';
 import type {
   ChannelPatchPayload,
+  ChannelTestResult,
   ChannelType,
   ManualSendPayload,
+  ManualSendResult,
   NotificationChannel,
   NotificationHistoryItem,
   NotificationStats,
@@ -42,10 +45,19 @@ export function useTestNotificationChannel() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: (type: ChannelType) =>
-      apiClient.post(`/admin/notifications/channels/${type}/test`).then((r) => unwrapData<{ ok: boolean }>(r.data)),
-    onSuccess: () => {
-      toast.success('Test enviado');
-      qc.invalidateQueries({ queryKey: ['notification-channels'] });
+      apiClient
+        .post(`/admin/notifications/channels/${type}/test`)
+        .then((r) => unwrapData<ChannelTestResult>(r.data)),
+    onSuccess: (data) => {
+      if (data.success) {
+        toast.success('Conexión del canal OK');
+      } else {
+        toast.error(data.detail ?? 'El test de conexión falló');
+      }
+      void qc.invalidateQueries({ queryKey: ['notification-channels'] });
+    },
+    onError: (error) => {
+      toast.error(getApiErrorMessage(error, 'No se pudo probar la conexión del canal'));
     },
   });
 }
@@ -124,6 +136,9 @@ export function usePreviewNotificationTemplate() {
       apiClient
         .post(`/admin/notifications/templates/${id}/preview`, payload)
         .then((r) => unwrapData<TemplatePreviewResult>(r.data)),
+    onError: (error) => {
+      toast.error(getApiErrorMessage(error, 'No se pudo generar la vista previa'));
+    },
   });
 }
 
@@ -146,8 +161,6 @@ export function useNotificationHistory(params?: {
       if (params?.from) sp.set('from', params.from);
       if (params?.to) sp.set('to', params.to);
       const res = await apiClient.get(`/admin/notifications/history?${sp.toString()}`);
-      // Backend devuelve { items, total, limit, offset } (paginated).
-      // unwrapPaginatedList lo maneja y devolvemos solo items[].
       return unwrapPaginatedList<NotificationHistoryItem>(res.data).items;
     },
   });
@@ -165,11 +178,20 @@ export function useSendManualNotification() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: (payload: ManualSendPayload) =>
-      apiClient.post('/admin/notifications/send-manual', payload).then((r) => unwrapData<{ ok: boolean }>(r.data)),
-    onSuccess: () => {
-      toast.success('Notificación enviada');
-      qc.invalidateQueries({ queryKey: ['notification-history'] });
-      qc.invalidateQueries({ queryKey: ['notification-stats'] });
+      apiClient
+        .post('/admin/notifications/send-manual', payload)
+        .then((r) => unwrapData<ManualSendResult>(r.data)),
+    onSuccess: (data) => {
+      if (data.delivered) {
+        toast.success(data.deliveryId ? `Notificación enviada · ${data.deliveryId}` : 'Notificación enviada');
+      } else {
+        toast.error('La notificación no se entregó');
+      }
+      void qc.invalidateQueries({ queryKey: ['notification-history'] });
+      void qc.invalidateQueries({ queryKey: ['notification-stats'] });
+    },
+    onError: (error) => {
+      toast.error(getApiErrorMessage(error, 'No se pudo enviar la notificación'));
     },
   });
 }

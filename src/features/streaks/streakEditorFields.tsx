@@ -37,7 +37,7 @@ export const MILESTONE_KIND_OPTIONS: { value: StreakRewardKind; label: string }[
   { value: 'freebet', label: 'Freebet' },
   { value: 'cashback', label: 'Cashback' },
   { value: 'bonus_deposit', label: 'Bonus depósito' },
-  { value: 'manual', label: 'Manual (entrega fuera de WINGOAT)' },
+  { value: 'manual', label: 'Manual (entrega fuera de Social2Game)' },
 ];
 
 export function FieldErr({ path }: { path: string }) {

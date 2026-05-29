@@ -99,6 +99,7 @@ export function MediaUploader({
     maxDimensions: config.maxDimensions,
     aspectRatio: config.aspectRatio,
     serverResizeSquare: config.serverResizeSquare,
+    skipDimensionValidation: config.skipDimensionValidation,
     label: purposeLabel(context.purpose),
   };
 
@@ -146,6 +147,7 @@ export function MediaUploader({
       maxDimensions: config.maxDimensions,
       aspectRatio: config.aspectRatio,
       serverResizeSquare: config.serverResizeSquare,
+      skipDimensionValidation: config.skipDimensionValidation,
     });
     setValidatingExternal(false);
     if (!result.ok) {

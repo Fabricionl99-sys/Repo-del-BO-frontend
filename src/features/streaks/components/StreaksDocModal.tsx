@@ -7,7 +7,7 @@ Ejemplos:
 • Login 7 días: micro XP cada día + cofre en el día 7.
 • Depósitos acumulados: hitos en días 3 y 5 con bonus configurable.
 
-Los premios "manual" se registran en WINGOAT; el operador entrega el premio fuera de la plataforma.
+Los premios "manual" se registran en Social2Game; el operador entrega el premio fuera de la plataforma.
 
 Cuando llegue la documentación oficial (api-shapes), los campos se alinearán al contrato exacto del backend.`;
 

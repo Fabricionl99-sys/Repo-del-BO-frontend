@@ -54,6 +54,7 @@ export interface RankingFormValues {
   code: string;
   name: string;
   description: string;
+  image_url: string;
   metric_type: RankingMetricType;
   period_type: RankingPeriodType;
   reset_time: string;
@@ -78,6 +79,7 @@ export const rankingFormSchema = z
     code: codeSchema,
     name: z.string().min(2, 'Mínimo 2 caracteres').max(120, 'Máximo 120 caracteres'),
     description: z.string().max(2000, 'Máximo 2000 caracteres'),
+    image_url: z.string().url('URL inválida').or(z.literal('')),
     metric_type: z.enum([
       'xp_total',
       'coins_earned',
@@ -110,6 +112,7 @@ export function defaultRankingForm(): RankingFormValues {
     code: '',
     name: '',
     description: '',
+    image_url: '',
     metric_type: 'xp_total',
     period_type: 'weekly',
     reset_time: '00:00',
@@ -164,6 +167,7 @@ export function rankingToForm(ranking: RankingConfig): RankingFormValues {
     code: ranking.code,
     name: ranking.name,
     description: ranking.description,
+    image_url: ranking.image_url ?? '',
     metric_type: ranking.metric_type,
     period_type: ranking.period_type,
     ...reset,
@@ -180,6 +184,7 @@ export function formToMetadataPayload(values: RankingFormValues): RankingMetadat
   return {
     name: values.name.trim(),
     description: values.description.trim(),
+    image_url: values.image_url.trim() || null,
     metric_type: values.metric_type,
     period_type: values.period_type,
     period_resets_at: buildPeriodResetsAt(values),

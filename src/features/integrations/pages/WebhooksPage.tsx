@@ -41,14 +41,14 @@ export default function WebhooksPage() {
       <>
         <PageHeader
           title="Webhooks de premios"
-          subtitle="URLs HTTPS de tu sistema donde WINGOAT notifica premios automáticos (HMAC)"
+          subtitle="URLs HTTPS de tu sistema donde Social2Game notifica premios automáticos (HMAC)"
           actions={
             <Button variant="primary" icon={<Plus size={14} />} onClick={() => setCreateOpen(true)}>
               nuevo webhook
             </Button>
           }
         />
-        <EmptyState title="Sin webhooks" description="Creá un endpoint por tipo de premio. El secret lo genera WINGOAT." />
+        <EmptyState title="Sin webhooks" description="Creá un endpoint por tipo de premio. El secret lo genera Social2Game." />
         <CreateModal open={createOpen} onClose={() => setCreateOpen(false)} onCreated={(secret) => setSecretModal(secret)} create={create} />
       </>
     );
@@ -125,7 +125,7 @@ export default function WebhooksPage() {
     <>
       <PageHeader
         title="Webhooks de premios"
-        subtitle="Integración saliente: WINGOAT firma con HMAC y POSTea a tu operador"
+        subtitle="Integración saliente: Social2Game firma con HMAC y POSTea a tu operador"
         actions={
           <Button variant="primary" icon={<Plus size={14} />} onClick={() => setCreateOpen(true)}>
             nuevo webhook
@@ -137,7 +137,7 @@ export default function WebhooksPage() {
         <div>
           <p className="font-semibold">Secret de un solo uso</p>
           <p className="mt-1 text-text-secondary">
-            Tras crear o rotar el secret, copialo ahora. Si refrescás la página, solo verás los últimos 4 caracteres. WINGOAT nunca muestra el secret completo otra vez.
+            Tras crear o rotar el secret, copialo ahora. Si refrescás la página, solo verás los últimos 4 caracteres. Social2Game nunca muestra el secret completo otra vez.
           </p>
         </div>
       </div>

@@ -111,20 +111,28 @@ export type ChannelPatchPayload = {
 };
 
 export interface ManualSendPayload {
-  player_id: string;
-  template_id: string;
-  variable_overrides?: Record<string, string>;
+  playerStateId: string;
+  triggerEvent: TriggerEvent;
+  templateCode?: string;
+  variables?: Record<string, string | number>;
+}
+
+export interface ManualSendResult {
+  delivered: boolean;
+  deliveryId?: string;
+}
+
+export interface ChannelTestResult {
+  success: boolean;
+  detail?: string;
 }
 
 export interface TemplatePreviewPayload {
-  channel_type: ChannelType;
-  variable_overrides?: Record<string, string>;
+  variables?: Record<string, string | number>;
 }
 
 export interface TemplatePreviewResult {
-  subject: string | null;
-  body: string;
-  body_html: string | null;
-  cta_text: string | null;
-  cta_url: string | null;
+  subject?: string;
+  body_html?: string;
+  body_text: string;
 }

@@ -3,6 +3,7 @@ import { Plus, Trash2 } from 'lucide-react';
 import { useEffect } from 'react';
 import { useFieldArray, useForm, useWatch } from 'react-hook-form';
 
+import { BannerWidgetPreview } from '@/components/media/BannerWidgetPreview';
 import { MediaUploaderRhf } from '@/components/media/MediaUploaderRhf';
 import { Button } from '@/components/ui/Button';
 import { Modal } from '@/components/ui/Modal';
@@ -71,6 +72,9 @@ export function TournamentFormModal({
   const registrationType = useWatch({ control, name: 'registration_type' });
   const specificGames = useWatch({ control, name: 'specific_games_only' }) ?? [];
   const isActive = watch('is_active');
+  const imageUrl = watch('image_url');
+  const tournamentName = watch('name');
+  const tournamentDescription = watch('description');
 
   useEffect(() => {
     if (!open) return;
@@ -135,12 +139,21 @@ export function TournamentFormModal({
             <textarea className="field min-h-[80px]" {...register('description')} />
           </div>
           <div>
-            <label className="mb-1.5 block text-[14px] text-text-secondary">Banner del torneo</label>
+            <label className="mb-1.5 block text-[14px] text-text-secondary">
+              Banner del torneo. Sugerido: 1920×540 o similar (relación 16:9 o más ancho que alto). Máximo 10 MB.
+              Cualquier dimensión válida — el backend acepta lo que subas.
+            </label>
             <MediaUploaderRhf
               control={control}
               name="image_url"
               context={{ module: 'tournaments', purpose: 'banner' }}
               error={errors.image_url?.message}
+            />
+            <BannerWidgetPreview
+              className="mt-3"
+              bannerUrl={imageUrl}
+              title={tournamentName}
+              description={tournamentDescription}
             />
           </div>
           <div className="grid gap-3 sm:grid-cols-3">

@@ -726,7 +726,12 @@ handlers.push(
     const channel = notificationChannels.find((c) => c.channel_type === type) ?? notificationChannels[0];
     channel.last_tested_at = new Date().toISOString();
     channel.last_test_status = channel.is_configured || type === 'in_app' ? 'success' : 'failed';
-    return HttpResponse.json({ data: { ok: channel.last_test_status === 'success' } });
+    return HttpResponse.json({
+      data: {
+        success: channel.last_test_status === 'success',
+        detail: channel.last_test_status === 'success' ? undefined : 'Canal sin configurar',
+      },
+    });
   }),
   http.get('*/admin/notifications/templates', async ({ request }) => {
     await wait();
@@ -780,8 +785,14 @@ handlers.push(
     await wait();
     const body = (await request.json()) as TemplatePreviewPayload;
     const item = notificationTemplates.find((t) => t.id === params.id) ?? notificationTemplates[0];
-    const preview = buildPreviewFromTemplate(item, body.channel_type, body.variable_overrides ?? {});
-    return HttpResponse.json({ data: preview });
+    const preview = buildPreviewFromTemplate(item, item.channels[0] ?? 'in_app', body.variables ?? {});
+    return HttpResponse.json({
+      data: {
+        subject: preview.subject ?? undefined,
+        body_html: preview.body_html ?? undefined,
+        body_text: preview.body,
+      },
+    });
   }),
   http.get('*/admin/notifications/history', async ({ request }) => {
     await wait();
@@ -800,22 +811,26 @@ handlers.push(
   http.post('*/admin/notifications/send-manual', async ({ request }) => {
     await wait();
     const body = (await request.json()) as ManualSendPayload;
-    const tpl = notificationTemplates.find((t) => t.id === body.template_id) ?? notificationTemplates[0];
+    const tpl =
+      (body.templateCode
+        ? notificationTemplates.find((t) => t.code === body.templateCode)
+        : notificationTemplates.find((t) => t.trigger_event === body.triggerEvent)) ??
+      notificationTemplates[0];
     notificationHistory.unshift({
       id: `nh_${Date.now()}`,
-      player_id: body.player_id,
-      player_handle: body.player_id,
+      player_id: body.playerStateId,
+      player_handle: body.playerStateId,
       template_code: tpl.code,
       template_name: tpl.name,
       channel_type: tpl.channels[0] ?? 'in_app',
-      trigger_event: 'manual',
+      trigger_event: body.triggerEvent,
       sent_at: new Date().toISOString(),
       delivery_status: 'sent',
       error_message: null,
       subject_snapshot: tpl.subject,
       body_snapshot: tpl.body,
     });
-    return HttpResponse.json({ data: { ok: true } });
+    return HttpResponse.json({ data: { delivered: true, deliveryId: `del_${Date.now()}` } });
   }),
   http.get('*/admin/notifications/stats', async () => {
     await wait();
@@ -1581,6 +1596,7 @@ handlers.push(
       code: body.code,
       name: body.name,
       description: body.description,
+      image_url: body.image_url ?? null,
       metric_type: body.metric_type,
       period_type: body.period_type,
       period_resets_at: body.period_resets_at,

@@ -50,13 +50,15 @@ export function validateExternalImageUrl(
     maxDimensions?: { width: number; height: number } | null;
     aspectRatio?: MediaAspectRatio;
     serverResizeSquare?: number;
+    skipDimensionValidation?: boolean;
   },
 ): Promise<MediaValidationResult> {
   return new Promise((resolve) => {
     const img = new Image();
     img.onload = () => {
       const { width, height } = { width: img.naturalWidth, height: img.naturalHeight };
-      if (!opts.serverResizeSquare) {
+      const skipDims = opts.skipDimensionValidation || Boolean(opts.serverResizeSquare);
+      if (!skipDims) {
         if (opts.minDimensions) {
           if (width < opts.minDimensions.width || height < opts.minDimensions.height) {
             resolve({
@@ -79,10 +81,10 @@ export function validateExternalImageUrl(
           resolve({ ok: false, error: `Debe ser cuadrada (${width}×${height}px).` });
           return;
         }
-      }
-      if (opts.aspectRatio === 'banner' && width < height) {
-        resolve({ ok: false, error: 'El banner debe ser más ancho que alto.' });
-        return;
+        if (opts.aspectRatio === 'banner' && width < height) {
+          resolve({ ok: false, error: 'El banner debe ser más ancho que alto.' });
+          return;
+        }
       }
       resolve({ ok: true, previewUrl: url, width, height });
     };
@@ -100,6 +102,7 @@ export async function validateMediaFile(
     maxDimensions?: { width: number; height: number } | null;
     aspectRatio?: MediaAspectRatio;
     serverResizeSquare?: number;
+    skipDimensionValidation?: boolean;
     label?: string;
   },
 ): Promise<MediaValidationResult> {
@@ -123,7 +126,8 @@ export async function validateMediaFile(
 
   try {
     const { width, height } = await readImageDimensions(file);
-    if (!opts.serverResizeSquare) {
+    const skipDims = opts.skipDimensionValidation || Boolean(opts.serverResizeSquare);
+    if (!skipDims) {
       if (opts.minDimensions) {
         if (width < opts.minDimensions.width || height < opts.minDimensions.height) {
           return {
@@ -143,9 +147,9 @@ export async function validateMediaFile(
       if (opts.aspectRatio === 'square' && width !== height) {
         return { ok: false, error: `${label}: debe ser cuadrada (${width}×${height}px).` };
       }
-    }
-    if (opts.aspectRatio === 'banner' && width < height) {
-      return { ok: false, error: `${label}: el banner debe ser más ancho que alto.` };
+      if (opts.aspectRatio === 'banner' && width < height) {
+        return { ok: false, error: `${label}: el banner debe ser más ancho que alto.` };
+      }
     }
     return { ok: true, previewUrl: URL.createObjectURL(file), width, height };
   } catch {
@@ -165,7 +169,9 @@ export function buildValidationHint(opts: {
   maxDimensions?: { width: number; height: number } | null;
   aspectRatio?: MediaAspectRatio;
   serverResizeSquare?: number;
+  customHint?: string;
 }): string {
+  if (opts.customHint) return opts.customHint;
   if (opts.serverResizeSquare) {
     const formats = opts.allowedFormats
       .filter((f) => f !== 'jpeg')

@@ -3,6 +3,7 @@ import { Monitor, Smartphone } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useForm, useWatch } from 'react-hook-form';
 
+import { BannerWidgetPreview } from '@/components/media/BannerWidgetPreview';
 import { MediaUploaderRhf } from '@/components/media/MediaUploaderRhf';
 import { Button } from '@/components/ui/Button';
 import { Modal } from '@/components/ui/Modal';
@@ -169,13 +170,22 @@ export function NewsFormModal({
                 {errors.body_text && <p className="mt-1 text-[13px] text-danger">{errors.body_text.message}</p>}
               </div>
               <div>
-                <label className="mb-1.5 block text-[14px] text-text-secondary">Banner</label>
+                <label className="mb-1.5 block text-[14px] text-text-secondary">
+                  Banner de la noticia. Sugerido: 1920×540 o similar (relación 16:9 o más ancho que alto). Máximo 10 MB.
+                  Cualquier dimensión válida.
+                </label>
                 <MediaUploaderRhf
                   control={control}
                   name="banner_image_url"
                   context={{ module: 'news', purpose: 'banner' }}
                   error={errors.banner_image_url?.message}
                   required
+                />
+                <BannerWidgetPreview
+                  className="mt-3"
+                  bannerUrl={bannerUrl}
+                  title={title}
+                  description={bodyText}
                 />
               </div>
               <div>

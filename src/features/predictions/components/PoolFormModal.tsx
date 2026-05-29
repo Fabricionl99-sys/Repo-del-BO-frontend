@@ -192,7 +192,7 @@ export function PoolFormModal({
     >
       {readOnly && (
         <p className="mb-4 rounded-lg bg-warning/10 px-3 py-2 text-[13px] text-warning">
-          Estás en Predicciones → Edición. Para cancelar este prode, andá al{' '}
+          Estás en Predicciones → Edición. Para archivar este prode, andá al{' '}
           <Link to="/predicciones" className="font-semibold underline">
             catálogo de predicciones
           </Link>

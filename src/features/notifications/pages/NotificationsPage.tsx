@@ -34,7 +34,7 @@ import { LoginPopupsTemplatesTab } from '../components/LoginPopupsTemplatesTab';
 import { ManualLoginPopupTab } from '../components/ManualLoginPopupTab';
 import { NotificationStatsPanel } from '../components/NotificationStatsPanel';
 import { TemplateFormModal } from '../components/TemplateFormModal';
-import { buildPreviewFromTemplate } from '../notificationPreview';
+import { TemplateServerPreviewModal } from '../components/TemplateServerPreviewModal';
 import { CHANNEL_LABELS, TRIGGER_EVENT_LABELS } from '../notificationVariables';
 import {
   useNotificationChannels,
@@ -84,8 +84,11 @@ export default function NotificationsPage() {
   const [histChannel, setHistChannel] = useState<ChannelType | 'all'>('all');
 
   const [manualPlayerQuery, setManualPlayerQuery] = useState('');
-  const [manualPlayerId, setManualPlayerId] = useState('');
-  const [manualTemplateId, setManualTemplateId] = useState('');
+  const [manualPlayerStateId, setManualPlayerStateId] = useState('');
+  const [manualTriggerEvent, setManualTriggerEvent] = useState<TriggerEvent>('manual');
+  const [manualTemplateCode, setManualTemplateCode] = useState('');
+  const [manualVariablesJson, setManualVariablesJson] = useState('{}');
+  const [templatePreview, setTemplatePreview] = useState<NotificationTemplate | null>(null);
   const debouncedPlayerQ = useDebounce(manualPlayerQuery, 250);
 
   const channelsQ = useNotificationChannels();
@@ -111,8 +114,7 @@ export default function NotificationsPage() {
   const history = mock === 'empty-history' ? [] : (historyQ.data ?? []);
   const existingCodes = useMemo(() => templates.map((t) => t.code), [templates]);
 
-  const manualTemplates = templates.filter((t) => t.trigger_event === 'manual' || t.is_active);
-  const selectedManualTpl = manualTemplates.find((t) => t.id === manualTemplateId) ?? manualTemplates[0];
+  const manualTemplates = templates.filter((t) => t.is_active);
 
   if (!notificationsActive && mock !== 'loading') {
     return (
@@ -205,9 +207,14 @@ export default function NotificationsPage() {
       key: 'actions',
       header: '',
       render: (t) => (
-        <Button size="sm" variant="ghost" onClick={() => setTemplateEditor(t)}>
-          editar
-        </Button>
+        <div className="flex gap-1">
+          <Button size="sm" variant="ghost" onClick={() => setTemplateEditor(t)}>
+            editar
+          </Button>
+          <Button size="sm" variant="ghost" onClick={() => setTemplatePreview(t)}>
+            vista previa
+          </Button>
+        </div>
       ),
     },
   ];
@@ -243,14 +250,23 @@ export default function NotificationsPage() {
   };
 
   const handleManualSend = async () => {
-    if (!manualPlayerId || !manualTemplateId) return;
-    await sendManual.mutateAsync({ player_id: manualPlayerId, template_id: manualTemplateId });
+    if (!manualPlayerStateId.trim()) return;
+    let variables: Record<string, string | number> | undefined;
+    if (manualVariablesJson.trim() && manualVariablesJson.trim() !== '{}') {
+      try {
+        variables = JSON.parse(manualVariablesJson) as Record<string, string | number>;
+      } catch {
+        return;
+      }
+    }
+    await sendManual.mutateAsync({
+      playerStateId: manualPlayerStateId.trim(),
+      triggerEvent: manualTriggerEvent,
+      ...(manualTemplateCode ? { templateCode: manualTemplateCode } : {}),
+      ...(variables ? { variables } : {}),
+    });
     setTab('Historial');
   };
-
-  const manualPreview =
-    selectedManualTpl &&
-    buildPreviewFromTemplate(selectedManualTpl, selectedManualTpl.channels[0] ?? 'in_app');
 
   return (
     <>
@@ -384,10 +400,25 @@ export default function NotificationsPage() {
       )}
 
       {tab === 'Envío manual' && (
-        <section className="card max-w-2xl p-6">
-          <p className="label-section mb-4">enviar a un jugador</p>
-          <label className="mb-3 block">
-            <span className="mb-1 block text-[14px] text-text-secondary">jugador</span>
+        <section className="card max-w-2xl space-y-4 p-6">
+          <p className="label-section">Enviar notificación de prueba</p>
+          <p className="text-[14px] text-text-secondary">
+            Validá el flujo contra un jugador demo antes de activar templates en producción.
+          </p>
+          <label className="block">
+            <span className="mb-1 block text-[14px] text-text-secondary">playerStateId</span>
+            <input
+              className="field font-mono text-[13px]"
+              placeholder="UUID del player state"
+              value={manualPlayerStateId}
+              onChange={(e) => setManualPlayerStateId(e.target.value)}
+            />
+            <span className="mt-1 block text-[12px] text-text-tertiary">
+              ej: UUID del player demo del tenant
+            </span>
+          </label>
+          <label className="block">
+            <span className="mb-1 block text-[14px] text-text-secondary">Buscar jugador (autocomplete)</span>
             <SearchInput
               placeholder="handle o id (mín. 2 chars)..."
               value={manualPlayerQuery}
@@ -395,14 +426,14 @@ export default function NotificationsPage() {
             />
           </label>
           {playerSearchQ.data && playerSearchQ.data.length > 0 && (
-            <ul className="mb-3 max-h-32 overflow-auto rounded-lg border border-border-subtle">
+            <ul className="max-h-32 overflow-auto rounded-lg border border-border-subtle">
               {playerSearchQ.data.map((p) => (
                 <li key={p.player_id}>
                   <button
                     type="button"
                     className="w-full px-3 py-2 text-left text-[14px] hover:bg-bg-tertiary"
                     onClick={() => {
-                      setManualPlayerId(p.player_id);
+                      setManualPlayerStateId(p.player_id);
                       setManualPlayerQuery(p.player_handle);
                     }}
                   >
@@ -413,24 +444,45 @@ export default function NotificationsPage() {
               ))}
             </ul>
           )}
-          <label className="mb-3 block">
-            <span className="mb-1 block text-[14px] text-text-secondary">template</span>
-            <select className="field" value={manualTemplateId || selectedManualTpl?.id} onChange={(e) => setManualTemplateId(e.target.value)}>
-              {manualTemplates.map((t) => (
-                <option key={t.id} value={t.id}>{t.name}</option>
+          <label className="block">
+            <span className="mb-1 block text-[14px] text-text-secondary">triggerEvent</span>
+            <select
+              className="field"
+              value={manualTriggerEvent}
+              onChange={(e) => setManualTriggerEvent(e.target.value as TriggerEvent)}
+            >
+              {Object.entries(TRIGGER_EVENT_LABELS).map(([k, label]) => (
+                <option key={k} value={k}>
+                  {label}
+                </option>
               ))}
             </select>
           </label>
-          {manualPreview && (
-            <pre className="mb-4 rounded-lg border border-border-subtle bg-bg-tertiary p-3 text-[14px] whitespace-pre-wrap">
-              {manualPreview.body}
-            </pre>
-          )}
+          <label className="block">
+            <span className="mb-1 block text-[14px] text-text-secondary">templateCode (opcional)</span>
+            <select className="field" value={manualTemplateCode} onChange={(e) => setManualTemplateCode(e.target.value)}>
+              <option value="">Sin template (solo trigger)</option>
+              {manualTemplates.map((t) => (
+                <option key={t.id} value={t.code}>
+                  {t.name} ({t.code})
+                </option>
+              ))}
+            </select>
+          </label>
+          <label className="block">
+            <span className="mb-1 block text-[14px] text-text-secondary">variables (JSON)</span>
+            <textarea
+              className="field min-h-24 font-mono text-[13px]"
+              value={manualVariablesJson}
+              onChange={(e) => setManualVariablesJson(e.target.value)}
+              placeholder='{"player_name": "Demo"}'
+            />
+          </label>
           <Button
             variant="primary"
             icon={<Send size={14} />}
             loading={sendManual.isPending}
-            disabled={!manualPlayerId}
+            disabled={!manualPlayerStateId.trim()}
             onClick={() => void handleManualSend()}
           >
             Enviar
@@ -452,6 +504,11 @@ export default function NotificationsPage() {
         onClose={() => setTemplateEditor(null)}
       />
       <HistoryDetailModal open={!!historyDetail} item={historyDetail} onClose={() => setHistoryDetail(null)} />
+      <TemplateServerPreviewModal
+        open={!!templatePreview}
+        template={templatePreview}
+        onClose={() => setTemplatePreview(null)}
+      />
     </>
   );
 }

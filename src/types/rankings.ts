@@ -69,6 +69,7 @@ export interface RankingConfig {
   code: string;
   name: string;
   description: string;
+  image_url?: string | null;
   metric_type: RankingMetricType;
   period_type: RankingPeriodType;
   period_resets_at: string | null;
@@ -93,6 +94,7 @@ export interface RankingConfig {
 export interface RankingMetadataPayload {
   name: string;
   description: string;
+  image_url?: string | null;
   metric_type: RankingMetricType;
   period_type: RankingPeriodType;
   period_resets_at: string | null;

@@ -13,9 +13,9 @@ function filesForModule(module: MediaModule, count: number): StorageFileItem[] {
     predictions: ['thumbnail'],
     tournaments: ['banner'],
     bonuses: ['thumbnail'],
-    rankings: ['thumbnail'],
+    rankings: ['banner', 'thumbnail'],
     wheels: ['main_image', 'logo', 'prize_image'],
-    raffles: ['main_image', 'prize_image'],
+    raffles: ['banner', 'main_image', 'prize_image'],
     login_popups: ['banner'],
   } as const;
 

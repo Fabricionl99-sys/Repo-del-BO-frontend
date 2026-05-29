@@ -1,4 +1,4 @@
-import { Target, Plus } from 'lucide-react';
+import { Target, Plus, MoreVertical, Archive } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 
@@ -6,8 +6,10 @@ import { Button } from '@/components/ui/Button';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { ErrorState } from '@/components/ui/ErrorState';
 import { FilterPill } from '@/components/ui/FilterPill';
+import { IconButton } from '@/components/ui/IconButton';
 import { Loading } from '@/components/ui/Loading';
 import { PageHeader } from '@/components/ui/PageHeader';
+import { RowContextMenu, openRowContextMenu, type RowContextMenuAnchor } from '@/components/ui/RowContextMenu';
 import { SearchInput } from '@/components/ui/SearchInput';
 import { StatusPill } from '@/components/ui/StatusPill';
 import { Toolbar } from '@/components/ui/Toolbar';
@@ -18,7 +20,7 @@ import { PoolParticipantsModal } from '@/features/predictions/components/PoolPar
 import { PoolResolveModal } from '@/features/predictions/components/PoolResolveModal';
 import { PoolStatsPanel } from '@/features/predictions/components/PoolStatsPanel';
 import {
-  useCancelPredictionPool,
+  useArchivePredictionPool,
   useClosePredictionPool,
   useOpenPredictionPool,
   usePredictionPoolsList,
@@ -72,6 +74,7 @@ export default function PredictionsPage() {
   const [resolvePool, setResolvePool] = useState<PredictionPool | null>(null);
   const [participantsPool, setParticipantsPool] = useState<PredictionPool | null>(null);
   const [leaderboardPool, setLeaderboardPool] = useState<PredictionPool | null>(null);
+  const [menuAnchor, setMenuAnchor] = useState<RowContextMenuAnchor | null>(null);
 
   const listQ = usePredictionPoolsList({
     status: statusFilter,
@@ -82,7 +85,7 @@ export default function PredictionsPage() {
   const statsQ = usePredictionPoolStats();
   const openMut = useOpenPredictionPool();
   const closeMut = useClosePredictionPool();
-  const cancelMut = useCancelPredictionPool();
+  const archiveMut = useArchivePredictionPool();
 
   const pools = useMemo(
     () => (mock === 'empty' ? [] : asArray(listQ.data)),
@@ -90,6 +93,12 @@ export default function PredictionsPage() {
   );
   const existingCodes = useMemo(() => pools.map((p) => p.code), [pools]);
   const categories = useMemo(() => ['all', ...new Set(pools.map((p) => p.category))], [pools]);
+  const menuPool = menuAnchor ? pools.find((p) => p.id === menuAnchor.id) : undefined;
+
+  const archivePool = (pool: PredictionPool) => {
+    if (!window.confirm(`¿Archivar el prode "${pool.name}"? Dejará de estar visible para jugadores.`)) return;
+    void archiveMut.mutateAsync(pool.code ?? pool.id);
+  };
 
   useEffect(() => {
     const create = params.get('create');
@@ -218,7 +227,18 @@ export default function PredictionsPage() {
           ) : (
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
               {pools.map((pool) => (
-                <article key={pool.id} className="card overflow-hidden">
+                <article key={pool.id} className="card relative overflow-hidden">
+                  <div className="absolute right-2 top-2 z-10">
+                    <IconButton
+                      icon={MoreVertical}
+                      title="Acciones"
+                      size="sm"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setMenuAnchor(openRowContextMenu(e, pool.id, menuAnchor));
+                      }}
+                    />
+                  </div>
                   <button type="button" onClick={() => setEditorPool(pool)} className="w-full text-left">
                     {pool.image_url ? (
                       <img src={pool.image_url} alt="" className="h-32 w-full object-cover" loading="lazy" />
@@ -256,11 +276,6 @@ export default function PredictionsPage() {
                         Resolver
                       </Button>
                     )}
-                    {['draft', 'open', 'closed'].includes(pool.status) && (
-                      <Button size="sm" variant="ghost" loading={cancelMut.isPending} onClick={() => cancelMut.mutate(pool.code ?? pool.id)}>
-                        Cancelar
-                      </Button>
-                    )}
                     <Button size="sm" variant="secondary" onClick={() => setParticipantsPool(pool)}>
                       Participantes
                     </Button>
@@ -294,6 +309,21 @@ export default function PredictionsPage() {
         pool={leaderboardPool}
         onClose={() => setLeaderboardPool(null)}
       />
+
+      <RowContextMenu anchor={menuAnchor} onClose={() => setMenuAnchor(null)}>
+        {menuPool && ['draft', 'open', 'closed'].includes(menuPool.status) && (
+          <button
+            type="button"
+            className="flex w-full items-center gap-2 px-3 py-2 text-left text-[14px] text-danger hover:bg-bg-tertiary"
+            onClick={() => {
+              setMenuAnchor(null);
+              archivePool(menuPool);
+            }}
+          >
+            <Archive size={14} /> Archivar
+          </button>
+        )}
+      </RowContextMenu>
     </>
   );
 }

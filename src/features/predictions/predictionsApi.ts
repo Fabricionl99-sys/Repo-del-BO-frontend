@@ -25,7 +25,9 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 import { apiClient } from '@/api/client';
+import { getApiErrorMessage } from '@/api/errors';
 import { unwrapData, unwrapDataList } from '@/api/response';
+import { toast } from '@/stores/toastStore';
 import type {
   PlayerPredictionEntry,
   PoolLeaderboardRow,
@@ -443,6 +445,15 @@ export function useCancelPredictionPool() {
         .post(`/admin/predictions/${idOrCode}/archive`)
         .then((r) => unwrapData<BackendTournament>(r.data))
         .then(adaptTournamentToPool),
-    onSuccess: () => void qc.invalidateQueries({ queryKey: ['prediction-pools'] }),
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: ['prediction-pools'] });
+      toast.success('Prode archivado');
+    },
+    onError: (error) => {
+      toast.error(getApiErrorMessage(error, 'No se pudo archivar el prode'));
+    },
   });
 }
+
+/** Alias semántico — el backend expone POST …/archive, no "cancel". */
+export const useArchivePredictionPool = useCancelPredictionPool;

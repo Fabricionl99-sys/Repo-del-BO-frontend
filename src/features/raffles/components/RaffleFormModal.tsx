@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm, useWatch, type Resolver } from 'react-hook-form';
 
+import { BannerWidgetPreview } from '@/components/media/BannerWidgetPreview';
 import { MediaUploaderRhf } from '@/components/media/MediaUploaderRhf';
 import { Button } from '@/components/ui/Button';
 import { Modal } from '@/components/ui/Modal';
@@ -53,6 +54,8 @@ export function RaffleFormModal({
   } = form;
 
   const name = useWatch({ control, name: 'name' });
+  const description = useWatch({ control, name: 'description' });
+  const imageUrl = useWatch({ control, name: 'image_url' });
   const winnerCount = useWatch({ control, name: 'winner_count' });
   const prizes = useWatch({ control, name: 'prizes' }) ?? [];
   const onePrizePerPlayer = useWatch({ control, name: 'one_prize_per_player' });
@@ -140,8 +143,22 @@ export function RaffleFormModal({
             <textarea className="mt-1 w-full rounded-md border border-border-default bg-bg-secondary px-3 py-2" rows={3} {...register('description')} />
           </label>
           <div>
-            <label className="mb-1.5 block text-sm text-text-secondary">Imagen</label>
-            <MediaUploaderRhf control={control} name="image_url" context={{ module: 'raffles', purpose: 'main_image' }} error={errors.image_url?.message} />
+            <label className="mb-1.5 block text-sm text-text-secondary">
+              Banner del sorteo. Sugerido: 1920×540 o similar (relación 16:9 o más ancho que alto). Máximo 10 MB.
+              Cualquier dimensión válida — el backend acepta lo que subas.
+            </label>
+            <MediaUploaderRhf
+              control={control}
+              name="image_url"
+              context={{ module: 'raffles', purpose: 'banner' }}
+              error={errors.image_url?.message}
+            />
+            <BannerWidgetPreview
+              className="mt-3"
+              bannerUrl={imageUrl}
+              title={name}
+              description={description}
+            />
           </div>
           <div className="grid grid-cols-2 gap-3">
             <label className="block text-sm">
@@ -228,7 +245,9 @@ export function RaffleFormModal({
                 <div className="space-y-2">
                   <input placeholder="Nombre del premio" className="w-full rounded-md border border-border-default bg-bg-primary px-3 py-2 text-sm" {...register(`prizes.${index}.prize_physical_name`)} />
                   <div>
-                    <label className="mb-1 block text-xs text-text-secondary">Imagen del premio</label>
+                    <label className="mb-1 block text-xs text-text-secondary">
+                      Imagen del premio físico. Cualquier dimensión. Máximo 10 MB.
+                    </label>
                     <MediaUploaderRhf
                       control={control}
                       name={`prizes.${index}.prize_physical_image_url`}

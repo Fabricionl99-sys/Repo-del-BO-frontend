@@ -3,6 +3,8 @@ import { Plus, Trash2 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useForm, useWatch } from 'react-hook-form';
 
+import { BannerWidgetPreview } from '@/components/media/BannerWidgetPreview';
+import { MediaUploaderRhf } from '@/components/media/MediaUploaderRhf';
 import { Button } from '@/components/ui/Button';
 import { Modal } from '@/components/ui/Modal';
 import { Switch } from '@/components/ui/Switch';
@@ -88,6 +90,9 @@ export function RankingFormModal({
   const periodType = useWatch({ control, name: 'period_type' });
   const isActive = useWatch({ control, name: 'is_active' });
   const isVisible = useWatch({ control, name: 'is_visible_to_players' });
+  const imageUrl = useWatch({ control, name: 'image_url' });
+  const rankingName = useWatch({ control, name: 'name' });
+  const rankingDescription = useWatch({ control, name: 'description' });
 
   useEffect(() => {
     if (!open) return;
@@ -230,6 +235,24 @@ export function RankingFormModal({
             <div className="mt-3">
               <label className="mb-1.5 block text-[14px] text-text-secondary">description</label>
               <textarea className="field min-h-16" {...register('description')} />
+            </div>
+            <div className="mt-3">
+              <label className="mb-1.5 block text-[14px] text-text-secondary">
+                Banner del ranking. Sugerido: 1920×540 o similar (relación 16:9 o más ancho que alto). Máximo 10 MB.
+                Cualquier dimensión válida — el backend acepta lo que subas.
+              </label>
+              <MediaUploaderRhf
+                control={control}
+                name="image_url"
+                context={{ module: 'rankings', purpose: 'banner' }}
+                error={errors.image_url?.message}
+              />
+              <BannerWidgetPreview
+                className="mt-3"
+                bannerUrl={imageUrl}
+                title={rankingName}
+                description={rankingDescription}
+              />
             </div>
             <div className="mt-3 grid gap-3 sm:grid-cols-2">
               <div>

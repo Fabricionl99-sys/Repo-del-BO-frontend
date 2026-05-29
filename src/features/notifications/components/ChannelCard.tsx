@@ -65,7 +65,7 @@ export function ChannelCard({
           {needsConfig ? 'Configurar' : 'Editar'}
         </Button>
         <Button variant="ghost" size="sm" loading={testing} onClick={onTest}>
-          Test
+          Probar conexión
         </Button>
       </footer>
     </article>

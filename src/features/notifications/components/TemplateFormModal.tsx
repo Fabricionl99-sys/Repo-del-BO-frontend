@@ -30,6 +30,7 @@ import {
 } from '../notificationsApi';
 import { VISIBLE_CHANNELS } from '../notificationForm';
 import { TemplatePreviewPanel } from './TemplatePreviewPanel';
+import { TemplateServerPreviewModal } from './TemplateServerPreviewModal';
 
 // WINGOAT solo expone in_app + push. Email + SMS los maneja el CRM del operador
 // vía los webhooks que emite la plataforma.
@@ -51,6 +52,7 @@ export function TemplateFormModal({
   const bodyRef = useRef<HTMLTextAreaElement | null>(null);
   const [previewChannel, setPreviewChannel] = useState<ChannelType>('in_app');
   const [formError, setFormError] = useState<string | undefined>();
+  const [serverPreviewOpen, setServerPreviewOpen] = useState(false);
 
   const form = useForm<NotificationTemplateFormValues>({
     defaultValues: defaultTemplateForm(),
@@ -127,6 +129,11 @@ export function TemplateFormModal({
       footer={
         <>
           <Button variant="ghost" onClick={onClose}>Cancelar</Button>
+          {template && (
+            <Button variant="secondary" onClick={() => setServerPreviewOpen(true)}>
+              Vista previa
+            </Button>
+          )}
           <Button variant="primary" loading={create.isPending || update.isPending} onClick={() => void submit()}>
             Guardar template
           </Button>
@@ -275,6 +282,11 @@ export function TemplateFormModal({
           />
         </aside>
       </div>
+      <TemplateServerPreviewModal
+        open={serverPreviewOpen}
+        template={template}
+        onClose={() => setServerPreviewOpen(false)}
+      />
     </Modal>
   );
 }

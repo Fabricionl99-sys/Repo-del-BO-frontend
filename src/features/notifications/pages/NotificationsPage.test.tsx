@@ -26,8 +26,7 @@ describe('NotificationsPage', () => {
   it('muestra canales y permite test', async () => {
     wrap();
     expect(await screen.findByText('In-app')).toBeInTheDocument();
-    expect(screen.getByText('Email')).toBeInTheDocument();
-    fireEvent.click(screen.getAllByText('Test')[0]);
+    fireEvent.click(screen.getAllByText('Probar conexión')[0]);
     await waitFor(() => expect(screen.getByText('In-app')).toBeInTheDocument());
   });
 

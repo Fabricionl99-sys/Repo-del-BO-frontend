@@ -122,7 +122,7 @@ export default function DeliveriesPage() {
       <div className="mb-4 flex items-start gap-2 rounded-lg border border-border-subtle bg-bg-tertiary/50 p-3 text-[13px] text-text-secondary">
         <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-warning" />
         <p>
-          <strong>Marcar manual:</strong> el operador debe contactar al jugador y entregar el premio fuera de WINGOAT. Acá solo queda registro y auditoría.
+          <strong>Marcar manual:</strong> el operador debe contactar al jugador y entregar el premio fuera de Social2Game. Acá solo queda registro y auditoría.
         </p>
       </div>
       {rows.length === 0 ? (
