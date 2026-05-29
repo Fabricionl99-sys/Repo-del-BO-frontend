@@ -1,25 +1,37 @@
 import { isBrandingConfig } from '@/lib/boConfigValidation';
-import type { BrandingConfig, BrandingFontFamily, BodyWeight, HeadingWeight } from '@/types/branding';
+import type {
+  BrandingConfig,
+  BrandingFontFamily,
+  BodyWeight,
+  ColorPalette,
+  HeadingWeight,
+  PalettePresetId,
+  WidgetPosition,
+  WidgetSize,
+} from '@/types/branding';
 
 import type { BrandingFormValues } from './brandingForm';
 
-/** Body plano que espera PATCH /v1/admin/branding (columnas operators.*). */
+export type ThemeMode = 'light' | 'dark' | 'auto';
+export type FontSizeBase = 'sm' | 'md' | 'lg' | 'xl';
+
+/** Body nested que espera PATCH /v1/admin/branding (branding.service.ts). */
 export type BrandingApiPatchPayload = {
-  primary_color: string;
-  secondary_color: string;
-  accent_color: string;
-  background_color: string;
-  text_color: string;
-  palette_preset: BrandingConfig['palette_preset'];
-  font_family: BrandingFontFamily;
-  heading_weight: HeadingWeight;
-  body_weight: BodyWeight;
+  color_palette: ColorPalette;
+  typography: {
+    font_family: BrandingFontFamily;
+    font_size_base: FontSizeBase;
+    heading_weight: HeadingWeight;
+    body_weight: BodyWeight;
+  };
+  theme_mode: ThemeMode;
+  palette_preset: PalettePresetId;
   logo_url: string | null;
   favicon_url: string | null;
   background_image_url: string | null;
   welcome_text: string;
-  widget_position: BrandingConfig['widget_position'];
-  widget_size: BrandingConfig['widget_size'];
+  widget_position: WidgetPosition;
+  widget_size: WidgetSize;
   custom_css: string | null;
 };
 
@@ -27,18 +39,33 @@ function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null && !Array.isArray(value);
 }
 
-/** Convierte el formulario BO al contrato flat del backend. */
-export function formToApiPatchPayload(values: BrandingFormValues): BrandingApiPatchPayload {
+function readFontSizeBase(raw: Record<string, unknown>, typo: Record<string, unknown>): FontSizeBase {
+  const value = typo.font_size_base ?? raw.font_size_base;
+  if (value === 'sm' || value === 'md' || value === 'lg' || value === 'xl') return value;
+  return 'md';
+}
+
+function readThemeMode(raw: Record<string, unknown>): ThemeMode {
+  const value = raw.theme_mode;
+  if (value === 'light' || value === 'dark' || value === 'auto') return value;
+  return 'dark';
+}
+
+/** Convierte el formulario BO al contrato nested del backend. */
+export function formToApiPatchPayload(
+  values: BrandingFormValues,
+  options?: { theme_mode?: ThemeMode; font_size_base?: FontSizeBase },
+): BrandingApiPatchPayload {
   return {
-    primary_color: values.color_palette.primary_color,
-    secondary_color: values.color_palette.secondary_color,
-    accent_color: values.color_palette.accent_color,
-    background_color: values.color_palette.background_color,
-    text_color: values.color_palette.text_color,
+    color_palette: { ...values.color_palette },
+    typography: {
+      font_family: values.typography.font_family,
+      font_size_base: options?.font_size_base ?? 'md',
+      heading_weight: values.typography.heading_weight,
+      body_weight: values.typography.body_weight,
+    },
+    theme_mode: options?.theme_mode ?? 'dark',
     palette_preset: values.palette_preset,
-    font_family: values.typography.font_family,
-    heading_weight: values.typography.heading_weight,
-    body_weight: values.typography.body_weight,
     logo_url: values.logo_url,
     favicon_url: values.favicon_url,
     background_image_url: values.background_image_url,
@@ -49,7 +76,7 @@ export function formToApiPatchPayload(values: BrandingFormValues): BrandingApiPa
   };
 }
 
-/** Normaliza GET/PATCH (nested o flat) al shape interno BrandingConfig. */
+/** Normaliza GET/PATCH (nested o flat legacy) al shape interno BrandingConfig. */
 export function normalizeBrandingConfig(raw: unknown): BrandingConfig | null {
   if (isBrandingConfig(raw)) return raw;
   if (!isRecord(raw) || typeof raw.tenant_id !== 'string') return null;
@@ -123,11 +150,13 @@ export function normalizeBrandingConfig(raw: unknown): BrandingConfig | null {
     widget_size: widgetSize as BrandingConfig['widget_size'],
     custom_css: raw.custom_css === null || typeof raw.custom_css === 'string' ? raw.custom_css : null,
     last_updated_at: lastUpdated,
+    theme_mode: readThemeMode(raw),
+    font_size_base: readFontSizeBase(raw, typoRecord),
   };
 }
 
-/** Aplica un PATCH flat sobre config nested (MSW / merge local). */
-export function mergeFlatBrandingPatch(
+/** Deep-merge nested PATCH sobre config (MSW). */
+export function mergeNestedBrandingPatch(
   current: BrandingConfig,
   patch: Partial<BrandingApiPatchPayload>,
 ): BrandingConfig {
@@ -138,15 +167,17 @@ export function mergeFlatBrandingPatch(
     last_updated_at: new Date().toISOString(),
   };
 
-  if (patch.primary_color !== undefined) next.color_palette.primary_color = patch.primary_color;
-  if (patch.secondary_color !== undefined) next.color_palette.secondary_color = patch.secondary_color;
-  if (patch.accent_color !== undefined) next.color_palette.accent_color = patch.accent_color;
-  if (patch.background_color !== undefined) next.color_palette.background_color = patch.background_color;
-  if (patch.text_color !== undefined) next.color_palette.text_color = patch.text_color;
+  if (patch.color_palette) {
+    Object.assign(next.color_palette, patch.color_palette);
+  }
+  if (patch.typography) {
+    Object.assign(next.typography, patch.typography);
+    if (patch.typography.font_size_base) {
+      next.font_size_base = patch.typography.font_size_base;
+    }
+  }
+  if (patch.theme_mode !== undefined) next.theme_mode = patch.theme_mode;
   if (patch.palette_preset !== undefined) next.palette_preset = patch.palette_preset;
-  if (patch.font_family !== undefined) next.typography.font_family = patch.font_family;
-  if (patch.heading_weight !== undefined) next.typography.heading_weight = patch.heading_weight;
-  if (patch.body_weight !== undefined) next.typography.body_weight = patch.body_weight;
   if (patch.logo_url !== undefined) next.logo_url = patch.logo_url;
   if (patch.favicon_url !== undefined) next.favicon_url = patch.favicon_url;
   if (patch.background_image_url !== undefined) next.background_image_url = patch.background_image_url;

@@ -182,7 +182,12 @@ export default function BrandingPage() {
       return;
     }
     try {
-      await update.mutateAsync(formToApiPatchPayload(configToFormValues(config)));
+      await update.mutateAsync(
+        formToApiPatchPayload(configToFormValues(config), {
+          theme_mode: config.theme_mode,
+          font_size_base: config.font_size_base,
+        }),
+      );
       setDraft(null);
       await configQ.refetch();
     } catch {
@@ -561,7 +566,13 @@ export default function BrandingPage() {
           <Button variant="ghost" icon={<Eye size={14} />} loading={preview.isPending} onClick={handlePreview}>
             Vista previa
           </Button>
-          <Button variant="primary" icon={<Save size={14} />} loading={update.isPending} onClick={handleSave}>
+          <Button
+            variant="primary"
+            icon={<Save size={14} />}
+            loading={update.isPending}
+            type="button"
+            onClick={() => void handleSave()}
+          >
             Guardar cambios
           </Button>
         </div>

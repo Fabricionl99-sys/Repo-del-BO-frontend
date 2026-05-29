@@ -617,7 +617,7 @@ handlers.push(
 );
 
 import { funnel, heatmap, kpis, moderationQueue, moderationStats, topPlayers, topRules, vipDistribution } from '@/mocks/data/tier5';
-import { mergeFlatBrandingPatch, type BrandingApiPatchPayload } from '@/features/branding/brandingApiMappers';
+import { mergeNestedBrandingPatch, type BrandingApiPatchPayload } from '@/features/branding/brandingApiMappers';
 import { brandingConfig } from '@/mocks/data/brandingConfig';
 import { defaultBrandingConfig } from '@/features/branding/brandingPresets';
 import type { BrandingUpdatePayload } from '@/types/branding';
@@ -645,30 +645,8 @@ handlers.push(
   }),
   http.patch('*/admin/branding', async ({ request }) => {
     await wait();
-    const body = (await request.json()) as BrandingApiPatchPayload & BrandingUpdatePayload;
-    const merged = mergeFlatBrandingPatch(
-      brandingConfig,
-      'color_palette' in body && body.color_palette
-        ? {
-            primary_color: body.color_palette.primary_color,
-            secondary_color: body.color_palette.secondary_color,
-            accent_color: body.color_palette.accent_color,
-            background_color: body.color_palette.background_color,
-            text_color: body.color_palette.text_color,
-            palette_preset: body.palette_preset,
-            font_family: body.typography?.font_family,
-            heading_weight: body.typography?.heading_weight,
-            body_weight: body.typography?.body_weight,
-            logo_url: body.logo_url,
-            favicon_url: body.favicon_url,
-            background_image_url: body.background_image_url,
-            welcome_text: body.welcome_text,
-            widget_position: body.widget_position,
-            widget_size: body.widget_size,
-            custom_css: body.custom_css,
-          }
-        : body,
-    );
+    const body = (await request.json()) as Partial<BrandingApiPatchPayload>;
+    const merged = mergeNestedBrandingPatch(brandingConfig, body);
     Object.assign(brandingConfig, merged);
     return HttpResponse.json({ data: { ...brandingConfig } });
   }),

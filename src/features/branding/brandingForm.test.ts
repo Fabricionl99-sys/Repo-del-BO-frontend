@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 
 import { defaultBrandingConfig } from './brandingPresets';
 import { configToFormValues, brandingFormSchema } from './brandingForm';
-import { formToApiPatchPayload, mergeFlatBrandingPatch, normalizeBrandingConfig } from './brandingApiMappers';
+import { formToApiPatchPayload, mergeNestedBrandingPatch, normalizeBrandingConfig } from './brandingApiMappers';
 
 describe('brandingFormSchema', () => {
   it('valida configuración default', () => {
@@ -19,13 +19,15 @@ describe('brandingFormSchema', () => {
 });
 
 describe('formToApiPatchPayload', () => {
-  it('aplana color_palette y typography para PATCH backend', () => {
+  it('envía color_palette y typography nested para PATCH backend', () => {
     const values = configToFormValues(defaultBrandingConfig());
     values.color_palette.primary_color = '#0000FF';
     const payload = formToApiPatchPayload(values);
-    expect(payload.primary_color).toBe('#0000FF');
-    expect(payload).not.toHaveProperty('color_palette');
-    expect(payload.font_family).toBe('Inter');
+    expect(payload.color_palette.primary_color).toBe('#0000FF');
+    expect(payload.typography.font_family).toBe('Inter');
+    expect(payload.typography.font_size_base).toBe('md');
+    expect(payload.theme_mode).toBe('dark');
+    expect(payload).not.toHaveProperty('primary_color');
   });
 });
 
@@ -35,7 +37,7 @@ describe('normalizeBrandingConfig', () => {
     expect(normalizeBrandingConfig(nested)?.color_palette.primary_color).toBe('#0AF784');
   });
 
-  it('normaliza respuesta flat del PATCH', () => {
+  it('normaliza respuesta flat legacy', () => {
     const flat = {
       tenant_id: 'tenant-1',
       primary_color: '#0000FF',
@@ -61,10 +63,12 @@ describe('normalizeBrandingConfig', () => {
   });
 });
 
-describe('mergeFlatBrandingPatch', () => {
+describe('mergeNestedBrandingPatch', () => {
   it('actualiza solo primary_color en config nested', () => {
     const current = defaultBrandingConfig();
-    const next = mergeFlatBrandingPatch(current, { primary_color: '#0000FF' });
+    const next = mergeNestedBrandingPatch(current, {
+      color_palette: { ...current.color_palette, primary_color: '#0000FF' },
+    });
     expect(next.color_palette.primary_color).toBe('#0000FF');
     expect(next.color_palette.secondary_color).toBe(current.color_palette.secondary_color);
   });

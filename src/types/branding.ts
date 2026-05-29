@@ -41,11 +41,17 @@ export interface BrandingTypography {
   body_weight: BodyWeight;
 }
 
+export type ThemeMode = 'light' | 'dark' | 'auto';
+export type FontSizeBase = 'sm' | 'md' | 'lg' | 'xl';
+
 export interface BrandingConfig {
   tenant_id: string;
   color_palette: ColorPalette;
   palette_preset: PalettePresetId;
   typography: BrandingTypography;
+  /** Opcional en GET admin; default md si falta. */
+  font_size_base?: FontSizeBase;
+  theme_mode?: ThemeMode;
   logo_url: string | null;
   favicon_url: string | null;
   background_image_url: string | null;
