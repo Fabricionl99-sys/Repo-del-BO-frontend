@@ -15,12 +15,11 @@ import {
   useDeleteRule,
   useRule,
   useSaveRule,
-  useSetRuleStatus,
 } from '@/features/rulesApi';
 import type { RuleStatus, XPRule } from '@/types/rules';
 import { Block, StickyBottomBar } from '../components/RuleBlocks';
 import { RuleBoostSection, RuleCategoryField, RuleUsdPerXpField } from '../components/RuleXpFormSections';
-import { buildRulePayload, fromRuleToFormValues, type RuleXpFormValues } from '../ruleXpForm';
+import { buildRulePayload, fromRuleToFormValues, validateBoostFormValues, type RuleXpFormValues } from '../ruleXpForm';
 
 const defaultFormValues: RuleXpFormValues = {
   category_id: 1,
@@ -40,7 +39,6 @@ export default function RuleEditorPage() {
   const ruleQ = useRule(fetchId);
   const categoriesQ = useGameCategories();
   const save = useSaveRule();
-  const setStatus = useSetRuleStatus();
   const del = useDeleteRule();
 
   const sourceRule = ruleQ.data;
@@ -86,6 +84,12 @@ export default function RuleEditorPage() {
       return;
     }
 
+    const boostError = validateBoostFormValues(refreshed.boost);
+    if (boostError) {
+      form.setError(`boost.${boostError.field}`, { message: boostError.message });
+      return;
+    }
+
     const existing: Pick<XPRule, 'name' | 'description'> | null = sourceRule
       ? { name: sourceRule.name, description: sourceRule.description }
       : null;
@@ -115,38 +119,17 @@ export default function RuleEditorPage() {
               >
                 Copiar
               </Button>
-              {isPublishedLikeStatus(sourceRule.status) ? (
-                <Button
-                  size="sm"
-                  loading={setStatus.isPending}
-                  onClick={() =>
-                    setStatus.mutate({ id: sourceRule.id, status: 'paused' }, { onSuccess: () => nav('/reglas-xp') })
-                  }
-                >
-                  Pausar regla
-                </Button>
-              ) : sourceRule.status === 'paused' ? (
-                <Button
-                  size="sm"
-                  loading={setStatus.isPending}
-                  onClick={() =>
-                    setStatus.mutate({ id: sourceRule.id, status: 'active' }, { onSuccess: () => nav('/reglas-xp') })
-                  }
-                >
-                  Reanudar regla
-                </Button>
-              ) : null}
               <Button
                 size="sm"
                 variant="danger"
                 loading={del.isPending}
                 onClick={() => {
-                  if (window.confirm(`¿Eliminar la regla "${sourceRule.name}"?`)) {
+                  if (window.confirm(`¿Archivar la regla "${sourceRule.name}"? Libera el slot único de la categoría.`)) {
                     del.mutate(sourceRule.id, { onSuccess: () => nav('/reglas-xp') });
                   }
                 }}
               >
-                Eliminar
+                Archivar
               </Button>
             </>
           ) : undefined

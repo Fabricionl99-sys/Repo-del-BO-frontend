@@ -41,6 +41,72 @@ export function normalizeBoostMultiplier(raw: unknown): BoostMultiplier | undefi
   return ALLOWED_BOOST_MULTIPLIERS.find((m) => Math.abs(m - n) < 0.001);
 }
 
+export function addYears(date: Date, years: number): Date {
+  const next = new Date(date);
+  next.setFullYear(next.getFullYear() + years);
+  return next;
+}
+
+export function boostDateTimeBounds(now = new Date()) {
+  return {
+    min: localDateTime(now),
+    max: localDateTime(addYears(now, 2)),
+  };
+}
+
+export function validateBoostDateRange(
+  startsAt?: string,
+  endsAt?: string,
+  now = new Date(),
+): string | null {
+  if (!startsAt?.trim() || !endsAt?.trim()) {
+    return 'Completá las fechas del boost';
+  }
+
+  const startYear = Number.parseInt(startsAt.slice(0, 4), 10);
+  const endYear = Number.parseInt(endsAt.slice(0, 4), 10);
+  if (
+    !Number.isFinite(startYear) ||
+    !Number.isFinite(endYear) ||
+    startYear < 2020 ||
+    startYear > 2100 ||
+    endYear < 2020 ||
+    endYear > 2100
+  ) {
+    return 'Año inválido';
+  }
+
+  const desde = new Date(startsAt);
+  const hasta = new Date(endsAt);
+  if (Number.isNaN(desde.getTime()) || Number.isNaN(hasta.getTime())) {
+    return 'Fecha inválida';
+  }
+
+  if (desde.getTime() < now.getTime()) {
+    return 'La fecha de inicio no puede ser pasada';
+  }
+  if (hasta.getTime() <= desde.getTime()) {
+    return 'La fecha fin debe ser posterior a Desde';
+  }
+  if (hasta.getTime() > addYears(now, 2).getTime()) {
+    return 'La fecha fin no puede superar 2 años';
+  }
+
+  return null;
+}
+
+export function validateBoostFormValues(
+  boost: RuleXpFormValues['boost'],
+): { field: 'starts_at' | 'ends_at'; message: string } | null {
+  if (!boost?.enabled || boost === null) return null;
+  const message = validateBoostDateRange(boost.starts_at, boost.ends_at);
+  if (!message) return null;
+  if (message.includes('inicio') || message.includes('Año')) {
+    return { field: 'starts_at', message };
+  }
+  return { field: 'ends_at', message };
+}
+
 export const localDateTime = (date: Date) =>
   new Date(date.getTime() - date.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
 

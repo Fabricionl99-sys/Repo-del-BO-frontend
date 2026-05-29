@@ -21,7 +21,6 @@ import {
   isPublishedLikeStatus,
   useDeleteRule,
   useRulesList,
-  useSetRuleStatus,
   useToggleRule,
 } from '@/features/rulesApi';
 import { CATEGORIES } from '@/types/expandedTier5';
@@ -74,7 +73,6 @@ export default function RulesListPage() {
   const nav = useNavigate();
   const debounced = useDebounce(search);
   const toggle = useToggleRule();
-  const setStatus = useSetRuleStatus();
   const del = useDeleteRule();
   const allRules = mock === 'empty' ? [] : (q.data ?? []);
   const rules = useMemo(() => {
@@ -107,8 +105,13 @@ export default function RulesListPage() {
           <Switch
             checked={r.active}
             disabled={toggle.isPending}
-            onChange={(active) => toggle.mutate({ id: r.id, active })}
-            aria-label={r.active ? `pausar ${r.name}` : `reanudar ${r.name}`}
+            onChange={(active) => {
+              if (!active && !window.confirm(`¿Archivar la regla "${r.name}"? Libera el slot único de la categoría.`)) {
+                return;
+              }
+              toggle.mutate({ id: r.id, active });
+            }}
+            aria-label={r.active ? `archivar ${r.name}` : `activar ${r.name}`}
           />
         </div>
       ),
@@ -303,40 +306,17 @@ export default function RulesListPage() {
             >
               <Copy size={14} /> Copiar
             </button>
-            {isPublishedLikeStatus(menuRule.status) ? (
-              <button
-                type="button"
-                className="flex w-full items-center gap-2 px-3 py-2 text-left text-[14px] hover:bg-bg-tertiary"
-                onClick={() => {
-                  setMenuAnchor(null);
-                  void setStatus.mutateAsync({ id: menuRule.id, status: 'paused' });
-                }}
-              >
-                Pausar regla
-              </button>
-            ) : menuRule.status === 'paused' ? (
-              <button
-                type="button"
-                className="flex w-full items-center gap-2 px-3 py-2 text-left text-[14px] hover:bg-bg-tertiary"
-                onClick={() => {
-                  setMenuAnchor(null);
-                  void setStatus.mutateAsync({ id: menuRule.id, status: 'active' });
-                }}
-              >
-                Reanudar regla
-              </button>
-            ) : null}
             <button
               type="button"
               className="flex w-full items-center gap-2 px-3 py-2 text-left text-[14px] text-danger hover:bg-bg-tertiary"
               onClick={() => {
                 setMenuAnchor(null);
-                if (window.confirm(`¿Eliminar la regla "${menuRule.name}"?`)) {
+                if (window.confirm(`¿Archivar la regla "${menuRule.name}"? Libera el slot único de la categoría.`)) {
                   void del.mutateAsync(menuRule.id);
                 }
               }}
             >
-              <Trash2 size={14} /> Eliminar
+              <Trash2 size={14} /> Archivar
             </button>
           </>
         )}

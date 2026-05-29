@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import {
   normalizeBoostMultiplier,
   serializeBoostForApi,
+  validateBoostDateRange,
   type RuleXpFormValues,
 } from './ruleXpForm';
 import { buildRulePayload } from './ruleXpForm';
@@ -56,5 +57,30 @@ describe('ruleXpForm boost', () => {
     const payload = buildRulePayload(values, { status: 'active', existingRule: null }, 'deportes');
     expect(payload.boost).toBe(null);
     expect(payload.category_id).toBe(1);
+  });
+});
+
+describe('validateBoostDateRange', () => {
+  const now = new Date('2026-05-18T12:00:00');
+
+  it('rechaza fecha de inicio pasada', () => {
+    expect(validateBoostDateRange('2026-05-17T10:00', '2026-05-20T10:00', now)).toBe(
+      'La fecha de inicio no puede ser pasada',
+    );
+  });
+
+  it('rechaza fin anterior o igual a inicio', () => {
+    expect(validateBoostDateRange('2026-05-20T10:00', '2026-05-20T10:00', now)).toBe(
+      'La fecha fin debe ser posterior a Desde',
+    );
+  });
+
+  it('rechaza años fuera de rango', () => {
+    expect(validateBoostDateRange('0201-05-20T10:00', '2026-06-20T10:00', now)).toBe('Año inválido');
+    expect(validateBoostDateRange('2026-05-20T10:00', '2200-06-20T10:00', now)).toBe('Año inválido');
+  });
+
+  it('acepta rango válido dentro de 2 años', () => {
+    expect(validateBoostDateRange('2026-05-20T10:00', '2026-06-20T10:00', now)).toBeNull();
   });
 });

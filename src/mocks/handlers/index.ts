@@ -80,7 +80,7 @@ handlers.push(
       category_id: categoryIdFromSlug(rule.category),
       category: rule.category,
       status: rule.status,
-      is_active: rule.status === 'active',
+      is_active: (rule as { is_active?: boolean }).is_active ?? true,
       currency: rule.action.xpPerAmount?.currency ?? 'USD',
       xp_per_unit: String(rule.usd_per_xp ?? rule.action.xpPerAmount?.amount ?? 0),
       unit_field: 'amount',
@@ -101,7 +101,7 @@ handlers.push(
         category_id: categoryIdFromSlug(rule.category),
         category: rule.category,
         status: rule.status,
-        is_active: rule.status === 'active',
+        is_active: (rule as { is_active?: boolean }).is_active ?? true,
         currency: rule.action.xpPerAmount?.currency ?? 'USD',
         xp_per_unit: String(rule.usd_per_xp ?? rule.action.xpPerAmount?.amount ?? 0),
         unit_field: 'amount',
@@ -132,6 +132,7 @@ handlers.push(
       name: String(body.name ?? baseRule.name),
       usd_per_xp: Number(body.xp_per_unit ?? 10),
       status: (body.status as typeof baseRule.status) ?? 'active',
+      boost: (body.boost as typeof baseRule.boost) ?? baseRule.boost,
       id: `rule_${Date.now()}`,
       updatedAt: new Date().toISOString(),
       createdAt: new Date().toISOString(),
@@ -150,8 +151,11 @@ handlers.push(
   }),
   http.delete('*/admin/rules/:id', async ({ params }) => {
     await wait();
-    const idx = xpRules.findIndex((item) => item.id === params.id);
-    if (idx >= 0) xpRules.splice(idx, 1);
+    const rule = xpRules.find((item) => item.id === params.id);
+    if (rule) {
+      rule.status = 'archived';
+      (rule as { is_active?: boolean }).is_active = false;
+    }
     return HttpResponse.json({ data: { ok: true } });
   }),
   http.get('*/admin/coins', async () => { await wait(); return HttpResponse.json(coins); }),

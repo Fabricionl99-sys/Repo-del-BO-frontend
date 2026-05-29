@@ -12,6 +12,7 @@ import type { RuleCategory } from '@/types/rules';
 import type { RuleXpFormValues } from '@/features/rules/ruleXpForm';
 import {
   ALLOWED_BOOST_MULTIPLIERS,
+  boostDateTimeBounds,
   boostDefaults,
   normalizeBoostMultiplier,
 } from '@/features/rules/ruleXpForm';
@@ -116,6 +117,10 @@ export function RuleBoostSection() {
   const hasBoost = boost != null;
   const enabled = !!boost?.enabled;
   const multiplier = normalizeBoostMultiplier(boost?.multiplier) ?? 2;
+  const dateBounds = boostDateTimeBounds();
+  const boostErrors = errors.boost as
+    | { starts_at?: { message?: string }; ends_at?: { message?: string } }
+    | undefined;
 
   return (
     <div className="space-y-4">
@@ -195,11 +200,31 @@ export function RuleBoostSection() {
           <div className="grid gap-3 md:grid-cols-2">
             <label>
               <span className="mb-1.5 block text-[14px] text-text-secondary">Desde</span>
-              <input aria-label="Desde" type="datetime-local" className="field" {...register('boost.starts_at')} />
+              <input
+                aria-label="Desde"
+                type="datetime-local"
+                className="field"
+                min={dateBounds.min}
+                max={dateBounds.max}
+                {...register('boost.starts_at')}
+              />
+              {boostErrors?.starts_at?.message ? (
+                <p className="mt-1 text-[13px] text-danger">{boostErrors.starts_at.message}</p>
+              ) : null}
             </label>
             <label>
               <span className="mb-1.5 block text-[14px] text-text-secondary">Hasta</span>
-              <input aria-label="Hasta" type="datetime-local" className="field" {...register('boost.ends_at')} />
+              <input
+                aria-label="Hasta"
+                type="datetime-local"
+                className="field"
+                min={dateBounds.min}
+                max={dateBounds.max}
+                {...register('boost.ends_at')}
+              />
+              {boostErrors?.ends_at?.message ? (
+                <p className="mt-1 text-[13px] text-danger">{boostErrors.ends_at.message}</p>
+              ) : null}
             </label>
           </div>
         </div>

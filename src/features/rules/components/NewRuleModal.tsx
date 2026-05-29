@@ -8,7 +8,7 @@ import {
   useGameCategories,
 } from '@/features/gameCategories/gameCategoriesApi';
 import { useSaveRule } from '@/features/rulesApi';
-import { buildRulePayload, type RuleXpFormValues } from '@/features/rules/ruleXpForm';
+import { buildRulePayload, validateBoostFormValues, type RuleXpFormValues } from '@/features/rules/ruleXpForm';
 import { RuleBoostSection, RuleCategoryField, RuleUsdPerXpField } from './RuleXpFormSections';
 
 type Props = {
@@ -43,6 +43,11 @@ export function NewRuleModal({ open, onClose }: Props) {
     const refreshed = form.getValues();
     if (refreshed.boost?.enabled && refreshed.boost !== null && !refreshed.boost.category_code) {
       form.setError('boost.category_code', { message: 'Debés elegir una categoría' });
+      return;
+    }
+    const boostError = validateBoostFormValues(refreshed.boost);
+    if (boostError) {
+      form.setError(`boost.${boostError.field}`, { message: boostError.message });
       return;
     }
     const payload = buildRulePayload(refreshed, { status: 'active', existingRule: null }, categorySlug);

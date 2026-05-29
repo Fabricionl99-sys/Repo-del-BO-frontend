@@ -146,7 +146,12 @@ export function useRulesList(params?: { status?: RuleStatus }) {
       apiClient
         .get('/admin/rules')
         .then((r) => unwrapData<BackendRuleRow[]>(r.data))
-        .then((rows) => filterByStatus(rows.map(backendRowToListItem), params?.status)),
+        .then((rows) =>
+          filterByStatus(
+            rows.filter((r) => r.is_active !== false).map(backendRowToListItem),
+            params?.status,
+          ),
+        ),
   });
 }
 
@@ -159,6 +164,21 @@ export function useRule(id: string | null) {
         .get(`/admin/rules/${id}`)
         .then((r) => unwrapData<BackendRuleRow>(r.data))
         .then(backendRowToXPRule),
+  });
+}
+
+/** Archivar (DELETE) libera el slot UNIQUE — is_active=false en backend. */
+export function useDeleteRule() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (id: string) => apiClient.delete(`/admin/rules/${id}`),
+    onSuccess: () => {
+      toast.success('Regla archivada');
+      qc.invalidateQueries({ queryKey: ['rules'] });
+    },
+    onError: (error) => {
+      toast.error(getApiErrorMessage(error, 'No se pudo archivar la regla'));
+    },
   });
 }
 
@@ -179,25 +199,24 @@ export function useSetRuleStatus() {
   });
 }
 
-/** Toggle rápido desde el switch de la lista (activa ↔ pausada). */
+/** Toggle lista: ON reactiva pausadas · OFF archiva (DELETE, libera UNIQUE). */
 export function useToggleRule() {
+  const qc = useQueryClient();
   const setStatus = useSetRuleStatus();
   return useMutation({
-    mutationFn: ({ id, active }: { id: string; active: boolean }) =>
-      setStatus.mutateAsync({ id, status: active ? 'active' : 'paused' }),
-  });
-}
-
-export function useDeleteRule() {
-  const qc = useQueryClient();
-  return useMutation({
-    mutationFn: (id: string) => apiClient.delete(`/admin/rules/${id}`),
-    onSuccess: () => {
-      toast.success('Regla eliminada');
+    mutationFn: async ({ id, active }: { id: string; active: boolean }) => {
+      if (active) {
+        await setStatus.mutateAsync({ id, status: 'active' });
+        return;
+      }
+      await apiClient.delete(`/admin/rules/${id}`);
+    },
+    onSuccess: (_data, vars) => {
+      toast.success(vars.active ? 'Regla activada' : 'Regla archivada');
       qc.invalidateQueries({ queryKey: ['rules'] });
     },
     onError: (error) => {
-      toast.error(getApiErrorMessage(error, 'No se pudo eliminar la regla'));
+      toast.error(getApiErrorMessage(error, 'No se pudo actualizar la regla'));
     },
   });
 }
