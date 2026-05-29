@@ -80,6 +80,11 @@ describe('adaptShopPayloadForBackend', () => {
     expect((body.reward_config as { kind: string }).kind).toBe('freespin');
   });
 
+  it('permite image_url vacía', () => {
+    const body = adaptShopPayloadForBackend(basePayload({ image_url: '' }));
+    expect(body.image_url).toBe('');
+  });
+
   it('rechaza image_url sin https', () => {
     expect(() =>
       adaptShopPayloadForBackend(basePayload({ image_url: 'http://insecure.example/a.png' })),

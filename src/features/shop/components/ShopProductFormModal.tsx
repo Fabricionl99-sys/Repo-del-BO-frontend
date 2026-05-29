@@ -7,7 +7,7 @@ import { Modal } from '@/components/ui/Modal';
 import { Switch } from '@/components/ui/Switch';
 import { ConfigSection, ConfiguratorScaffold } from '@/components/configurator/ConfiguratorScaffold';
 import { useCoins } from '@/features/coinsApi';
-import { coinToCurrencyCode } from '@/features/shop/shopProductPayload';
+import { shopTrim } from '@/features/shop/shopFormUtils';
 import {
   defaultShopProductForm,
   formToPayload,
@@ -17,6 +17,7 @@ import {
   type ShopProductFormValues,
 } from '@/features/shop/shopProductForm';
 import { useSaveShopProduct } from '@/features/shop/shopApi';
+import { coinToCurrencyCode } from '@/features/shop/shopProductPayload';
 import type { ShopProduct } from '@/types/shop';
 
 import { MediaUploaderRhf } from '@/components/media/MediaUploaderRhf';
@@ -73,7 +74,8 @@ export function ShopProductFormModal({
   }, [open, product, reset, operatorCurrencies]);
 
   const submit = handleSubmit(async (values) => {
-    if (existingCodes.includes(values.code.trim()) && values.code.trim() !== product?.code) {
+    const code = shopTrim(values.code);
+    if (existingCodes.includes(code) && code !== product?.code) {
       form.setError('code', { message: 'El code ya existe' });
       return;
     }

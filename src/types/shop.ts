@@ -45,8 +45,8 @@ export interface ShopProduct {
   id: string;
   code: string;
   name: string;
-  description: string;
-  image_url: string;
+  description: string | null;
+  image_url: string | null;
   cost_in_coins: number;
   currency_code: string;
   stock: number | null;

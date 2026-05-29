@@ -1,6 +1,8 @@
 import type { Coin } from '@/types/coins';
 import type { ShopProductPayload } from '@/types/shop';
 
+import { shopTrim } from './shopFormUtils';
+
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 const HTTPS_URL_RE = /^https:\/\/.+/i;
 
@@ -17,12 +19,12 @@ export const SHOP_BACKEND_REWARD_TYPES = new Set([
 ]);
 
 export function coinToCurrencyCode(coin: Coin): string {
-  return coin.symbol.trim() || coin.name.trim();
+  return shopTrim(coin.symbol) || shopTrim(coin.name);
 }
 
 /** Resuelve currency_id UUID → code string del catálogo de monedas. */
-export function resolveShopCurrencyCode(raw: string, coins: Coin[] = []): string {
-  const trimmed = raw.trim();
+export function resolveShopCurrencyCode(raw: string | null | undefined, coins: Coin[] = []): string {
+  const trimmed = shopTrim(raw);
   if (!trimmed) return trimmed;
   if (UUID_RE.test(trimmed)) {
     const byId = coins.find((c) => c.id === trimmed);
@@ -107,7 +109,7 @@ export function adaptShopPayloadForBackend(
   const currency_code = resolveShopCurrencyCode(payload.currency_code, coins);
   const cost_in_coins = Math.max(1, Math.floor(Number(payload.cost_in_coins) || 0));
 
-  const image_url = payload.image_url.trim();
+  const image_url = shopTrim(payload.image_url);
   if (image_url && !HTTPS_URL_RE.test(image_url)) {
     throw new Error('image_url debe comenzar con https://');
   }

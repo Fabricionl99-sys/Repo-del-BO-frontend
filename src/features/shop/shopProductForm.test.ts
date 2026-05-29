@@ -4,6 +4,7 @@ import {
   buildRewardConfig,
   defaultShopProductForm,
   formToPayload,
+  productToForm,
   shopProductFormSchema,
   validateShopProductForm,
 } from './shopProductForm';
@@ -69,6 +70,37 @@ describe('buildRewardConfig / formToPayload', () => {
     });
     expect(payload.stock).toBeNull();
     expect(payload.code).toBe('unlimited_prod');
+  });
+});
+
+describe('productToForm', () => {
+  it('normaliza campos nullable del backend sin crash', () => {
+    const form = productToForm({
+      id: 'p1',
+      code: 'test_null',
+      name: 'Test',
+      description: null,
+      image_url: null,
+      cost_in_coins: 50,
+      currency_code: null as unknown as string,
+      stock: null,
+      reward_type: 'freespin',
+      reward_config: { bonus_id: null as unknown as string },
+      min_level: null,
+      vip_only: false,
+      max_per_player: null,
+      valid_from: null,
+      valid_until: null,
+      is_active: true,
+      status: 'active',
+      created_at: '2026-01-01T00:00:00Z',
+      updated_at: '2026-01-01T00:00:00Z',
+    });
+
+    expect(form.description).toBe('');
+    expect(form.image_url).toBe('');
+    expect(form.currency_code).toBe('');
+    expect(form.reward.reward_config).toMatchObject({ bonus_id: '' });
   });
 });
 

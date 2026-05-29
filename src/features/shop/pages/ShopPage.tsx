@@ -14,6 +14,7 @@ import { Toolbar } from '@/components/ui/Toolbar';
 import { isModuleActive } from '@/features/billing/moduleCatalog';
 import { ShopProductCard } from '@/features/shop/components/ShopProductCard';
 import { ShopProductFormModal } from '@/features/shop/components/ShopProductFormModal';
+import { ShopProductFormErrorBoundary } from '@/features/shop/components/ShopProductFormErrorBoundary';
 import { ShopPurchaseDetailModal } from '@/features/shop/components/ShopPurchaseDetailModal';
 import { SHOP_CURRENCY_CODES, SHOP_REWARD_TYPES } from '@/features/shop/shopProductForm';
 import { useShopProducts, useShopPurchases } from '@/features/shop/shopApi';
@@ -348,12 +349,17 @@ export default function ShopPage() {
         </>
       )}
 
-      <ShopProductFormModal
-        open={editorProduct !== null}
-        product={editorProduct === 'new' ? null : editorProduct}
-        existingCodes={existingCodes}
-        onClose={() => setEditorProduct(null)}
-      />
+      <ShopProductFormErrorBoundary
+        resetKey={editorProduct === 'new' ? 'new' : editorProduct?.id ?? 'closed'}
+        onReset={() => setEditorProduct(null)}
+      >
+        <ShopProductFormModal
+          open={editorProduct !== null}
+          product={editorProduct === 'new' ? null : editorProduct}
+          existingCodes={existingCodes}
+          onClose={() => setEditorProduct(null)}
+        />
+      </ShopProductFormErrorBoundary>
 
       <ShopPurchaseDetailModal purchaseId={purchaseDetailId} onClose={() => setPurchaseDetailId(null)} />
     </>

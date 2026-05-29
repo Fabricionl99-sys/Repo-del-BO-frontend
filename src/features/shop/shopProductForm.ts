@@ -2,6 +2,7 @@ import { z } from 'zod';
 
 import { rewardValueSchema } from '@/features/rewards/rewardForm';
 import { resolveShopCurrencyCode } from '@/features/shop/shopProductPayload';
+import { shopStr, shopTrim } from '@/features/shop/shopFormUtils';
 import type { Coin } from '@/types/coins';
 import type { ShopProduct, ShopProductPayload, ShopRewardType } from '@/types/shop';
 import type { RewardValue } from '@/types/rewards';
@@ -55,8 +56,10 @@ export const shopProductFormSchema = z
     description: z.string().max(2000, 'Máximo 2000 caracteres'),
     image_url: z
       .string()
-      .min(1, 'Imagen requerida')
-      .regex(/^https:\/\/.+/i, 'La imagen debe ser URL HTTPS (https://…)'),
+      .refine(
+        (v) => !shopTrim(v) || /^https:\/\/.+/i.test(shopTrim(v)),
+        'La imagen debe ser URL HTTPS (https://…) o vacía',
+      ),
     cost_in_coins: z.number().int('Debe ser entero').min(1, 'Mínimo 1 moneda'),
     currency_code: z.string().min(1, 'Seleccioná moneda'),
     unlimited_stock: z.boolean(),
@@ -94,7 +97,7 @@ export function defaultShopProductForm(): ShopProductFormValues {
     code: '',
     name: '',
     description: '',
-    image_url: 'https://cdn.social2game.com/defaults/shop-product.png',
+    image_url: '',
     cost_in_coins: 100,
     currency_code: 'main',
     unlimited_stock: true,
@@ -126,22 +129,27 @@ export function buildRewardConfig(values: ShopProductFormValues): ShopProduct['r
 
 export function productToForm(product: ShopProduct, coins: Coin[] = []): ShopProductFormValues {
   const base = defaultShopProductForm();
-  const cfg = product.reward_config as unknown as Record<string, unknown>;
-  const rewardType = product.reward_type as ShopRewardType;
+  const cfg = (product.reward_config ?? {}) as unknown as Record<string, unknown>;
+  const rewardType = (product.reward_type ?? 'manual') as ShopRewardType;
+  const normalizedCfg = {
+    ...cfg,
+    bonus_id: cfg.bonus_id == null ? '' : shopStr(cfg.bonus_id),
+    description: cfg.description == null ? '' : shopStr(cfg.description),
+  };
   return {
     ...base,
-    code: product.code,
-    name: product.name,
-    description: product.description,
-    image_url: product.image_url,
-    cost_in_coins: product.cost_in_coins,
+    code: shopStr(product.code),
+    name: shopStr(product.name),
+    description: shopStr(product.description),
+    image_url: shopStr(product.image_url),
+    cost_in_coins: Number(product.cost_in_coins ?? base.cost_in_coins),
     currency_code: resolveShopCurrencyCode(product.currency_code, coins),
     unlimited_stock: product.stock === null,
     stock: product.stock ?? 0,
     reward_type: rewardType,
     reward: {
       reward_type: rewardType as RewardValue['reward_type'],
-      reward_config: cfg,
+      reward_config: normalizedCfg,
       currency_mode: 'auto_usd',
     },
     min_level: product.min_level,
@@ -156,10 +164,10 @@ export function productToForm(product: ShopProduct, coins: Coin[] = []): ShopPro
 export function formToPayload(values: ShopProductFormValues, coins: Coin[] = []): ShopProductPayload {
   const rewardType = values.reward.reward_type;
   return {
-    code: values.code.trim(),
-    name: values.name.trim(),
-    description: values.description.trim(),
-    image_url: values.image_url.trim(),
+    code: shopTrim(values.code),
+    name: shopTrim(values.name),
+    description: shopTrim(values.description),
+    image_url: shopTrim(values.image_url),
     cost_in_coins: Math.max(1, Math.floor(values.cost_in_coins)),
     currency_code: resolveShopCurrencyCode(values.currency_code, coins),
     stock: values.unlimited_stock ? null : values.stock,
@@ -187,7 +195,7 @@ export function validateShopProductForm(
       if (key && !errors[key]) errors[key] = issue.message;
     }
   }
-  const normalized = values.code.trim();
+  const normalized = shopTrim(values.code);
   if (normalized && existingCodes.some((c) => c === normalized && c !== editingCode)) {
     errors.code = 'El code ya existe';
   }
