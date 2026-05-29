@@ -35,7 +35,6 @@ const NewsPage = lazy(() => import('@/features/news/pages/NewsPage'));
 const NewsEditorPage = lazy(() => import('@/features/news/pages/NewsEditorPage'));
 const SocialModerationPage = lazy(() => import('@/features/socialModeration/pages/SocialModerationPage'));
 const AntiFraudPage = lazy(() => import('@/features/antiFraud/pages/AntiFraudPage'));
-const MetricsPage = lazy(() => import('@/features/metrics/pages/MetricsPage'));
 const BrandingPage = lazy(() => import('@/features/branding/pages/BrandingPage'));
 const SettingsPage = lazy(() => import('@/features/settings/pages/SettingsPage'));
 const RankingsPage = lazy(() => import('@/features/rankings/pages/RankingsPage'));
@@ -62,7 +61,7 @@ const comingSoonRoutes = [
   { path: 'cajas-misteriosas', title: 'Cajas misteriosas' },
   { path: 'raspaditas', title: 'Raspaditas' },
   { path: 'notificaciones-push', title: 'Notificaciones push', description: 'configuración avanzada (lo básico está en /notificaciones)' },
-  { path: 'reportes', title: 'Reportes', description: 'exportes scheduled (las métricas en vivo están en /metricas)' },
+  { path: 'reportes', title: 'Reportes', description: 'exportes scheduled (las métricas en vivo están en /dashboard)' },
   { path: 'profile', title: 'Mi perfil', description: 'datos personales y seguridad' },
   { path: 'recover-password', title: 'Recuperar contraseña' },
 ];
@@ -130,7 +129,8 @@ export const router = createBrowserRouter([
       { path: 'moderacion', element: <Navigate to="/moderacion-social" replace /> },
       { path: 'moderacion-social', element: wrap(<SocialModerationPage />) },
       { path: 'anti-fraud', element: wrap(<AntiFraudPage />) },
-      { path: 'metricas', element: wrap(<MetricsPage />) },
+      { path: 'metricas', element: <Navigate to="/dashboard" replace /> },
+      { path: 'metrics', element: <Navigate to="/dashboard" replace /> },
       {
         path: 'webhooks',
         element: <ProtectedRoute roles={['admin']}>{wrap(<WebhooksPage />)}</ProtectedRoute>,

@@ -617,7 +617,7 @@ handlers.push(
   http.get('*/admin/products/:id/redemptions', async () => { await wait(); return HttpResponse.json([{ id: 'red_1', player: 'crypto_king_88', redeemedAt: new Date().toISOString() }]); }),
 );
 
-import { funnel, heatmap, kpis, moderationQueue, moderationStats, topPlayers, topRules, vipDistribution } from '@/mocks/data/tier5';
+import { moderationQueue, moderationStats } from '@/mocks/data/tier5';
 import { mergeNestedBrandingPatch, type BrandingApiPatchPayload } from '@/features/branding/brandingApiMappers';
 import { brandingConfig } from '@/mocks/data/brandingConfig';
 import { defaultBrandingConfig } from '@/features/branding/brandingPresets';
@@ -633,13 +633,6 @@ handlers.push(
   http.get('*/admin/moderation/auto-filters', async () => { await wait(); return HttpResponse.json({profanity:true,spam:true,externalLinks:true}); }),
   http.patch('*/admin/moderation/auto-filters', async ({ request }) => { await wait(); return HttpResponse.json(await request.json()); }),
   http.get('*/admin/moderation/audit-log', async () => { await wait(); return HttpResponse.json([{id:'audit_1',action:'approve',actor:'Fabricio',timestamp:new Date().toISOString()}]); }),
-  http.get('*/admin/metrics/kpis', async () => { await wait(); return HttpResponse.json(kpis); }),
-  http.get('*/admin/metrics/funnel', async () => { await wait(); return HttpResponse.json(funnel); }),
-  http.get('*/admin/metrics/vip-distribution', async () => { await wait(); return HttpResponse.json(vipDistribution); }),
-  http.get('*/admin/metrics/heatmap', async () => { await wait(); return HttpResponse.json(heatmap); }),
-  http.get('*/admin/metrics/top-rules', async () => { await wait(); return HttpResponse.json(topRules); }),
-  http.get('*/admin/metrics/top-players', async () => { await wait(); return HttpResponse.json(topPlayers); }),
-  http.post('*/admin/metrics/export-pdf', async () => { await wait(); return HttpResponse.json({downloadUrl:'https://reports.preview.niveles.io/mock.pdf'}); }),
   http.get('*/admin/branding', async () => {
     await wait();
     return HttpResponse.json({ data: { ...brandingConfig } });

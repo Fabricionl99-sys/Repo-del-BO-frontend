@@ -6,7 +6,6 @@ export type { ModuleCode };
 
 const ROUTE_MODULE: Record<string, ModuleCode | null> = {
   '/dashboard': null,
-  '/metricas': null,
   '/moderacion-social': 'social',
   '/anti-fraud': null,
   '/reglas-xp': 'xp_engine',
@@ -47,7 +46,6 @@ export function moduleForPath(pathname: string): ModuleCode | null {
 
 export const SIDEBAR_MODULE_BY_PATH: Record<string, ModuleCode | null> = {
   '/dashboard': null,
-  '/metricas': null,
   '/moderacion-social': 'social',
   '/anti-fraud': null,
   '/reglas-xp': 'xp_engine',

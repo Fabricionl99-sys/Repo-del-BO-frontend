@@ -53,7 +53,7 @@ export default function DashboardPage() {
 
       <div className="mt-7 grid grid-cols-[2fr_1fr] gap-5 max-[1200px]:grid-cols-1">
         <ActivityFeedCard query={activity} mockState={mockState} />
-        <SystemStatusCard query={system} mockState={mockState} onDetails={() => navigate('/metricas')} />
+        <SystemStatusCard query={system} mockState={mockState} />
       </div>
     </>
   );
@@ -234,15 +234,17 @@ function SystemStatusCard({
 }: {
   query: ReturnType<typeof useSystemStatus>;
   mockState: MockState;
-  onDetails: () => void;
+  onDetails?: () => void;
 }) {
   return (
     <div className="card">
       <header className="section-head">
         <h2 className="label-section">estado del sistema</h2>
-        <button onClick={onDetails} className="text-[14px] text-accent">
-          detalles →
-        </button>
+        {onDetails ? (
+          <button onClick={onDetails} className="text-[14px] text-accent">
+            detalles →
+          </button>
+        ) : null}
       </header>
       {(mockState === 'empty' || query.data?.services.length === 0) && (
         <EmptyState title="Sin status disponible" description="Todavía no hay servicios reportando health checks." />

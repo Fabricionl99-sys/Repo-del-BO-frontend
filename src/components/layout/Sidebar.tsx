@@ -48,10 +48,7 @@ const sections = [
   { items: [['/dashboard', 'Dashboard', LayoutGrid] as const] },
   {
     label: 'Analytics',
-    items: [
-      ['/metricas', 'Métricas', BarChart3] as const,
-      ['/moderacion-social', 'Moderación Social', MessageCircle] as const,
-    ],
+    items: [['/moderacion-social', 'Moderación Social', MessageCircle] as const],
   },
   {
     label: 'Seguridad',

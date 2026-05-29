@@ -1,14 +1,37 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+
 import { apiClient } from '@/api/client';
 import { toast } from '@/stores/toastStore';
-import type { FunnelStep, HeatmapCell, KpiSet, ModerationItem, ModerationStats, VipDistribution } from '@/types/tier5';
-export const useModerationQueue=(kind?:string)=>useQuery({queryKey:['moderation','queue',kind],queryFn:()=>apiClient.get('/admin/moderation/queue',{params:{kind}}).then(r=>r.data as ModerationItem[]),refetchInterval:30000});
-export const useModerationStats=()=>useQuery({queryKey:['moderation','stats'],queryFn:()=>apiClient.get('/admin/moderation/stats').then(r=>r.data as ModerationStats),refetchInterval:30000});
-export function useModerationAction(action:'approve'|'reject'|'warn'){const qc=useQueryClient();return useMutation({mutationFn:(id:string)=>apiClient.post(`/admin/moderation/queue/${id}/${action}`),onSuccess:()=>{toast.success(`acción ${action} registrada`);qc.invalidateQueries({queryKey:['moderation']})}})}
-export const useBanUser=()=>useMutation({mutationFn:(payload:{userId:string;duration:string;reason:string})=>apiClient.post(`/admin/moderation/users/${payload.userId}/ban`,payload)});
-export const useMetricsKpis=(period:string)=>useQuery({queryKey:['metrics','kpis',period],queryFn:()=>apiClient.get('/admin/metrics/kpis',{params:{period}}).then(r=>r.data as KpiSet)});
-export const useFunnel=(period:string)=>useQuery({queryKey:['metrics','funnel',period],queryFn:()=>apiClient.get('/admin/metrics/funnel',{params:{period}}).then(r=>r.data as FunnelStep[])});
-export const useVipDistribution=(period:string)=>useQuery({queryKey:['metrics','vip',period],queryFn:()=>apiClient.get('/admin/metrics/vip-distribution',{params:{period}}).then(r=>r.data as VipDistribution[])});
-export const useHeatmap=(period:string)=>useQuery({queryKey:['metrics','heatmap',period],queryFn:()=>apiClient.get('/admin/metrics/heatmap',{params:{period}}).then(r=>r.data as HeatmapCell[])});
-export const useTopRules=(period:string)=>useQuery({queryKey:['metrics','rules',period],queryFn:()=>apiClient.get('/admin/metrics/top-rules',{params:{period,limit:5}}).then(r=>r.data as {id:string;name:string;count:number}[])});
-export const useTopPlayers=(period:string)=>useQuery({queryKey:['metrics','players',period],queryFn:()=>apiClient.get('/admin/metrics/top-players',{params:{period,limit:5}}).then(r=>r.data as {id:string;handle:string;xp:number}[])});
+import type { ModerationItem, ModerationStats } from '@/types/tier5';
+
+export const useModerationQueue = (kind?: string) =>
+  useQuery({
+    queryKey: ['moderation', 'queue', kind],
+    queryFn: () =>
+      apiClient.get('/admin/moderation/queue', { params: { kind } }).then((r) => r.data as ModerationItem[]),
+    refetchInterval: 30000,
+  });
+
+export const useModerationStats = () =>
+  useQuery({
+    queryKey: ['moderation', 'stats'],
+    queryFn: () => apiClient.get('/admin/moderation/stats').then((r) => r.data as ModerationStats),
+    refetchInterval: 30000,
+  });
+
+export function useModerationAction(action: 'approve' | 'reject' | 'warn') {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (id: string) => apiClient.post(`/admin/moderation/queue/${id}/${action}`),
+    onSuccess: () => {
+      toast.success(`acción ${action} registrada`);
+      qc.invalidateQueries({ queryKey: ['moderation'] });
+    },
+  });
+}
+
+export const useBanUser = () =>
+  useMutation({
+    mutationFn: (payload: { userId: string; duration: string; reason: string }) =>
+      apiClient.post(`/admin/moderation/users/${payload.userId}/ban`, payload),
+  });
