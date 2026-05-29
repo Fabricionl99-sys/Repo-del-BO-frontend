@@ -33,17 +33,22 @@ import {
   usePreviewBranding,
   useResetBranding,
   useUpdateBranding,
+  useUploadBackground,
+  useUploadFavicon,
+  useUploadLogo,
 } from '../brandingApi';
 import { formToUpdatePayload, configToFormValues } from '../brandingForm';
 import { PALETTE_PRESETS, presetPalette } from '../brandingPresets';
-import { MediaUploader } from '@/components/media/MediaUploader';
-import { mediaValueFromUrl } from '@/components/media/mediaUrl';
 
 import {
+  validateBackgroundUpload,
   validateCustomCss,
+  validateFaviconUpload,
+  validateLogoUpload,
   validateWelcomeText,
 } from '../brandingUploadValidation';
 import { BrandingDemoPanel } from '../components/BrandingDemoPanel';
+import { BrandingUploadZone } from '../components/BrandingUploadZone';
 import { ResetBrandingModal } from '../components/ResetBrandingModal';
 import { WidgetPreviewMock } from '../components/WidgetPreviewMock';
 import { WidgetPreviewModal } from '../components/WidgetPreviewModal';
@@ -94,6 +99,9 @@ export default function BrandingPage() {
   const update = useUpdateBranding();
   const preview = usePreviewBranding();
   const reset = useResetBranding();
+  const uploadLogo = useUploadLogo();
+  const uploadFavicon = useUploadFavicon();
+  const uploadBackground = useUploadBackground();
   const saved = configQ.data;
   const config = draft ?? saved;
   const configReady = isBrandingConfig(config);
@@ -193,6 +201,14 @@ export default function BrandingPage() {
       '_blank',
       'noopener,noreferrer',
     );
+  };
+
+  const handleAssetUpload = async (kind: 'logo' | 'favicon' | 'background', file: File) => {
+    if (kind === 'logo') await uploadLogo.mutateAsync(file);
+    else if (kind === 'favicon') await uploadFavicon.mutateAsync(file);
+    else await uploadBackground.mutateAsync(file);
+    setDraft(null);
+    await configQ.refetch();
   };
 
   const handleReset = async () => {
@@ -382,18 +398,28 @@ export default function BrandingPage() {
               <div className="grid grid-cols-2 gap-4 max-md:grid-cols-1">
                 <div>
                   <p className="label-section mb-2">logo</p>
-                  <MediaUploader
-                    value={mediaValueFromUrl(config.logo_url ?? undefined)}
-                    onChange={(v) => patch({ logo_url: v?.url ?? null })}
-                    context={{ module: 'branding', purpose: 'logo' }}
+                  <BrandingUploadZone
+                    previewUrl={config.logo_url}
+                    hint="PNG/JPG/WebP/SVG · máx 2 MB"
+                    accept="image/png,image/jpeg,image/webp,image/svg+xml"
+                    validate={validateLogoUpload}
+                    error={uploadLogo.error ? 'Error al subir logo' : undefined}
+                    onValidated={(file) => void handleAssetUpload('logo', file)}
+                    onClear={() => patch({ logo_url: null })}
+                    previewClassName="h-24 max-w-full object-contain"
                   />
                 </div>
                 <div>
                   <p className="label-section mb-2">favicon</p>
-                  <MediaUploader
-                    value={mediaValueFromUrl(config.favicon_url ?? undefined)}
-                    onChange={(v) => patch({ favicon_url: v?.url ?? null })}
-                    context={{ module: 'branding', purpose: 'icon' }}
+                  <BrandingUploadZone
+                    previewUrl={config.favicon_url}
+                    hint="PNG/ICO · máx 512 KB"
+                    accept="image/png,image/x-icon,image/vnd.microsoft.icon"
+                    validate={validateFaviconUpload}
+                    error={uploadFavicon.error ? 'Error al subir favicon' : undefined}
+                    onValidated={(file) => void handleAssetUpload('favicon', file)}
+                    onClear={() => patch({ favicon_url: null })}
+                    previewClassName="h-12 w-12"
                   />
                   <div className="mt-2 flex items-center gap-2 rounded-lg border border-border-subtle bg-bg-tertiary px-3 py-2">
                     {config.favicon_url && <img src={config.favicon_url} alt="" className="h-4 w-4" />}
@@ -403,10 +429,15 @@ export default function BrandingPage() {
               </div>
               <div className="mt-4">
                 <p className="label-section mb-2">background (opcional)</p>
-                <MediaUploader
-                  value={mediaValueFromUrl(config.background_image_url ?? undefined)}
-                  onChange={(v) => patch({ background_image_url: v?.url ?? null })}
-                  context={{ module: 'branding', purpose: 'background' }}
+                <BrandingUploadZone
+                  previewUrl={config.background_image_url}
+                  hint="PNG/JPG/WebP · máx 5 MB"
+                  accept="image/png,image/jpeg,image/webp"
+                  validate={validateBackgroundUpload}
+                  error={uploadBackground.error ? 'Error al subir background' : undefined}
+                  onValidated={(file) => void handleAssetUpload('background', file)}
+                  onClear={() => patch({ background_image_url: null })}
+                  previewClassName="h-32 w-full object-cover"
                 />
               </div>
             </ConfigSection>

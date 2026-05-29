@@ -10,7 +10,6 @@ import type {
   ApiKeysStats,
   ApiReferenceDoc,
   ApiRequestLog,
-  CreateApiKeyPayload,
   CreateApiKeyResult,
   PingTestResult,
   RotateApiKeyResult,
@@ -76,17 +75,20 @@ export function useApiReference() {
 export function useCreateApiKey() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: (payload: CreateApiKeyPayload) =>
-      apiClient.post('/admin/api-keys', payload).then((r) => {
-        const raw = unwrapData<CreateApiKeyResult & { plain_key?: string }>(r.data);
-        return {
-          ...raw,
-          plain_text: raw.plain_text ?? raw.plain_key ?? '',
-        };
+    mutationFn: () =>
+      apiClient.post('/admin/api-keys').then((r) => {
+        const raw = unwrapData<CreateApiKeyResult & ApiKey & { plain_key?: string; plain_text?: string }>(r.data);
+        const plain_text = raw.plain_text ?? raw.plain_key ?? '';
+        const key = raw.key ?? (raw.id ? (raw as ApiKey) : undefined);
+        return { key, plain_text, plain_key: plain_text };
       }),
-    onSuccess: (_data, variables) => {
-      trackEvent('api_key_generated', { environment: variables.environment });
+    onSuccess: () => {
+      trackEvent('api_key_generated', {});
+      toast.success('API key generada');
       qc.invalidateQueries({ queryKey: ['api-keys'] });
+    },
+    onError: () => {
+      toast.error('No se pudo generar la API key');
     },
   });
 }

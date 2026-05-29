@@ -16,7 +16,6 @@ import { formatNumber, formatRelativeDate } from '@/lib/format';
 import type {
   ApiConnectedIp,
   ApiKey,
-  ApiKeyEnvironment,
   ApiReferenceSection,
   ApiRequestLog,
 } from '@/types/apiKeys';
@@ -50,7 +49,7 @@ export default function ApiKeysPage() {
   const keysQ = useApiKeysList();
   const statsQ = useApiKeysStats();
 
-  const [createEnv, setCreateEnv] = useState<ApiKeyEnvironment | null>(null);
+  const [createOpen, setCreateOpen] = useState(false);
   const [rotateKey, setRotateKey] = useState<ApiKey | null>(null);
   const [revokeKey, setRevokeKey] = useState<ApiKey | null>(null);
   const [pingOpen, setPingOpen] = useState(false);
@@ -71,9 +70,9 @@ export default function ApiKeysPage() {
           icon={KeyRound}
           title="Sin API keys"
           description="Generá tu primera key de test para empezar a integrar."
-          action={<Button variant="primary" onClick={() => setCreateEnv('test')}>Generar tu primera key (test)</Button>}
+          action={<Button variant="primary" onClick={() => setCreateOpen(true)}>Generar API key</Button>}
         />
-        <CreateApiKeyModal open={createEnv !== null} environment={createEnv ?? 'test'} onClose={() => setCreateEnv(null)} />
+        <CreateApiKeyModal open={createOpen} onClose={() => setCreateOpen(false)} />
       </>
     );
   }
@@ -82,14 +81,19 @@ export default function ApiKeysPage() {
   if (mock === 'error' || keysQ.isError) return <ErrorState onRetry={() => keysQ.refetch()} />;
 
   const keys = keysQ.data ?? [];
-  const testKeys = keys.filter((k) => k.environment === 'test');
-  const prodKeys = keys.filter((k) => k.environment === 'production');
 
   return (
     <>
       <PageHeader
         title="API Keys"
         subtitle="Gestión de credenciales, logs, IPs y documentación para tu equipo técnico"
+        actions={
+          tab === 'Claves' ? (
+            <Button variant="primary" icon={<Plus size={14} />} onClick={() => setCreateOpen(true)}>
+              Generar
+            </Button>
+          ) : undefined
+        }
       />
 
       <div className="mb-4 flex items-start gap-2.5 rounded-lg border border-info/25 bg-info/10 p-3">
@@ -134,10 +138,8 @@ export default function ApiKeysPage() {
 
       {tab === 'Claves' && (
         <KeysTab
-          testKeys={testKeys}
-          prodKeys={prodKeys}
-          onCreateTest={() => setCreateEnv('test')}
-          onCreateProd={() => setCreateEnv('production')}
+          keys={keys}
+          onCreate={() => setCreateOpen(true)}
           onViewLogs={(id) => {
             setLogsKeyFilter(id);
             switchTab('Logs');
@@ -158,7 +160,7 @@ export default function ApiKeysPage() {
       {tab === 'Quick Start' && <QuickStartTab onPing={() => setPingOpen(true)} onGoKeys={() => switchTab('Claves')} />}
       {tab === 'API Reference' && <ReferenceTab />}
 
-      <CreateApiKeyModal open={createEnv !== null} environment={createEnv ?? 'test'} onClose={() => setCreateEnv(null)} />
+      <CreateApiKeyModal open={createOpen} onClose={() => setCreateOpen(false)} />
       <RotateApiKeyModal open={rotateKey !== null} apiKey={rotateKey} onClose={() => setRotateKey(null)} />
       <RevokeApiKeyModal open={revokeKey !== null} apiKey={revokeKey} onClose={() => setRevokeKey(null)} />
       <PingTestModal open={pingOpen} onClose={() => setPingOpen(false)} />
@@ -167,60 +169,36 @@ export default function ApiKeysPage() {
 }
 
 function KeysTab({
-  testKeys,
-  prodKeys,
-  onCreateTest,
-  onCreateProd,
+  keys,
+  onCreate,
   onViewLogs,
   onRotate,
   onRevoke,
 }: {
-  testKeys: ApiKey[];
-  prodKeys: ApiKey[];
-  onCreateTest: () => void;
-  onCreateProd: () => void;
+  keys: ApiKey[];
+  onCreate: () => void;
   onViewLogs: (id: string) => void;
   onRotate: (k: ApiKey) => void;
   onRevoke: (k: ApiKey) => void;
 }) {
-  const empty = testKeys.length === 0 && prodKeys.length === 0;
-  if (empty) {
+  if (keys.length === 0) {
     return (
       <EmptyState
         icon={KeyRound}
         title="Sin API keys"
-        description="Generá tu primera key de test para empezar a integrar."
-        action={<Button variant="primary" onClick={onCreateTest}>Generar tu primera key (test)</Button>}
+        description="Generá tu primera key para empezar a integrar."
+        action={<Button variant="primary" onClick={onCreate}>Generar API key</Button>}
       />
     );
   }
 
   return (
     <ConfiguratorScaffold>
-      <ConfigSection title="test">
-        <div className="mb-3 flex justify-end">
-          <Button size="sm" variant="secondary" icon={<Plus size={14} />} onClick={onCreateTest}>
-            Generar nueva key (test)
-          </Button>
-        </div>
+      <ConfigSection title="credenciales activas">
         <div className="grid gap-3 md:grid-cols-2">
-          {testKeys.map((k) => (
+          {keys.map((k) => (
             <ApiKeyCard key={k.id} apiKey={k} onViewLogs={() => onViewLogs(k.id)} onRotate={() => onRotate(k)} onRevoke={() => onRevoke(k)} />
           ))}
-          {testKeys.length === 0 && <p className="text-[15px] text-text-tertiary">Sin keys de test.</p>}
-        </div>
-      </ConfigSection>
-      <ConfigSection title="producción">
-        <div className="mb-3 flex justify-end">
-          <Button size="sm" variant="primary" icon={<Plus size={14} />} onClick={onCreateProd}>
-            Generar nueva key (producción)
-          </Button>
-        </div>
-        <div className="grid gap-3 md:grid-cols-2">
-          {prodKeys.map((k) => (
-            <ApiKeyCard key={k.id} apiKey={k} onViewLogs={() => onViewLogs(k.id)} onRotate={() => onRotate(k)} onRevoke={() => onRevoke(k)} />
-          ))}
-          {prodKeys.length === 0 && <p className="text-[15px] text-text-tertiary">Sin keys de producción.</p>}
         </div>
       </ConfigSection>
     </ConfiguratorScaffold>

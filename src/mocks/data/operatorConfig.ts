@@ -5,6 +5,7 @@ const weekendDay = { open: '10:00', close: '14:00', enabled: false };
 
 export const operatorConfigFull: OperatorConfig = {
   tenant_id: 'op_casino_astral',
+  webhook_url: '',
   company_info: {
     legal_name: 'Casino Astral S.A.',
     commercial_name: 'Casino Astral',

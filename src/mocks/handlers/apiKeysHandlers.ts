@@ -20,23 +20,25 @@ export const apiKeysHandlers = [
 
   http.post('*/admin/api-keys', async ({ request }) => {
     await wait();
-    const body = (await request.json()) as CreateApiKeyPayload;
-    const plain = generatePlainKey(body.environment);
+    const body = await request.text();
+    const parsed = body ? (JSON.parse(body) as Partial<CreateApiKeyPayload>) : {};
+    const environment = parsed.environment ?? 'test';
+    const plain = generatePlainKey(environment);
     const key: ApiKey = {
       id: `key_${Date.now()}`,
       operator_id: 'op_casino_astral',
-      environment: body.environment,
-      name: body.name,
-      prefix: plain.slice(0, 8),
+      environment,
+      name: parsed.name ?? 'Default API Key',
+      prefix: plain.slice(0, 12),
       key_hash: `sha256:${plain.slice(-8)}`,
       last_used_at: null,
       is_active: true,
       created_at: new Date().toISOString(),
-      expires_at: body.expires_at ?? null,
-      permissions: body.permissions,
+      expires_at: parsed.expires_at ?? null,
+      permissions: parsed.permissions ?? ['events:write', 'players:read'],
     };
     apiKeysStore.keys.unshift(key);
-    return HttpResponse.json({ data: { key, plain_text: plain } }, { status: 201 });
+    return HttpResponse.json({ data: { ...key, plain_key: plain } }, { status: 201 });
   }),
 
   http.delete('*/admin/api-keys/:id', async ({ params }) => {

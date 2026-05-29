@@ -71,20 +71,19 @@ async function validateImageFile(
 export function validateLogoUpload(file: File) {
   return validateImageFile(file, {
     label: 'Logo',
-    maxBytes: 500 * 1024,
+    maxBytes: 2 * 1024 * 1024,
     allowedMime: ['image/png', 'image/jpeg', 'image/webp', 'image/svg+xml'],
-    minWidth: 200,
-    minHeight: 200,
-    maxWidth: 1024,
-    maxHeight: 1024,
-    square: true,
+    minWidth: 64,
+    minHeight: 64,
+    maxWidth: 2048,
+    maxHeight: 2048,
   });
 }
 
 export function validateFaviconUpload(file: File) {
   return validateImageFile(file, {
     label: 'Favicon',
-    maxBytes: 100 * 1024,
+    maxBytes: 512 * 1024,
     allowedMime: ['image/png', 'image/x-icon', 'image/vnd.microsoft.icon'],
     minWidth: 16,
     minHeight: 16,
@@ -97,10 +96,10 @@ export function validateFaviconUpload(file: File) {
 export function validateBackgroundUpload(file: File) {
   return validateImageFile(file, {
     label: 'Background',
-    maxBytes: 2 * 1024 * 1024,
+    maxBytes: 5 * 1024 * 1024,
     allowedMime: ['image/png', 'image/jpeg', 'image/webp'],
-    minWidth: 1920,
-    minHeight: 1080,
+    minWidth: 800,
+    minHeight: 450,
   });
 }
 

@@ -94,6 +94,8 @@ export interface BusinessHoursSettings {
 
 export interface OperatorConfig {
   tenant_id: string;
+  /** URL HTTPS única para webhooks salientes del operador. */
+  webhook_url?: string | null;
   company_info: CompanyInfo;
   contact_info: ContactInfo;
   localization: LocalizationSettings;

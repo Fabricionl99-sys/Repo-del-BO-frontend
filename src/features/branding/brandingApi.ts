@@ -110,19 +110,37 @@ function uploadAsset(path: string, file: File) {
 }
 
 export function useUploadLogo() {
+  const qc = useQueryClient();
   return useMutation({
     mutationFn: (file: File) => uploadAsset('/admin/branding/upload-logo', file),
+    onSuccess: () => {
+      toast.success('Logo subido');
+      qc.invalidateQueries({ queryKey: ['branding-config'] });
+    },
+    onError: () => toast.error('No se pudo subir el logo'),
   });
 }
 
 export function useUploadFavicon() {
+  const qc = useQueryClient();
   return useMutation({
     mutationFn: (file: File) => uploadAsset('/admin/branding/upload-favicon', file),
+    onSuccess: () => {
+      toast.success('Favicon subido');
+      qc.invalidateQueries({ queryKey: ['branding-config'] });
+    },
+    onError: () => toast.error('No se pudo subir el favicon'),
   });
 }
 
 export function useUploadBackground() {
+  const qc = useQueryClient();
   return useMutation({
     mutationFn: (file: File) => uploadAsset('/admin/branding/upload-background', file),
+    onSuccess: () => {
+      toast.success('Background subido');
+      qc.invalidateQueries({ queryKey: ['branding-config'] });
+    },
+    onError: () => toast.error('No se pudo subir el background'),
   });
 }

@@ -3,32 +3,15 @@ import { useState } from 'react';
 import { Button } from '@/components/ui/Button';
 import { Modal } from '@/components/ui/Modal';
 import { useCreateApiKey } from '@/features/apiKeys/apiKeysApi';
-import { validateCreateApiKeyForm } from '@/features/apiKeys/apiKeysValidation';
-import type { ApiKeyEnvironment, ApiKeyPermission } from '@/types/apiKeys';
-import { API_KEY_PERMISSIONS } from '@/types/apiKeys';
 
 import { PlainKeyReveal } from './PlainKeyReveal';
 
-export function CreateApiKeyModal({
-  open,
-  environment,
-  onClose,
-}: {
-  open: boolean;
-  environment: ApiKeyEnvironment;
-  onClose: () => void;
-}) {
+export function CreateApiKeyModal({ open, onClose }: { open: boolean; onClose: () => void }) {
   const create = useCreateApiKey();
-  const [name, setName] = useState('');
-  const [permissions, setPermissions] = useState<ApiKeyPermission[]>(['events:write', 'players:read']);
-  const [expiresAt, setExpiresAt] = useState('');
   const [error, setError] = useState<string | undefined>();
   const [plainText, setPlainText] = useState<string | null>(null);
 
   const reset = () => {
-    setName('');
-    setPermissions(['events:write', 'players:read']);
-    setExpiresAt('');
     setError(undefined);
     setPlainText(null);
   };
@@ -38,31 +21,25 @@ export function CreateApiKeyModal({
     onClose();
   };
 
-  const togglePerm = (p: ApiKeyPermission) => {
-    setPermissions((prev) => (prev.includes(p) ? prev.filter((x) => x !== p) : [...prev, p]));
-  };
-
   const submit = async () => {
-    const err = validateCreateApiKeyForm({ name, permissions, expires_at: expiresAt });
-    if (err) {
-      setError(err);
-      return;
-    }
-    const res = await create.mutateAsync({
-      name: name.trim(),
-      environment,
-      permissions,
-      expires_at: expiresAt || null,
-    });
-    setPlainText(res.plain_text);
     setError(undefined);
+    try {
+      const res = await create.mutateAsync();
+      if (!res.plain_text) {
+        setError('La API no devolvió la key completa. Probá de nuevo.');
+        return;
+      }
+      setPlainText(res.plain_text);
+    } catch {
+      setError('No se pudo generar la API key. Revisá tu sesión e intentá de nuevo.');
+    }
   };
 
   return (
     <Modal
       open={open}
       onClose={close}
-      title={`Nueva API key (${environment === 'test' ? 'test' : 'producción'})`}
+      title="Generar API key"
       description="La key completa solo se muestra una vez al crearla"
       footer={
         plainText ? undefined : (
@@ -81,33 +58,10 @@ export function CreateApiKeyModal({
         <PlainKeyReveal plainText={plainText} onDone={close} />
       ) : (
         <div className="space-y-4">
-          <label className="block">
-            <span className="mb-1 block text-[14px] text-text-secondary">nombre / alias</span>
-            <input className="field" value={name} onChange={(e) => setName(e.target.value)} placeholder="Backend Servidor 1" />
-          </label>
-          <div>
-            <span className="mb-2 block text-[14px] text-text-secondary">permisos</span>
-            <div className="flex flex-wrap gap-2">
-              {API_KEY_PERMISSIONS.map((p) => (
-                <button
-                  key={p.value}
-                  type="button"
-                  onClick={() => togglePerm(p.value)}
-                  className={`rounded-full border px-2.5 py-1 text-[13px] ${
-                    permissions.includes(p.value)
-                      ? 'border-accent bg-accent/10 text-accent'
-                      : 'border-border-subtle text-text-secondary'
-                  }`}
-                >
-                  {p.label}
-                </button>
-              ))}
-            </div>
-          </div>
-          <label className="block">
-            <span className="mb-1 block text-[14px] text-text-secondary">expira (opcional)</span>
-            <input type="date" className="field" value={expiresAt} onChange={(e) => setExpiresAt(e.target.value)} />
-          </label>
+          <p className="text-[15px] text-text-secondary">
+            Se creará (o rotará) la API key del operador. Usala solo desde tu backend — nunca en el frontend del
+            jugador.
+          </p>
           {error && <p className="text-[15px] text-danger">{error}</p>}
         </div>
       )}

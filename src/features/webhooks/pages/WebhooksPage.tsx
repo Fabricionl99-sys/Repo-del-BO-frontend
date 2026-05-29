@@ -1,5 +1,5 @@
-import { Plus, Webhook } from 'lucide-react';
-import { useMemo, useState } from 'react';
+import { Save, Webhook, Zap } from 'lucide-react';
+import { useEffect, useMemo, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 
 import { Button } from '@/components/ui/Button';
@@ -10,75 +10,78 @@ import { Loading } from '@/components/ui/Loading';
 import { PageHeader } from '@/components/ui/PageHeader';
 import { Table, type Column } from '@/components/ui/Table';
 import { Toolbar } from '@/components/ui/Toolbar';
+import { ConfigSection, ConfiguratorScaffold } from '@/components/configurator/ConfiguratorScaffold';
 import { copyToClipboard } from '@/features/apiKeys/apiKeysUtils';
+import { useOperatorConfig, useUpdateOperatorConfig } from '@/features/settings/operatorConfigApi';
 import { DeliveryActionModal } from '@/features/webhooks/components/DeliveryActionModal';
 import { DeliveryDetailModal } from '@/features/webhooks/components/DeliveryDetailModal';
-import { EndpointCard } from '@/features/webhooks/components/EndpointCard';
-import { EndpointFormModal } from '@/features/webhooks/components/EndpointFormModal';
-import { RotateSecretModal } from '@/features/webhooks/components/RotateSecretModal';
-import { TestPingModal } from '@/features/webhooks/components/TestPingModal';
 import {
-  useArchiveRewardEndpoint,
   useCancelWebhookDelivery,
-  useEndpointStats,
   useRetryWebhookDelivery,
-  useRewardEndpoints,
   useWebhookDeliveries,
 } from '@/features/webhooks/webhooksApi';
 import { cn } from '@/lib/cn';
 import { formatRelativeDate } from '@/lib/format';
 import { toast } from '@/stores/toastStore';
-import type { RewardEndpoint, WebhookDelivery, WebhookDeliveryStatus } from '@/types/webhooks';
+import type { WebhookDelivery, WebhookDeliveryStatus } from '@/types/webhooks';
 import { WEBHOOK_EVENT_OPTIONS } from '@/types/webhooks';
 
-const tabs = ['Endpoints', 'Deliveries', 'Estadísticas', 'Guía de integración'] as const;
+const tabs = ['Configuración', 'Deliveries', 'Guía de integración'] as const;
 type Tab = (typeof tabs)[number];
 
 const deliveryStatuses: WebhookDeliveryStatus[] = ['pending', 'success', 'failed', 'retrying', 'cancelled'];
 
+function isValidHttpsUrl(value: string): boolean {
+  if (!value.trim()) return true;
+  try {
+    const url = new URL(value.trim());
+    return url.protocol === 'https:';
+  } catch {
+    return false;
+  }
+}
+
 export default function WebhooksPage() {
   const [params, setParams] = useSearchParams();
   const mock = params.get('mockState');
-  const initialTab = (params.get('tab') as Tab) || 'Endpoints';
-  const [tab, setTab] = useState<Tab>(tabs.includes(initialTab) ? initialTab : 'Endpoints');
+  const initialTab = (params.get('tab') as Tab) || 'Configuración';
+  const [tab, setTab] = useState<Tab>(tabs.includes(initialTab) ? initialTab : 'Configuración');
 
-  const endpointsQ = useRewardEndpoints();
-  const [endpointFilter, setEndpointFilter] = useState(params.get('endpoint_id') ?? '');
+  const configQ = useOperatorConfig();
+  const updateConfig = useUpdateOperatorConfig();
+
+  const [webhookUrl, setWebhookUrl] = useState('');
+  const [urlError, setUrlError] = useState<string | undefined>();
+
   const [statusFilter, setStatusFilter] = useState('');
   const [eventFilter, setEventFilter] = useState('');
   const [searchQ, setSearchQ] = useState('');
-  const [statsEndpointId, setStatsEndpointId] = useState('wh_ep_prod_01');
 
   const deliveriesQ = useWebhookDeliveries({
-    reward_endpoint_id: endpointFilter || undefined,
     status: statusFilter || undefined,
     event_type: eventFilter || undefined,
     q: searchQ || undefined,
   });
-  const statsQ = useEndpointStats(statsEndpointId, tab === 'Estadísticas');
 
-  const [formEndpoint, setFormEndpoint] = useState<RewardEndpoint | null | undefined>(undefined);
-  const [rotateEndpoint, setRotateEndpoint] = useState<RewardEndpoint | null>(null);
-  const [testEndpoint, setTestEndpoint] = useState<RewardEndpoint | null>(null);
   const [detailDelivery, setDetailDelivery] = useState<WebhookDelivery | null>(null);
   const [actionDelivery, setActionDelivery] = useState<WebhookDelivery | null>(null);
   const [actionMode, setActionMode] = useState<'retry' | 'cancel' | null>(null);
 
-  const archive = useArchiveRewardEndpoint();
   const retry = useRetryWebhookDelivery();
   const cancel = useCancelWebhookDelivery();
 
-  const switchTab = (t: Tab, extra?: Record<string, string>) => {
+  useEffect(() => {
+    if (configQ.data?.webhook_url !== undefined) {
+      setWebhookUrl(configQ.data.webhook_url ?? '');
+    }
+  }, [configQ.data?.webhook_url]);
+
+  const switchTab = (t: Tab) => {
     setTab(t);
     const next = new URLSearchParams(params);
     next.set('tab', t);
-    if (extra) Object.entries(extra).forEach(([k, v]) => next.set(k, v));
     setParams(next, { replace: true });
   };
-
-  const endpoints = mock === 'empty' ? [] : (endpointsQ.data ?? []);
-  const prod = endpoints.filter((e) => e.environment === 'production');
-  const test = endpoints.filter((e) => e.environment === 'test');
 
   const deliveryColumns: Column<WebhookDelivery>[] = useMemo(
     () => [
@@ -87,7 +90,6 @@ export default function WebhooksPage() {
         header: 'timestamp',
         render: (r) => <span className="text-[14px]">{formatRelativeDate(r.created_at)}</span>,
       },
-      { key: 'ep', header: 'endpoint', render: (r) => r.reward_endpoint_name ?? r.reward_endpoint_id },
       { key: 'ev', header: 'event', render: (r) => <span className="font-mono text-[13px]">{r.event_type}</span> },
       { key: 'pl', header: 'player', render: (r) => <span className="font-mono text-[13px]">{r.player_id}</span> },
       { key: 'st', header: 'status', render: (r) => r.status },
@@ -98,37 +100,28 @@ export default function WebhooksPage() {
     [],
   );
 
-  if (mock === 'empty') {
-    return (
-      <>
-        <PageHeader title="Webhooks" subtitle="Endpoints salientes, entregas y firma HMAC" />
-        <EmptyState
-          icon={Webhook}
-          title="Sin endpoints"
-          description="Configurá tu primer webhook para recibir premios y eventos de jugadores."
-          action={<Button variant="primary" onClick={() => setFormEndpoint(null)}>Nuevo endpoint</Button>}
-          hint="Tip: usá entorno test primero y verificá la firma HMAC con la documentación en /docs/bonus-delivery."
-        />
-        <EndpointFormModal open={formEndpoint === null} endpoint={null} onClose={() => setFormEndpoint(undefined)} onCreatedSecret={() => {}} />
-      </>
-    );
-  }
+  const handleSaveWebhook = async () => {
+    const trimmed = webhookUrl.trim();
+    if (!isValidHttpsUrl(trimmed)) {
+      setUrlError('La URL debe ser HTTPS válida (ej. https://operador.com/webhook)');
+      return;
+    }
+    setUrlError(undefined);
+    try {
+      await updateConfig.mutateAsync({ webhook_url: trimmed || null });
+    } catch {
+      toast.error('No se pudo guardar el webhook');
+    }
+  };
 
-  if (mock === 'loading' || endpointsQ.isLoading) return <Loading label="Cargando webhooks..." />;
-  if (mock === 'error' || endpointsQ.isError) return <ErrorState onRetry={() => endpointsQ.refetch()} />;
+  if (mock === 'loading' || configQ.isLoading) return <Loading label="Cargando webhooks..." />;
+  if (mock === 'error' || configQ.isError) return <ErrorState onRetry={() => configQ.refetch()} />;
 
   return (
     <>
       <PageHeader
         title="Webhooks"
-        subtitle="Integración técnica: endpoints HTTPS, eventos, HMAC, reintentos y logs de entrega"
-        actions={
-          tab === 'Endpoints' ? (
-            <Button variant="primary" icon={<Plus size={14} />} onClick={() => setFormEndpoint(null)}>
-              Nuevo endpoint
-            </Button>
-          ) : undefined
-        }
+        subtitle="Un endpoint HTTPS por operador para recibir premios y eventos de jugadores"
       />
 
       <div className="mb-4 flex flex-wrap gap-2 border-b border-border-subtle">
@@ -147,43 +140,42 @@ export default function WebhooksPage() {
         ))}
       </div>
 
-      {tab === 'Endpoints' && (
-        <div className="space-y-8">
-          {(
-            [
-              { label: 'Producción', list: prod },
-              { label: 'Test', list: test },
-            ] as const
-          ).map(({ label, list }) => (
-            <section key={label}>
-              <h3 className="label-section mb-3">{label}</h3>
-              <div className="grid gap-4 lg:grid-cols-2">
-                {list.map((ep) => (
-                  <EndpointCard
-                    key={ep.id}
-                    endpoint={ep}
-                    onEdit={() => setFormEndpoint(ep)}
-                    onTest={() => setTestEndpoint(ep)}
-                    onDeliveries={() => {
-                      setEndpointFilter(ep.id);
-                      switchTab('Deliveries', { endpoint_id: ep.id });
-                    }}
-                    onStats={() => {
-                      setStatsEndpointId(ep.id);
-                      switchTab('Estadísticas');
-                    }}
-                    onRotate={() => setRotateEndpoint(ep)}
-                    onArchive={() => void archive.mutateAsync(ep.id)}
-                  />
-                ))}
-              </div>
-            </section>
-          ))}
-        </div>
+      {tab === 'Configuración' && (
+        <ConfiguratorScaffold>
+          <ConfigSection icon={<Webhook size={16} />} title="endpoint del operador">
+            <p className="mb-4 text-[15px] text-text-secondary">
+              El backend envía notificaciones POST a esta URL cuando ocurren premios o eventos relevantes. Solo podés
+              configurar un webhook por operador.
+            </p>
+            <label className="block">
+              <span className="mb-1 block text-[14px] text-text-secondary">webhook_url</span>
+              <input
+                className="field font-mono text-[14px]"
+                placeholder="https://operador.com/webhook"
+                value={webhookUrl}
+                onChange={(e) => {
+                  setWebhookUrl(e.target.value);
+                  setUrlError(undefined);
+                }}
+              />
+            </label>
+            {urlError && <p className="mt-2 text-[14px] text-danger">{urlError}</p>}
+            <div className="mt-4 flex flex-wrap gap-2">
+              <Button variant="primary" icon={<Save size={14} />} loading={updateConfig.isPending} onClick={() => void handleSaveWebhook()}>
+                Guardar
+              </Button>
+            </div>
+          </ConfigSection>
+        </ConfiguratorScaffold>
       )}
 
       {tab === 'Deliveries' && (
         <div>
+          {!webhookUrl.trim() && mock !== 'empty' && (
+            <p className="mb-4 rounded-lg border border-warning/30 bg-warning/10 px-3 py-2 text-[14px] text-warning">
+              Configurá un webhook_url en la pestaña Configuración para empezar a recibir entregas.
+            </p>
+          )}
           <Toolbar
             search={
               <input
@@ -195,18 +187,6 @@ export default function WebhooksPage() {
             }
             filters={
               <>
-                <select
-                  className="rounded-lg border border-border-subtle bg-bg-tertiary px-2 py-1.5 text-[14px]"
-                  value={endpointFilter}
-                  onChange={(e) => setEndpointFilter(e.target.value)}
-                >
-                  <option value="">Todos los endpoints</option>
-                  {endpoints.map((e) => (
-                    <option key={e.id} value={e.id}>
-                      {e.name}
-                    </option>
-                  ))}
-                </select>
                 {deliveryStatuses.map((s) => (
                   <FilterPill
                     key={s}
@@ -230,137 +210,70 @@ export default function WebhooksPage() {
               </>
             }
           />
-          <Table
-            columns={[
-              ...deliveryColumns,
-              {
-                key: 'actions',
-                header: '',
-                render: (row) => (
-              <div className="flex gap-1" onClick={(e) => e.stopPropagation()} role="presentation">
-                {row.status === 'failed' && (
-                  <Button
-                    size="sm"
-                    variant="ghost"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setActionDelivery(row);
-                      setActionMode('retry');
-                    }}
-                  >
-                    Retry
-                  </Button>
-                )}
-                {(row.status === 'pending' || row.status === 'retrying') && (
-                  <Button
-                    size="sm"
-                    variant="ghost"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setActionDelivery(row);
-                      setActionMode('cancel');
-                    }}
-                  >
-                    Cancel
-                  </Button>
-                )}
-                <Button
-                  size="sm"
-                  variant="ghost"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    void copyToClipboard(row.event_id).then((ok) => ok && toast.success('event_id copiado'));
-                  }}
-                >
-                  Copy id
-                </Button>
-                  </div>
-                ),
-              },
-            ]}
-            rows={deliveriesQ.data ?? []}
-            rowKey={(row) => row.id}
-            onRowClick={(row) => setDetailDelivery(row)}
-          />
-        </div>
-      )}
-
-      {tab === 'Estadísticas' && (
-        <div className="space-y-5">
-          <select
-            className="rounded-lg border border-border-subtle bg-bg-tertiary px-3 py-2 text-[15px]"
-            value={statsEndpointId}
-            onChange={(e) => setStatsEndpointId(e.target.value)}
-          >
-            {endpoints.map((e) => (
-              <option key={e.id} value={e.id}>
-                {e.name}
-              </option>
-            ))}
-          </select>
-          {statsQ.data && (
-            <>
-              <div className="grid grid-cols-5 gap-3 max-lg:grid-cols-2 max-md:grid-cols-1">
-                {[
-                  ['Total', statsQ.data.total_deliveries],
-                  ['Éxito %', statsQ.data.success_rate],
-                  ['Fallidos', statsQ.data.failed_count],
-                  ['Latencia media', `${statsQ.data.avg_latency_ms}ms`],
-                  ['P95', `${statsQ.data.p95_latency_ms}ms`],
-                ].map(([label, value]) => (
-                  <div key={String(label)} className="rounded-lg border border-border-subtle bg-bg-secondary p-4">
-                    <p className="label-section mb-1">{label}</p>
-                    <p className="text-mono text-[19px] font-bold">{value}</p>
-                  </div>
-                ))}
-              </div>
-              <div>
-                <p className="label-section mb-2">Deliveries por hora</p>
-                <div className="flex h-32 items-end gap-1">
-                  {statsQ.data.deliveries_by_hour.slice(0, 24).map((h) => {
-                    const max = Math.max(...statsQ.data!.deliveries_by_hour.map((x) => x.success + x.failed), 1);
-                    return (
-                      <div key={h.hour} className="flex flex-1 flex-col justify-end gap-0.5" title={h.hour}>
-                        <div
-                          className="bg-success/70"
-                          style={{ height: `${(h.success / max) * 100}%`, minHeight: h.success ? 4 : 0 }}
-                        />
-                        <div
-                          className="bg-danger/70"
-                          style={{ height: `${(h.failed / max) * 100}%`, minHeight: h.failed ? 4 : 0 }}
-                        />
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
-              <div>
-                <p className="label-section mb-2">Eventos más frecuentes</p>
-                <div className="space-y-2">
-                  {statsQ.data.events_by_type.map((e) => (
-                    <div key={e.event_type} className="flex items-center gap-2 text-[14px]">
-                      <span className="w-48 font-mono">{e.event_type}</span>
-                      <div className="h-2 flex-1 rounded bg-bg-tertiary">
-                        <div
-                          className="h-2 rounded bg-accent"
-                          style={{ width: `${(e.count / statsQ.data!.total_deliveries) * 100}%` }}
-                        />
-                      </div>
-                      <span className="text-mono w-10 text-right">{e.count}</span>
+          {deliveriesQ.isLoading ? (
+            <Loading label="Cargando deliveries..." />
+          ) : deliveriesQ.isError ? (
+            <ErrorState onRetry={() => deliveriesQ.refetch()} />
+          ) : (
+            <Table
+              columns={[
+                ...deliveryColumns,
+                {
+                  key: 'actions',
+                  header: '',
+                  render: (row) => (
+                    <div className="flex gap-1" onClick={(e) => e.stopPropagation()} role="presentation">
+                      {row.status === 'failed' && (
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setActionDelivery(row);
+                            setActionMode('retry');
+                          }}
+                        >
+                          Retry
+                        </Button>
+                      )}
+                      {(row.status === 'pending' || row.status === 'retrying') && (
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setActionDelivery(row);
+                            setActionMode('cancel');
+                          }}
+                        >
+                          Cancel
+                        </Button>
+                      )}
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          void copyToClipboard(row.event_id).then((ok) => ok && toast.success('event_id copiado'));
+                        }}
+                      >
+                        Copy id
+                      </Button>
                     </div>
-                  ))}
-                </div>
-              </div>
-              <Table
-                columns={[
-                  { key: 'code', header: 'HTTP', render: (r) => r.status_code },
-                  { key: 'cnt', header: 'count', render: (r) => r.count },
-                  { key: 'msg', header: 'message', render: (r) => r.message },
-                ]}
-                rows={statsQ.data.common_errors}
-                rowKey={(r) => String(r.status_code)}
-              />
-            </>
+                  ),
+                },
+              ]}
+              rows={mock === 'empty' ? [] : (deliveriesQ.data ?? [])}
+              rowKey={(row) => row.id}
+              onRowClick={(row) => setDetailDelivery(row)}
+              emptyState={
+                <EmptyState
+                  icon={Zap}
+                  title="Sin entregas"
+                  description="Cuando el backend dispare eventos al webhook_url configurado, aparecerán acá."
+                />
+              }
+            />
           )}
         </div>
       )}
@@ -368,8 +281,8 @@ export default function WebhooksPage() {
       {tab === 'Guía de integración' && (
         <article className="prose-sm max-w-3xl space-y-6 text-[15px] text-text-secondary">
           <p>
-            Los webhooks notifican a tu backend cuando ocurren premios o eventos de jugadores. Firmá cada payload con
-            HMAC SHA-256 usando el secret que generamos al crear el endpoint.
+            Configurá <code>webhook_url</code> con una URL HTTPS de tu backend. El operador recibe payloads firmados con
+            HMAC SHA-256 cuando hay premios o eventos de jugadores.
           </p>
           <section>
             <h3 className="text-[14px] font-semibold text-text-primary">Verificar firma HMAC</h3>
@@ -390,9 +303,13 @@ if (sig !== \`sha256=\${expected}\`) throw new Error('Invalid signature');`}</pr
           </section>
           <section>
             <h3 className="text-[14px] font-semibold text-text-primary">Respuestas y reintentos</h3>
-            <p>Respondé 2xx para éxito. Otros códigos disparan reintentos con backoff exponencial/lineal/fijo.</p>
+            <p>Respondé 2xx para éxito. Otros códigos disparan reintentos con backoff exponencial.</p>
             <p className="mt-2">
-              También podés generar API keys en <Link to="/api-keys" className="text-accent hover:underline">API Keys</Link>.
+              También podés generar API keys en{' '}
+              <Link to="/api-keys" className="text-accent hover:underline">
+                API Keys
+              </Link>
+              .
             </p>
           </section>
           <section>
@@ -408,14 +325,6 @@ if (sig !== \`sha256=\${expected}\`) throw new Error('Invalid signature');`}</pr
         </article>
       )}
 
-      <EndpointFormModal
-        open={formEndpoint !== undefined}
-        endpoint={formEndpoint ?? null}
-        onClose={() => setFormEndpoint(undefined)}
-        onCreatedSecret={() => endpointsQ.refetch()}
-      />
-      <RotateSecretModal open={Boolean(rotateEndpoint)} endpoint={rotateEndpoint} onClose={() => setRotateEndpoint(null)} />
-      <TestPingModal open={Boolean(testEndpoint)} endpoint={testEndpoint} onClose={() => setTestEndpoint(null)} />
       <DeliveryDetailModal open={Boolean(detailDelivery)} delivery={detailDelivery} onClose={() => setDetailDelivery(null)} />
       <DeliveryActionModal
         open={Boolean(actionMode)}
