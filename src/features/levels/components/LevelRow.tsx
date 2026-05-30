@@ -3,6 +3,7 @@ import { Button } from '@/components/ui/Button';
 import { IconButton } from '@/components/ui/IconButton';
 import { Switch } from '@/components/ui/Switch';
 import { FieldHint } from '@/components/ui/FieldHint';
+import { toast } from '@/stores/toastStore';
 import type { LevelEntry } from '@/types/levels';
 import { LEVEL_BADGE_UPLOAD_HINT } from '@/features/levels/levelBadgeUpload';
 import {
@@ -18,7 +19,7 @@ type Props = {
   canDelete: boolean;
   onChange: (next: LevelEntry) => void;
   onDelete: () => void;
-  onPickBadge: (file: File) => Promise<string>;
+  onPickBadge: (file: File) => Promise<string | null>;
 };
 
 export function LevelRow({ displayLevel, row, prevXp, canDelete, onChange, onDelete, onPickBadge }: Props) {
@@ -64,9 +65,14 @@ export function LevelRow({ displayLevel, row, prevXp, canDelete, onChange, onDel
               onChange={async (e) => {
                 const file = e.target.files?.[0];
                 if (!file) return;
-                const url = await onPickBadge(file);
-                onChange({ ...row, badgeImageUrl: url });
-                e.target.value = '';
+                try {
+                  const url = await onPickBadge(file);
+                  if (url) onChange({ ...row, badgeImageUrl: url });
+                } catch (err) {
+                  toast.error(err instanceof Error ? err.message : 'Error al subir');
+                } finally {
+                  e.target.value = '';
+                }
               }}
             />
             Subir

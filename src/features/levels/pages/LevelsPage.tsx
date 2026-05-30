@@ -55,22 +55,30 @@ export default function LevelsPage() {
   const current = draft ?? q.data ?? null;
   const invalidMsg = useMemo(() => (current ? validateCurve(current.levels) : null), [current]);
 
-  const uploadBadge = async (file: File) => {
-    const validation = await validateLevelBadgeFile(file);
-    if (!validation.ok) {
-      toast.error(validation.error ?? 'Imagen inválida');
-      throw new Error(validation.error);
+  const uploadBadge = async (file: File): Promise<string | null> => {
+    try {
+      const validation = await validateLevelBadgeFile(file);
+      if (!validation.ok) {
+        toast.error(validation.error ?? 'Imagen inválida');
+        return null;
+      }
+      if (validation.warning) {
+        toast.warning(validation.warning);
+      }
+      const fd = new FormData();
+      fd.append('file', file);
+      const res = await apiClient.post('/admin/storage/upload', fd);
+      const raw = unwrapData<{ url?: string; public_url?: string }>(res.data);
+      const url = normalizeBadgeUrl(raw.url ?? raw.public_url);
+      if (!url) {
+        toast.error('La URL de la insignia debe ser HTTPS');
+        return null;
+      }
+      return url;
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Error al subir');
+      return null;
     }
-    const fd = new FormData();
-    fd.append('file', file);
-    const res = await apiClient.post('/admin/storage/upload', fd);
-    const raw = unwrapData<{ url?: string; public_url?: string }>(res.data);
-    const url = normalizeBadgeUrl(raw.url ?? raw.public_url);
-    if (!url) {
-      toast.error('La URL de la insignia debe ser HTTPS');
-      throw new Error('URL inválida');
-    }
-    return url;
   };
 
   const setLevels = (levels: LevelEntry[]) => {

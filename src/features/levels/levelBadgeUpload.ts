@@ -1,8 +1,17 @@
 const MAX_BYTES = 1024 * 1024;
-const MIN_DIM = 128;
+const MIN_DIM = 32;
+const RECOMMENDED_DIM = 128;
 
-export const LEVEL_BADGE_UPLOAD_HINT =
-  'PNG/SVG cuadrado. Mín 128x128. Máx 1MB. HTTPS only.';
+export const LEVEL_BADGE_UPLOAD_HINT = 'PNG o SVG. Cuadrado recomendado. Máx 1MB.';
+
+export const LEVEL_BADGE_SMALL_IMAGE_WARNING =
+  'Imagen pequeña, puede verse pixelada en niveles altos';
+
+export type LevelBadgeValidationResult = {
+  ok: boolean;
+  error?: string;
+  warning?: string;
+};
 
 function loadImageDimensions(file: File): Promise<{ width: number; height: number }> {
   return new Promise((resolve, reject) => {
@@ -28,7 +37,7 @@ function isSvg(file: File): boolean {
   return file.type === 'image/svg+xml' || /\.svg$/i.test(file.name);
 }
 
-export async function validateLevelBadgeFile(file: File): Promise<{ ok: boolean; error?: string }> {
+export async function validateLevelBadgeFile(file: File): Promise<LevelBadgeValidationResult> {
   if (!isPng(file) && !isSvg(file)) {
     return { ok: false, error: 'Formato no soportado. Usá PNG o SVG.' };
   }
@@ -39,19 +48,22 @@ export async function validateLevelBadgeFile(file: File): Promise<{ ok: boolean;
 
   try {
     const { width, height } = await loadImageDimensions(file);
-    if (width < MIN_DIM || height < MIN_DIM) {
-      return {
-        ok: false,
-        error: `La imagen debe medir al menos ${MIN_DIM}×${MIN_DIM} px (recibido: ${width}×${height}).`,
-      };
-    }
-    if (width !== height) {
-      return { ok: false, error: 'La insignia debe ser cuadrada (mismo ancho y alto).' };
-    }
-    return { ok: true };
+    return badgeDimensionCheck(width, height);
   } catch {
     return { ok: false, error: 'No se pudo validar la imagen. Probá con otro archivo.' };
   }
+}
+
+export function badgeDimensionCheck(width: number, height: number): LevelBadgeValidationResult {
+  if (width < MIN_DIM || height < MIN_DIM) {
+    return {
+      ok: false,
+      error: `La imagen debe medir al menos ${MIN_DIM}×${MIN_DIM} px (recibido: ${width}×${height}).`,
+    };
+  }
+  const warning =
+    width < RECOMMENDED_DIM || height < RECOMMENDED_DIM ? LEVEL_BADGE_SMALL_IMAGE_WARNING : undefined;
+  return { ok: true, warning };
 }
 
 export function normalizeBadgeUrl(url?: string | null): string | undefined {
