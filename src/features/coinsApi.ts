@@ -3,6 +3,7 @@ import { apiClient } from '@/api/client';
 import { getApiErrorMessage } from '@/api/errors';
 import { unwrapData } from '@/api/response';
 import { multipartRequestConfig } from '@/lib/multipartUpload';
+import { resolveCoinIconUrlForBackend } from '@/lib/coinPlaceholder';
 import { toast } from '@/stores/toastStore';
 import type { Coin, CoinsGlobalRules } from '@/types/coins';
 
@@ -26,16 +27,14 @@ export interface OperatorCurrency {
  *   BO `active`              → backend `is_active`
  *
  * Backend requiere `icon_url` (URL HTTPS) en create. Si BO no sube imagen
- * usamos un placeholder S3 hasta que el operador la edite.
+ * usamos el placeholder bundleado del BO (absoluto HTTPS en runtime).
  */
 function adaptCoinForBackend(payload: Partial<Coin>): Record<string, unknown> {
   const earning_mode =
     payload.deliveryMode === 'auto_xp' || payload.deliveryMode === undefined ? 'auto' : 'manual';
   const xp_per_unit =
     earning_mode === 'auto' ? payload.xpPerUnit ?? 1 : null;
-  const icon_url =
-    payload.imageUrl?.trim() ||
-    'https://cdn.social2game.com/defaults/coin-placeholder.png';
+  const icon_url = resolveCoinIconUrlForBackend(payload.imageUrl);
   const body: Record<string, unknown> = {
     code: (payload.symbol || payload.name || 'COIN').trim().toUpperCase().slice(0, 50),
     name: (payload.name || payload.symbol || 'Coin').trim().slice(0, 100),

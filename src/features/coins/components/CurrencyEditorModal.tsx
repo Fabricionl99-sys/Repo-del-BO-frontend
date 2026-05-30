@@ -3,6 +3,7 @@ import { Button } from '@/components/ui/Button';
 import { Modal } from '@/components/ui/Modal';
 import { Switch } from '@/components/ui/Switch';
 import { COIN_ICON_REQUIREMENTS_LABEL, validateCoinIconFile } from '@/lib/coinIconUpload';
+import { resolveCoinDisplayIconUrl } from '@/lib/coinPlaceholder';
 import { useSaveCoin, useUploadCoinImage } from '@/features/coinsApi';
 import { toast } from '@/stores/toastStore';
 import type { Coin, CoinCaps, CoinDeliveryMode, CoinP2PConfig } from '@/types/coins';
@@ -121,9 +122,11 @@ export function CurrencyEditorModal({ open, onClose, initial }: Props) {
         <div>
           <span className="mb-1.5 block text-[14px] text-text-secondary">Imagen</span>
           <div className="flex flex-wrap items-center gap-3">
-            {imageUrl ? (
-              <img src={imageUrl} alt="" className="h-16 w-16 rounded-lg border border-border-subtle object-cover" />
-            ) : null}
+            <img
+              src={resolveCoinDisplayIconUrl(imageUrl)}
+              alt=""
+              className="h-16 w-16 rounded-lg border border-border-subtle object-cover"
+            />
             <label className="cursor-pointer rounded-lg border border-border-default bg-bg-tertiary px-3 py-2 text-[14px] hover:border-accent/40">
               <input
                 type="file"

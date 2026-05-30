@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import type { Coin } from '@/types/coins';
+import { resolveCoinDisplayIconUrl } from '@/lib/coinPlaceholder';
 
 function currencyInitials(name: string, symbol: string): string {
   const fromSymbol = symbol.trim().slice(0, 2).toUpperCase();
@@ -17,9 +18,9 @@ function hashColor(seed: string): string {
 
 export function CurrencyIcon({ coin }: { coin: Coin }) {
   const [imgFailed, setImgFailed] = useState(false);
-  const url = coin.imageUrl?.trim();
+  const url = resolveCoinDisplayIconUrl(coin.imageUrl);
 
-  if (url && !imgFailed) {
+  if (!imgFailed) {
     return (
       <img
         src={url}

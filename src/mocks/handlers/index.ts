@@ -1,4 +1,5 @@
 import { delay, http, HttpResponse } from 'msw';
+import { COIN_PLACEHOLDER_SRC } from '@/lib/coinPlaceholder';
 import { metricsByPeriod, activity, systemStatus } from '@/mocks/data/dashboard';
 import { mockInternalMetrics } from '@/mocks/data/internalMetrics';
 import { teamMembers } from '@/mocks/data/team';
@@ -197,7 +198,7 @@ handlers.push(
         id: c.id,
         code: c.symbol,
         name: c.name,
-        icon_url: c.imageUrl ?? 'https://cdn.social2game.com/defaults/coin-placeholder.png',
+        icon_url: c.imageUrl ?? COIN_PLACEHOLDER_SRC,
         earning_mode: c.deliveryMode === 'manual' ? 'manual' : 'auto',
         xp_per_unit: c.xpPerUnit,
         is_active: c.active,
@@ -273,7 +274,7 @@ handlers.push(
       );
     }
     return HttpResponse.json({
-      data: { url: 'https://cdn.social2game.com/defaults/coin-placeholder.png' },
+      data: { url: 'https://images.unsplash.com/photo-1529626455594-4ff0802cfb7e?w=256&h=256&fit=crop' },
     });
   }),
   http.get('*/admin/curve', async () => {
