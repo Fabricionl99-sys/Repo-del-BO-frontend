@@ -62,6 +62,8 @@ export interface RewardFormFields {
   avatar_pack_id: string;
   wheel_type_code: string;
   wheel_quantity: number;
+  freespin_quantity: number;
+  freespin_game_code: string;
   manual_description: string;
 }
 
@@ -80,6 +82,8 @@ export function defaultRewardFormFields(rewardType: RewardTypeCode = 'coins'): R
     avatar_pack_id: '',
     wheel_type_code: '',
     wheel_quantity: 1,
+    freespin_quantity: 10,
+    freespin_game_code: '',
     manual_description: '',
   };
 }
@@ -108,7 +112,15 @@ export function rewardValueToForm(value: RewardValue): RewardFormFields {
         coins_amount: Number(cfg.amount ?? 1000),
         coins_currency_code: String(cfg.currency_code ?? 'main'),
       };
-    case 'freespin':
+    case 'freespin': {
+      const bonusId = String(cfg.bonus_id ?? cfg.external_bonus_id ?? '');
+      return {
+        ...base,
+        bonus_id: bonusId,
+        freespin_quantity: Number(cfg.quantity ?? 10),
+        freespin_game_code: String(cfg.game_code ?? cfg.game_id ?? ''),
+      };
+    }
     case 'freebet':
     case 'cashback':
     case 'bonus_deposit': {
@@ -163,7 +175,18 @@ export function formToRewardValue(
         },
         currency_mode,
       };
-    case 'freespin':
+    case 'freespin': {
+      const bonusId = resolveOperatorBonusId(fields.bonus_id, context?.operator_bonuses);
+      return {
+        reward_type: 'freespin',
+        reward_config: {
+          ...buildBackendBonusRewardConfig('freespin', { bonus_id: bonusId }),
+          quantity: fields.freespin_quantity,
+          game_code: fields.freespin_game_code.trim(),
+        },
+        currency_mode,
+      };
+    }
     case 'freebet':
     case 'cashback':
     case 'bonus_deposit': {
@@ -268,6 +291,8 @@ export const rewardFormFieldsSchema = z
     avatar_pack_id: z.string(),
     wheel_type_code: z.string(),
     wheel_quantity: z.number().int().min(1),
+    freespin_quantity: z.number().int().min(1),
+    freespin_game_code: z.string(),
     manual_description: z.string(),
   })
   .superRefine((values, ctx) => {
@@ -295,6 +320,16 @@ export function validateRewardFormFields(
       }
       break;
     case 'freespin':
+      if (!values.bonus_id.trim()) {
+        ctx.addIssue({ code: 'custom', path: [path('bonus_id')], message: 'Seleccioná un bono del catálogo' });
+      }
+      if (values.freespin_quantity <= 0) {
+        ctx.addIssue({ code: 'custom', path: [path('freespin_quantity')], message: 'Cantidad de spins requerida' });
+      }
+      if (!values.freespin_game_code.trim()) {
+        ctx.addIssue({ code: 'custom', path: [path('freespin_game_code')], message: 'game_code requerido' });
+      }
+      break;
     case 'freebet':
     case 'cashback':
     case 'bonus_deposit':

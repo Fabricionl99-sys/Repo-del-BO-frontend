@@ -8,6 +8,8 @@ describe('rewardForm', () => {
       {
         ...rewardValueToForm({ reward_type: 'freespin', reward_config: {} }),
         bonus_id: '550e8400-e29b-41d4-a716-446655440000',
+        freespin_quantity: 25,
+        freespin_game_code: 'book_of_dead',
       },
       {
         operator_bonuses: [
@@ -33,6 +35,8 @@ describe('rewardForm', () => {
     expect(value.reward_config).toEqual({
       kind: 'freespin',
       bonus_id: '550e8400-e29b-41d4-a716-446655440000',
+      quantity: 25,
+      game_code: 'book_of_dead',
     });
   });
 

@@ -18,6 +18,7 @@ import {
   type RewardFormFields,
 } from '@/features/rewards/rewardForm';
 import { useRewardOperatorContext } from '@/features/rewards/useRewardOperatorContext';
+import { rewardFieldErrorMessage } from '@/lib/formErrors';
 import { cn } from '@/lib/cn';
 import type { OperatorBonusStatus } from '@/types/operatorBonuses';
 import type { RewardModuleKey, RewardOperatorContext, RewardTypeCode, RewardValue } from '@/types/rewards';
@@ -36,6 +37,7 @@ export interface RewardSelectorProps {
   availableRewardTypes?: RewardTypeCode[];
   operatorContext?: RewardOperatorContext;
   disabled?: boolean;
+  fieldErrors?: Partial<Record<keyof RewardFormFields, { message?: string }>>;
 }
 
 function patchFields(
@@ -53,6 +55,7 @@ export function RewardSelector({
   availableRewardTypes,
   operatorContext: contextProp,
   disabled = false,
+  fieldErrors,
 }: RewardSelectorProps) {
   const { context: fetchedContext, isLoading } = useRewardOperatorContext();
   const { isBonusTypeActive, capabilityDisabledTooltip } = useCapabilityChecks();
@@ -88,6 +91,7 @@ export function RewardSelector({
   const selectedBonus = context.operator_bonuses.find((b) => b.id === fields.bonus_id);
   const showCurrencyMode = isCurrencyAwareRewardType(fields.reward_type);
   const currencies = context.active_currencies.length > 0 ? context.active_currencies : ['USD', 'ARS', 'EUR'];
+  const err = (key: keyof RewardFormFields) => rewardFieldErrorMessage(fieldErrors, key);
 
   return (
     <div className="space-y-4">
@@ -167,6 +171,7 @@ export function RewardSelector({
             value={fields.xp_amount}
             onChange={(e) => update({ xp_amount: Number(e.target.value) })}
           />
+          {err('xp_amount') && <p className="mt-1 text-[13px] text-danger">{err('xp_amount')}</p>}
         </div>
       )}
 
@@ -182,6 +187,7 @@ export function RewardSelector({
               value={fields.coins_amount}
               onChange={(e) => update({ coins_amount: Number(e.target.value) })}
             />
+            {err('coins_amount') && <p className="mt-1 text-[13px] text-danger">{err('coins_amount')}</p>}
           </div>
           <div>
             <label className="mb-1.5 block text-[14px] text-text-secondary">Moneda del operador</label>
@@ -201,6 +207,41 @@ export function RewardSelector({
                 ))
               )}
             </select>
+            {err('coins_currency_code') && (
+              <p className="mt-1 text-[13px] text-danger">{err('coins_currency_code')}</p>
+            )}
+          </div>
+        </div>
+      )}
+
+      {fields.reward_type === 'freespin' && (
+        <div className="grid gap-3 sm:grid-cols-2">
+          <div>
+            <label className="mb-1.5 block text-[14px] text-text-secondary">Cantidad de spins</label>
+            <input
+              type="number"
+              min={1}
+              className="field"
+              disabled={disabled}
+              value={fields.freespin_quantity}
+              onChange={(e) => update({ freespin_quantity: Number(e.target.value) })}
+            />
+            {err('freespin_quantity') && (
+              <p className="mt-1 text-[13px] text-danger">{err('freespin_quantity')}</p>
+            )}
+          </div>
+          <div>
+            <label className="mb-1.5 block text-[14px] text-text-secondary">game_code</label>
+            <input
+              className="field font-mono text-[14px]"
+              disabled={disabled}
+              value={fields.freespin_game_code}
+              onChange={(e) => update({ freespin_game_code: e.target.value })}
+              placeholder="book_of_dead"
+            />
+            {err('freespin_game_code') && (
+              <p className="mt-1 text-[13px] text-danger">{err('freespin_game_code')}</p>
+            )}
           </div>
         </div>
       )}
@@ -209,7 +250,13 @@ export function RewardSelector({
         <div>
           <label className="mb-1.5 flex items-center text-[14px] text-text-secondary">
             Bono del catálogo
-            <FieldHint text="Si no aparecen bonos, primero configurá tu integración en Operaciones > Bonos y hacé clic en 'Sync ahora'." />
+            <FieldHint
+              text={
+                fields.reward_type === 'freespin'
+                  ? 'ID del bono en TU plataforma de iGaming (ej: el ID que te dio Pragmatic Play / NetEnt / etc). Social2Game lo envía a tu webhook cuando el jugador gana el premio.'
+                  : 'Si no aparecen bonos, primero configurá tu integración en Operaciones > Bonos y hacé clic en Sync ahora.'
+              }
+            />
           </label>
           {isLoading ? (
             <p className="text-[13px] text-text-tertiary">Cargando bonos…</p>
@@ -253,6 +300,7 @@ export function RewardSelector({
               )}
             </>
           )}
+          {err('bonus_id') && <p className="mt-1 text-[13px] text-danger">{err('bonus_id')}</p>}
         </div>
       )}
 
@@ -273,6 +321,9 @@ export function RewardSelector({
                 </option>
               ))}
             </select>
+            {err('chest_type_code') && (
+              <p className="mt-1 text-[13px] text-danger">{err('chest_type_code')}</p>
+            )}
           </div>
           <div>
             <label className="mb-1.5 block text-[14px] text-text-secondary">Cantidad</label>
@@ -299,6 +350,7 @@ export function RewardSelector({
               onChange={(e) => update({ avatar_ids: e.target.value })}
               placeholder="av_1, av_2"
             />
+            {err('avatar_ids') && <p className="mt-1 text-[13px] text-danger">{err('avatar_ids')}</p>}
           </div>
           <div>
             <label className="mb-1.5 block text-[14px] text-text-secondary">O pack_id</label>
@@ -335,6 +387,9 @@ export function RewardSelector({
                 </option>
               ))}
             </select>
+            {err('wheel_type_code') && (
+              <p className="mt-1 text-[13px] text-danger">{err('wheel_type_code')}</p>
+            )}
           </div>
           <div>
             <label className="mb-1.5 block text-[14px] text-text-secondary">Cantidad de giros</label>
@@ -359,6 +414,9 @@ export function RewardSelector({
             value={fields.manual_description}
             onChange={(e) => update({ manual_description: e.target.value })}
           />
+          {err('manual_description') && (
+            <p className="mt-1 text-[13px] text-danger">{err('manual_description')}</p>
+          )}
         </div>
       )}
 

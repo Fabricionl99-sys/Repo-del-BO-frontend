@@ -1,5 +1,5 @@
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useForm, useWatch } from 'react-hook-form';
 
 import { MediaUploaderRhf } from '@/components/media/MediaUploaderRhf';
@@ -14,6 +14,9 @@ import {
   prizeToForm,
   type ChestPrizeFormValues,
 } from '@/features/chests/chestPrizeForm';
+import type { RewardFormFields } from '@/features/rewards/rewardForm';
+import { formatFieldErrors } from '@/lib/formErrors';
+import { toast } from '@/stores/toastStore';
 import type { ChestPrize } from '@/types/chests';
 
 export function ChestPrizeFormModal({
@@ -27,23 +30,44 @@ export function ChestPrizeFormModal({
   onClose: () => void;
   onSave: (payload: ReturnType<typeof formToPrizePayload>, prizeId?: string) => Promise<void>;
 }) {
+  const [saving, setSaving] = useState(false);
+
   const form = useForm<ChestPrizeFormValues>({
     resolver: zodResolver(chestPrizeFormSchema),
     defaultValues: defaultChestPrizeForm(),
   });
 
-  const { register, handleSubmit, reset, setValue, control, formState: { errors } } = form;
+  const {
+    register,
+    handleSubmit,
+    reset,
+    setValue,
+    control,
+    formState: { errors },
+  } = form;
+
   const isRare = useWatch({ control, name: 'is_rare' });
+  const rewardFieldErrors = errors.reward as Partial<Record<keyof RewardFormFields, { message?: string }>> | undefined;
 
   useEffect(() => {
     if (!open) return;
     reset(prize ? prizeToForm(prize) : defaultChestPrizeForm());
   }, [open, prize, reset]);
 
-  const submit = handleSubmit(async (values) => {
-    await onSave(formToPrizePayload(values), prize?.id);
-    onClose();
-  });
+  const submit = handleSubmit(
+    async (values) => {
+      setSaving(true);
+      try {
+        await onSave(formToPrizePayload(values), prize?.id);
+        onClose();
+      } finally {
+        setSaving(false);
+      }
+    },
+    (fieldErrors) => {
+      toast.error(formatFieldErrors(fieldErrors));
+    },
+  );
 
   return (
     <Modal
@@ -54,12 +78,16 @@ export function ChestPrizeFormModal({
       size="md"
       footer={
         <>
-          <Button variant="ghost" onClick={onClose}>Cancelar</Button>
-          <Button variant="primary" onClick={submit}>Guardar premio</Button>
+          <Button variant="ghost" onClick={onClose} disabled={saving}>
+            Cancelar
+          </Button>
+          <Button variant="primary" type="submit" form="chest-prize-form" loading={saving}>
+            Guardar premio
+          </Button>
         </>
       }
     >
-      <div className="space-y-4">
+      <form id="chest-prize-form" className="space-y-4" onSubmit={submit} noValidate>
         <div>
           <label className="mb-1.5 block text-[14px] text-text-secondary">name (visible al jugador)</label>
           <input className="field" {...register('name')} />
@@ -75,7 +103,15 @@ export function ChestPrizeFormModal({
             compact
           />
         </div>
-        <RewardSelectorRhf moduleKey="chests" control={control} name="reward" />
+        <RewardSelectorRhf
+          moduleKey="chests"
+          control={control}
+          name="reward"
+          fieldErrors={rewardFieldErrors}
+        />
+        {errors.reward?.message && (
+          <p className="text-[13px] text-danger">{errors.reward.message}</p>
+        )}
         <div>
           <label className="mb-1.5 block text-[14px] text-text-secondary">probability_percent</label>
           <input
@@ -94,7 +130,7 @@ export function ChestPrizeFormModal({
           <span className="text-[14px] text-text-secondary">Premio raro (pity)</span>
           <Switch checked={isRare} onChange={(v) => setValue('is_rare', v)} />
         </div>
-      </div>
+      </form>
     </Modal>
   );
 }

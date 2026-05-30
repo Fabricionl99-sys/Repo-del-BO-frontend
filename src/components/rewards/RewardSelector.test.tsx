@@ -60,7 +60,7 @@ describe('RewardSelector', () => {
         }}
       />,
     );
-    expect(await screen.findByText(/Cargá tus bonos primero/i)).toBeInTheDocument();
+    expect(await screen.findByText(/No hay bonos de tipo/i)).toBeInTheDocument();
   });
 
   it('muestra gating para ruleta si módulo inactivo', () => {
