@@ -206,7 +206,6 @@ export function mergeOccasions(wheel?: WheelType | null): WheelOccasion[] {
 export function formToCreatePayload(
   values: WheelFormValues,
   prizes: WheelPrizePayload[],
-  occasions: WheelOccasion[],
 ): WheelTypeCreatePayload {
   return {
     code: values.code.trim(),
@@ -226,7 +225,7 @@ export function formToCreatePayload(
     spin_expiration_hours: values.spins_expire ? values.spin_expiration_hours : null,
     archive_mode_default: values.archive_mode_default,
     prizes,
-    occasions,
+    occasions: [],
   };
 }
 

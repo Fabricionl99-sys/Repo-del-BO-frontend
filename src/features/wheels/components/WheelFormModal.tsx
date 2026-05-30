@@ -1,5 +1,5 @@
 import { zodResolver } from '@hookform/resolvers/zod';
-import { ArrowDown, ArrowUp, ChevronDown, ChevronRight, Plus, Trash2 } from 'lucide-react';
+import { ArrowDown, ArrowUp, ChevronDown, ChevronRight, Info, Plus, Trash2 } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import { useForm, useWatch } from 'react-hook-form';
 
@@ -18,16 +18,13 @@ import { Modal } from '@/components/ui/Modal';
 import { Switch } from '@/components/ui/Switch';
 import { WheelColorThemePicker } from '@/features/wheels/components/WheelColorThemePicker';
 import { WheelLivePreview } from '@/features/wheels/components/WheelLivePreview';
-import { WheelOccasionsEditor } from '@/features/wheels/components/WheelOccasionsEditor';
 import { WheelProbabilityBar } from '@/features/wheels/components/WheelProbabilityBar';
 import { segmentsFromPrizeForms } from '@/features/wheels/wheelDisplay';
 import type { WheelSegmentDisplayMode } from '@/features/wheels/wheelDisplay';
 import { useCreateWheel, useUpdateWheel, useWheel } from '@/features/wheels/wheelsApi';
 import {
-  defaultOccasions,
   defaultWheelForm,
   formToCreatePayload,
-  mergeOccasions,
   sliceColorSuggestions,
   validateWheelSave,
   wheelFormSchema,
@@ -39,6 +36,7 @@ import {
   formToPrizePayload,
   prizeToForm,
   probabilitiesValid,
+  WHEEL_PRIZE_NAME_MAX,
   type WheelPrizeFormValues,
 } from '@/features/wheels/wheelPrizeForm';
 import type { WheelType } from '@/types/wheels';
@@ -67,7 +65,6 @@ export function WheelFormModal({
   const updateWheel = useUpdateWheel();
   const { context: rewardContext } = useRewardOperatorContext();
   const [prizes, setPrizes] = useState<WheelPrizeFormValues[]>([]);
-  const [occasions, setOccasions] = useState(defaultOccasions());
   const [expanded, setExpanded] = useState<Record<number, boolean>>({ 0: true });
   const [probabilityError, setProbabilityError] = useState<string | undefined>();
   const [pityError, setPityError] = useState<string | undefined>();
@@ -130,7 +127,6 @@ export function WheelFormModal({
 
     reset(wheel ? wheelToForm(wheel) : defaultWheelForm());
     setPrizes(prizesToFormValues(wheel));
-    setOccasions(mergeOccasions(wheel));
     setExpanded({ 0: true });
     setProbabilityError(undefined);
     setPityError(undefined);
@@ -168,7 +164,6 @@ export function WheelFormModal({
     const payload = formToCreatePayload(
       { ...values, pity_guaranteed_prize_id: pityId },
       prizePayloads,
-      occasions,
     );
     if (wheelCode) {
       const { code: _omit, ...updatePayload } = payload;
@@ -203,7 +198,7 @@ export function WheelFormModal({
       open={open}
       onClose={onClose}
       title={isEdit ? 'Editar rueda' : 'Nueva rueda'}
-      description="Catálogo · premios · ocasiones · avanzado"
+      description="Catálogo · premios · avanzado"
       size="lg"
       footer={
         <>
@@ -355,12 +350,23 @@ export function WheelFormModal({
                           onClick={() => setPrizes((p) => p.filter((_, i) => i !== idx))}
                         />
                       </div>
-                      <input
-                        className="field"
-                        placeholder="Nombre del premio"
-                        value={prize.name}
-                        onChange={(e) => updatePrize(idx, { name: e.target.value })}
-                      />
+                      <div>
+                        <input
+                          className="field"
+                          placeholder="Nombre del premio"
+                          maxLength={WHEEL_PRIZE_NAME_MAX}
+                          value={prize.name}
+                          onChange={(e) =>
+                            updatePrize(idx, { name: e.target.value.slice(0, WHEEL_PRIZE_NAME_MAX) })
+                          }
+                        />
+                        <div className="mt-1 flex items-center justify-between gap-2 text-[12px] text-text-tertiary">
+                          <span>Máximo 40 caracteres para que se vea bien en la ruleta</span>
+                          <span className="shrink-0 font-mono">
+                            {prize.name.length} / {WHEEL_PRIZE_NAME_MAX}
+                          </span>
+                        </div>
+                      </div>
                       <div>
                         <label className="mb-1 block text-[12px] text-text-tertiary">
                           Ícono del premio (en el segmento, no en el centro)
@@ -432,10 +438,6 @@ export function WheelFormModal({
           </Button>
         </ConfigSection>
 
-        <ConfigSection title="Ocasiones" description="10 formas de obtener un spin">
-          <WheelOccasionsEditor occasions={occasions} onChange={setOccasions} />
-        </ConfigSection>
-
         <ConfigSection title="Avanzado" description="Pity, probabilidades visibles y expiración">
           <div className="flex items-center justify-between rounded-lg border border-border-subtle bg-bg-tertiary px-3 py-2">
             <span className="text-[14px]">Sistema de pity</span>
@@ -486,6 +488,25 @@ export function WheelFormModal({
             </div>
           )}
         </ConfigSection>
+
+        <div className="flex items-start gap-2.5 rounded-lg border border-info/25 bg-info/10 p-4">
+          <Info size={18} className="mt-0.5 shrink-0 text-info" aria-hidden />
+          <div className="space-y-2 text-[14px] text-text-secondary">
+            <p className="font-medium text-text-primary">¿Cómo se entregan los spins de esta ruleta?</p>
+            <p>
+              Configuralo desde otros módulos eligiendo &quot;Spin de ruleta&quot; como premio:
+            </p>
+            <ul className="list-inside list-disc space-y-1 pl-1">
+              <li>Misiones → premio al completar misión</li>
+              <li>Curva de niveles → premio al subir de nivel</li>
+              <li>Rachas → premio milestone</li>
+              <li>Tienda → operador &quot;vende&quot; spins por monedas</li>
+              <li>Cofres → premio aleatorio</li>
+              <li>Otras ruletas → 1 ruleta puede entregar spins de otra</li>
+            </ul>
+            <p>Para entrega manual: Panel admin → Ruedas → &quot;Entregar manual&quot;</p>
+          </div>
+        </div>
       </ConfiguratorScaffold>
     </Modal>
   );

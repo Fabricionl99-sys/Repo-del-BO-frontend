@@ -4,6 +4,8 @@ import { formToRewardValue, rewardValueSchema, rewardValueToForm } from '@/featu
 import type { WheelPrize, WheelPrizePayload } from '@/types/wheels';
 import type { RewardValue } from '@/types/rewards';
 
+export const WHEEL_PRIZE_NAME_MAX = 40;
+
 export interface WheelPrizeFormValues {
   id?: string;
   name: string;
@@ -15,7 +17,7 @@ export interface WheelPrizeFormValues {
 }
 
 export const wheelPrizeFormSchema = z.object({
-  name: z.string().min(2, 'Mínimo 2 caracteres').max(120, 'Máximo 120 caracteres'),
+  name: z.string().min(2, 'Mínimo 2 caracteres').max(WHEEL_PRIZE_NAME_MAX, `Máximo ${WHEEL_PRIZE_NAME_MAX} caracteres`),
   image_url: z.string().url('URL inválida').or(z.literal('')),
   probability_percent: z
     .number()
