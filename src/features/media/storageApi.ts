@@ -4,6 +4,7 @@ import { apiClient } from '@/api/client';
 import { getApiErrorMessage } from '@/api/errors';
 import { unwrapData } from '@/api/response';
 import { resolveMediaUploaderConfig } from '@/components/media/mediaUploaderPresets';
+import { multipartRequestConfig } from '@/lib/multipartUpload';
 import { toast } from '@/stores/toastStore';
 import { useOperatorStore } from '@/stores/operatorStore';
 import type { MediaContext, MediaModule, MediaUploadResponse, StorageFileItem } from '@/types/media';
@@ -62,9 +63,7 @@ export function useUploadMedia() {
         }
       }
 
-      const res = await apiClient.post(uploadPath, fd, {
-        headers: { 'Content-Type': 'multipart/form-data' },
-      });
+      const res = await apiClient.post(uploadPath, fd, multipartRequestConfig());
       const raw = unwrapData<Record<string, unknown>>(res.data);
       return mapUploadResponse(raw);
     },

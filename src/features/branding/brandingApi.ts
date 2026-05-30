@@ -8,6 +8,7 @@ import { unwrapData } from '@/api/response';
 import { isBrandingConfig } from '@/lib/boConfigValidation';
 import { BO_LOCAL_STORAGE_KEYS, removeLocalStorageKey, writeLocalStorageJson } from '@/lib/boLocalStorage';
 import { purgeBrandingConfigStorage } from '@/lib/sanitizeBoPersistentState';
+import { multipartRequestConfig } from '@/lib/multipartUpload';
 import { toast } from '@/stores/toastStore';
 import type { BrandingConfig } from '@/types/branding';
 
@@ -35,14 +36,7 @@ function postBrandingAsset(path: string, file: File) {
   const fd = new FormData();
   fd.append('file', file);
   return apiClient
-    .post(path, fd, {
-      transformRequest: (data, headers) => {
-        if (data instanceof FormData) {
-          delete headers['Content-Type'];
-        }
-        return data;
-      },
-    })
+    .post(path, fd, multipartRequestConfig())
     .then((r) => unwrapData<{ url: string }>(r.data));
 }
 

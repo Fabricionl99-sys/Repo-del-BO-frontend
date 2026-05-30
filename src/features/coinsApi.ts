@@ -2,6 +2,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { apiClient } from '@/api/client';
 import { getApiErrorMessage } from '@/api/errors';
 import { unwrapData } from '@/api/response';
+import { multipartRequestConfig } from '@/lib/multipartUpload';
 import { toast } from '@/stores/toastStore';
 import type { Coin, CoinsGlobalRules } from '@/types/coins';
 
@@ -204,7 +205,7 @@ export function useUploadCoinImage() {
     mutationFn: async (file: File) => {
       const fd = new FormData();
       fd.append('file', file);
-      const res = await apiClient.post('/admin/upload-image', fd);
+      const res = await apiClient.post('/admin/upload-image', fd, multipartRequestConfig());
       const raw = unwrapData<{ url?: string }>(res.data);
       const url = raw.url ?? (typeof res.data === 'object' && res.data && 'url' in res.data
         ? String((res.data as { url?: string }).url)

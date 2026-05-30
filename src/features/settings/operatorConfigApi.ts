@@ -6,6 +6,7 @@ import { unwrapData } from '@/api/response';
 import { isOperatorConfigApiResponse } from '@/lib/boConfigValidation';
 import { BO_LOCAL_STORAGE_KEYS, removeLocalStorageKey, writeLocalStorageJson } from '@/lib/boLocalStorage';
 import { purgeOperatorConfigStorage } from '@/lib/sanitizeBoPersistentState';
+import { multipartRequestConfig } from '@/lib/multipartUpload';
 import { toast } from '@/stores/toastStore';
 import type {
   CurrencyOption,
@@ -108,9 +109,7 @@ export function useUploadCompanyLogo() {
       const fd = new FormData();
       fd.append('file', file);
       return apiClient
-        .post('/admin/operator-config/upload-logo', fd, {
-          headers: { 'Content-Type': 'multipart/form-data' },
-        })
+        .post('/admin/operator-config/upload-logo', fd, multipartRequestConfig())
         .then((r) => unwrapData<{ url: string }>(r.data));
     },
   });

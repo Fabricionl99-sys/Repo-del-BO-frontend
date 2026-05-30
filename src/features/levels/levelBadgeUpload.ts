@@ -1,8 +1,10 @@
+import { STORAGE_UPLOAD_FILE_FIELD } from '@/lib/multipartUpload';
+
 const MAX_BYTES = 1024 * 1024;
 const MIN_DIM = 32;
 const RECOMMENDED_DIM = 128;
 
-export const STORAGE_UPLOAD_FILE_FIELD = 'file' as const;
+export { STORAGE_UPLOAD_FILE_FIELD };
 export const LEVEL_BADGE_UPLOAD_MODULE = 'levels' as const;
 export const LEVEL_BADGE_UPLOAD_PURPOSE = 'badge' as const;
 
@@ -90,16 +92,4 @@ export function buildLevelBadgeUploadFormData(file: File): FormData {
   fd.append('module', LEVEL_BADGE_UPLOAD_MODULE);
   fd.append('purpose', LEVEL_BADGE_UPLOAD_PURPOSE);
   return fd;
-}
-
-/** Axios default es application/json; hay que omitir Content-Type para que el browser setee el boundary. */
-export function levelBadgeMultipartRequestConfig() {
-  return {
-    transformRequest: (data: unknown, headers: Record<string, string>) => {
-      if (data instanceof FormData) {
-        delete headers['Content-Type'];
-      }
-      return data;
-    },
-  };
 }

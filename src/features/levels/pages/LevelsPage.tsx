@@ -7,7 +7,8 @@ import { Loading } from '@/components/ui/Loading';
 import { PageHeader } from '@/components/ui/PageHeader';
 import { apiClient } from '@/api/client';
 import { unwrapData } from '@/api/response';
-import { validateLevelBadgeFile, normalizeBadgeUrl, buildLevelBadgeUploadFormData, levelBadgeMultipartRequestConfig } from '@/features/levels/levelBadgeUpload';
+import { validateLevelBadgeFile, normalizeBadgeUrl, buildLevelBadgeUploadFormData } from '@/features/levels/levelBadgeUpload';
+import { multipartRequestConfig } from '@/lib/multipartUpload';
 import {
   useCurve,
   useSaveCurve,
@@ -66,7 +67,7 @@ export default function LevelsPage() {
         toast.warning(validation.warning);
       }
       const fd = buildLevelBadgeUploadFormData(file);
-      const res = await apiClient.post('/admin/storage/upload', fd, levelBadgeMultipartRequestConfig());
+      const res = await apiClient.post('/admin/storage/upload', fd, multipartRequestConfig());
       const raw = unwrapData<{ url?: string; public_url?: string }>(res.data);
       const url = normalizeBadgeUrl(raw.url ?? raw.public_url);
       if (!url) {
