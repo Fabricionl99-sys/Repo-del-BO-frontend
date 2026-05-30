@@ -22,6 +22,7 @@ describe('Curva de niveles', () => {
     expect(screen.getByText('Nivel')).toBeInTheDocument();
     expect(screen.getByText('+ Agregar nivel 16')).toBeInTheDocument();
     expect(screen.getByText('Nivel 1')).toBeInTheDocument();
+    expect(screen.queryByText('Exportar JSON')).not.toBeInTheDocument();
     fireEvent.click(screen.getByText('Guardar curva'));
   });
 

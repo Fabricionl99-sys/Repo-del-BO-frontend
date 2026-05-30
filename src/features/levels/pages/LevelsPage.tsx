@@ -1,5 +1,4 @@
 import { useMemo, useState } from 'react';
-import { Download } from 'lucide-react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { Button } from '@/components/ui/Button';
 import { EmptyState } from '@/components/ui/EmptyState';
@@ -8,7 +7,7 @@ import { Loading } from '@/components/ui/Loading';
 import { PageHeader } from '@/components/ui/PageHeader';
 import { apiClient } from '@/api/client';
 import { unwrapData } from '@/api/response';
-import { validateCoinIconFile } from '@/lib/coinIconUpload';
+import { validateLevelBadgeFile, normalizeBadgeUrl } from '@/features/levels/levelBadgeUpload';
 import {
   useCurve,
   useSaveCurve,
@@ -57,29 +56,21 @@ export default function LevelsPage() {
   const invalidMsg = useMemo(() => (current ? validateCurve(current.levels) : null), [current]);
 
   const uploadBadge = async (file: File) => {
-    const validation = await validateCoinIconFile(file);
+    const validation = await validateLevelBadgeFile(file);
     if (!validation.ok) {
       toast.error(validation.error ?? 'Imagen inválida');
       throw new Error(validation.error);
     }
     const fd = new FormData();
     fd.append('file', file);
-    const res = await apiClient.post('/admin/upload-image', fd);
-    const raw = unwrapData<{ url?: string }>(res.data);
-    const url = raw.url;
-    if (!url) throw new Error('Sin URL de imagen');
+    const res = await apiClient.post('/admin/storage/upload', fd);
+    const raw = unwrapData<{ url?: string; public_url?: string }>(res.data);
+    const url = normalizeBadgeUrl(raw.url ?? raw.public_url);
+    if (!url) {
+      toast.error('La URL de la insignia debe ser HTTPS');
+      throw new Error('URL inválida');
+    }
     return url;
-  };
-
-  const download = () => {
-    if (!current) return;
-    const blob = new Blob([JSON.stringify(current, null, 2)], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = 'levels-curve.json';
-    a.click();
-    URL.revokeObjectURL(url);
   };
 
   const setLevels = (levels: LevelEntry[]) => {
@@ -175,11 +166,6 @@ export default function LevelsPage() {
       <PageHeader
         title="Curva de niveles"
         subtitle="Configurá los niveles que tendrán tus jugadores. Cada nivel requiere XP acumulado para desbloquearse."
-        actions={
-          <Button icon={<Download size={14} />} onClick={download}>
-            Exportar JSON
-          </Button>
-        }
       />
 
       <div className="card overflow-x-auto p-5">

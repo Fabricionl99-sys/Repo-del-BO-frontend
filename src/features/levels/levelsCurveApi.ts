@@ -6,6 +6,10 @@ import { coerceToList, unwrapData } from '@/api/response';
 import { toast } from '@/stores/toastStore';
 import type { LevelEntry, LevelsCurve } from '@/types/levels';
 import { normalizeXpRequired } from '@/features/levels/levelsCurveUtils';
+import {
+  normalizeBadgeUrl,
+  normalizeLevelName,
+} from '@/features/levels/levelBadgeUpload';
 
 export class XpEngineModuleRequiredError extends Error {
   constructor() {
@@ -24,6 +28,9 @@ export type BackendCurveRow = {
   level_number: number;
   xp_required: number;
   rewards: unknown[];
+  name?: string | null;
+  badge_url?: string | null;
+  is_milestone?: boolean;
 };
 
 type BackendCurveRowRaw = {
@@ -31,6 +38,9 @@ type BackendCurveRowRaw = {
   level?: number;
   xp_required?: number;
   rewards?: unknown[];
+  name?: string | null;
+  badge_url?: string | null;
+  is_milestone?: boolean;
 };
 
 function parseCurveRows(body: unknown): BackendCurveRowRaw[] {
@@ -39,13 +49,13 @@ function parseCurveRows(body: unknown): BackendCurveRowRaw[] {
   return coerceToList<BackendCurveRowRaw>(unwrapped, ['levels']);
 }
 
-function backendToLevelsCurve(rows: BackendCurveRowRaw[]): LevelsCurve {
+export function backendToLevelsCurve(rows: BackendCurveRowRaw[]): LevelsCurve {
   const levels: LevelEntry[] = rows.map((row, index) => ({
     level: row.level_number ?? row.level ?? index + 1,
     xpRequired: normalizeXpRequired(row.xp_required),
-    displayName: undefined,
-    badgeImageUrl: undefined,
-    milestoneEnabled: false,
+    displayName: normalizeLevelName(row.name),
+    badgeImageUrl: normalizeBadgeUrl(row.badge_url),
+    milestoneEnabled: row.is_milestone ?? false,
     milestoneUnlock: null,
   }));
   return {
@@ -63,6 +73,9 @@ export function levelsCurveToBackend(curve: LevelsCurve): BackendCurveRow[] {
     level_number: index + 1,
     xp_required: Math.max(0, Math.round(Number(row.xpRequired) || 0)),
     rewards: [],
+    name: normalizeLevelName(row.displayName) ?? null,
+    badge_url: normalizeBadgeUrl(row.badgeImageUrl) ?? null,
+    is_milestone: row.milestoneEnabled ?? false,
   }));
 }
 

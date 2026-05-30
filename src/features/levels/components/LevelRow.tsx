@@ -2,18 +2,14 @@ import { Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { IconButton } from '@/components/ui/IconButton';
 import { Switch } from '@/components/ui/Switch';
-import type { LevelEntry, MilestoneUnlock } from '@/types/levels';
+import { FieldHint } from '@/components/ui/FieldHint';
+import type { LevelEntry } from '@/types/levels';
+import { LEVEL_BADGE_UPLOAD_HINT } from '@/features/levels/levelBadgeUpload';
 import {
   isXpMonotonicInvalid,
   normalizeXpRequired,
   XP_REQUIRED_MAX,
 } from '@/features/levels/levelsCurveUtils';
-
-const MILESTONE_OPTIONS: { value: MilestoneUnlock; label: string }[] = [
-  { value: 'avatar_pack_1', label: 'Avatar pack 1' },
-  { value: 'own_photo', label: 'Subir foto propia' },
-  { value: 'vip_tournaments', label: 'Acceso torneos VIP' },
-];
 
 type Props = {
   displayLevel: number;
@@ -40,7 +36,7 @@ export function LevelRow({ displayLevel, row, prevXp, canDelete, onChange, onDel
       <td className="py-3 pr-2 align-middle">
         <input
           className="field w-full max-w-[200px]"
-          maxLength={30}
+          maxLength={120}
           placeholder="opcional"
           value={name}
           onChange={(e) => onChange({ ...row, displayName: e.target.value || undefined })}
@@ -50,13 +46,17 @@ export function LevelRow({ displayLevel, row, prevXp, canDelete, onChange, onDel
       <td className="py-3 pr-2 align-middle">
         <div className="flex items-center gap-2">
           {row.badgeImageUrl ? (
-            <img src={row.badgeImageUrl} alt="" className="h-10 w-10 rounded-lg border border-border-subtle object-cover" />
+            <img
+              src={row.badgeImageUrl}
+              alt=""
+              className="h-10 w-10 rounded-lg border border-border-subtle object-cover"
+            />
           ) : (
             <span className="grid h-10 w-10 place-items-center rounded-lg border border-dashed border-border-default text-lg text-text-tertiary">
               —
             </span>
           )}
-          <label className="cursor-pointer text-[13px] text-accent hover:underline">
+          <label className="inline-flex cursor-pointer items-center gap-1 text-[13px] text-accent hover:underline">
             <input
               type="file"
               accept="image/png,image/svg+xml"
@@ -70,6 +70,7 @@ export function LevelRow({ displayLevel, row, prevXp, canDelete, onChange, onDel
               }}
             />
             Subir
+            <FieldHint text={LEVEL_BADGE_UPLOAD_HINT} />
           </label>
         </div>
       </td>
@@ -96,35 +97,18 @@ export function LevelRow({ displayLevel, row, prevXp, canDelete, onChange, onDel
       </td>
       <td className="py-3 align-middle">
         <div className="flex items-start justify-between gap-2">
-          <div className="flex flex-col gap-2">
+          <div className="flex flex-col gap-1">
             <div className="flex items-center gap-2">
               <Switch
                 checked={milestoneOn}
-                onChange={(checked) =>
-                  onChange({
-                    ...row,
-                    milestoneEnabled: checked,
-                    milestoneUnlock: checked ? row.milestoneUnlock ?? 'avatar_pack_1' : null,
-                  })
-                }
+                onChange={(checked) => onChange({ ...row, milestoneEnabled: checked })}
                 aria-label={`Milestone nivel ${displayLevel}`}
               />
               <span className="text-text-secondary">{milestoneOn ? 'Sí' : 'No'}</span>
             </div>
-            {milestoneOn ? (
-              <select
-                className="field max-w-[220px] text-[14px]"
-                value={row.milestoneUnlock ?? 'avatar_pack_1'}
-                onChange={(e) => onChange({ ...row, milestoneUnlock: e.target.value as MilestoneUnlock })}
-                aria-label={`Qué desbloquea nivel ${displayLevel}`}
-              >
-                {MILESTONE_OPTIONS.map((o) => (
-                  <option key={o.value} value={o.value}>
-                    {o.label}
-                  </option>
-                ))}
-              </select>
-            ) : null}
+            <p className="max-w-[220px] text-[12px] text-text-tertiary">
+              Marca el nivel como hito visual. Los premios se configuran en Premios por Nivel.
+            </p>
           </div>
           {canDelete ? (
             <IconButton icon={Trash2} title="eliminar nivel" size="sm" onClick={onDelete} />
