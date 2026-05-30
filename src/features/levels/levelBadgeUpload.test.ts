@@ -1,10 +1,12 @@
 import { describe, expect, it } from 'vitest';
 import {
   badgeDimensionCheck,
+  buildLevelBadgeUploadFormData,
   LEVEL_BADGE_SMALL_IMAGE_WARNING,
   LEVEL_BADGE_UPLOAD_HINT,
   LEVEL_BADGE_UPLOAD_MODULE,
   LEVEL_BADGE_UPLOAD_PURPOSE,
+  STORAGE_UPLOAD_FILE_FIELD,
 } from './levelBadgeUpload';
 
 describe('levelBadgeUpload', () => {
@@ -13,8 +15,18 @@ describe('levelBadgeUpload', () => {
   });
 
   it('constantes de upload alineadas con backend', () => {
+    expect(STORAGE_UPLOAD_FILE_FIELD).toBe('file');
     expect(LEVEL_BADGE_UPLOAD_MODULE).toBe('levels');
     expect(LEVEL_BADGE_UPLOAD_PURPOSE).toBe('badge');
+  });
+
+  it('FormData usa campo file (no image/badge) + module + purpose', () => {
+    const file = new File(['x'], 'badge.png', { type: 'image/png' });
+    const fd = buildLevelBadgeUploadFormData(file);
+    expect(fd.get(STORAGE_UPLOAD_FILE_FIELD)).toBe(file);
+    expect(fd.get('module')).toBe('levels');
+    expect(fd.get('purpose')).toBe('badge');
+    expect(fd.get('image')).toBeNull();
   });
 
   it('acepta 64x64 con warning', () => {
