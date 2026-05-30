@@ -328,9 +328,10 @@ export function useUpdateWheel() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: async ({ code, ...payload }: Partial<WheelTypeCreatePayload> & { code: string }) => {
-      const adapted = (payload as WheelTypeCreatePayload).prizes
-        ? adaptWheelForBackend(payload as WheelTypeCreatePayload)
-        : (payload as Record<string, unknown>);
+      const fullPayload = { code, ...payload };
+      const adapted = fullPayload.prizes
+        ? adaptWheelForBackend(fullPayload as WheelTypeCreatePayload)
+        : (fullPayload as Record<string, unknown>);
       const r = await apiClient.patch(`/admin/wheels/types/${code}`, adapted);
       const raw = unwrapData<Record<string, unknown>>(r.data);
       return normalizeBackendWheel(raw);
