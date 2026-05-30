@@ -151,6 +151,7 @@ export function purposeLabel(purpose: MediaPurpose): string {
     icon: 'icono',
     main_image: 'imagen',
     prize_image: 'imagen premio',
+    badge: 'insignia',
   };
   return labels[purpose];
 }

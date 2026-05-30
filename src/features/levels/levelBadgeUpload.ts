@@ -2,6 +2,9 @@ const MAX_BYTES = 1024 * 1024;
 const MIN_DIM = 32;
 const RECOMMENDED_DIM = 128;
 
+export const LEVEL_BADGE_UPLOAD_MODULE = 'levels' as const;
+export const LEVEL_BADGE_UPLOAD_PURPOSE = 'badge' as const;
+
 export const LEVEL_BADGE_UPLOAD_HINT = 'PNG o SVG. Cuadrado recomendado. Máx 1MB.';
 
 export const LEVEL_BADGE_SMALL_IMAGE_WARNING =

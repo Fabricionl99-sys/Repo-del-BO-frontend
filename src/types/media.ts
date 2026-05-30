@@ -11,7 +11,8 @@ export type MediaModule =
   | 'rankings'
   | 'wheels'
   | 'login_popups'
-  | 'raffles';
+  | 'raffles'
+  | 'levels';
 
 export type MediaPurpose =
   | 'thumbnail'
@@ -20,7 +21,8 @@ export type MediaPurpose =
   | 'logo'
   | 'icon'
   | 'main_image'
-  | 'prize_image';
+  | 'prize_image'
+  | 'badge';
 
 export type MediaSource = 'upload' | 'external';
 

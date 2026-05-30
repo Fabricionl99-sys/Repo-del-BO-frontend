@@ -7,7 +7,7 @@ import { Loading } from '@/components/ui/Loading';
 import { PageHeader } from '@/components/ui/PageHeader';
 import { apiClient } from '@/api/client';
 import { unwrapData } from '@/api/response';
-import { validateLevelBadgeFile, normalizeBadgeUrl } from '@/features/levels/levelBadgeUpload';
+import { validateLevelBadgeFile, normalizeBadgeUrl, LEVEL_BADGE_UPLOAD_MODULE, LEVEL_BADGE_UPLOAD_PURPOSE } from '@/features/levels/levelBadgeUpload';
 import {
   useCurve,
   useSaveCurve,
@@ -67,6 +67,8 @@ export default function LevelsPage() {
       }
       const fd = new FormData();
       fd.append('file', file);
+      fd.append('module', LEVEL_BADGE_UPLOAD_MODULE);
+      fd.append('purpose', LEVEL_BADGE_UPLOAD_PURPOSE);
       const res = await apiClient.post('/admin/storage/upload', fd);
       const raw = unwrapData<{ url?: string; public_url?: string }>(res.data);
       const url = normalizeBadgeUrl(raw.url ?? raw.public_url);

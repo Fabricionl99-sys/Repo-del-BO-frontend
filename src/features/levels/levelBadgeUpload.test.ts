@@ -3,11 +3,18 @@ import {
   badgeDimensionCheck,
   LEVEL_BADGE_SMALL_IMAGE_WARNING,
   LEVEL_BADGE_UPLOAD_HINT,
+  LEVEL_BADGE_UPLOAD_MODULE,
+  LEVEL_BADGE_UPLOAD_PURPOSE,
 } from './levelBadgeUpload';
 
 describe('levelBadgeUpload', () => {
   it('tooltip actualizado sin mínimo 128', () => {
     expect(LEVEL_BADGE_UPLOAD_HINT).toBe('PNG o SVG. Cuadrado recomendado. Máx 1MB.');
+  });
+
+  it('constantes de upload alineadas con backend', () => {
+    expect(LEVEL_BADGE_UPLOAD_MODULE).toBe('levels');
+    expect(LEVEL_BADGE_UPLOAD_PURPOSE).toBe('badge');
   });
 
   it('acepta 64x64 con warning', () => {
