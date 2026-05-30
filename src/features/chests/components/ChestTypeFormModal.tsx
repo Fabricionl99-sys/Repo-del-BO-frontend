@@ -15,6 +15,7 @@ import {
   probabilitiesValid,
   summarizeRewardConfig,
 } from '@/features/chests/chestPrizeForm';
+import { formatFixed } from '@/lib/format';
 import {
   chestTypeFormSchema,
   chestTypeToForm,
@@ -307,7 +308,7 @@ export function ChestTypeFormModal({
                       <td className="px-3 py-2">{prize.name}</td>
                       <td className="px-3 py-2 font-mono text-[12px]">{prize.reward_type}</td>
                       <td className="px-3 py-2 text-text-secondary">{summarizeRewardConfig(prize)}</td>
-                      <td className="px-3 py-2 font-mono">{prize.probability_percent.toFixed(2)}</td>
+                      <td className="px-3 py-2 font-mono">{formatFixed(prize.probability_percent, 2)}</td>
                       <td className="px-3 py-2">{prize.is_rare ? '★' : '—'}</td>
                       <td className="px-3 py-2">
                         <div className="flex gap-1">

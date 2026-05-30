@@ -56,5 +56,6 @@ describe('probabilitiesValid', () => {
   it('valida suma exacta 100', () => {
     expect(probabilitiesValid([{ probability_percent: 50 }, { probability_percent: 50 }])).toBe(true);
     expect(sumProbabilities([{ probability_percent: 33.33 }, { probability_percent: 33.33 }, { probability_percent: 33.34 }])).toBe(100);
+    expect(sumProbabilities([{ probability_percent: undefined as unknown as number }])).toBe(0);
   });
 });

@@ -1,5 +1,6 @@
 import { sumProbabilities } from '@/features/chests/chestPrizeForm';
 import { cn } from '@/lib/cn';
+import { formatFixed } from '@/lib/format';
 import type { ChestPrize } from '@/types/chests';
 
 export function ProbabilityBar({ prizes }: { prizes: Pick<ChestPrize, 'probability_percent'>[] }) {
@@ -12,7 +13,7 @@ export function ProbabilityBar({ prizes }: { prizes: Pick<ChestPrize, 'probabili
       <div className="mb-2 flex items-center justify-between text-[14px]">
         <span className="text-text-secondary">Suma de probabilidades</span>
         <span className={cn('font-mono font-semibold', valid ? 'text-success' : 'text-danger')}>
-          {total.toFixed(2)}%
+          {formatFixed(total, 2)}%
         </span>
       </div>
       <div className="h-2 overflow-hidden rounded-full bg-bg-primary">

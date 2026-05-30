@@ -6,6 +6,7 @@ import {
   rewardValueToForm,
   summarizeReward,
 } from '@/features/rewards/rewardForm';
+import { coerceNumber } from '@/lib/format';
 import type {
   ChestPrize,
   ChestPrizePayload,
@@ -57,10 +58,10 @@ export function defaultChestPrizeForm(): ChestPrizeFormValues {
 
 export function prizeToForm(prize: ChestPrize): ChestPrizeFormValues {
   return {
-    name: prize.name,
-    image_url: prize.image_url,
-    probability_percent: prize.probability_percent,
-    is_rare: prize.is_rare,
+    name: prize.name ?? '',
+    image_url: prize.image_url ?? '',
+    probability_percent: coerceNumber(prize.probability_percent, 0),
+    is_rare: Boolean(prize.is_rare),
     reward: {
       reward_type: prize.reward_type as RewardValue['reward_type'],
       reward_config: prize.reward_config as unknown as Record<string, unknown>,
@@ -87,7 +88,7 @@ export function summarizeRewardConfig(prize: ChestPrize): string {
 }
 
 export function sumProbabilities(prizes: Pick<ChestPrize, 'probability_percent'>[]): number {
-  return prizes.reduce((acc, p) => acc + p.probability_percent, 0);
+  return prizes.reduce((acc, p) => acc + coerceNumber(p.probability_percent), 0);
 }
 
 export function probabilitiesValid(prizes: Pick<ChestPrize, 'probability_percent'>[]): boolean {
