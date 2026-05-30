@@ -29,21 +29,33 @@ export interface OperatorCurrency {
  * Backend requiere `icon_url` (URL HTTPS) en create. Si BO no sube imagen
  * usamos el placeholder bundleado del BO (absoluto HTTPS en runtime).
  */
-function adaptCoinForBackend(payload: Partial<Coin>): Record<string, unknown> {
+function adaptCoinForBackend(payload: Partial<Coin>, isUpdate = false): Record<string, unknown> {
   const earning_mode =
     payload.deliveryMode === 'auto_xp' || payload.deliveryMode === undefined ? 'auto' : 'manual';
   const xp_per_unit =
     earning_mode === 'auto' ? payload.xpPerUnit ?? 1 : null;
-  const icon_url = resolveCoinIconUrlForBackend(payload.imageUrl);
   const body: Record<string, unknown> = {
     code: (payload.symbol || payload.name || 'COIN').trim().toUpperCase().slice(0, 50),
-    name: (payload.name || payload.symbol || 'Coin').trim().slice(0, 100),
+    name: (payload.name || payload.name || 'Coin').trim().slice(0, 100),
     earning_mode,
     xp_per_unit,
-    icon_url,
   };
+  const trimmedImage = payload.imageUrl?.trim();
+  if (trimmedImage) {
+    body.icon_url = resolveCoinIconUrlForBackend(trimmedImage);
+  } else if (!isUpdate) {
+    body.icon_url = resolveCoinIconUrlForBackend(undefined);
+  }
   if (payload.caps?.expiryDays != null) body.expiration_days = payload.caps.expiryDays;
   return body;
+}
+
+function readCoinIconUrl(raw: Record<string, unknown>): string | undefined {
+  for (const key of ['icon_url', 'image_url', 'iconUrl', 'imageUrl'] as const) {
+    const value = raw[key];
+    if (typeof value === 'string' && value.trim()) return value.trim();
+  }
+  return undefined;
 }
 
 function normalizeBackendCoin(raw: Record<string, unknown>): Coin {
@@ -53,7 +65,7 @@ function normalizeBackendCoin(raw: Record<string, unknown>): Coin {
     id: String(raw.id ?? raw.code ?? ''),
     name: String(raw.name ?? raw.code ?? 'Coin'),
     symbol: String(raw.code ?? ''),
-    imageUrl: typeof raw.icon_url === 'string' ? raw.icon_url : undefined,
+    imageUrl: readCoinIconUrl(raw),
     emoji: typeof raw.emoji === 'string' ? raw.emoji : undefined,
     deliveryMode,
     xpPerUnit:
@@ -132,7 +144,7 @@ export function useSaveCoin() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: async (payload: Partial<Coin>): Promise<Coin> => {
-      const body = adaptCoinForBackend(payload);
+      const body = adaptCoinForBackend(payload, Boolean(payload.id));
       const r = payload.id
         ? await apiClient.put(`/admin/currencies/${payload.id}`, body)
         : await apiClient.post('/admin/currencies', body);

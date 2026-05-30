@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 
 import {
   COIN_PLACEHOLDER_SRC,
+  getCoinIconUrl,
   isLegacyCoinPlaceholder,
   LEGACY_COIN_PLACEHOLDER_URL,
   resolveCoinDisplayIconUrl,
@@ -20,6 +21,15 @@ describe('coinPlaceholder', () => {
     expect(resolveCoinDisplayIconUrl(null)).toBe(COIN_PLACEHOLDER_SRC);
     expect(resolveCoinDisplayIconUrl(LEGACY_COIN_PLACEHOLDER_URL)).toBe(COIN_PLACEHOLDER_SRC);
     expect(resolveCoinDisplayIconUrl('https://cdn.example.com/ruby.png')).toBe('https://cdn.example.com/ruby.png');
+  });
+
+  it('getCoinIconUrl solo acepta HTTPS propio', () => {
+    expect(getCoinIconUrl()).toBeNull();
+    expect(getCoinIconUrl(LEGACY_COIN_PLACEHOLDER_URL)).toBeNull();
+    expect(getCoinIconUrl('/coin-placeholder.svg')).toBeNull();
+    expect(getCoinIconUrl('https://cdn.social2game.com/currencies/rutsa.png')).toBe(
+      'https://cdn.social2game.com/currencies/rutsa.png',
+    );
   });
 
   it('resolveCoinIconUrlForBackend resuelve URL absoluta para placeholder', () => {
