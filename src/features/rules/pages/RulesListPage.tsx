@@ -1,7 +1,8 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Copy, MoreVertical, Pencil, Plus, Trash2, Upload } from 'lucide-react';
+import { Copy, MoreVertical, Pencil, Plus, Trash2 } from 'lucide-react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { NewRuleModal } from '@/features/rules/components/NewRuleModal';
+import { RuleBoostCell } from '@/features/rules/components/RuleBoostCell';
 import { Button } from '@/components/ui/Button';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { ErrorState } from '@/components/ui/ErrorState';
@@ -29,17 +30,6 @@ import type { RuleCategory, RuleListItem, RuleStatus } from '@/types/rules';
 const category = Object.fromEntries(
   CATEGORIES.map((c) => [c.value, { label: c.label, color: 'bg-info/15 text-info' }]),
 ) as Record<RuleCategory, { label: string; color: string }>;
-
-const boostLabel = (value: number) =>
-  Number.isInteger(value) ? String(value) : String(value).replace('.', ',');
-
-const isBoostActive = (rule: RuleListItem) => {
-  if (!rule.boost?.enabled) return false;
-  const now = Date.now();
-  return (
-    new Date(rule.boost.starts_at).getTime() <= now && new Date(rule.boost.ends_at).getTime() >= now
-  );
-};
 
 function statusPillStatus(rule: RuleListItem): 'active' | 'paused' | 'draft' | 'archived' {
   if (isPublishedLikeStatus(rule.status)) return 'active';
@@ -121,14 +111,7 @@ export default function RulesListPage() {
       header: 'regla',
       render: (r) => (
         <button type="button" onClick={() => nav(`/reglas-xp/${r.id}`)} className="text-left hover:text-accent">
-          <div className="flex items-center gap-2">
-            <span className="font-medium">{r.name}</span>
-            {isBoostActive(r) && (
-              <span className="rounded-full bg-purple/15 px-2 py-0.5 text-[12px] font-semibold text-purple">
-                x{boostLabel(r.boost?.multiplier ?? 1)} activo
-              </span>
-            )}
-          </div>
+          <div className="font-medium">{r.name}</div>
           <div className="text-[13px] text-text-tertiary">{r.description}</div>
         </button>
       ),
@@ -157,6 +140,11 @@ export default function RulesListPage() {
           {r.xpDisplay.perUnit && <span className="text-[13px] text-text-tertiary">{r.xpDisplay.perUnit}</span>}
         </span>
       ),
+    },
+    {
+      key: 'boost',
+      header: 'boost',
+      render: (r) => <RuleBoostCell boost={r.boost} />,
     },
     {
       key: 'status',
@@ -198,12 +186,9 @@ export default function RulesListPage() {
         title="Reglas de XP"
         subtitle="Listado de reglas activas por categoría y evento bet_placed."
         actions={
-          <>
-            <Button icon={<Upload size={14} />}>Importar</Button>
-            <Button variant="primary" icon={<Plus size={14} />} onClick={() => setNewRuleOpen(true)}>
-              Nueva regla
-            </Button>
-          </>
+          <Button variant="primary" icon={<Plus size={14} />} onClick={() => setNewRuleOpen(true)}>
+            Nueva regla
+          </Button>
         }
       />
       <Toolbar

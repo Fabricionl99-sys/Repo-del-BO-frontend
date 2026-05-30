@@ -1,5 +1,5 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
+import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { http, HttpResponse } from 'msw';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
 import { describe, expect, it } from 'vitest';
@@ -20,11 +20,13 @@ function wrap(ui: React.ReactNode, route = '/reglas-xp') {
 }
 
 describe('Tier2 reglas', () => {
-  it('lista reglas con filtros, acciones y badge de boost activo', async () => {
+  it('lista reglas con filtros, acciones y columna boost', async () => {
     wrap(<RulesListPage />);
 
     expect(await screen.findByText('Apuesta deportiva ganadora')).toBeInTheDocument();
-    expect(screen.getByText('x1,5 activo')).toBeInTheDocument();
+    expect(screen.getByText('boost')).toBeInTheDocument();
+    expect(screen.getByText('1,5x ACTIVO')).toBeInTheDocument();
+    expect(screen.queryByText('Importar')).not.toBeInTheDocument();
 
     fireEvent.click(screen.getByText('pausadas'));
     expect(await screen.findByText('Promo finde Champions League')).toBeInTheDocument();
