@@ -1,11 +1,12 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
-import { MemoryRouter } from 'react-router-dom';
+import { MemoryRouter, Route, Routes } from 'react-router-dom';
 import { describe, expect, it } from 'vitest';
 
 import { useOperatorStore } from '@/stores/operatorStore';
 
 import PredictionsPage from './PredictionsPage';
+import PredictionsStatsPage from './PredictionsStatsPage';
 
 function wrap(route = '/predicciones') {
   cleanup();
@@ -16,7 +17,10 @@ function wrap(route = '/predicciones') {
   return render(
     <MemoryRouter initialEntries={[route]}>
       <QueryClientProvider client={new QueryClient({ defaultOptions: { queries: { retry: false } } })}>
-        <PredictionsPage />
+        <Routes>
+          <Route path="/predicciones" element={<PredictionsPage />} />
+          <Route path="/predicciones/estadisticas" element={<PredictionsStatsPage />} />
+        </Routes>
       </QueryClientProvider>
     </MemoryRouter>,
   );
@@ -76,13 +80,13 @@ describe('PredictionsPage', () => {
     await screen.findByText('Liga Argentina Jornada 5');
     fireEvent.click(screen.getAllByText('Resolver')[0]);
     expect(await screen.findByText(/Resolver prode — Liga Argentina/)).toBeInTheDocument();
-    expect(screen.getByText('Partido 1 · Resultado')).toBeInTheDocument();
+    expect(screen.getByText('Partido 1 · multiple_choice')).toBeInTheDocument();
     fireEvent.click(screen.getByRole('button', { name: 'Boca' }));
     fireEvent.click(screen.getByRole('button', { name: '2-3' }));
     fireEvent.click(screen.getByRole('button', { name: 'Independiente' }));
     fireEvent.click(screen.getByRole('button', { name: '+8.5' }));
     fireEvent.click(screen.getByRole('button', { name: 'Más de 1 gol' }));
-    await waitFor(() => expect(screen.getByText(/Preview de resultados/)).toBeInTheDocument());
+    expect(screen.getByRole('button', { name: 'Confirmar y entregar' })).not.toBeDisabled();
   });
 
   it('ver participantes', async () => {
@@ -102,8 +106,14 @@ describe('PredictionsPage', () => {
   it('tab estadísticas', async () => {
     wrap();
     await screen.findByText('Champions Semana 3');
-    fireEvent.click(screen.getByRole('button', { name: 'Estadísticas' }));
+    fireEvent.click(screen.getByRole('link', { name: 'Estadísticas' }));
     expect(await screen.findByText('Top categorías')).toBeInTheDocument();
+  });
+
+  it('tab resultados visible', async () => {
+    wrap();
+    await screen.findByText('Champions Semana 3');
+    expect(screen.getByRole('link', { name: 'Resultados' })).toBeInTheDocument();
   });
 
   it('módulo inactivo muestra CTA', () => {

@@ -44,6 +44,7 @@ function makeMatch(
   predictionType: string,
   optionLabels: string[],
   winningId: string | null = null,
+  predictDeadlineAt?: string,
 ): PoolMatch {
   const id = `${poolId}_ev_${order}`;
   return {
@@ -55,6 +56,7 @@ function makeMatch(
     options: makeOptions(id, optionLabels),
     winning_option_id: winningId,
     resolved_at: winningId ? ago(1) : null,
+    predict_deadline_at: predictDeadlineAt,
   };
 }
 
@@ -69,22 +71,22 @@ const poolChampionsEvents = [
 ];
 
 const poolLigaEvents = [
-  makeMatch('pool_liga_j5', 0, 'Boca vs Racing', 'Resultado', ['Boca', 'Empate', 'Racing', '0-0']),
-  makeMatch('pool_liga_j5', 1, 'River vs San Lorenzo', 'Goles', ['0-1', '2-3', '4+']),
+  makeMatch('pool_liga_j5', 0, 'Boca vs Racing', 'Resultado', ['Boca', 'Empate', 'Racing', '0-0'], null, ago(2)),
+  makeMatch('pool_liga_j5', 1, 'River vs San Lorenzo', 'Goles', ['0-1', '2-3', '4+'], null, ago(2)),
   makeMatch('pool_liga_j5', 2, 'Independiente vs Huracán', 'Resultado', [
     'Independiente',
     'Empate',
     'Huracán',
     'Doble oportunidad local',
-  ]),
-  makeMatch('pool_liga_j5', 3, 'Talleres vs Belgrano', 'Corners', ['+8.5', '-8.5', 'Exactamente 8']),
+  ], null, ago(2)),
+  makeMatch('pool_liga_j5', 3, 'Talleres vs Belgrano', 'Corners', ['+8.5', '-8.5', 'Exactamente 8'], null, ago(2)),
   makeMatch('pool_liga_j5', 4, 'Estudiantes vs Gimnasia', 'Goleador', [
     'Más de 1 gol',
     'Sin goles',
     '2 o más',
     'Hat-trick',
     'Autogol',
-  ]),
+  ], null, ago(2)),
 ];
 
 const poolMundialEvents = [
@@ -361,6 +363,93 @@ export function resetPredictionPoolsStore() {
 
 export function getPoolById(id: string): PredictionPool | undefined {
   return predictionPools.find((p) => p.id === id);
+}
+
+export function getPoolByIdOrCode(idOrCode: string): PredictionPool | undefined {
+  return predictionPools.find((p) => p.id === idOrCode || p.code === idOrCode);
+}
+
+const POOL_STATUS_TO_BACKEND: Record<
+  PredictionPool['status'],
+  'draft' | 'open' | 'in_progress' | 'closed' | 'archived'
+> = {
+  draft: 'draft',
+  open: 'open',
+  closed: 'in_progress',
+  resolving: 'in_progress',
+  resolved: 'closed',
+  cancelled: 'archived',
+};
+
+/** Shape backend MVP para MSW /admin/predictions. */
+export function poolToBackendTournament(pool: PredictionPool): Record<string, unknown> {
+  return {
+    id: pool.id,
+    code: pool.code,
+    name: pool.name,
+    description: pool.description,
+    image_url: pool.image_url,
+    entry_cost_type: pool.participation_cost.type === 'free' ? 'free' : 'coins',
+    entry_cost_amount: pool.participation_cost.cost_in_coins ?? 0,
+    entry_cost_currency_id: null,
+    prize_distribution: [],
+    status: POOL_STATUS_TO_BACKEND[pool.status],
+    entry_deadline: pool.closes_at,
+    starts_at: pool.opens_at,
+    ends_at: pool.resolves_at,
+    closed_at: pool.status === 'resolved' ? pool.updated_at : null,
+    created_at: pool.created_at,
+    updated_at: pool.updated_at,
+    events: pool.events.map((e) => ({
+      id: e.id,
+      tournament_id: pool.id,
+      order_index: e.display_order,
+      question: e.name,
+      image_url: e.image_url ?? null,
+      predict_deadline_at: e.predict_deadline_at ?? pool.closes_at,
+      correct_option_id: e.winning_option_id,
+      resolved_at: e.resolved_at,
+      options: e.options.map((o) => ({
+        id: o.id,
+        event_id: e.id,
+        order_index: o.display_order,
+        label: o.text,
+        image_url: o.image_url ?? null,
+        created_at: pool.created_at,
+      })),
+    })),
+  };
+}
+
+export function resolvePredictionEvent(
+  eventId: string,
+  correctOptionId: string,
+): { event: Record<string, unknown>; tournament_closed: boolean; winners_count: number } | null {
+  for (const pool of predictionPools) {
+    const ev = pool.events.find((e) => e.id === eventId);
+    if (!ev) continue;
+    ev.winning_option_id = correctOptionId;
+    ev.resolved_at = new Date().toISOString();
+    pool.updated_at = ev.resolved_at;
+    const tournamentClosed = pool.events.every((e) => e.winning_option_id);
+    if (tournamentClosed) {
+      applyPoolResolve(
+        pool.id,
+        pool.events.map((e) => ({ event_id: e.id, winning_option_id: e.winning_option_id! })),
+      );
+    }
+    const winnersCount = tournamentClosed
+      ? getPoolEntries(pool.id).filter((entry) => (entry.hits_count ?? 0) > 0).length
+      : 0;
+    const backendPool = poolToBackendTournament(pool);
+    const backendEvent = (backendPool.events as Record<string, unknown>[]).find((e) => e.id === eventId);
+    return {
+      event: backendEvent ?? poolToBackendTournament(pool),
+      tournament_closed: tournamentClosed,
+      winners_count: winnersCount,
+    };
+  }
+  return null;
 }
 
 export function filterPredictionPools(params: URLSearchParams): PredictionPool[] {

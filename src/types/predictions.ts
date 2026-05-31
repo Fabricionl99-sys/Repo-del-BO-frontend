@@ -58,6 +58,8 @@ export interface PoolMatch {
   options: PredictionOption[];
   winning_option_id: string | null;
   resolved_at: string | null;
+  /** Deadline para enviar predicciones (backend: predict_deadline_at). */
+  predict_deadline_at?: string;
 }
 
 export interface ParticipationCost {

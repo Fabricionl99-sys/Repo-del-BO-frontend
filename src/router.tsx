@@ -40,6 +40,8 @@ const SettingsPage = lazy(() => import('@/features/settings/pages/SettingsPage')
 const RankingsPage = lazy(() => import('@/features/rankings/pages/RankingsPage'));
 const AvatarsPage = lazy(() => import('@/features/avatars/pages/AvatarsPage'));
 const PredictionsPage = lazy(() => import('@/features/predictions/pages/PredictionsPage'));
+const PredictionsStatsPage = lazy(() => import('@/features/predictions/pages/PredictionsStatsPage'));
+const PredictionResultsPage = lazy(() => import('@/features/predictions/pages/PredictionResultsPage'));
 const FeedPlaceholderPage = lazy(() => import('@/features/feed/pages/FeedPlaceholderPage'));
 const WalletPage = lazy(() => import('@/features/wallet/pages/WalletPage'));
 const ModulesPage = lazy(() => import('@/features/modules/pages/ModulesPage'));
@@ -155,6 +157,9 @@ export const router = createBrowserRouter([
         path: 'predicciones',
         element: wrap(<PredictionsPage />),
       },
+      { path: 'predicciones/estadisticas', element: wrap(<PredictionsStatsPage />) },
+      { path: 'predicciones/resultados', element: wrap(<PredictionResultsPage />) },
+      { path: 'predictions/results', element: <Navigate to="/predicciones/resultados" replace /> },
       { path: 'sorteos', element: wrap(<RafflesPage />) },
       { path: 'sorteos/pending-physical', element: wrap(<RafflesPage />) },
       { path: 'sorteos/:code', element: wrap(<RaffleDetailPage />) },

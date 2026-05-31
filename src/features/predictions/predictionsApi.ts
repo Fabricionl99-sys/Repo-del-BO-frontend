@@ -122,6 +122,7 @@ function adaptEvent(e: BackendEvent): PoolMatch {
     options: e.options.map(adaptOption),
     winning_option_id: e.correct_option_id,
     resolved_at: e.resolved_at,
+    predict_deadline_at: e.predict_deadline_at,
   };
 }
 
@@ -420,19 +421,70 @@ export function useResolvePredictionPool() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: async ({ id: _id, results }: ResolvePoolPayload & { id: string }) => {
-      // Backend resuelve evento por evento. Iteramos.
       for (const r of results) {
         await apiClient.post(`/admin/predictions/events/${r.event_id}/resolve`, {
           correct_option_id: r.winning_option_id,
         });
       }
-      // El último resolve auto-cierra el torneo + entrega premios.
-      // Refetch para shape final.
       return null as unknown as PredictionPool;
     },
     onSuccess: () => {
       void qc.invalidateQueries({ queryKey: ['prediction-pools'] });
       void qc.invalidateQueries({ queryKey: ['prediction-pools-stats'] });
+      void qc.invalidateQueries({ queryKey: ['prediction-events-catalog'] });
+    },
+  });
+}
+
+export interface ResolvePredictionEventResult {
+  event: BackendEvent;
+  tournament_closed: boolean;
+  winners_count?: number;
+}
+
+export function usePredictionEventsCatalog() {
+  const listQ = usePredictionPoolsList({ status: 'all' });
+  return useQuery({
+    queryKey: ['prediction-events-catalog', listQ.dataUpdatedAt],
+    enabled: Boolean(listQ.data?.length),
+    queryFn: async () => {
+      const pools = (listQ.data ?? []).filter((p) => p.status !== 'draft' && p.status !== 'cancelled');
+      const details = await Promise.all(
+        pools.map((p) =>
+          apiClient
+            .get(`/admin/predictions/${p.code ?? p.id}`)
+            .then((r) => unwrapData<BackendTournament>(r.data))
+            .then(adaptTournamentToPool),
+        ),
+      );
+      return details;
+    },
+  });
+}
+
+export function useResolvePredictionEvent() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ eventId, correctOptionId }: { eventId: string; correctOptionId: string }) =>
+      apiClient
+        .post(`/admin/predictions/events/${eventId}/resolve`, { correct_option_id: correctOptionId })
+        .then((r) => unwrapData<ResolvePredictionEventResult>(r.data)),
+    onSuccess: (data) => {
+      toast.success('Resultado cargado. Premios calculados.');
+      if (data.tournament_closed) {
+        const count = data.winners_count;
+        toast.success(
+          count != null && Number.isFinite(count)
+            ? `Torneo cerrado. ${count} jugadores reciben premios.`
+            : 'Torneo cerrado. Los jugadores reciben premios.',
+        );
+      }
+      void qc.invalidateQueries({ queryKey: ['prediction-pools'] });
+      void qc.invalidateQueries({ queryKey: ['prediction-pools-stats'] });
+      void qc.invalidateQueries({ queryKey: ['prediction-events-catalog'] });
+    },
+    onError: (error) => {
+      toast.error(getApiErrorMessage(error, 'No se pudo cargar el resultado'));
     },
   });
 }

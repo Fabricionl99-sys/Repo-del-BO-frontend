@@ -923,10 +923,13 @@ import {
   computeResolvePreview,
   filterPredictionPools,
   getPoolById,
+  getPoolByIdOrCode,
   getPoolEntries,
   getUsedCategories,
   getUsedPredictionTypes,
+  poolToBackendTournament,
   predictionPools,
+  resolvePredictionEvent,
 } from '@/mocks/data/predictionPools';
 import type { PredictionPoolPayload, ResolvePoolPayload } from '@/types/predictions';
 import { legacyGameCatalog, operatorConfigFull } from '@/mocks/data/operatorConfig';
@@ -1168,6 +1171,32 @@ handlers.push(
     item.status = 'cancelled';
     item.updated_at = new Date().toISOString();
     return HttpResponse.json({ data: item });
+  }),
+  http.get('*/admin/predictions', async ({ request }) => {
+    await wait();
+    const list = filterPredictionPools(new URL(request.url).searchParams).map(poolToBackendTournament);
+    return HttpResponse.json({ data: list });
+  }),
+  http.get('*/admin/predictions/:idOrCode', async ({ params }) => {
+    await wait();
+    const item = getPoolByIdOrCode(params.idOrCode as string);
+    if (!item) return HttpResponse.json({ message: 'Not found' }, { status: 404 });
+    return HttpResponse.json({ data: poolToBackendTournament(item) });
+  }),
+  http.post('*/admin/predictions/:idOrCode/publish', async ({ params }) => {
+    await wait();
+    const item = getPoolByIdOrCode(params.idOrCode as string);
+    if (!item) return HttpResponse.json({ message: 'Not found' }, { status: 404 });
+    item.status = 'open';
+    item.updated_at = new Date().toISOString();
+    return HttpResponse.json({ data: poolToBackendTournament(item) });
+  }),
+  http.post('*/admin/predictions/events/:eventId/resolve', async ({ params, request }) => {
+    await wait();
+    const body = (await request.json()) as { correct_option_id?: string };
+    const result = resolvePredictionEvent(params.eventId as string, String(body.correct_option_id ?? ''));
+    if (!result) return HttpResponse.json({ message: 'Event not found' }, { status: 404 });
+    return HttpResponse.json({ data: result });
   }),
 );
 

@@ -18,24 +18,19 @@ import { PoolFormModal } from '@/features/predictions/components/PoolFormModal';
 import { PoolLeaderboardModal } from '@/features/predictions/components/PoolLeaderboardModal';
 import { PoolParticipantsModal } from '@/features/predictions/components/PoolParticipantsModal';
 import { PoolResolveModal } from '@/features/predictions/components/PoolResolveModal';
-import { PoolStatsPanel } from '@/features/predictions/components/PoolStatsPanel';
+import { PredictionsSubNav } from '@/features/predictions/components/PredictionsSubNav';
 import {
   useArchivePredictionPool,
   useClosePredictionPool,
   useOpenPredictionPool,
   usePredictionPoolsList,
-  usePredictionPoolStats,
 } from '@/features/predictions/predictionsApi';
 import { STATUS_LABELS } from '@/features/predictions/poolForm';
 import { useDebounce } from '@/hooks/useDebounce';
 import { asArray } from '@/lib/asArray';
-import { cn } from '@/lib/cn';
 import { formatNumber, formatRelativeDate } from '@/lib/format';
 import { useOperatorStore } from '@/stores/operatorStore';
 import type { PredictionPool, PredictionPoolStatus } from '@/types/predictions';
-
-const tabs = ['Prodes', 'Estadísticas'] as const;
-type Tab = (typeof tabs)[number];
 
 const statusFilters: Array<'all' | PredictionPoolStatus> = [
   'all',
@@ -63,7 +58,6 @@ export default function PredictionsPage() {
   const activeModuleCodes = useOperatorStore((s) => s.activeModuleCodes);
   const predictionsActive = isModuleActive(activeModuleCodes, 'predictions');
 
-  const [tab, setTab] = useState<Tab>('Prodes');
   const [statusFilter, setStatusFilter] = useState<'all' | PredictionPoolStatus>('all');
   const [categoryFilter, setCategoryFilter] = useState('all');
   const [participationFilter, setParticipationFilter] = useState<'all' | 'free' | 'paid'>('all');
@@ -82,7 +76,6 @@ export default function PredictionsPage() {
     participation: participationFilter,
     search: debouncedSearch || undefined,
   });
-  const statsQ = usePredictionPoolStats();
   const openMut = useOpenPredictionPool();
   const closeMut = useClosePredictionPool();
   const archiveMut = useArchivePredictionPool();
@@ -131,19 +124,17 @@ export default function PredictionsPage() {
     );
   }
 
-  const catalogLoading = mock !== 'empty' && tab === 'Prodes' && listQ.isLoading;
-  const statsLoading = mock !== 'empty' && tab === 'Estadísticas' && statsQ.isLoading;
+  const catalogLoading = mock !== 'empty' && listQ.isLoading;
 
-  if (mock === 'loading' || catalogLoading || statsLoading) {
+  if (mock === 'loading' || catalogLoading) {
     return <Loading label="Cargando predicciones..." />;
   }
 
-  if (mock === 'error' || listQ.isError || statsQ.isError) {
+  if (mock === 'error' || listQ.isError) {
     return (
       <ErrorState
         onRetry={() => {
           listQ.refetch();
-          statsQ.refetch();
         }}
       />
     );
@@ -155,33 +146,15 @@ export default function PredictionsPage() {
         title="Predicciones"
         subtitle="Prodes y porras: el jugador completa todos los partidos en un formulario"
         actions={
-          tab === 'Prodes' ? (
-            <Button variant="primary" icon={<Plus size={14} />} onClick={() => setEditorPool('new')}>
-              Nuevo prode
-            </Button>
-          ) : undefined
+          <Button variant="primary" icon={<Plus size={14} />} onClick={() => setEditorPool('new')}>
+            Nuevo prode
+          </Button>
         }
       />
 
-      <div className="mb-4 flex flex-wrap gap-2 border-b border-border-subtle">
-        {tabs.map((t) => (
-          <button
-            key={t}
-            type="button"
-            onClick={() => setTab(t)}
-            className={cn(
-              'px-4 py-2 text-sm font-semibold transition-colors',
-              tab === t ? 'border-b-2 border-accent text-accent' : 'text-text-secondary hover:text-text-primary',
-            )}
-          >
-            {t}
-          </button>
-        ))}
-      </div>
+      <PredictionsSubNav />
 
-      {tab === 'Prodes' && (
-        <>
-          <Toolbar
+      <Toolbar
             search={
               <SearchInput
                 placeholder="Buscar por nombre..."
@@ -271,7 +244,7 @@ export default function PredictionsPage() {
                         Cerrar
                       </Button>
                     )}
-                    {pool.status === 'closed' && (
+                    {(pool.status === 'closed' || pool.status === 'resolving') && (
                       <Button size="sm" onClick={() => setResolvePool(pool)}>
                         Resolver
                       </Button>
@@ -287,11 +260,6 @@ export default function PredictionsPage() {
               ))}
             </div>
           )}
-        </>
-      )}
-
-      {tab === 'Estadísticas' && <PoolStatsPanel />}
-
       <PoolFormModal
         open={editorPool !== null}
         pool={editorPool === 'new' ? null : editorPool}
