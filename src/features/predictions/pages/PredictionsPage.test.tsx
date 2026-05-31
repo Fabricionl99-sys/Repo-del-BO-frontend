@@ -7,6 +7,7 @@ import { useOperatorStore } from '@/stores/operatorStore';
 
 import PredictionsPage from './PredictionsPage';
 import PredictionsStatsPage from './PredictionsStatsPage';
+import PredictionResultsPage from './PredictionResultsPage';
 
 function wrap(route = '/predicciones') {
   cleanup();
@@ -20,6 +21,7 @@ function wrap(route = '/predicciones') {
         <Routes>
           <Route path="/predicciones" element={<PredictionsPage />} />
           <Route path="/predicciones/estadisticas" element={<PredictionsStatsPage />} />
+          <Route path="/predicciones/resultados" element={<PredictionResultsPage />} />
         </Routes>
       </QueryClientProvider>
     </MemoryRouter>,
@@ -27,36 +29,32 @@ function wrap(route = '/predicciones') {
 }
 
 describe('PredictionsPage', () => {
-  it('lista prodes y abre modal nuevo', async () => {
+  it('lista programas y abre modal nuevo', async () => {
     wrap();
     expect(await screen.findByText('Champions Semana 3')).toBeInTheDocument();
-    fireEvent.click(screen.getByText('Nuevo prode'));
+    fireEvent.click(screen.getByText('Nuevo programa'));
     expect(screen.getByText('Nuevo prode', { selector: 'h2' })).toBeInTheDocument();
   });
 
   it('agregar partido en modal', async () => {
     wrap();
     await screen.findByText('Champions Semana 3');
-    fireEvent.click(screen.getByText('Nuevo prode'));
+    fireEvent.click(screen.getByText('Nuevo programa'));
     fireEvent.click(screen.getByText('Agregar partido al prode'));
     expect(screen.getAllByText(/Partido \d/).length).toBeGreaterThanOrEqual(2);
   });
 
-  it('prode abierto muestra todas las opciones en solo lectura', async () => {
+  it('programa abierto muestra eventos en detalle', async () => {
     wrap();
     await screen.findByText('Champions Semana 3');
-    fireEvent.click(screen.getByRole('button', { name: /Champions Semana 3/i }));
-    await screen.findByText('Editar prode', { selector: 'h2' });
-    await screen.findByDisplayValue('Real Madrid vs Barcelona');
-    expect(screen.getAllByDisplayValue('Real Madrid').length).toBeGreaterThanOrEqual(1);
-    expect(screen.getAllByDisplayValue('Barcelona').length).toBeGreaterThanOrEqual(1);
-    expect(screen.queryByRole('button', { name: 'Agregar opción' })).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: /Ver detalle Champions Semana 3/i }));
+    expect(await screen.findByText('Real Madrid vs Barcelona')).toBeInTheDocument();
   });
 
-  it('prode en borrador permite agregar opciones', async () => {
+  it('programa en borrador permite agregar opciones', async () => {
     wrap();
     await screen.findByText('Clausura 2026 (borrador)');
-    fireEvent.click(screen.getByRole('button', { name: /Clausura 2026/i }));
+    fireEvent.click(screen.getByRole('button', { name: /Editar/i }));
     await screen.findByText('Editar prode', { selector: 'h2' });
     await waitFor(() =>
       expect(screen.getAllByPlaceholderText('Texto de la opción (requerido)').length).toBeGreaterThan(0),
@@ -68,38 +66,26 @@ describe('PredictionsPage', () => {
     );
   });
 
-  it('abrir prode en draft', async () => {
+  it('publicar programa en draft', async () => {
     wrap();
     await screen.findByText('Clausura 2026 (borrador)');
-    fireEvent.click(screen.getByText('Abrir'));
-    await waitFor(() => expect(screen.queryByText('Abrir')).not.toBeInTheDocument());
+    window.confirm = () => true;
+    fireEvent.click(screen.getByText('Publicar'));
+    await waitFor(() => expect(screen.queryByText('Publicar')).not.toBeInTheDocument());
   });
 
-  it('resolver prode cerrado', async () => {
-    wrap();
-    await screen.findByText('Liga Argentina Jornada 5');
-    fireEvent.click(screen.getAllByText('Resolver')[0]);
-    expect(await screen.findByText(/Resolver prode — Liga Argentina/)).toBeInTheDocument();
-    expect(screen.getByText('Partido 1 · multiple_choice')).toBeInTheDocument();
-    fireEvent.click(screen.getByRole('button', { name: 'Boca' }));
-    fireEvent.click(screen.getByRole('button', { name: '2-3' }));
-    fireEvent.click(screen.getByRole('button', { name: 'Independiente' }));
-    fireEvent.click(screen.getByRole('button', { name: '+8.5' }));
-    fireEvent.click(screen.getByRole('button', { name: 'Más de 1 gol' }));
-    expect(screen.getByRole('button', { name: 'Confirmar y entregar' })).not.toBeDisabled();
+  it('resolver evento pendiente en resultados', async () => {
+    wrap('/predicciones/resultados');
+    expect(await screen.findByText('Boca vs Racing', {}, { timeout: 5000 })).toBeInTheDocument();
+    fireEvent.click(screen.getAllByText('Resolver')[0]!);
+    expect(await screen.findByText('Marcar resultado')).toBeInTheDocument();
   });
 
-  it('ver participantes', async () => {
-    wrap();
-    await screen.findByText('Champions Semana 3');
-    fireEvent.click(screen.getAllByText('Participantes')[0]);
-    expect(screen.getByText(/Participantes —/)).toBeInTheDocument();
-  });
-
-  it('ver ranking', async () => {
+  it('ver ranking desde detalle', async () => {
     wrap();
     await screen.findByText('Mundial Sub-20 Jornada 1');
-    fireEvent.click(screen.getAllByText('Ranking')[0]);
+    fireEvent.click(screen.getByRole('button', { name: /Ver detalle Mundial Sub-20/i }));
+    fireEvent.click(await screen.findByText('Ver ranking'));
     expect(screen.getByText(/Ranking —/)).toBeInTheDocument();
   });
 
@@ -107,7 +93,7 @@ describe('PredictionsPage', () => {
     wrap();
     await screen.findByText('Champions Semana 3');
     fireEvent.click(screen.getByRole('link', { name: 'Estadísticas' }));
-    expect(await screen.findByText('Top categorías')).toBeInTheDocument();
+    expect(await screen.findByText('Prodes creados')).toBeInTheDocument();
   });
 
   it('tab resultados visible', async () => {
@@ -131,14 +117,12 @@ describe('PredictionsPage', () => {
 
   it('empty state forzado', async () => {
     wrap('/predicciones?mockState=empty');
-    expect(await screen.findByText('Sin prodes')).toBeInTheDocument();
+    expect(await screen.findByText('Sin programas')).toBeInTheDocument();
   });
 
-  it('menú ⋮ incluye Archivar para prode en borrador', async () => {
+  it('programa activo muestra archivar', async () => {
     wrap();
-    await screen.findByText('Clausura 2026 (borrador)');
-    fireEvent.click(screen.getAllByTitle('Acciones')[0]!);
-    expect(screen.getByRole('button', { name: /Archivar/i })).toBeInTheDocument();
-    expect(screen.queryByText('Cancelar')).not.toBeInTheDocument();
+    await screen.findByText('Champions Semana 3');
+    expect(screen.getByText('Archivar')).toBeInTheDocument();
   });
 });

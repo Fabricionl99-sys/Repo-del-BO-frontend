@@ -1219,8 +1219,9 @@ handlers.push(
   }),
   http.post('*/admin/predictions/events/:eventId/resolve', async ({ params, request }) => {
     await wait();
-    const body = (await request.json()) as { correct_option_id?: string };
-    const result = resolvePredictionEvent(params.eventId as string, String(body.correct_option_id ?? ''));
+    const body = (await request.json()) as { correct_option_id?: string; actual_result?: string };
+    const optionId = String(body.actual_result ?? body.correct_option_id ?? '');
+    const result = resolvePredictionEvent(params.eventId as string, optionId);
     if (!result) return HttpResponse.json({ message: 'Event not found' }, { status: 404 });
     return HttpResponse.json({ data: result });
   }),

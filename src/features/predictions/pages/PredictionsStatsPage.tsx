@@ -5,7 +5,7 @@ import { PredictionsSubNav } from '@/features/predictions/components/Predictions
 export default function PredictionsStatsPage() {
   return (
     <>
-      <PageHeader title="Predicciones" subtitle="Prodes y porras: el jugador completa todos los partidos en un formulario" />
+      <PageHeader title="Predicciones" subtitle="Estadísticas de participación en programas de predicciones" />
       <PredictionsSubNav />
       <PoolStatsPanel />
     </>

@@ -81,24 +81,37 @@ interface BackendTournament {
   entry_cost_amount: number;
   entry_cost_currency_id: string | null;
   prize_distribution: BackendPrizeEntry[];
-  status: 'draft' | 'open' | 'in_progress' | 'closed' | 'archived';
+  status: string;
   entry_deadline: string | null;
-  starts_at: string | null;
-  ends_at: string | null;
+  starts_at?: string | null;
+  start_at?: string | null;
+  ends_at?: string | null;
+  end_at?: string | null;
   closed_at: string | null;
   created_at: string;
   updated_at: string;
   events?: BackendEvent[];
+  events_count?: number;
+  predictions_count?: number;
 }
 
 // ─── Adapters ──────────────────────────────────────────────────────────
 
-const STATUS_MAP: Record<BackendTournament['status'], PredictionPoolStatus> = {
+const STATUS_MAP: Record<string, PredictionPoolStatus> = {
   draft: 'draft',
+  active: 'open',
   open: 'open',
   in_progress: 'resolving',
   closed: 'resolved',
   archived: 'cancelled',
+};
+
+const FILTER_STATUS_TO_BACKEND: Partial<Record<PredictionPoolStatus, string>> = {
+  draft: 'draft',
+  open: 'active',
+  resolving: 'in_progress',
+  resolved: 'closed',
+  cancelled: 'archived',
 };
 
 function adaptOption(o: BackendOption): { id: string; text: string; display_order: number; image_url?: string } {
@@ -146,8 +159,9 @@ function adaptTournamentToPool(t: BackendTournament): PredictionPool {
     if (!latest) return e.predict_deadline_at;
     return e.predict_deadline_at > latest ? e.predict_deadline_at : latest;
   }, null);
-  const opensAt = t.starts_at ?? t.created_at;
-  const closesAt = t.entry_deadline ?? resolvesAt ?? t.ends_at ?? t.created_at;
+  const opensAt = t.starts_at ?? t.start_at ?? t.created_at;
+  const closesAt = t.entry_deadline ?? resolvesAt ?? t.ends_at ?? t.end_at ?? t.created_at;
+  const backendStatus = t.status ?? 'draft';
 
   return {
     id: t.id,
@@ -156,7 +170,7 @@ function adaptTournamentToPool(t: BackendTournament): PredictionPool {
     description: t.description,
     image_url: t.image_url,
     category: 'general',
-    status: STATUS_MAP[t.status],
+    status: STATUS_MAP[backendStatus] ?? 'draft',
     opens_at: opensAt,
     closes_at: closesAt,
     resolves_at: resolvesAt ?? closesAt,
@@ -173,10 +187,10 @@ function adaptTournamentToPool(t: BackendTournament): PredictionPool {
     target_audience: 'all',
     audience_config: {},
     restrictions: { min_level: null, vip_only: false, new_players_only: false },
-    is_visible_to_players: t.status !== 'draft' && t.status !== 'archived',
+    is_visible_to_players: backendStatus !== 'draft' && backendStatus !== 'archived',
     events: events.map(adaptEvent),
-    total_events_count: events.length,
-    total_entries_count: 0, // backend MVP no expone count
+    total_events_count: events.length || Number(t.events_count ?? 0),
+    total_entries_count: Number(t.predictions_count ?? 0),
     created_at: t.created_at,
     updated_at: t.updated_at,
   };
@@ -259,8 +273,7 @@ function eventsPayloadToBackend(payload: PredictionPoolPayload): Array<Record<st
 function filtersToParams(filters: PredictionPoolFilters): string {
   const sp = new URLSearchParams();
   if (filters.status && filters.status !== 'all') {
-    // Mapear shape BO → backend status si corresponde.
-    const backendStatus = Object.entries(STATUS_MAP).find(([, v]) => v === filters.status)?.[0];
+    const backendStatus = FILTER_STATUS_TO_BACKEND[filters.status];
     if (backendStatus) sp.set('status', backendStatus);
   }
   if (filters.search) sp.set('search', filters.search);
@@ -268,14 +281,54 @@ function filtersToParams(filters: PredictionPoolFilters): string {
   return q ? `?${q}` : '';
 }
 
+export type PredictionEventPayload = {
+  order_index: number;
+  question: string;
+  image_url?: string | null;
+  predict_deadline_at: string;
+  options: Array<{ order_index: number; label: string; image_url?: string | null }>;
+};
+
+export function buildEventPayload(
+  event: PredictionPoolPayload['events'][number],
+  closesAt: string,
+  index: number,
+): PredictionEventPayload {
+  return {
+    order_index: event.display_order ?? index,
+    question: event.name,
+    image_url: event.image_url ?? null,
+    predict_deadline_at: closesAt,
+    options: event.options.map((o, j) => ({
+      order_index: o.display_order ?? j,
+      label: o.text,
+      image_url: o.image_url ?? null,
+    })),
+  };
+}
+
 export function usePredictionPoolsList(filters: PredictionPoolFilters = {}) {
   return useQuery({
     queryKey: ['prediction-pools', filters],
-    queryFn: () =>
-      apiClient
+    queryFn: async () => {
+      const rows = await apiClient
         .get(`/admin/predictions${filtersToParams(filters)}`)
-        .then((r) => unwrapDataList<BackendTournament>(r.data, ['pools', 'tournaments']))
-        .then((arr) => arr.map(adaptTournamentToPool)),
+        .then((r) => unwrapDataList<BackendTournament>(r.data, ['pools', 'tournaments', 'programs']));
+      let pools = rows.map(adaptTournamentToPool);
+      if (filters.status && filters.status !== 'all') {
+        pools = pools.filter((p) => p.status === filters.status);
+      }
+      if (filters.category && filters.category !== 'all') {
+        pools = pools.filter((p) => p.category === filters.category);
+      }
+      if (filters.participation === 'free') {
+        pools = pools.filter((p) => p.participation_cost.type === 'free');
+      }
+      if (filters.participation === 'paid') {
+        pools = pools.filter((p) => p.participation_cost.type === 'paid');
+      }
+      return pools;
+    },
   });
 }
 
@@ -292,17 +345,30 @@ export function usePredictionPool(idOrCode: string | null) {
 }
 
 export function usePredictionPoolStats() {
+  const listQ = usePredictionPoolsList({ status: 'all' });
   return useQuery({
-    queryKey: ['prediction-pools-stats'],
-    // MVP: stats no implementado en backend, devolvemos shape vacío.
-    queryFn: async (): Promise<PredictionPoolStats> => ({
-      total_pools: 0,
-      active_pools: 0,
-      resolved_pools: 0,
-      top_categories: [],
-      avg_entries_per_pool: 0,
-      hits_distribution: [],
-    }),
+    queryKey: ['prediction-pools-stats', listQ.dataUpdatedAt],
+    enabled: listQ.isSuccess,
+    queryFn: async (): Promise<PredictionPoolStats> => {
+      const pools = listQ.data ?? [];
+      const active = pools.filter((p) => ['open', 'closed', 'resolving'].includes(p.status));
+      const resolved = pools.filter((p) => p.status === 'resolved');
+      const catMap = new Map<string, number>();
+      for (const p of pools) {
+        catMap.set(p.category, (catMap.get(p.category) ?? 0) + 1);
+      }
+      const totalEntries = pools.reduce((sum, p) => sum + p.total_entries_count, 0);
+      return {
+        total_pools: pools.length,
+        active_pools: active.length,
+        resolved_pools: resolved.length,
+        top_categories: [...catMap.entries()]
+          .map(([category, count]) => ({ category, count }))
+          .sort((a, b) => b.count - a.count),
+        avg_entries_per_pool: pools.length ? totalEntries / pools.length : 0,
+        hits_distribution: [],
+      };
+    },
   });
 }
 
@@ -377,7 +443,6 @@ export function useSavePredictionPool() {
         for (const event of events) {
           await apiClient.post(`/admin/predictions/${created.code}/events`, event);
         }
-        // Refetch para tener events embedded.
         const full = await apiClient
           .get(`/admin/predictions/${created.code}`)
           .then((r) => unwrapData<BackendTournament>(r.data));
@@ -399,7 +464,11 @@ export function useOpenPredictionPool() {
         .post(`/admin/predictions/${idOrCode}/publish`)
         .then((r) => unwrapData<BackendTournament>(r.data))
         .then(adaptTournamentToPool),
-    onSuccess: () => void qc.invalidateQueries({ queryKey: ['prediction-pools'] }),
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: ['prediction-pools'] });
+      void qc.invalidateQueries({ queryKey: ['prediction-pools-stats'] });
+      toast.success('Programa publicado');
+    },
   });
 }
 
@@ -422,9 +491,7 @@ export function useResolvePredictionPool() {
   return useMutation({
     mutationFn: async ({ id: _id, results }: ResolvePoolPayload & { id: string }) => {
       for (const r of results) {
-        await apiClient.post(`/admin/predictions/events/${r.event_id}/resolve`, {
-          correct_option_id: r.winning_option_id,
-        });
+        await apiClient.post(`/admin/predictions/events/${r.event_id}/resolve`, buildResolveBody(r.winning_option_id));
       }
       return null as unknown as PredictionPool;
     },
@@ -437,9 +504,28 @@ export function useResolvePredictionPool() {
 }
 
 export interface ResolvePredictionEventResult {
-  event: BackendEvent;
-  tournament_closed: boolean;
+  resolved?: boolean;
+  payouts?: number;
+  players_won?: number;
+  event?: BackendEvent;
+  tournament_closed?: boolean;
   winners_count?: number;
+}
+
+function buildResolveBody(actualResult: string | number | Record<string, unknown>) {
+  const body: Record<string, unknown> = { actual_result: actualResult };
+  if (typeof actualResult === 'string') {
+    body.correct_option_id = actualResult;
+  }
+  return body;
+}
+
+function normalizeResolveResult(raw: ResolvePredictionEventResult) {
+  return {
+    ...raw,
+    payouts: raw.payouts ?? raw.winners_count,
+    players_won: raw.players_won ?? raw.winners_count,
+  };
 }
 
 export function usePredictionEventsCatalog() {
@@ -465,26 +551,101 @@ export function usePredictionEventsCatalog() {
 export function useResolvePredictionEvent() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: ({ eventId, correctOptionId }: { eventId: string; correctOptionId: string }) =>
-      apiClient
-        .post(`/admin/predictions/events/${eventId}/resolve`, { correct_option_id: correctOptionId })
-        .then((r) => unwrapData<ResolvePredictionEventResult>(r.data)),
+    mutationFn: ({
+      eventId,
+      correctOptionId,
+      actualResult,
+    }: {
+      eventId: string;
+      correctOptionId?: string;
+      actualResult?: string | number | Record<string, unknown>;
+    }) => {
+      const result = actualResult ?? correctOptionId;
+      if (result == null) throw new Error('Resultado requerido');
+      return apiClient
+        .post(`/admin/predictions/events/${eventId}/resolve`, buildResolveBody(result))
+        .then((r) => normalizeResolveResult(unwrapData<ResolvePredictionEventResult>(r.data)));
+    },
     onSuccess: (data) => {
-      toast.success('Resultado cargado. Premios calculados.');
+      const payouts = data.payouts ?? data.players_won;
+      toast.success(
+        payouts != null && Number.isFinite(payouts)
+          ? `Resultado cargado. ${payouts} pagos enviados.`
+          : 'Resultado cargado. Premios calculados.',
+      );
       if (data.tournament_closed) {
-        const count = data.winners_count;
+        const count = data.players_won ?? data.winners_count;
         toast.success(
           count != null && Number.isFinite(count)
-            ? `Torneo cerrado. ${count} jugadores reciben premios.`
-            : 'Torneo cerrado. Los jugadores reciben premios.',
+            ? `Programa cerrado. ${count} jugadores ganaron.`
+            : 'Programa cerrado. Los jugadores reciben premios.',
         );
       }
       void qc.invalidateQueries({ queryKey: ['prediction-pools'] });
+      void qc.invalidateQueries({ queryKey: ['prediction-pool'] });
       void qc.invalidateQueries({ queryKey: ['prediction-pools-stats'] });
       void qc.invalidateQueries({ queryKey: ['prediction-events-catalog'] });
     },
     onError: (error) => {
       toast.error(getApiErrorMessage(error, 'No se pudo cargar el resultado'));
+    },
+  });
+}
+
+export function useAddPredictionEvent() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({
+      programCode,
+      event,
+    }: {
+      programCode: string;
+      event: PredictionEventPayload;
+    }) =>
+      apiClient
+        .post(`/admin/predictions/${programCode}/events`, event)
+        .then((r) => unwrapData<BackendEvent>(r.data)),
+    onSuccess: (_data, { programCode }) => {
+      void qc.invalidateQueries({ queryKey: ['prediction-pool', programCode] });
+      void qc.invalidateQueries({ queryKey: ['prediction-pools'] });
+      void qc.invalidateQueries({ queryKey: ['prediction-events-catalog'] });
+    },
+  });
+}
+
+export function useUpdatePredictionEvent() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({
+      eventId,
+      event,
+      programCode,
+    }: {
+      eventId: string;
+      event: Partial<PredictionEventPayload>;
+      programCode: string;
+    }) =>
+      apiClient
+        .patch(`/admin/predictions/events/${eventId}`, event)
+        .then((r) => unwrapData<BackendEvent>(r.data))
+        .then(() => programCode),
+    onSuccess: (programCode) => {
+      void qc.invalidateQueries({ queryKey: ['prediction-pool', programCode] });
+      void qc.invalidateQueries({ queryKey: ['prediction-pools'] });
+      void qc.invalidateQueries({ queryKey: ['prediction-events-catalog'] });
+    },
+  });
+}
+
+export function useDeletePredictionEvent() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ eventId, programCode }: { eventId: string; programCode: string }) =>
+      apiClient.delete(`/admin/predictions/events/${eventId}`).then(() => programCode),
+    onSuccess: (programCode) => {
+      void qc.invalidateQueries({ queryKey: ['prediction-pool', programCode] });
+      void qc.invalidateQueries({ queryKey: ['prediction-pools'] });
+      void qc.invalidateQueries({ queryKey: ['prediction-events-catalog'] });
     },
   });
 }

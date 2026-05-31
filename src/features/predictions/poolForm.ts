@@ -19,11 +19,11 @@ export const POOL_STATUSES = ['draft', 'open', 'closed', 'resolving', 'resolved'
 
 export const STATUS_LABELS: Record<string, string> = {
   draft: 'Borrador',
-  open: 'Abierto',
+  open: 'Activo',
   closed: 'Cerrado',
   resolving: 'Resolviendo',
   resolved: 'Resuelto',
-  cancelled: 'Cancelado',
+  cancelled: 'Archivado',
 };
 
 export const REWARD_STRUCTURE_LABELS: Record<RewardStructureType, string> = {

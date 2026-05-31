@@ -3,7 +3,7 @@ import { NavLink } from 'react-router-dom';
 import { cn } from '@/lib/cn';
 
 const links = [
-  { to: '/predicciones', label: 'Prodes', end: true },
+  { to: '/predicciones', label: 'PRODE', end: true },
   { to: '/predicciones/estadisticas', label: 'Estadísticas' },
   { to: '/predicciones/resultados', label: 'Resultados' },
 ] as const;

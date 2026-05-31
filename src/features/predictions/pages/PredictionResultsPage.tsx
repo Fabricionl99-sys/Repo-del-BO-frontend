@@ -13,7 +13,6 @@ import { usePredictionEventsCatalog } from '@/features/predictions/predictionsAp
 import {
   buildEventRows,
   filterEventRows,
-  groupEventRowsByPool,
   isEventPending,
   sortEventRows,
   winningOptionLabel,
@@ -32,14 +31,12 @@ export default function PredictionResultsPage() {
     return sortEventRows(filterEventRows(all, filter));
   }, [catalogQ.data, filter]);
 
-  const groups = useMemo(() => groupEventRowsByPool(rows), [rows]);
-
   if (catalogQ.isLoading) return <Loading label="Cargando eventos..." />;
 
   if (catalogQ.isError) {
     return (
       <>
-        <PageHeader title="Predicciones" subtitle="Cargá el resultado real de cada evento del prode" />
+        <PageHeader title="Predicciones" subtitle="Subí el resultado real de cada evento" />
         <PredictionsSubNav />
         <ErrorState onRetry={() => catalogQ.refetch()} />
       </>
@@ -48,13 +45,13 @@ export default function PredictionResultsPage() {
 
   return (
     <>
-      <PageHeader title="Predicciones" subtitle="Cargá el resultado real de cada evento del prode" />
+      <PageHeader title="Predicciones" subtitle="Subí el resultado real de cada evento — el backend entrega rewards automáticamente" />
 
       <PredictionsSubNav />
 
       <div className="mb-4 flex flex-wrap gap-2">
-        <FilterPill active={filter === 'pending'} onClick={() => setFilter('pending')} label="Solo pendientes" />
-        <FilterPill active={filter === 'resolved'} onClick={() => setFilter('resolved')} label="Resueltos" />
+        <FilterPill active={filter === 'pending'} onClick={() => setFilter('pending')} label="Pendientes" />
+        <FilterPill active={filter === 'resolved'} onClick={() => setFilter('resolved')} label="Histórico" />
         <FilterPill active={filter === 'all'} onClick={() => setFilter('all')} label="Todos" />
       </div>
 
@@ -63,69 +60,64 @@ export default function PredictionResultsPage() {
           title={filter === 'pending' ? 'Sin eventos pendientes de resultado' : 'Sin eventos para mostrar'}
           description={
             filter === 'pending'
-              ? 'Cuando venza el plazo de predicción de un evento, aparecerá acá para que marques la opción correcta.'
-              : 'Probá otro filtro o creá eventos en un prode activo.'
+              ? 'Cuando venza el plazo de predicción de un evento, aparecerá acá para cargar el resultado.'
+              : 'Probá otro filtro o creá eventos en un programa activo.'
           }
         />
       ) : (
-        <div className="space-y-6">
-          {groups.map((group) => (
-            <section key={group.poolName}>
-              <h2 className="mb-3 text-[15px] font-semibold text-text-primary">{group.poolName}</h2>
-              <div className="overflow-hidden rounded-xl border border-border-subtle bg-bg-secondary shadow-card">
-                <table className="w-full">
-                  <thead>
-                    <tr className="border-b border-border-subtle bg-bg-tertiary/50">
-                      <th className="px-4 py-3 text-left label-section font-semibold">Evento</th>
-                      <th className="px-4 py-3 text-left label-section font-semibold">Estado</th>
-                      <th className="px-4 py-3 text-left label-section font-semibold">Cierre predicciones</th>
-                      <th className="px-4 py-3 text-right label-section font-semibold">Acción</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {group.rows.map((row) => {
-                      const resolved = Boolean(row.event.winning_option_id);
-                      const pending = isEventPending(row);
-                      const winner = winningOptionLabel(row);
-                      return (
-                        <tr key={row.event.id} className="border-b border-border-subtle last:border-b-0">
-                          <td className="px-4 py-3 text-[14px] font-medium">{row.event.name}</td>
-                          <td className="px-4 py-3">
-                            {resolved ? (
-                              <div className="space-y-1">
-                                <StatusPill status="finished" label="Resuelto" />
-                                {winner ? (
-                                  <p className="text-[13px] font-semibold text-success">✓ {winner}</p>
-                                ) : null}
-                              </div>
-                            ) : pending ? (
-                              <StatusPill status="scheduled" label="Pendiente" />
-                            ) : (
-                              <StatusPill status="draft" label="En curso" />
-                            )}
-                          </td>
-                          <td className="px-4 py-3 text-[13px] text-text-secondary">
-                            {formatRelativeDate(row.predictDeadlineAt)}
-                          </td>
-                          <td className="px-4 py-3 text-right">
-                            {pending ? (
-                              <Button size="sm" variant="primary" onClick={() => setResolveRow(row)}>
-                                Marcar resultado
-                              </Button>
-                            ) : resolved ? (
-                              <span className="text-[13px] text-text-tertiary">—</span>
-                            ) : (
-                              <span className="text-[13px] text-text-tertiary">Aún no vence</span>
-                            )}
-                          </td>
-                        </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
-              </div>
-            </section>
-          ))}
+        <div className="overflow-hidden rounded-xl border border-border-subtle bg-bg-secondary shadow-card">
+          <table className="w-full">
+            <thead>
+              <tr className="border-b border-border-subtle bg-bg-tertiary/50">
+                <th className="px-4 py-3 text-left label-section font-semibold">Programa</th>
+                <th className="px-4 py-3 text-left label-section font-semibold">Evento</th>
+                <th className="px-4 py-3 text-left label-section font-semibold">Cierra</th>
+                <th className="px-4 py-3 text-left label-section font-semibold">Estado</th>
+                <th className="px-4 py-3 text-right label-section font-semibold">Acción</th>
+              </tr>
+            </thead>
+            <tbody>
+              {rows.map((row) => {
+                const resolved = Boolean(row.event.winning_option_id);
+                const pending = isEventPending(row);
+                const winner = winningOptionLabel(row);
+                return (
+                  <tr key={row.event.id} className="border-b border-border-subtle last:border-b-0">
+                    <td className="px-4 py-3 text-[14px] text-text-secondary">{row.pool.name}</td>
+                    <td className="px-4 py-3 text-[14px] font-medium">{row.event.name}</td>
+                    <td className="px-4 py-3 text-[13px] text-text-secondary">
+                      {formatRelativeDate(row.predictDeadlineAt)}
+                    </td>
+                    <td className="px-4 py-3">
+                      {resolved ? (
+                        <div className="space-y-1">
+                          <StatusPill status="finished" label="Resuelto" />
+                          {winner ? (
+                            <p className="text-[13px] font-semibold text-success">✓ {winner}</p>
+                          ) : null}
+                        </div>
+                      ) : pending ? (
+                        <StatusPill status="scheduled" label="Pendiente" />
+                      ) : (
+                        <StatusPill status="draft" label="En curso" />
+                      )}
+                    </td>
+                    <td className="px-4 py-3 text-right">
+                      {pending ? (
+                        <Button size="sm" variant="primary" onClick={() => setResolveRow(row)}>
+                          Resolver
+                        </Button>
+                      ) : resolved ? (
+                        <span className="text-[13px] text-text-tertiary">—</span>
+                      ) : (
+                        <span className="text-[13px] text-text-tertiary">Aún no vence</span>
+                      )}
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
         </div>
       )}
 
