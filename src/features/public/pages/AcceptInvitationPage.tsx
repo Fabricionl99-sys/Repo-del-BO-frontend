@@ -27,8 +27,12 @@ function getAcceptInvitationError(error: unknown): string {
   const data = error.response?.data;
   const code =
     data && typeof data === 'object' && 'code' in data ? String((data as { code?: unknown }).code) : undefined;
+  const detail =
+    data && typeof data === 'object' && typeof (data as { detail?: unknown }).detail === 'string'
+      ? (data as { detail: string }).detail
+      : undefined;
 
-  switch (code) {
+  switch (code ?? detail) {
     case 'invitation_token_expired':
     case 'invitation_token_invalid':
     case 'invitation_token_mismatch':
@@ -72,6 +76,7 @@ export default function AcceptInvitationPage() {
       setAuth(session.user, session.accessToken, session.refreshToken);
       setAvailable(session.operators);
       setCurrent(session.operators[0] ?? null);
+      toast.success('Cuenta creada, ¡bienvenido!');
       navigate('/dashboard', { replace: true });
     } catch (error) {
       toast.error(getAcceptInvitationError(error));

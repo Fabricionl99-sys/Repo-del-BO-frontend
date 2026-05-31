@@ -31,10 +31,36 @@ type RawAuthPayload = {
   refreshToken?: string;
   refresh_token?: string;
   operators?: User['operators'];
+  /** POST /auth/accept-invitation — shape plano (sin user anidado). */
+  user_id?: string;
+  tenant_id?: string;
+  email?: string;
+  role?: User['role'];
   // Sub-etapa 23: backend devuelve `tenant` + `trial` separados (no user.operators).
   tenant?: RawTenant;
   trial?: { tier_chosen?: string };
 };
+
+/** Acepta login nested y accept-invitation flat antes de normalizeAuthPayload. */
+export function coerceRawAuthPayload(raw: RawAuthPayload): RawAuthPayload {
+  if (raw.user?.id && raw.user.email) return raw;
+
+  const userId = raw.user?.id ?? raw.user_id;
+  const email = raw.user?.email ?? raw.email;
+  if (!userId || !email) return raw;
+
+  const tenantId = raw.tenant?.id ?? raw.tenant_id;
+  return {
+    ...raw,
+    user: {
+      ...raw.user,
+      id: userId,
+      email,
+      role: (raw.user?.role ?? raw.role ?? 'member') as User['role'],
+    },
+    tenant: raw.tenant ?? (tenantId ? { id: tenantId } : undefined),
+  };
+}
 
 /**
  * Backend de Sub-etapa 23 devuelve:
@@ -50,17 +76,18 @@ type RawAuthPayload = {
  *      Derivar name/initials desde email si no vienen.
  */
 function normalizeAuthPayload(raw: RawAuthPayload): LoginResult {
-  const accessToken = raw.accessToken ?? raw.access_token;
-  const refreshToken = raw.refreshToken ?? raw.refresh_token;
-  if (!raw.user || !raw.user.id || !raw.user.email || !accessToken || !refreshToken) {
+  const coerced = coerceRawAuthPayload(raw);
+  const accessToken = coerced.accessToken ?? coerced.access_token;
+  const refreshToken = coerced.refreshToken ?? coerced.refresh_token;
+  if (!coerced.user || !coerced.user.id || !coerced.user.email || !accessToken || !refreshToken) {
     throw new Error('Invalid auth response');
   }
-  const email = raw.user.email;
+  const email = coerced.user.email;
 
   // Defaults para campos que el backend de Sub-etapa 23 no devuelve.
-  const name = raw.user.name ?? email.split('@')[0] ?? 'Usuario';
+  const name = coerced.user.name ?? email.split('@')[0] ?? 'Usuario';
   const initials =
-    raw.user.initials ??
+    coerced.user.initials ??
     (name
       .split(' ')
       .map((w) => w[0])
@@ -71,13 +98,13 @@ function normalizeAuthPayload(raw: RawAuthPayload): LoginResult {
 
   // operators[]: mocks legacy lo traen en user.operators o en raw.operators.
   // Backend real: derivar de tenant + trial.tier_chosen.
-  let operators: User['operators'] = raw.operators ?? raw.user.operators ?? [];
-  if (operators.length === 0 && raw.tenant) {
+  let operators: User['operators'] = coerced.operators ?? coerced.user.operators ?? [];
+  if (operators.length === 0 && coerced.tenant) {
     operators = [
       {
-        id: raw.tenant.id,
-        name: raw.tenant.name ?? raw.tenant.slug ?? 'Mi empresa',
-        tier: (raw.trial?.tier_chosen as 'starter' | 'growth' | 'pro') ?? 'starter',
+        id: coerced.tenant.id,
+        name: coerced.tenant.name ?? coerced.tenant.slug ?? 'Mi empresa',
+        tier: (coerced.trial?.tier_chosen as 'starter' | 'growth' | 'pro') ?? 'starter',
         locale: 'es',
         timezone: 'America/Argentina/Buenos_Aires',
       },
@@ -85,11 +112,11 @@ function normalizeAuthPayload(raw: RawAuthPayload): LoginResult {
   }
 
   const user: User = {
-    id: raw.user.id,
+    id: coerced.user.id,
     email,
     name,
     initials,
-    role: (raw.user.role ?? 'owner') as User['role'],
+    role: (coerced.user.role ?? 'owner') as User['role'],
     operators,
   };
 
