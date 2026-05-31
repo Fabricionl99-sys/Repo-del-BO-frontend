@@ -10,9 +10,9 @@ describe('buildWidgetPreviewUrl', () => {
     );
   });
 
-  it('defaults to netlify widget demo', () => {
+  it('defaults to Social2Game widget demo', () => {
     vi.unstubAllEnvs();
-    expect(buildWidgetPreviewUrl('t1')).toContain('wingoat-widget-demo.netlify.app');
+    expect(buildWidgetPreviewUrl('t1')).toContain('demo.social2game.com');
     expect(buildWidgetPreviewUrl('t1')).toContain('tenant=t1');
   });
 });

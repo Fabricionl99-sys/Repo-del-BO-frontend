@@ -9,9 +9,11 @@ import {
   Palette,
   RotateCcw,
   Save,
+  Shapes,
+  Sparkles,
   Type,
 } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 
 import { Button } from '@/components/ui/Button';
@@ -19,13 +21,30 @@ import { EmptyState } from '@/components/ui/EmptyState';
 import { ErrorState } from '@/components/ui/ErrorState';
 import { Loading } from '@/components/ui/Loading';
 import { PageHeader } from '@/components/ui/PageHeader';
-import { ConfigSection, ConfiguratorScaffold } from '@/components/configurator/ConfiguratorScaffold';
+import { ConfiguratorScaffold } from '@/components/configurator/ConfiguratorScaffold';
 import { isModuleActive } from '@/features/billing/moduleCatalog';
 import { cn } from '@/lib/cn';
+import { buildPlayerDemoUrl } from '@/lib/playerDemoUrl';
 import { useOperatorStore } from '@/stores/operatorStore';
 import { FontFamilySelect } from '@/features/branding/components/FontFamilySelect';
-import type { BrandingConfig, ColorPalette, WidgetPosition, WidgetSize } from '@/types/branding';
-import { WELCOME_TEXT_MAX } from '@/types/branding';
+import type {
+  BrandingConfig,
+  BrandingExtendedColors,
+  BrandingFontFamily,
+  ColorPalette,
+  WidgetPosition,
+  WidgetSize,
+} from '@/types/branding';
+import {
+  ANIMATIONS_INTENSITY_OPTIONS,
+  BORDER_RADIUS_OPTIONS,
+  CHEST_RARITY_COLOR_KEYS,
+  EXTENDED_COLOR_LABELS,
+  GRANULAR_COLOR_KEYS,
+  LEVEL_LABEL_MAX,
+  LEVEL_UP_TEMPLATE_MAX,
+  WELCOME_TEXT_MAX,
+} from '@/types/branding';
 
 import {
   isBrandingConfig,
@@ -38,9 +57,10 @@ import {
   useUploadLogo,
 } from '../brandingApi';
 import { formToApiPatchPayload } from '../brandingApiMappers';
+import { hasLowTextContrast } from '../brandingContrast';
 import { configToFormValues } from '../brandingForm';
-import { PALETTE_PRESETS, presetPalette } from '../brandingPresets';
-
+import { resolveExtendedColors } from '../brandingDefaults';
+import { PALETTE_PRESETS, presetFull } from '../brandingPresets';
 import {
   validateBackgroundUpload,
   validateCustomCss,
@@ -48,15 +68,26 @@ import {
   validateLogoUpload,
   validateWelcomeText,
 } from '../brandingUploadValidation';
+import { BrandingAccordionSection, BrandingColorField } from '../components/BrandingAccordionSection';
 import { BrandingDemoPanel } from '../components/BrandingDemoPanel';
 import { BrandingUploadZone } from '../components/BrandingUploadZone';
 import { ResetBrandingModal } from '../components/ResetBrandingModal';
-import { WidgetPreviewMock } from '../components/WidgetPreviewMock';
+import { WidgetPreviewIframe } from '../components/WidgetPreviewIframe';
 import { WidgetPreviewModal } from '../components/WidgetPreviewModal';
-import { buildPlayerDemoUrl } from '@/lib/playerDemoUrl';
 
-const tabs = ['Paleta de colores', 'Tipografía', 'Logo e imágenes', 'Configuración del widget', 'Avanzado'] as const;
-type Tab = (typeof tabs)[number];
+const ACCORDION_SECTIONS = [
+  'marca',
+  'colores-principales',
+  'colores-granulares',
+  'colores-cofres',
+  'tipografia',
+  'forma',
+  'microcopy',
+  'behavior',
+  'advanced',
+] as const;
+
+type AccordionSection = (typeof ACCORDION_SECTIONS)[number];
 
 const colorKeys: Array<keyof ColorPalette> = [
   'primary_color',
@@ -67,11 +98,11 @@ const colorKeys: Array<keyof ColorPalette> = [
 ];
 
 const colorLabels: Record<keyof ColorPalette, string> = {
-  primary_color: 'primary',
-  secondary_color: 'secondary',
-  accent_color: 'accent',
-  background_color: 'background',
-  text_color: 'text',
+  primary_color: 'Primary',
+  secondary_color: 'Secondary',
+  accent_color: 'Accent',
+  background_color: 'Background',
+  text_color: 'Text',
 };
 
 const positionOptions: Array<{ value: WidgetPosition; icon: typeof ArrowDownRight; label: string }> = [
@@ -83,13 +114,17 @@ const positionOptions: Array<{ value: WidgetPosition; icon: typeof ArrowDownRigh
 
 const sizeOptions: WidgetSize[] = ['small', 'medium', 'large'];
 
+function getExtended(config: BrandingConfig): BrandingExtendedColors {
+  return resolveExtendedColors(config);
+}
+
 export default function BrandingPage() {
   const [params] = useSearchParams();
   const mock = params.get('mockState');
   const activeModuleCodes = useOperatorStore((s) => s.activeModuleCodes);
   const brandingActive = isModuleActive(activeModuleCodes, 'branding');
 
-  const [tab, setTab] = useState<Tab>('Paleta de colores');
+  const [openSections, setOpenSections] = useState<Set<AccordionSection>>(new Set(['colores-principales']));
   const [draft, setDraft] = useState<BrandingConfig | null>(null);
   const [customMode, setCustomMode] = useState(false);
   const [previewOpen, setPreviewOpen] = useState(false);
@@ -107,6 +142,11 @@ export default function BrandingPage() {
   const config = draft ?? saved;
   const configReady = isBrandingConfig(config);
 
+  const lowContrast = useMemo(() => {
+    if (!configReady || !config) return false;
+    return hasLowTextContrast(config.color_palette.text_color, config.color_palette.background_color);
+  }, [config, configReady]);
+
   useEffect(() => {
     if (configQ.isFetched && saved !== undefined && !isBrandingConfig(saved)) {
       void configQ.refetch();
@@ -118,6 +158,15 @@ export default function BrandingPage() {
       setCustomMode(saved.palette_preset === 'custom');
     }
   }, [saved, draft]);
+
+  const toggleSection = (id: AccordionSection) => {
+    setOpenSections((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
 
   if (!brandingActive && mock !== 'loading') {
     return (
@@ -159,7 +208,16 @@ export default function BrandingPage() {
     return <ErrorState onRetry={() => configQ.refetch()} />;
   }
 
+  const extended = getExtended(config);
+
   const patch = (partial: Partial<BrandingConfig>) => setDraft({ ...config, ...partial });
+
+  const patchExtended = (key: keyof BrandingExtendedColors, value: string) => {
+    patch({
+      palette_preset: 'custom',
+      extended_colors: { ...extended, [key]: value },
+    });
+  };
 
   const applyPreset = (presetId: BrandingConfig['palette_preset']) => {
     if (presetId === 'custom') {
@@ -168,10 +226,17 @@ export default function BrandingPage() {
       return;
     }
     setCustomMode(false);
+    const { palette, extended: ext } = presetFull(presetId);
     patch({
       palette_preset: presetId,
-      color_palette: presetPalette(presetId),
+      color_palette: palette,
+      extended_colors: ext,
     });
+  };
+
+  const resetToPreset = () => {
+    if (config.palette_preset === 'custom') return;
+    applyPreset(config.palette_preset);
   };
 
   const handleSave = async () => {
@@ -182,31 +247,27 @@ export default function BrandingPage() {
       return;
     }
     try {
+      const formValues = configToFormValues(config);
       await update.mutateAsync(
-        formToApiPatchPayload(configToFormValues(config), {
+        formToApiPatchPayload(formValues, {
           theme_mode: config.theme_mode,
           font_size_base: config.font_size_base,
+          border_radius_scale: config.border_radius_scale,
+          heading_font_family: config.heading_font_family,
+          level_label: config.level_label,
+          level_up_message_template: config.level_up_message_template,
+          animations_intensity: config.animations_intensity,
         }),
       );
       setDraft(null);
       await configQ.refetch();
     } catch {
-      /* toast desde API — draft local se mantiene */
+      /* toast desde API */
     }
   };
 
-  /**
-   * Sprint #6 fix: el endpoint POST /admin/branding/preview NUNCA existió
-   * en backend. Antes el botón tiraba 404 silencioso. Ahora abrimos el
-   * widget real con el tenant del operador — el widget consume el branding
-   * vigente (refresca cada 30s gracias al cache shorter).
-   */
   const handlePreview = () => {
-    window.open(
-      buildPlayerDemoUrl(config.tenant_id),
-      '_blank',
-      'noopener,noreferrer',
-    );
+    window.open(buildPlayerDemoUrl(config.tenant_id), '_blank', 'noopener,noreferrer');
   };
 
   const handleAssetUpload = async (kind: 'logo' | 'favicon' | 'background', file: File) => {
@@ -224,11 +285,13 @@ export default function BrandingPage() {
     setResetOpen(false);
   };
 
+  const isOpen = (id: AccordionSection) => openSections.has(id);
+
   return (
     <>
       <PageHeader
         title="Branding"
-        subtitle="Personalizá colores, tipografías, logos y comportamiento del widget"
+        subtitle="Personalizá colores, tipografías, logos y comportamiento del widget Social2Game"
         actions={
           <>
             <Button
@@ -251,208 +314,361 @@ export default function BrandingPage() {
         }
       />
 
-      <div className="mb-4 flex flex-wrap gap-2 border-b border-border-subtle">
-        {tabs.map((t) => (
-          <button
-            key={t}
-            type="button"
-            onClick={() => setTab(t)}
-            className={cn(
-              'px-4 py-2 text-sm font-semibold transition-colors',
-              tab === t ? 'border-b-2 border-accent text-accent' : 'text-text-secondary hover:text-text-primary',
-            )}
-          >
-            {t}
-          </button>
-        ))}
-      </div>
+      {lowContrast ? (
+        <p className="mb-4 rounded-lg border border-warning/30 bg-warning/10 px-4 py-3 text-[14px] text-warning">
+          El texto puede ser difícil de leer sobre el fondo (contraste WCAG AA &lt; 4.5:1). Podés guardar igualmente.
+        </p>
+      ) : null}
 
-      <div className="grid grid-cols-[1fr_360px] gap-6 pb-28 max-[1200px]:grid-cols-1">
+      <div className="grid grid-cols-[1fr_400px] gap-6 pb-28 max-[1200px]:grid-cols-1">
         <ConfiguratorScaffold>
-          {tab === 'Paleta de colores' && (
-            <ConfigSection icon={<Palette size={16} />} title="paletas predefinidas">
-              <div className="grid grid-cols-2 gap-3 max-md:grid-cols-1">
-                {PALETTE_PRESETS.map((preset) => (
-                  <button
-                    key={preset.id}
-                    type="button"
-                    onClick={() => applyPreset(preset.id)}
-                    className={cn(
-                      'rounded-xl border bg-bg-secondary p-4 text-left transition hover:-translate-y-0.5',
-                      config.palette_preset === preset.id ? 'border-accent' : 'border-border-subtle',
-                    )}
-                  >
-                    <div className="mb-3 grid grid-cols-5 overflow-hidden rounded-lg">
-                      {Object.values(preset.color_palette).map((c, i) => (
-                        <span key={i} className="h-8" style={{ background: c }} />
-                      ))}
-                    </div>
-                    <div className="text-[14px] font-semibold">{preset.name}</div>
-                    <p className="mt-1 text-[13px] text-text-tertiary">{preset.description}</p>
-                  </button>
-                ))}
-              </div>
-              <Button variant="ghost" className="mt-4" onClick={() => applyPreset('custom')}>
-                Personalizar paleta
-              </Button>
-              {customMode && (
-                <div className="mt-4 space-y-4 rounded-xl border border-border-subtle bg-bg-secondary p-4">
-                  <p className="label-section">modo custom</p>
-                  <div className="grid grid-cols-2 gap-3 max-md:grid-cols-1">
-                    {colorKeys.map((key) => (
-                      <label key={key} className="rounded-lg border border-border-subtle bg-bg-tertiary p-3">
-                        <span className="mb-1 block text-[13px] text-text-tertiary">{colorLabels[key]}</span>
-                        <div className="flex gap-2">
-                          <input
-                            type="color"
-                            value={config.color_palette[key]}
-                            onChange={(e) =>
-                              patch({
-                                palette_preset: 'custom',
-                                color_palette: { ...config.color_palette, [key]: e.target.value },
-                              })
-                            }
-                          />
-                          <input
-                            className="field py-1 font-mono text-[14px]"
-                            value={config.color_palette[key]}
-                            onChange={(e) =>
-                              patch({
-                                palette_preset: 'custom',
-                                color_palette: { ...config.color_palette, [key]: e.target.value },
-                              })
-                            }
-                          />
-                        </div>
-                      </label>
-                    ))}
-                  </div>
-                </div>
-              )}
-            </ConfigSection>
-          )}
-
-          {tab === 'Tipografía' && (
-            <ConfigSection icon={<Type size={16} />} title="tipografía">
-              <div className="grid grid-cols-2 gap-3 max-md:grid-cols-1">
-                <div className="col-span-2 max-md:col-span-1">
-                  <label className="mb-2 block text-[14px] text-text-secondary">fuente</label>
-                  <FontFamilySelect
-                    value={config.typography.font_family}
-                    onChange={(font_family) =>
-                      patch({
-                        typography: { ...config.typography, font_family },
-                      })
-                    }
-                  />
-                </div>
-                <div>
-                  <label className="mb-1 block text-[14px] text-text-secondary">peso títulos</label>
-                  <select
-                    className="field"
-                    value={config.typography.heading_weight}
-                    onChange={(e) =>
-                      patch({
-                        typography: {
-                          ...config.typography,
-                          heading_weight: e.target.value as BrandingConfig['typography']['heading_weight'],
-                        },
-                      })
-                    }
-                  >
-                    {['400', '500', '600', '700', '800'].map((w) => (
-                      <option key={w} value={w}>{w}</option>
-                    ))}
-                  </select>
-                </div>
-                <div>
-                  <label className="mb-1 block text-[14px] text-text-secondary">peso cuerpo</label>
-                  <select
-                    className="field"
-                    value={config.typography.body_weight}
-                    onChange={(e) =>
-                      patch({
-                        typography: {
-                          ...config.typography,
-                          body_weight: e.target.value as BrandingConfig['typography']['body_weight'],
-                        },
-                      })
-                    }
-                  >
-                    {['400', '500', '600'].map((w) => (
-                      <option key={w} value={w}>{w}</option>
-                    ))}
-                  </select>
-                </div>
-              </div>
-              <div
-                className="mt-4 rounded-xl border border-border-subtle p-4"
-                style={{ fontFamily: config.typography.font_family }}
-              >
-                <div style={{ fontWeight: config.typography.heading_weight }} className="text-[21px]">
-                  Título del widget
-                </div>
-                <div style={{ fontWeight: config.typography.body_weight }} className="mt-2 text-[14px] text-text-secondary">
-                  Texto de cuerpo · misiones, tienda y progreso de nivel
-                </div>
-              </div>
-            </ConfigSection>
-          )}
-
-          {tab === 'Logo e imágenes' && (
-            <ConfigSection icon={<Palette size={16} />} title="assets visuales">
-              <div className="grid grid-cols-2 gap-4 max-md:grid-cols-1">
-                <div>
-                  <p className="label-section mb-2">logo</p>
-                  <BrandingUploadZone
-                    previewUrl={config.logo_url}
-                    hint="PNG/JPG/WebP/SVG · máx 2 MB"
-                    accept="image/png,image/jpeg,image/webp,image/svg+xml"
-                    validate={validateLogoUpload}
-                    error={uploadLogo.error ? 'Error al subir logo' : undefined}
-                    onValidated={(file) => void handleAssetUpload('logo', file)}
-                    onClear={() => patch({ logo_url: null })}
-                    previewClassName="h-24 max-w-full object-contain"
-                  />
-                </div>
-                <div>
-                  <p className="label-section mb-2">favicon</p>
-                  <BrandingUploadZone
-                    previewUrl={config.favicon_url}
-                    hint="PNG/ICO · máx 512 KB"
-                    accept="image/png,image/x-icon,image/vnd.microsoft.icon"
-                    validate={validateFaviconUpload}
-                    error={uploadFavicon.error ? 'Error al subir favicon' : undefined}
-                    onValidated={(file) => void handleAssetUpload('favicon', file)}
-                    onClear={() => patch({ favicon_url: null })}
-                    previewClassName="h-12 w-12"
-                  />
-                  <div className="mt-2 flex items-center gap-2 rounded-lg border border-border-subtle bg-bg-tertiary px-3 py-2">
-                    {config.favicon_url && <img src={config.favicon_url} alt="" className="h-4 w-4" />}
-                    <span className="text-[13px] text-text-tertiary">preview tab simulada</span>
-                  </div>
-                </div>
-              </div>
-              <div className="mt-4">
-                <p className="label-section mb-2">background (opcional)</p>
+          <div className="space-y-3">
+          <BrandingAccordionSection
+            id="marca"
+            title="Marca"
+            icon={<Palette size={16} />}
+            open={isOpen('marca')}
+            onToggle={() => toggleSection('marca')}
+          >
+            <div className="grid grid-cols-2 gap-4 max-md:grid-cols-1">
+              <div>
+                <p className="label-section mb-2">Logo</p>
                 <BrandingUploadZone
-                  previewUrl={config.background_image_url}
-                  hint="PNG/JPG/WebP · máx 5 MB"
-                  accept="image/png,image/jpeg,image/webp"
-                  validate={validateBackgroundUpload}
-                  error={uploadBackground.error ? 'Error al subir background' : undefined}
-                  onValidated={(file) => void handleAssetUpload('background', file)}
-                  onClear={() => patch({ background_image_url: null })}
-                  previewClassName="h-32 w-full object-cover"
+                  previewUrl={config.logo_url}
+                  hint="PNG/JPG/WebP/SVG · máx 2 MB"
+                  accept="image/png,image/jpeg,image/webp,image/svg+xml"
+                  validate={validateLogoUpload}
+                  error={uploadLogo.error ? 'Error al subir logo' : undefined}
+                  onValidated={(file) => void handleAssetUpload('logo', file)}
+                  onClear={() => patch({ logo_url: null })}
+                  previewClassName="h-24 max-w-full object-contain"
                 />
               </div>
-            </ConfigSection>
-          )}
+              <div>
+                <p className="label-section mb-2">Favicon</p>
+                <BrandingUploadZone
+                  previewUrl={config.favicon_url}
+                  hint="PNG/ICO · máx 512 KB"
+                  accept="image/png,image/x-icon,image/vnd.microsoft.icon"
+                  validate={validateFaviconUpload}
+                  error={uploadFavicon.error ? 'Error al subir favicon' : undefined}
+                  onValidated={(file) => void handleAssetUpload('favicon', file)}
+                  onClear={() => patch({ favicon_url: null })}
+                  previewClassName="h-12 w-12"
+                />
+              </div>
+            </div>
+            <div className="mt-4">
+              <p className="label-section mb-2">Imagen de fondo (opcional)</p>
+              <BrandingUploadZone
+                previewUrl={config.background_image_url}
+                hint="PNG/JPG/WebP · máx 5 MB"
+                accept="image/png,image/jpeg,image/webp"
+                validate={validateBackgroundUpload}
+                error={uploadBackground.error ? 'Error al subir background' : undefined}
+                onValidated={(file) => void handleAssetUpload('background', file)}
+                onClear={() => patch({ background_image_url: null })}
+                previewClassName="h-32 w-full object-cover"
+              />
+            </div>
+            <div className="mt-4">
+              <label className="mb-1 block text-[14px] text-text-secondary">Texto de bienvenida</label>
+              <textarea
+                className="field min-h-20"
+                maxLength={WELCOME_TEXT_MAX}
+                value={config.welcome_text}
+                onChange={(e) => patch({ welcome_text: e.target.value })}
+              />
+              <p className="mt-1 text-[13px] text-text-tertiary">
+                {config.welcome_text.length}/{WELCOME_TEXT_MAX}
+              </p>
+            </div>
+          </BrandingAccordionSection>
 
-          {tab === 'Configuración del widget' && (
-            <ConfigSection title="widget">
-              <div className="mb-4">
-                <p className="label-section mb-2">posición</p>
+          <BrandingAccordionSection
+            id="colores-principales"
+            title="Colores principales"
+            icon={<Palette size={16} />}
+            open={isOpen('colores-principales')}
+            onToggle={() => toggleSection('colores-principales')}
+          >
+            <div className="grid grid-cols-2 gap-3 max-md:grid-cols-1">
+              {PALETTE_PRESETS.map((preset) => (
+                <button
+                  key={preset.id}
+                  type="button"
+                  onClick={() => applyPreset(preset.id)}
+                  className={cn(
+                    'rounded-xl border bg-bg-tertiary p-3 text-left transition hover:-translate-y-0.5',
+                    config.palette_preset === preset.id ? 'border-accent' : 'border-border-subtle',
+                  )}
+                >
+                  <div className="mb-2 grid grid-cols-5 overflow-hidden rounded-lg">
+                    {Object.values(preset.color_palette).map((c, i) => (
+                      <span key={i} className="h-6" style={{ background: c }} />
+                    ))}
+                  </div>
+                  <div className="text-[13px] font-semibold">{preset.name}</div>
+                </button>
+              ))}
+            </div>
+            <div className="mt-4 flex flex-wrap gap-2">
+              <Button variant="ghost" size="sm" onClick={() => applyPreset('custom')}>
+                Personalizar paleta
+              </Button>
+              {config.palette_preset !== 'custom' ? (
+                <Button variant="ghost" size="sm" icon={<RotateCcw size={14} />} onClick={resetToPreset}>
+                  Reset a preset
+                </Button>
+              ) : null}
+            </div>
+            {(customMode || config.palette_preset === 'custom') && (
+              <div className="mt-4 grid grid-cols-2 gap-3 max-md:grid-cols-1">
+                {colorKeys.map((key) => (
+                  <BrandingColorField
+                    key={key}
+                    label={colorLabels[key]}
+                    value={config.color_palette[key]}
+                    onChange={(hex) =>
+                      patch({
+                        palette_preset: 'custom',
+                        color_palette: { ...config.color_palette, [key]: hex },
+                      })
+                    }
+                  />
+                ))}
+              </div>
+            )}
+          </BrandingAccordionSection>
+
+          <BrandingAccordionSection
+            id="colores-granulares"
+            title="Colores granulares"
+            open={isOpen('colores-granulares')}
+            onToggle={() => toggleSection('colores-granulares')}
+          >
+            <div className="grid grid-cols-2 gap-3 max-md:grid-cols-1">
+              {GRANULAR_COLOR_KEYS.map((key) => (
+                <BrandingColorField
+                  key={key}
+                  label={EXTENDED_COLOR_LABELS[key]}
+                  value={extended[key]}
+                  onChange={(hex) => patchExtended(key, hex)}
+                />
+              ))}
+            </div>
+          </BrandingAccordionSection>
+
+          <BrandingAccordionSection
+            id="colores-cofres"
+            title="Colores de cofres"
+            open={isOpen('colores-cofres')}
+            onToggle={() => toggleSection('colores-cofres')}
+          >
+            <div className="grid grid-cols-2 gap-3 max-md:grid-cols-1">
+              {CHEST_RARITY_COLOR_KEYS.map((key) => (
+                <BrandingColorField
+                  key={key}
+                  label={EXTENDED_COLOR_LABELS[key]}
+                  value={extended[key]}
+                  onChange={(hex) => patchExtended(key, hex)}
+                />
+              ))}
+            </div>
+          </BrandingAccordionSection>
+
+          <BrandingAccordionSection
+            id="tipografia"
+            title="Tipografía"
+            icon={<Type size={16} />}
+            open={isOpen('tipografia')}
+            onToggle={() => toggleSection('tipografia')}
+          >
+            <div className="grid grid-cols-2 gap-3 max-md:grid-cols-1">
+              <div className="col-span-2 max-md:col-span-1">
+                <label className="mb-2 block text-[14px] text-text-secondary">Fuente cuerpo</label>
+                <FontFamilySelect
+                  value={config.typography.font_family}
+                  onChange={(font_family) => patch({ typography: { ...config.typography, font_family } })}
+                />
+              </div>
+              <div className="col-span-2 max-md:col-span-1">
+                <label className="mb-2 block text-[14px] text-text-secondary">Fuente títulos</label>
+                <FontFamilySelect
+                  value={config.heading_font_family ?? config.typography.font_family}
+                  onChange={(heading_font_family) => patch({ heading_font_family })}
+                />
+              </div>
+              <div>
+                <label className="mb-1 block text-[14px] text-text-secondary">Peso títulos</label>
+                <select
+                  className="field"
+                  value={config.typography.heading_weight}
+                  onChange={(e) =>
+                    patch({
+                      typography: {
+                        ...config.typography,
+                        heading_weight: e.target.value as BrandingConfig['typography']['heading_weight'],
+                      },
+                    })
+                  }
+                >
+                  {['400', '500', '600', '700', '800'].map((w) => (
+                    <option key={w} value={w}>{w}</option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label className="mb-1 block text-[14px] text-text-secondary">Peso cuerpo</label>
+                <select
+                  className="field"
+                  value={config.typography.body_weight}
+                  onChange={(e) =>
+                    patch({
+                      typography: {
+                        ...config.typography,
+                        body_weight: e.target.value as BrandingConfig['typography']['body_weight'],
+                      },
+                    })
+                  }
+                >
+                  {['400', '500', '600'].map((w) => (
+                    <option key={w} value={w}>{w}</option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label className="mb-1 block text-[14px] text-text-secondary">Tamaño base</label>
+                <select
+                  className="field"
+                  value={config.font_size_base ?? 'md'}
+                  onChange={(e) => patch({ font_size_base: e.target.value as BrandingConfig['font_size_base'] })}
+                >
+                  {(['sm', 'md', 'lg', 'xl'] as const).map((s) => (
+                    <option key={s} value={s}>{s}</option>
+                  ))}
+                </select>
+              </div>
+            </div>
+          </BrandingAccordionSection>
+
+          <BrandingAccordionSection
+            id="forma"
+            title="Forma"
+            icon={<Shapes size={16} />}
+            open={isOpen('forma')}
+            onToggle={() => toggleSection('forma')}
+          >
+            <p className="mb-2 text-[14px] text-text-secondary">Escala de border radius (cards, botones, badges)</p>
+            <div className="flex flex-wrap gap-2">
+              {BORDER_RADIUS_OPTIONS.map((scale) => (
+                <label
+                  key={scale}
+                  className={cn(
+                    'cursor-pointer rounded-lg border px-4 py-2 text-[14px] capitalize',
+                    config.border_radius_scale === scale ? 'border-accent bg-accent/5' : 'border-border-subtle',
+                  )}
+                >
+                  <input
+                    type="radio"
+                    name="border_radius_scale"
+                    checked={(config.border_radius_scale ?? 'rounded') === scale}
+                    onChange={() => patch({ border_radius_scale: scale })}
+                  />
+                  {scale.replace('_', ' ')}
+                </label>
+              ))}
+            </div>
+          </BrandingAccordionSection>
+
+          <BrandingAccordionSection
+            id="microcopy"
+            title="Microcopy"
+            open={isOpen('microcopy')}
+            onToggle={() => toggleSection('microcopy')}
+          >
+            <div className="space-y-4">
+              <div>
+                <label className="mb-1 block text-[14px] text-text-secondary">Etiqueta de nivel</label>
+                <input
+                  className="field"
+                  maxLength={LEVEL_LABEL_MAX}
+                  value={config.level_label ?? 'Nivel'}
+                  onChange={(e) => patch({ level_label: e.target.value })}
+                  placeholder="Nivel / Rango / Tier"
+                />
+              </div>
+              <div>
+                <label className="mb-1 block text-[14px] text-text-secondary">Mensaje level-up</label>
+                <textarea
+                  className="field min-h-16"
+                  maxLength={LEVEL_UP_TEMPLATE_MAX}
+                  value={config.level_up_message_template ?? '¡Subiste al nivel {level}!'}
+                  onChange={(e) => patch({ level_up_message_template: e.target.value })}
+                />
+                <p className="mt-1 text-[13px] text-text-tertiary">
+                  Tokens: {'{level}'}, {'{level_name}'}, {'{player_name}'}
+                </p>
+              </div>
+            </div>
+          </BrandingAccordionSection>
+
+          <BrandingAccordionSection
+            id="behavior"
+            title="Behavior"
+            icon={<Sparkles size={16} />}
+            open={isOpen('behavior')}
+            onToggle={() => toggleSection('behavior')}
+          >
+            <div className="space-y-4">
+              <div>
+                <p className="mb-2 text-[14px] text-text-secondary">Intensidad de animaciones</p>
+                <div className="flex flex-wrap gap-2">
+                  {ANIMATIONS_INTENSITY_OPTIONS.map((intensity) => (
+                    <label
+                      key={intensity}
+                      className={cn(
+                        'cursor-pointer rounded-lg border px-4 py-2 text-[14px] capitalize',
+                        (config.animations_intensity ?? 'subtle') === intensity
+                          ? 'border-accent bg-accent/5'
+                          : 'border-border-subtle',
+                      )}
+                    >
+                      <input
+                        type="radio"
+                        name="animations_intensity"
+                        checked={(config.animations_intensity ?? 'subtle') === intensity}
+                        onChange={() => patch({ animations_intensity: intensity })}
+                      />
+                      {intensity}
+                    </label>
+                  ))}
+                </div>
+              </div>
+              <div>
+                <p className="mb-2 text-[14px] text-text-secondary">Theme mode</p>
+                <div className="flex flex-wrap gap-2">
+                  {(['dark', 'light', 'auto'] as const).map((mode) => (
+                    <label
+                      key={mode}
+                      className={cn(
+                        'cursor-pointer rounded-lg border px-4 py-2 text-[14px] capitalize',
+                        (config.theme_mode ?? 'dark') === mode ? 'border-accent bg-accent/5' : 'border-border-subtle',
+                      )}
+                    >
+                      <input
+                        type="radio"
+                        name="theme_mode"
+                        checked={(config.theme_mode ?? 'dark') === mode}
+                        onChange={() => patch({ theme_mode: mode })}
+                      />
+                      {mode}
+                    </label>
+                  ))}
+                </div>
+              </div>
+              <div>
+                <p className="label-section mb-2">Posición del widget (embed)</p>
                 <div className="grid grid-cols-2 gap-2 max-md:grid-cols-1">
                   {positionOptions.map(({ value, icon: Icon, label }) => (
                     <label
@@ -474,8 +690,8 @@ export default function BrandingPage() {
                   ))}
                 </div>
               </div>
-              <div className="mb-4">
-                <p className="label-section mb-2">tamaño</p>
+              <div>
+                <p className="label-section mb-2">Tamaño del widget</p>
                 <div className="flex flex-wrap gap-2">
                   {sizeOptions.map((size) => (
                     <label
@@ -496,61 +712,46 @@ export default function BrandingPage() {
                   ))}
                 </div>
               </div>
-              <div>
-                <label className="mb-1 block text-[14px] text-text-secondary">texto de bienvenida</label>
-                <textarea
-                  className="field min-h-20"
-                  maxLength={WELCOME_TEXT_MAX}
-                  value={config.welcome_text}
-                  onChange={(e) => patch({ welcome_text: e.target.value })}
-                />
-                <p className="mt-1 text-[13px] text-text-tertiary">
-                  {config.welcome_text.length}/{WELCOME_TEXT_MAX}
-                </p>
-              </div>
-            </ConfigSection>
-          )}
+            </div>
+          </BrandingAccordionSection>
 
-          {tab === 'Avanzado' && (
-            <ConfigSection title="developers">
-              <p className="mb-3 rounded-lg border border-warning/30 bg-warning/10 px-3 py-2 text-[14px] text-warning">
-                Cambios avanzados · usar con cuidado. CSS inválido puede romper el widget.
-              </p>
-              <textarea
-                className="field min-h-40 font-mono text-[14px]"
-                placeholder=".widget-header { border-radius: 12px; }"
-                value={config.custom_css ?? ''}
-                onChange={(e) => {
-                  setCssError(validateCustomCss(e.target.value));
-                  patch({ custom_css: e.target.value || null });
-                }}
-              />
-              {cssError && <p className="mt-1 text-[14px] text-danger">{cssError}</p>}
-              <Button
-                variant="ghost"
-                className="mt-2"
-                onClick={() => setPreviewOpen(true)}
-              >
-                Probar CSS en preview
-              </Button>
-            </ConfigSection>
-          )}
+          <BrandingAccordionSection
+            id="advanced"
+            title="Advanced"
+            open={isOpen('advanced')}
+            onToggle={() => toggleSection('advanced')}
+          >
+            <p className="mb-3 rounded-lg border border-warning/30 bg-warning/10 px-3 py-2 text-[14px] text-warning">
+              Cambios avanzados · CSS inválido puede romper el widget.
+            </p>
+            <textarea
+              className="field min-h-40 font-mono text-[14px]"
+              placeholder=".widget-header { border-radius: 12px; }"
+              value={config.custom_css ?? ''}
+              onChange={(e) => {
+                setCssError(validateCustomCss(e.target.value));
+                patch({ custom_css: e.target.value || null });
+              }}
+            />
+            {cssError ? <p className="mt-1 text-[14px] text-danger">{cssError}</p> : null}
+            <Button variant="ghost" className="mt-2" onClick={() => setPreviewOpen(true)}>
+              Probar CSS en preview ampliado
+            </Button>
+          </BrandingAccordionSection>
+          </div>
         </ConfiguratorScaffold>
 
-        <aside className="hidden max-[1200px]:block">
-          <WidgetPreviewMock config={config} viewport="mobile" />
-        </aside>
-        <aside className="max-[1200px]:hidden">
+        <aside className="max-[1200px]:order-first">
           <div className="sticky top-4 flex flex-col gap-4">
             <div className="card overflow-hidden">
               <header className="section-head">
-                <h2 className="label-section">preview en vivo</h2>
+                <h2 className="label-section">Preview en vivo</h2>
                 <p className="mt-1 text-[12px] font-normal text-text-tertiary">
-                  Refleja colores y fuentes del formulario al instante — guardá para publicar al widget real.
+                  Widget real con cambios pendientes — guardá para publicar (cache ~30s).
                 </p>
               </header>
-              <div className="bg-bg-tertiary p-4">
-                <WidgetPreviewMock config={config} viewport="mobile" />
+              <div className="bg-bg-tertiary p-2">
+                <WidgetPreviewIframe config={config} />
               </div>
             </div>
             <BrandingDemoPanel config={config} />

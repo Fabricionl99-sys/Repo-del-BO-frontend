@@ -7,6 +7,10 @@ import { useOperatorStore } from '@/stores/operatorStore';
 
 import BrandingPage from './BrandingPage';
 
+vi.mock('../components/WidgetPreviewIframe', () => ({
+  WidgetPreviewIframe: () => <div data-testid="widget-preview-iframe">Widget preview iframe</div>,
+}));
+
 vi.stubGlobal(
   'Image',
   class {
@@ -38,10 +42,9 @@ function wrap(route = '/branding') {
 describe('BrandingPage', () => {
   it('muestra paletas predefinidas y preview en vivo', async () => {
     wrap();
-    expect(await screen.findByText('paletas predefinidas')).toBeInTheDocument();
-    expect(screen.getByText('Dark Neon')).toBeInTheDocument();
-    expect(screen.getByText('preview en vivo')).toBeInTheDocument();
-    expect(screen.getAllByText('Niveles Widget').length).toBeGreaterThan(0);
+    expect(await screen.findByText('Dark Neon')).toBeInTheDocument();
+    expect(screen.getByText('Preview en vivo')).toBeInTheDocument();
+    expect(screen.getByTestId('widget-preview-iframe')).toBeInTheDocument();
   });
 
   it('cambia paleta predefinida', async () => {
@@ -55,7 +58,6 @@ describe('BrandingPage', () => {
     wrap();
     await screen.findByText('Personalizar paleta');
     fireEvent.click(screen.getByText('Personalizar paleta'));
-    expect(screen.getByText('modo custom')).toBeInTheDocument();
     const hexInputs = screen.getAllByDisplayValue('#0AF784');
     fireEvent.change(hexInputs[0], { target: { value: '#FF0000' } });
     expect(screen.getAllByDisplayValue('#FF0000').length).toBeGreaterThan(0);
@@ -63,39 +65,35 @@ describe('BrandingPage', () => {
 
   it('cambia tipografía', async () => {
     wrap();
-    await screen.findByText('Tipografía');
-    fireEvent.click(screen.getByRole('button', { name: 'Tipografía' }));
-    const fontSelect = screen.getByDisplayValue('Inter');
-    fireEvent.change(fontSelect, { target: { value: 'Poppins' } });
-    expect(screen.getByDisplayValue('Poppins')).toBeInTheDocument();
-    expect(screen.getByText('Título del widget')).toBeInTheDocument();
+    fireEvent.click(await screen.findByRole('button', { name: /^Tipografía$/i }));
+    const poppinsOptions = await screen.findAllByRole('option', { name: 'Poppins' });
+    fireEvent.click(poppinsOptions[0]);
+    expect(poppinsOptions[0]).toHaveAttribute('aria-selected', 'true');
   });
 
-  it('muestra upload zones en tab logo e imágenes', async () => {
+  it('muestra upload zones en sección marca', async () => {
     wrap();
-    await screen.findByText('Logo e imágenes');
-    fireEvent.click(screen.getByRole('button', { name: 'Logo e imágenes' }));
+    fireEvent.click(await screen.findByRole('button', { name: /Marca/i }));
     expect((await screen.findAllByText(/Arrastrá o hacé click para subir/i)).length).toBeGreaterThan(0);
   });
 
-  it('cambia posición y tamaño del widget', async () => {
+  it('cambia posición y tamaño del widget en behavior', async () => {
     wrap();
-    await screen.findByText('Configuración del widget');
-    fireEvent.click(screen.getByRole('button', { name: 'Configuración del widget' }));
+    fireEvent.click(await screen.findByRole('button', { name: /Behavior/i }));
     fireEvent.click(screen.getByLabelText(/abajo izquierda/i));
     fireEvent.click(screen.getByLabelText(/^large$/i));
+    fireEvent.click(await screen.findByRole('button', { name: /Marca/i }));
     fireEvent.change(screen.getByDisplayValue('Bienvenido a tu experiencia de gamificación'), {
-      target: { value: 'Hola WINGOAT' },
+      target: { value: 'Hola Social2Game' },
     });
-    expect(screen.getByDisplayValue('Hola WINGOAT')).toBeInTheDocument();
+    expect(screen.getByDisplayValue('Hola Social2Game')).toBeInTheDocument();
   });
 
-  it('abre modal de vista previa', async () => {
+  it('abre modal de vista previa ampliada', async () => {
     wrap();
-    await screen.findByText('Vista previa');
-    fireEvent.click(screen.getByRole('button', { name: 'Vista previa' }));
+    fireEvent.click(await screen.findByRole('button', { name: /Advanced/i }));
+    fireEvent.click(await screen.findByRole('button', { name: /Probar CSS en preview ampliado/i }));
     expect(await screen.findByText('Vista previa del widget', { selector: 'h2' })).toBeInTheDocument();
-    fireEvent.click(screen.getByTitle('Desktop'));
   });
 
   it('resetea a defaults', async () => {

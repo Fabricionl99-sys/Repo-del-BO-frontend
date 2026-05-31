@@ -1,13 +1,12 @@
 /**
  * URL del widget jugador (repo `gamificacion-`).
- * Prod: https://wingoat-widget-demo.netlify.app
- * Dev: http://localhost:5175 (widget) — BO suele ir en :5173
+ * Prod: https://demo.social2game.com
  */
 export function getWidgetPreviewBaseUrl(): string {
   return (
     import.meta.env.VITE_WIDGET_PREVIEW_URL ??
     import.meta.env.VITE_PLAYER_DEMO_URL ??
-    'https://wingoat-widget-demo.netlify.app'
+    'https://demo.social2game.com'
   );
 }
 

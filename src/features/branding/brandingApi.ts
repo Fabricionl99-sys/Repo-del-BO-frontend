@@ -79,7 +79,7 @@ export function useUpdateBranding() {
     mutationFn: (payload: BrandingApiPatchPayload) =>
       apiClient.patch('/admin/branding', payload).then((r) => parseBrandingResponse(r.data)),
     onSuccess: (data) => {
-      toast.success('Branding guardado');
+      toast.success('Branding actualizado. Tu widget se actualiza en unos segundos.');
       trackEvent('branding_updated');
       storeBrandingConfig(data);
       qc.setQueryData(['branding-config'], data);
