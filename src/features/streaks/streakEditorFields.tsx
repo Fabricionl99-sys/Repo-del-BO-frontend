@@ -4,9 +4,11 @@ import type { Path } from 'react-hook-form';
 import { RewardSelector } from '@/components/rewards/RewardSelector';
 import { useChestTypeOptions } from '@/features/chests/chestsApi';
 import { useCoins, useDefaultCurrency } from '@/features/coinsApi';
+import { useOperatorCurrencies } from '@/features/settings/operatorConfigApi';
 import { operatorCurrencyHint } from '@/lib/formatOperatorAmount';
 import {
   coinCodeForSelect,
+  FIAT_CURRENCIES,
   type StreakEditorFormValues,
   type StreakRewardKind,
 } from '@/features/streaks/streakEditorForm';
@@ -30,6 +32,7 @@ export const DAILY_REWARD_OPTIONS: { value: StreakEditorFormValues['daily_reward
 ];
 
 export const MILESTONE_KIND_OPTIONS: { value: StreakRewardKind; label: string }[] = [
+  { value: 'none', label: '— Sin premio (solo hito visual) —' },
   { value: 'xp', label: 'XP' },
   { value: 'coins', label: 'Monedas' },
   { value: 'chest', label: 'Cofre' },
@@ -54,11 +57,51 @@ export function FieldErr({ path }: { path: string }) {
   return msg ? <p className="mt-1 text-[14px] text-danger">{msg}</p> : null;
 }
 
+function BetCategoryInfoBanner() {
+  return (
+    <div className="col-span-2 flex items-start gap-2.5 rounded-lg border border-info/25 bg-info/10 p-4">
+      <span className="text-[16px] leading-none" aria-hidden>
+        ℹ️
+      </span>
+      <p className="text-[14px] text-text-secondary">
+        Para tracking por categoría de juego (casino/deporte), creá un streak program separado por categoría — feature
+        dedicada en Sprint #2.
+      </p>
+    </div>
+  );
+}
+
+function ActivityThresholdCurrencySelect() {
+  const { register } = useFormContext<StreakEditorFormValues>();
+  const currenciesQ = useOperatorCurrencies();
+  const options =
+    (currenciesQ.data ?? []).length > 0
+      ? (currenciesQ.data ?? []).map((c) => ({ code: c.code, label: c.label }))
+      : FIAT_CURRENCIES.map((code) => ({ code, label: code }));
+
+  return (
+    <div>
+      <label className="mb-1 block text-[14px] text-text-secondary">Moneda del umbral</label>
+      <select className="field" {...register('activity_threshold_currency')}>
+        <option value="">Cualquier moneda (sin filtro)</option>
+        {options.map((c) => (
+          <option key={c.code} value={c.code}>
+            {c.label}
+          </option>
+        ))}
+      </select>
+      <p className="mt-1 text-[13px] text-text-tertiary">Solo cuenta actividad en la moneda elegida. Vacío = todas.</p>
+      <FieldErr path="activity_threshold_currency" />
+    </div>
+  );
+}
+
 export function ActivityConfigFields() {
   const { register, watch } = useFormContext<StreakEditorFormValues>();
   const activityType = watch('activity_type') as StreakActivityType;
+  const selectedCurrency = watch('activity_threshold_currency');
   const defaultCurrencyQ = useDefaultCurrency();
-  const fiatCode = defaultCurrencyQ.data?.code ?? 'USD';
+  const amountCurrencyLabel = selectedCurrency?.trim() || defaultCurrencyQ.data?.code || 'cualquier moneda';
   const fiatHint = operatorCurrencyHint(defaultCurrencyQ.data);
 
   if (activityType === 'login') {
@@ -73,22 +116,28 @@ export function ActivityConfigFields() {
 
   if (activityType === 'deposit_individual') {
     return (
-      <div className="mt-3 max-w-xs">
-        <label className="mb-1 block text-[14px] text-text-secondary">Monto mínimo por depósito ({fiatCode})</label>
-        <input className="field" type="number" min={0.01} step={0.01} {...register('minimum_amount_per_deposit', { valueAsNumber: true })} />
-        {fiatHint ? <p className="mt-1 text-[13px] text-text-tertiary">{fiatHint}</p> : null}
-        <FieldErr path="minimum_amount_per_deposit" />
+      <div className="mt-3 grid max-w-lg grid-cols-2 gap-3">
+        <div>
+          <label className="mb-1 block text-[14px] text-text-secondary">Monto mínimo por depósito ({amountCurrencyLabel})</label>
+          <input className="field" type="number" min={0.01} step={0.01} {...register('minimum_amount_per_deposit', { valueAsNumber: true })} />
+          {fiatHint ? <p className="mt-1 text-[13px] text-text-tertiary">{fiatHint}</p> : null}
+          <FieldErr path="minimum_amount_per_deposit" />
+        </div>
+        <ActivityThresholdCurrencySelect />
       </div>
     );
   }
 
   if (activityType === 'deposit_cumulative') {
     return (
-      <div className="mt-3 max-w-xs">
-        <label className="mb-1 block text-[14px] text-text-secondary">Monto acumulado mínimo por día ({fiatCode})</label>
-        <input className="field" type="number" min={0.01} step={0.01} {...register('minimum_amount_total_per_day', { valueAsNumber: true })} />
-        {fiatHint ? <p className="mt-1 text-[13px] text-text-tertiary">{fiatHint}</p> : null}
-        <FieldErr path="minimum_amount_total_per_day" />
+      <div className="mt-3 grid max-w-lg grid-cols-2 gap-3">
+        <div>
+          <label className="mb-1 block text-[14px] text-text-secondary">Monto acumulado mínimo por día ({amountCurrencyLabel})</label>
+          <input className="field" type="number" min={0.01} step={0.01} {...register('minimum_amount_total_per_day', { valueAsNumber: true })} />
+          {fiatHint ? <p className="mt-1 text-[13px] text-text-tertiary">{fiatHint}</p> : null}
+          <FieldErr path="minimum_amount_total_per_day" />
+        </div>
+        <ActivityThresholdCurrencySelect />
       </div>
     );
   }
@@ -97,16 +146,13 @@ export function ActivityConfigFields() {
     return (
       <div className="mt-3 grid max-w-lg grid-cols-2 gap-3">
         <div>
-          <label className="mb-1 block text-[14px] text-text-secondary">Monto mínimo por apuesta ({fiatCode})</label>
+          <label className="mb-1 block text-[14px] text-text-secondary">Monto mínimo por apuesta ({amountCurrencyLabel})</label>
           <input className="field" type="number" min={0.01} step={0.01} {...register('minimum_amount_per_bet', { valueAsNumber: true })} />
           {fiatHint ? <p className="mt-1 text-[13px] text-text-tertiary">{fiatHint}</p> : null}
           <FieldErr path="minimum_amount_per_bet" />
         </div>
-        <div>
-          <label className="mb-1 block text-[14px] text-text-secondary">Filtro categoría (opcional)</label>
-          <input className="field" placeholder="deportes, casino…" {...register('category_filter')} />
-          <p className="mt-1 text-[13px] text-text-tertiary">Vacío = todas las categorías</p>
-        </div>
+        <ActivityThresholdCurrencySelect />
+        <BetCategoryInfoBanner />
       </div>
     );
   }
@@ -115,15 +161,13 @@ export function ActivityConfigFields() {
     return (
       <div className="mt-3 grid max-w-lg grid-cols-2 gap-3">
         <div>
-          <label className="mb-1 block text-[14px] text-text-secondary">Monto acumulado mínimo por día ({fiatCode})</label>
+          <label className="mb-1 block text-[14px] text-text-secondary">Monto acumulado mínimo por día ({amountCurrencyLabel})</label>
           <input className="field" type="number" min={0.01} step={0.01} {...register('minimum_amount_total_bet_per_day', { valueAsNumber: true })} />
           {fiatHint ? <p className="mt-1 text-[13px] text-text-tertiary">{fiatHint}</p> : null}
           <FieldErr path="minimum_amount_total_bet_per_day" />
         </div>
-        <div>
-          <label className="mb-1 block text-[14px] text-text-secondary">Filtro categoría (opcional)</label>
-          <input className="field" placeholder="deportes, casino…" {...register('category_filter')} />
-        </div>
+        <ActivityThresholdCurrencySelect />
+        <BetCategoryInfoBanner />
       </div>
     );
   }
@@ -233,6 +277,9 @@ export function MilestoneCard({ index }: { index: number }) {
           <FieldErr path={mp(index, 'reward_kind')} />
         </div>
       </div>
+      {kind === 'none' ? (
+        <p className="text-[14px] text-text-tertiary">El día se marca como alcanzado sin entregar premio.</p>
+      ) : null}
       {kind === 'manual' ? (
         <div>
           <label className="mb-1 block text-[13px] text-text-secondary">Descripción del premio manual</label>

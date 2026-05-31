@@ -70,6 +70,16 @@ describe('validateStreakEditorForm', () => {
     expect(e.name).toMatch(/Ya existe/);
   });
 
+  it('milestone sin premio es válido', () => {
+    const f = {
+      ...defaultStreakEditorForm('UTC', 'main'),
+      name: 'Test programa',
+      milestones: [{ ...emptyMilestoneRow('main'), day_number: 5, reward_kind: 'none' as StreakRewardKind }],
+    };
+    const e = validateStreakEditorForm(f, true);
+    expect(e['milestones.0.reward_kind']).toBeUndefined();
+  });
+
   it('valida activity_config login', () => {
     const f = { ...base, name: 'Prog', minimum_logins_per_day: 0 };
     const e = validateStreakEditorForm(f, true);
@@ -128,13 +138,41 @@ describe('buildProgramPayload + programToEditorForm', () => {
     expect(p.milestones?.[1].reward_config).toEqual({ bonus_id: 'ob_bd_welcome' });
   });
 
-  it('activity_config bet_cumulative', () => {
+  it('activity_config bet_cumulative con moneda', () => {
     const f = defaultStreakEditorForm('UTC', 'main');
     f.name = 'Bets';
     f.activity_type = 'bet_cumulative';
     f.minimum_amount_total_bet_per_day = 75;
+    f.activity_threshold_currency = 'CLP';
     const p = buildProgramPayload(f);
-    expect(p.activity_config).toEqual({ minimum_amount_total_per_day: 75, category_filter: null });
+    expect(p.activity_config).toEqual({
+      minimum_amount_total_per_day: 75,
+      activity_threshold_currency: 'CLP',
+    });
+  });
+
+  it('activity_threshold_currency vacío envía null', () => {
+    const f = defaultStreakEditorForm('UTC', 'main');
+    f.name = 'Bets';
+    f.activity_type = 'bet_individual';
+    f.activity_threshold_currency = '';
+    const p = buildProgramPayload(f);
+    expect(p.activity_config).toEqual({
+      minimum_amount_per_bet: 10,
+      activity_threshold_currency: null,
+    });
+  });
+
+  it('milestone sin premio envía reward null', () => {
+    const f = defaultStreakEditorForm('UTC', 'main');
+    f.name = 'Hitos';
+    f.milestones = [{ ...emptyMilestoneRow('main'), day_number: 5, reward_kind: 'none' }];
+    const p = buildProgramPayload(f);
+    expect(p.milestones?.[0]).toEqual({
+      day_number: 5,
+      reward_type: null,
+      reward_config: null,
+    });
   });
 });
 

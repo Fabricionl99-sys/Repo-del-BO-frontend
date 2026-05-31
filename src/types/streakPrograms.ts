@@ -23,10 +23,10 @@ export type StreakRewardType =
 
 export type StreakActivityConfig =
   | { minimum_logins_per_day: number }
-  | { minimum_amount_per_deposit: number }
-  | { minimum_amount_total_per_day: number }
-  | { minimum_amount_per_bet: number; category_filter: string | null }
-  | { minimum_amount_total_per_day: number; category_filter: string | null };
+  | { minimum_amount_per_deposit: number; activity_threshold_currency?: string | null }
+  | { minimum_amount_total_per_day: number; activity_threshold_currency?: string | null }
+  | { minimum_amount_per_bet: number; activity_threshold_currency?: string | null }
+  | { minimum_amount_total_per_day: number; activity_threshold_currency?: string | null };
 
 export type StreakResetPolicyConfig =
   | Record<string, never>
@@ -54,8 +54,8 @@ export interface StreakDailyMicroReward {
 
 export interface StreakMilestone {
   day_number: number;
-  reward_type: StreakRewardType;
-  reward_config: StreakRewardConfig;
+  reward_type: StreakRewardType | null;
+  reward_config: StreakRewardConfig | null;
 }
 
 export interface StreakProgram {

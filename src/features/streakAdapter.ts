@@ -113,6 +113,12 @@ function buildRewardForBackend(
   };
 }
 
+function readThresholdCurrency(cfg: Record<string, unknown>): string | null {
+  const c = cfg.activity_threshold_currency;
+  if (c == null || c === '') return null;
+  return String(c).trim().toUpperCase().slice(0, 3) || null;
+}
+
 function buildActivity(
   activityType: string,
   activityConfig: Record<string, unknown> | undefined,
@@ -124,6 +130,7 @@ function buildActivity(
       threshold_count: Math.max(1, Math.floor(Number(cfg.minimum_logins_per_day ?? 1))),
     };
   }
+  const thresholdCurrency = readThresholdCurrency(cfg);
   if (activityType === 'deposit_individual' || activityType === 'deposit_cumulative') {
     const amount = Number(
       cfg.minimum_amount_per_deposit ?? cfg.minimum_amount_total_per_day ?? 1,
@@ -132,6 +139,7 @@ function buildActivity(
       type: 'deposit',
       threshold_amount: Math.max(0.01, amount),
       aggregation_mode: activityType === 'deposit_cumulative' ? 'cumulative' : 'individual',
+      threshold_currency: thresholdCurrency,
     };
   }
   if (activityType === 'bet_individual' || activityType === 'bet_cumulative') {
@@ -142,6 +150,7 @@ function buildActivity(
       type: 'bet',
       threshold_amount: Math.max(0.01, amount),
       aggregation_mode: activityType === 'bet_cumulative' ? 'cumulative' : 'individual',
+      threshold_currency: thresholdCurrency,
     };
   }
   // fallback login
@@ -170,6 +179,13 @@ function buildResetPolicy(
 export function adaptStreakForBackend(payload: Partial<StreakProgram>): Record<string, unknown> {
   const milestonesRaw = Array.isArray(payload.milestones) ? payload.milestones : [];
   const milestones = milestonesRaw.map((m) => {
+    if (m.reward_type == null || m.reward_config == null) {
+      return {
+        day_number: Math.max(1, Math.floor(Number(m.day_number ?? 1))),
+        reward_type_id: null,
+        reward_config: null,
+      };
+    }
     const reward = buildRewardForBackend(
       m.reward_type,
       m.reward_config,
@@ -222,6 +238,10 @@ export function normalizeBackendStreak(raw: Record<string, unknown>): StreakProg
   const aggMode = String(raw.activity_aggregation_mode ?? 'individual');
   let boActivityType: StreakProgram['activity_type'];
   let activityConfig: Record<string, unknown>;
+  const thresholdCurrency =
+    typeof raw.activity_threshold_currency === 'string' && raw.activity_threshold_currency.trim()
+      ? raw.activity_threshold_currency.trim().toUpperCase()
+      : null;
   if (activityType === 'login') {
     boActivityType = 'login';
     activityConfig = {
@@ -232,16 +252,16 @@ export function normalizeBackendStreak(raw: Record<string, unknown>): StreakProg
     const amount = Number(raw.activity_threshold_amount ?? 1);
     activityConfig =
       aggMode === 'cumulative'
-        ? { minimum_amount_total_per_day: amount }
-        : { minimum_amount_per_deposit: amount };
+        ? { minimum_amount_total_per_day: amount, activity_threshold_currency: thresholdCurrency }
+        : { minimum_amount_per_deposit: amount, activity_threshold_currency: thresholdCurrency };
   } else {
     // bet
     boActivityType = aggMode === 'cumulative' ? 'bet_cumulative' : 'bet_individual';
     const amount = Number(raw.activity_threshold_amount ?? 1);
     activityConfig =
       aggMode === 'cumulative'
-        ? { minimum_amount_total_per_day: amount, category_filter: null }
-        : { minimum_amount_per_bet: amount, category_filter: null };
+        ? { minimum_amount_total_per_day: amount, activity_threshold_currency: thresholdCurrency }
+        : { minimum_amount_per_bet: amount, activity_threshold_currency: thresholdCurrency };
   }
 
   const resetType = String(raw.reset_policy_type ?? 'strict') as StreakProgram['reset_policy'];
@@ -275,7 +295,15 @@ export function normalizeBackendStreak(raw: Record<string, unknown>): StreakProg
     ? (raw.milestones as Array<Record<string, unknown>>)
     : [];
   const milestones = milestonesRaw.map((m) => {
-    const rewardTypeId = Number(m.reward_type_id ?? 5);
+    const rewardTypeIdRaw = m.reward_type_id;
+    if (rewardTypeIdRaw == null) {
+      return {
+        day_number: Number(m.day_number ?? 1),
+        reward_type: null,
+        reward_config: null,
+      };
+    }
+    const rewardTypeId = Number(rewardTypeIdRaw);
     return {
       day_number: Number(m.day_number ?? 1),
       reward_type: (REWARD_ID_TO_KIND[rewardTypeId] ?? 'manual') as StreakRewardType,

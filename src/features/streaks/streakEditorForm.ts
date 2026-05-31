@@ -65,7 +65,8 @@ export interface StreakEditorFormValues {
   minimum_amount_total_per_day: number;
   minimum_amount_per_bet: number;
   minimum_amount_total_bet_per_day: number;
-  category_filter: string;
+  /** Vacío = cualquier moneda (null en API). */
+  activity_threshold_currency: string;
   timezone: string;
   reset_policy: StreakResetPolicy;
   grace_days_rolling: number;
@@ -143,7 +144,7 @@ export function defaultStreakEditorForm(defaultTimezone: string, defaultCoinCode
     minimum_amount_total_per_day: 50,
     minimum_amount_per_bet: 10,
     minimum_amount_total_bet_per_day: 50,
-    category_filter: '',
+    activity_threshold_currency: '',
     timezone: defaultTimezone,
     reset_policy: 'strict',
     grace_days_rolling: 1,
@@ -198,6 +199,11 @@ function readSoftDaysLost(c: Record<string, unknown>): number {
   return 3;
 }
 
+function readThresholdCurrency(cfg: Record<string, unknown>): string {
+  const c = cfg.activity_threshold_currency;
+  return c == null || c === '' ? '' : String(c);
+}
+
 function readActivityIntoForm(
   activityType: StreakActivityType,
   cfg: Record<string, unknown>,
@@ -209,22 +215,24 @@ function readActivityIntoForm(
   }
   if (activityType === 'deposit_individual') {
     row.minimum_amount_per_deposit = Number(cfg.minimum_amount_per_deposit ?? 20);
+    row.activity_threshold_currency = readThresholdCurrency(cfg);
     return;
   }
   if (activityType === 'deposit_cumulative') {
     row.minimum_amount_total_per_day = Number(cfg.minimum_amount_total_per_day ?? cfg.minimum_amount ?? 50);
+    row.activity_threshold_currency = readThresholdCurrency(cfg);
     return;
   }
   if (activityType === 'bet_individual') {
     row.minimum_amount_per_bet = Number(cfg.minimum_amount_per_bet ?? cfg.minimum_amount ?? 10);
-    row.category_filter = cfg.category_filter == null ? '' : String(cfg.category_filter);
+    row.activity_threshold_currency = readThresholdCurrency(cfg);
     return;
   }
   if (activityType === 'bet_cumulative') {
     row.minimum_amount_total_bet_per_day = Number(
       cfg.minimum_amount_total_per_day ?? cfg.minimum_amount ?? 50,
     );
-    row.category_filter = cfg.category_filter == null ? '' : String(cfg.category_filter);
+    row.activity_threshold_currency = readThresholdCurrency(cfg);
   }
 }
 
@@ -241,7 +249,13 @@ function rewardConfigFromRow(kind: StreakRewardKind, row: StreakMilestoneFormRow
 }
 
 function milestoneRowFromApi(m: StreakMilestone, defaultCoinCode: string): StreakMilestoneFormRow {
-  const rt = (m.reward_type ?? 'coins').toLowerCase() as StreakRewardType;
+  if (m.reward_type == null || m.reward_config == null) {
+    const base = emptyMilestoneRow(defaultCoinCode);
+    base.day_number = m.day_number;
+    base.reward_kind = 'none';
+    return base;
+  }
+  const rt = m.reward_type.toLowerCase() as StreakRewardType;
   const cfg = (m.reward_config ?? {}) as Record<string, unknown>;
   const base = emptyMilestoneRow(defaultCoinCode);
   base.day_number = m.day_number;
@@ -343,23 +357,35 @@ function buildResetPolicyConfig(f: StreakEditorFormValues): StreakProgram['reset
   return { days_lost_on_break: Math.min(20, Math.max(1, Math.round(f.soft_days_lost_on_break))) };
 }
 
+function buildActivityThresholdCurrency(f: StreakEditorFormValues): string | null {
+  const code = f.activity_threshold_currency.trim().toUpperCase();
+  return code ? code : null;
+}
+
 function buildActivityConfig(f: StreakEditorFormValues): StreakActivityConfig {
+  const currency = buildActivityThresholdCurrency(f);
   switch (f.activity_type) {
     case 'login':
       return { minimum_logins_per_day: Math.max(1, Math.round(f.minimum_logins_per_day)) };
     case 'deposit_individual':
-      return { minimum_amount_per_deposit: Math.max(0.01, f.minimum_amount_per_deposit) };
+      return {
+        minimum_amount_per_deposit: Math.max(0.01, f.minimum_amount_per_deposit),
+        activity_threshold_currency: currency,
+      };
     case 'deposit_cumulative':
-      return { minimum_amount_total_per_day: Math.max(0.01, f.minimum_amount_total_per_day) };
+      return {
+        minimum_amount_total_per_day: Math.max(0.01, f.minimum_amount_total_per_day),
+        activity_threshold_currency: currency,
+      };
     case 'bet_individual':
       return {
         minimum_amount_per_bet: Math.max(0.01, f.minimum_amount_per_bet),
-        category_filter: f.category_filter.trim() ? f.category_filter.trim() : null,
+        activity_threshold_currency: currency,
       };
     case 'bet_cumulative':
       return {
         minimum_amount_total_per_day: Math.max(0.01, f.minimum_amount_total_bet_per_day),
-        category_filter: f.category_filter.trim() ? f.category_filter.trim() : null,
+        activity_threshold_currency: currency,
       };
     default:
       return { minimum_logins_per_day: 1 };
@@ -392,7 +418,14 @@ function buildDailyMicroReward(f: StreakEditorFormValues): StreakDailyMicroRewar
 }
 
 function buildMilestoneReward(row: StreakMilestoneFormRow): StreakMilestone {
-  const kind = row.reward_kind === 'none' ? 'coins' : row.reward_kind;
+  if (row.reward_kind === 'none') {
+    return {
+      day_number: row.day_number,
+      reward_type: null,
+      reward_config: null,
+    };
+  }
+  const kind = row.reward_kind;
   return {
     day_number: row.day_number,
     reward_type: kind as StreakRewardType,
@@ -473,7 +506,7 @@ function validateMilestoneRowFields(i: number, row: StreakMilestoneFormRow): Rec
   const e: Record<string, string> = {};
   const k = row.reward_kind;
   const b = `milestones.${i}` as const;
-  if (k === 'none') e[`${b}.reward_kind`] = 'Elegí un tipo de premio o manual';
+  if (k === 'none') return e;
   if (k === 'xp' && (!Number.isFinite(row.xp_amount) || row.xp_amount < 1)) e[`${b}.xp_amount`] = 'La cantidad de XP debe ser ≥ 1';
   if (k === 'coins') {
     if (!row.coin_code.trim()) e[`${b}.coin_code`] = 'Elegí una moneda';
@@ -564,7 +597,7 @@ export function rewardPreviewLabel(
   isDaily: boolean,
   fiatCurrency?: { code: string; symbol?: string } | null,
 ): string {
-  if (kind === 'none' && isDaily) return 'sin micro-recompensa';
+  if (kind === 'none') return isDaily ? 'sin micro-recompensa' : 'Sin premio (hito visual)';
   if (kind === 'manual' && 'manual_description' in row) {
     const t = row.manual_description.trim().slice(0, 40);
     return t ? `Manual: ${t}${row.manual_description.length > 40 ? '…' : ''}` : 'Manual';
