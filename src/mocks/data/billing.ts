@@ -153,24 +153,45 @@ function catalogPrice(code: ModuleCode): number {
   return moduleCatalog.find((m) => m.code === code)?.price_usd_monthly ?? 0;
 }
 
+function mockActiveModule(
+  code: ModuleCode,
+  daysAgo: number,
+  operatorPrice: number,
+  opts?: { pending?: boolean; renewalInDays?: number },
+): OperatorActiveModulePublic {
+  const renewalInDays = opts?.renewalInDays ?? 30;
+  return {
+    code,
+    activated_at: iso(daysAgo),
+    next_renewal_at: new Date(Date.now() + renewalInDays * 86400000).toISOString(),
+    last_cycle_amount_usd: operatorPrice,
+    deactivation_pending_cycle_end: opts?.pending ?? false,
+    deactivated_at: null,
+    operator_price_usd_monthly: operatorPrice,
+  };
+}
+
 export const activeModules: OperatorActiveModulePublic[] = [
-  { code: 'xp_engine', activated_at: iso(120), pending_deactivation: false, pending_deactivation_at: null, operator_price_usd_monthly: 179 },
-  { code: 'coins', activated_at: iso(120), pending_deactivation: false, pending_deactivation_at: null, operator_price_usd_monthly: 0 },
-  { code: 'streaks', activated_at: iso(90), pending_deactivation: false, pending_deactivation_at: null, operator_price_usd_monthly: catalogPrice('streaks') },
-  { code: 'missions', activated_at: iso(90), pending_deactivation: false, pending_deactivation_at: null, operator_price_usd_monthly: 161 },
-  { code: 'shop', activated_at: iso(60), pending_deactivation: false, pending_deactivation_at: null, operator_price_usd_monthly: catalogPrice('shop') },
-  { code: 'rewards_delivery', activated_at: iso(60), pending_deactivation: false, pending_deactivation_at: null, operator_price_usd_monthly: 0 },
-  { code: 'chests', activated_at: iso(45), pending_deactivation: false, pending_deactivation_at: null, operator_price_usd_monthly: catalogPrice('chests') },
-  { code: 'wheels', activated_at: iso(40), pending_deactivation: false, pending_deactivation_at: null, operator_price_usd_monthly: catalogPrice('wheels') },
-  { code: 'tournaments', activated_at: iso(30), pending_deactivation: false, pending_deactivation_at: null, operator_price_usd_monthly: catalogPrice('tournaments') },
-  { code: 'predictions', activated_at: iso(30), pending_deactivation: false, pending_deactivation_at: null, operator_price_usd_monthly: catalogPrice('predictions') },
-  { code: 'raffles', activated_at: iso(30), pending_deactivation: false, pending_deactivation_at: null, operator_price_usd_monthly: catalogPrice('raffles') },
-  { code: 'rankings', activated_at: iso(20), pending_deactivation: false, pending_deactivation_at: null, operator_price_usd_monthly: catalogPrice('rankings') },
-  { code: 'avatars', activated_at: iso(18), pending_deactivation: false, pending_deactivation_at: null, operator_price_usd_monthly: catalogPrice('avatars') },
-  { code: 'branding', activated_at: iso(15), pending_deactivation: false, pending_deactivation_at: null, operator_price_usd_monthly: 0 },
-  { code: 'notifications', activated_at: iso(10), pending_deactivation: true, pending_deactivation_at: iso(-7), operator_price_usd_monthly: catalogPrice('notifications') },
-  { code: 'news', activated_at: iso(8), pending_deactivation: false, pending_deactivation_at: null, operator_price_usd_monthly: catalogPrice('news') },
-  { code: 'social', activated_at: iso(5), pending_deactivation: false, pending_deactivation_at: null, operator_price_usd_monthly: 450 },
+  mockActiveModule('xp_engine', 120, 179),
+  mockActiveModule('coins', 120, 0),
+  mockActiveModule('streaks', 90, catalogPrice('streaks')),
+  mockActiveModule('missions', 90, 161),
+  mockActiveModule('shop', 60, catalogPrice('shop')),
+  mockActiveModule('rewards_delivery', 60, 0),
+  mockActiveModule('chests', 45, catalogPrice('chests')),
+  mockActiveModule('wheels', 40, catalogPrice('wheels')),
+  mockActiveModule('tournaments', 30, catalogPrice('tournaments')),
+  mockActiveModule('predictions', 30, catalogPrice('predictions')),
+  mockActiveModule('raffles', 30, catalogPrice('raffles')),
+  mockActiveModule('rankings', 20, catalogPrice('rankings')),
+  mockActiveModule('avatars', 18, catalogPrice('avatars')),
+  mockActiveModule('branding', 15, 0),
+  mockActiveModule('notifications', 10, catalogPrice('notifications'), {
+    pending: true,
+    renewalInDays: 7,
+  }),
+  mockActiveModule('news', 8, catalogPrice('news')),
+  mockActiveModule('social', 5, 450),
 ];
 
 export const walletTransactions: WalletTransaction[] = [

@@ -28,6 +28,6 @@ describe('Módulos', () => {
   it('muestra indicador de desactivación pendiente', async () => {
     wrap();
     expect(await screen.findByText('Notificaciones', {}, { timeout: 5000 })).toBeInTheDocument();
-    expect(await screen.findByText(/Desactivación pendiente/, {}, { timeout: 5000 })).toBeInTheDocument();
+    expect(await screen.findByText(/Desactivación programada/, {}, { timeout: 5000 })).toBeInTheDocument();
   });
 });

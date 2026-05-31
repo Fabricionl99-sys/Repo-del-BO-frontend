@@ -915,6 +915,7 @@ handlers.push(
 
 import { operatorPriceForModule } from '@/features/billing/pricing';
 import { activeModules, billingSnapshot, moduleCatalog, walletTransactions } from '@/mocks/data/billing';
+import type { ModuleCode, OperatorActiveModulePublic } from '@/types/billing';
 import {
   applyPoolResolve,
   buildPoolFromPayload,
@@ -1040,18 +1041,23 @@ handlers.push(
     const catalog = moduleCatalog.find((m) => m.code === code);
     const existing = activeModules.find((m) => m.code === code);
     if (existing) {
-      existing.pending_deactivation = false;
-      existing.pending_deactivation_at = null;
+      existing.deactivation_pending_cycle_end = false;
+      existing.next_renewal_at = new Date(Date.now() + 30 * 86400000).toISOString();
+      existing.deactivated_at = null;
       return HttpResponse.json({ data: existing });
     }
-    const mod = {
-      code,
+    const price = catalog ? operatorPriceForModule(catalog.code, catalog.price_usd_monthly) : 0;
+    const mod: OperatorActiveModulePublic = {
+      code: code as ModuleCode,
+      module_name: catalog?.name ?? code,
       activated_at: new Date().toISOString(),
-      pending_deactivation: false,
-      pending_deactivation_at: null,
-      operator_price_usd_monthly: catalog ? operatorPriceForModule(catalog.code, catalog.price_usd_monthly) : 0,
+      next_renewal_at: new Date(Date.now() + 30 * 86400000).toISOString(),
+      last_cycle_amount_usd: price,
+      deactivation_pending_cycle_end: false,
+      deactivated_at: null,
+      operator_price_usd_monthly: price,
     };
-    activeModules.push(mod as (typeof activeModules)[number]);
+    activeModules.push(mod);
     return HttpResponse.json({ data: mod }, { status: 201 });
   }),
   http.post('*/admin/modules/:code/deactivate', async ({ params }) => {
@@ -1059,10 +1065,30 @@ handlers.push(
     const code = params.code as string;
     const mod = activeModules.find((m) => m.code === code);
     if (mod) {
-      mod.pending_deactivation = true;
-      mod.pending_deactivation_at = new Date(Date.now() + 7 * 86400000).toISOString();
+      mod.deactivation_pending_cycle_end = true;
+      mod.next_renewal_at = new Date(Date.now() + 30 * 86400000).toISOString();
     }
-    return HttpResponse.json({ data: mod ?? { code, pending_deactivation: true } });
+    return HttpResponse.json({
+      data: mod ?? { code, deactivation_pending_cycle_end: true },
+    });
+  }),
+  http.post('*/admin/modules/:code/force-stop', async ({ params }) => {
+    await wait();
+    const code = params.code as string;
+    const idx = activeModules.findIndex((m) => m.code === code);
+    const catalog = moduleCatalog.find((m) => m.code === code);
+    const mod = idx >= 0 ? activeModules[idx] : undefined;
+    const stopped = {
+      module_code: code,
+      module_name: catalog?.name ?? mod?.code ?? code,
+      activated_at: mod?.activated_at ?? new Date().toISOString(),
+      next_renewal_at: mod?.next_renewal_at ?? null,
+      last_cycle_amount_usd: String(mod?.last_cycle_amount_usd ?? mod?.operator_price_usd_monthly ?? 0),
+      deactivation_pending_cycle_end: false,
+      deactivated_at: new Date().toISOString(),
+    };
+    if (idx >= 0) activeModules.splice(idx, 1);
+    return HttpResponse.json({ data: stopped });
   }),
   http.get('*/admin/prediction-pools/stats', async () => {
     await wait();

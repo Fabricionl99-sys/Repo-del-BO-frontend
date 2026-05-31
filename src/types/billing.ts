@@ -63,10 +63,17 @@ export interface ModulePublic {
 
 export interface OperatorActiveModulePublic {
   code: ModuleCode;
+  module_name?: string;
   activated_at: string;
-  pending_deactivation: boolean;
-  pending_deactivation_at: string | null;
+  next_renewal_at: string | null;
+  last_cycle_amount_usd: number | null;
+  deactivation_pending_cycle_end: boolean;
+  deactivated_at: string | null;
   operator_price_usd_monthly: number;
+  /** Legacy mocks — prefer deactivation_pending_cycle_end */
+  pending_deactivation?: boolean;
+  /** Legacy mocks — prefer next_renewal_at */
+  pending_deactivation_at?: string | null;
 }
 
 export interface OperatorBillingSnapshot {
