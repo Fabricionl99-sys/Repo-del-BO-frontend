@@ -13,10 +13,9 @@ import { Loading } from '@/components/ui/Loading';
 import { Modal } from '@/components/ui/Modal';
 import { PageHeader } from '@/components/ui/PageHeader';
 import { Table, type Column } from '@/components/ui/Table';
-import { useWalletBalance, useWalletTopup, useWalletTransactions } from '@/features/billing/walletApi';
+import { useWalletBalance, useWalletTransactions } from '@/features/billing/walletApi';
 import { formatNumber } from '@/lib/format';
-import type { PaymentMethod, TransactionType, WalletTransaction } from '@/types/billing';
-import { toast } from '@/stores/toastStore';
+import type { TransactionType, WalletTransaction } from '@/types/billing';
 
 const TX_FILTERS: Array<{ value: TransactionType | 'all'; label: string }> = [
   { value: 'all', label: 'Todas' },
@@ -24,12 +23,6 @@ const TX_FILTERS: Array<{ value: TransactionType | 'all'; label: string }> = [
   { value: 'charge', label: 'Cargos' },
   { value: 'refund', label: 'Reembolsos' },
   { value: 'adjustment', label: 'Ajustes' },
-];
-
-const PAYMENT_METHODS: Array<{ value: PaymentMethod; label: string }> = [
-  { value: 'crypto', label: 'Crypto (USDT)' },
-  { value: 'bank_transfer', label: 'Transferencia bancaria' },
-  { value: 'card', label: 'Tarjeta' },
 ];
 
 const billingModeLabels = {
@@ -69,12 +62,8 @@ export default function WalletPage() {
     setParams(p, { replace: true });
   };
   const [txFilter, setTxFilter] = useState<TransactionType | 'all'>('all');
-  const [topupOpen, setTopupOpen] = useState(false);
   const [topupChoiceOpen, setTopupChoiceOpen] = useState(false);
   const tabsRef = useRef<HTMLDivElement>(null);
-  const [amount, setAmount] = useState('500');
-  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('crypto');
-  const [paymentReference, setPaymentReference] = useState('');
 
   const balanceQ = useWalletBalance();
   const txQ = useWalletTransactions({
@@ -82,7 +71,6 @@ export default function WalletPage() {
     offset: 0,
     transaction_type: txFilter === 'all' ? undefined : txFilter,
   });
-  const topup = useWalletTopup();
 
   const balance = balanceQ.data;
   const rows = mock === 'empty' ? [] : (txQ.data?.items ?? []);
@@ -147,36 +135,15 @@ export default function WalletPage() {
     },
   ];
 
-  const handleTopup = async () => {
-    const parsed = Number(amount);
-    if (!parsed || parsed <= 0) {
-      toast.error('Ingresá un monto válido');
-      return;
-    }
-    await topup.mutateAsync({
-      amount_usd: parsed,
-      payment_method: paymentMethod,
-      payment_reference: paymentReference || undefined,
-    });
-    toast.success('Recarga registrada');
-    setTopupOpen(false);
-    setPaymentReference('');
-  };
-
   return (
     <>
       <PageHeader
         title="Mi Wallet"
         subtitle="Saldo prepago, recargas y movimientos"
         actions={
-          <>
-            <Button variant="ghost" onClick={() => setTopupOpen(true)}>
-              Banco / tarjeta
-            </Button>
-            <Button variant="primary" icon={<Plus size={14} />} onClick={() => setTopupChoiceOpen(true)}>
-              Recargar saldo
-            </Button>
-          </>
+          <Button variant="primary" icon={<Plus size={14} />} onClick={() => setTopupChoiceOpen(true)}>
+            Recargar saldo
+          </Button>
         }
       />
 
@@ -293,7 +260,7 @@ export default function WalletPage() {
           </Button>
         }
       >
-        <div className="grid gap-3 sm:grid-cols-2">
+        <div className="grid gap-3 sm:grid-cols-3">
           <Button
             variant="primary"
             className="h-auto flex-col py-4"
@@ -303,77 +270,21 @@ export default function WalletPage() {
             }}
           >
             <span className="font-semibold">Cripto (USDT)</span>
-            <span className="mt-1 text-[13px] font-normal text-text-secondary">Nueva recarga on-chain</span>
+            <span className="mt-1 text-[13px] font-normal text-text-secondary">NOWPayments · on-chain</span>
           </Button>
-          <Button
-            variant="secondary"
-            className="h-auto flex-col py-4"
-            onClick={() => {
-              setTopupChoiceOpen(false);
-              setTopupOpen(true);
-            }}
+          <div
+            aria-disabled
+            className="flex h-auto flex-col items-center justify-center rounded-lg border border-border-subtle bg-bg-tertiary px-3 py-4 text-center opacity-60"
           >
-            <span className="font-semibold">Banco / tarjeta</span>
-            <span className="mt-1 text-[13px] font-normal text-text-secondary">Transferencia o tarjeta</span>
-          </Button>
-        </div>
-      </Modal>
-
-      <Modal
-        open={topupOpen}
-        onClose={() => setTopupOpen(false)}
-        title="Recargar saldo"
-        description="Placeholder — integración de pago pendiente"
-        footer={
-          <>
-            <Button variant="ghost" onClick={() => setTopupOpen(false)}>
-              Cancelar
-            </Button>
-            <Button variant="primary" loading={topup.isPending} onClick={handleTopup}>
-              Confirmar recarga
-            </Button>
-          </>
-        }
-      >
-        <div className="space-y-4">
-          <div>
-            <label className="mb-1.5 block text-[14px] text-text-secondary">Monto (USD)</label>
-            <input
-              className="field w-full"
-              type="number"
-              min={1}
-              step={1}
-              value={amount}
-              onChange={(e) => setAmount(e.target.value)}
-            />
+            <span className="font-semibold text-text-secondary">Banco</span>
+            <span className="mt-1 text-[13px] text-text-tertiary">Próximamente</span>
           </div>
-          <div>
-            <label className="mb-1.5 block text-[14px] text-text-secondary">Método de pago</label>
-            <div className="flex flex-wrap gap-2">
-              {PAYMENT_METHODS.map((m) => (
-                <button
-                  key={m.value}
-                  type="button"
-                  onClick={() => setPaymentMethod(m.value)}
-                  className={`rounded-lg border px-3 py-2 text-[14px] ${
-                    paymentMethod === m.value
-                      ? 'border-accent bg-accent-subtle text-accent'
-                      : 'border-border-subtle bg-bg-tertiary text-text-secondary'
-                  }`}
-                >
-                  {m.label}
-                </button>
-              ))}
-            </div>
-          </div>
-          <div>
-            <label className="mb-1.5 block text-[14px] text-text-secondary">Referencia (opcional)</label>
-            <input
-              className="field w-full font-mono"
-              placeholder="Hash, comprobante, últimos 4 dígitos…"
-              value={paymentReference}
-              onChange={(e) => setPaymentReference(e.target.value)}
-            />
+          <div
+            aria-disabled
+            className="flex h-auto flex-col items-center justify-center rounded-lg border border-border-subtle bg-bg-tertiary px-3 py-4 text-center opacity-60"
+          >
+            <span className="font-semibold text-text-secondary">Tarjeta</span>
+            <span className="mt-1 text-[13px] text-text-tertiary">Próximamente</span>
           </div>
         </div>
       </Modal>
