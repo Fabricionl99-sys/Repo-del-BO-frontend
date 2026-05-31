@@ -1,6 +1,8 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { isAxiosError } from 'axios';
 
 import { apiClient } from '@/api/client';
+import { getApiErrorMessage } from '@/api/errors';
 import { unwrapData, unwrapPaginatedList } from '@/api/response';
 import { adaptStreakForBackend, normalizeBackendStreak } from '@/features/streakAdapter';
 import { toast } from '@/stores/toastStore';
@@ -8,7 +10,6 @@ import type {
   PlayerStreakDetail,
   PlayerStreakSummary,
   StreakMigrateActiveResult,
-  StreakNameAvailability,
   StreakProgram,
 } from '@/types/streakPrograms';
 
@@ -40,21 +41,6 @@ export function useStreakProgram(id: string | null) {
   });
 }
 
-export function useStreakProgramNameAvailable(debouncedName: string, excludeId?: string | null) {
-  const trimmed = debouncedName.trim();
-  return useQuery({
-    queryKey: ['streak-programs', 'name-available', trimmed, excludeId ?? ''],
-    enabled: trimmed.length >= 3,
-    queryFn: () =>
-      apiClient
-        .get('/admin/streak-programs/name-available', {
-          params: { name: trimmed, exclude_id: excludeId || undefined },
-        })
-        .then((r) => unwrapData<StreakNameAvailability>(r.data)),
-    staleTime: 20_000,
-  });
-}
-
 export function useSaveStreakProgram() {
   const qc = useQueryClient();
   return useMutation({
@@ -81,6 +67,18 @@ export function useActivateStreakProgram() {
     onSuccess: () => {
       toast.success('Programa activado');
       qc.invalidateQueries({ queryKey: ['streak-programs'] });
+    },
+    onError: (error) => {
+      if (isAxiosError(error) && error.response?.status === 409) {
+        const data = error.response.data;
+        const detail =
+          data && typeof data === 'object' && typeof (data as { detail?: unknown }).detail === 'string'
+            ? (data as { detail: string }).detail
+            : undefined;
+        toast.error(detail ?? 'Ya hay otra racha activa de este tipo. Desactivá la otra primero.');
+        return;
+      }
+      toast.error(`Error al activar: ${getApiErrorMessage(error, 'No se pudo activar el programa')}`);
     },
   });
 }

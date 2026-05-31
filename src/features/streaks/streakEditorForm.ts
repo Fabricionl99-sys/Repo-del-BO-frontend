@@ -531,6 +531,31 @@ export function maxDayFromMilestones(milestones: StreakMilestoneFormRow[]): numb
 
 export type NameAvailability = boolean | null;
 
+export function isDuplicateStreakProgramName(
+  name: string,
+  programs: Array<{ id: string; name: string }>,
+  currentId?: string | null,
+): boolean {
+  const norm = name.trim().toLowerCase();
+  if (norm.length < 3) return false;
+  const excludeId = currentId ?? '';
+  return programs.some((p) => p.id !== excludeId && p.name.trim().toLowerCase() === norm);
+}
+
+export function resolveStreakNameAvailable(
+  name: string,
+  programs: Array<{ id: string; name: string }>,
+  currentId?: string | null,
+): NameAvailability {
+  const trimmed = name.trim();
+  if (trimmed.length < 3) return null;
+  if (currentId) {
+    const current = programs.find((p) => p.id === currentId);
+    if (current && current.name.trim().toLowerCase() === trimmed.toLowerCase()) return true;
+  }
+  return !isDuplicateStreakProgramName(trimmed, programs, currentId);
+}
+
 export function validateStreakEditorForm(f: StreakEditorFormValues, nameAvailable: NameAvailability): Record<string, string> {
   const err: Record<string, string> = {};
   const name = f.name.trim();

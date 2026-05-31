@@ -5,8 +5,10 @@ import {
   coinCodeForSelect,
   defaultStreakEditorForm,
   emptyMilestoneRow,
+  isDuplicateStreakProgramName,
   maxDayFromMilestones,
   programToEditorForm,
+  resolveStreakNameAvailable,
   type StreakRewardKind,
   validateStreakEditorForm,
   validateStreakEditorFormWithListLimits,
@@ -173,6 +175,23 @@ describe('buildProgramPayload + programToEditorForm', () => {
       reward_type: null,
       reward_config: null,
     });
+  });
+});
+
+describe('resolveStreakNameAvailable', () => {
+  const programs = [
+    { id: 'a', name: 'Racha Login' },
+    { id: 'b', name: 'Apuestas VIP' },
+  ];
+
+  it('detecta nombre duplicado client-side', () => {
+    expect(isDuplicateStreakProgramName('Racha Login', programs)).toBe(true);
+    expect(resolveStreakNameAvailable('Racha Login', programs)).toBe(false);
+  });
+
+  it('excluye el programa actual al editar', () => {
+    expect(resolveStreakNameAvailable('Racha Login', programs, 'a')).toBe(true);
+    expect(resolveStreakNameAvailable('Apuestas VIP', programs, 'a')).toBe(false);
   });
 });
 

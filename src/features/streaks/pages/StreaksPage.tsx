@@ -76,7 +76,13 @@ export default function StreaksPage() {
               desactivar
             </Button>
           ) : (
-            <Button size="sm" variant="primary" loading={activate.isPending} onClick={() => activate.mutate(p.id)}>
+            <Button
+              size="sm"
+              variant="primary"
+              loading={activate.isPending}
+              title="Solo puede haber 1 racha activa por tipo de actividad (login/bet/deposit) en este workspace."
+              onClick={() => activate.mutate(p.id)}
+            >
               activar
             </Button>
           )}

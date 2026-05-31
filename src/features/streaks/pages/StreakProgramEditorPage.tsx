@@ -20,6 +20,7 @@ import {
   defaultStreakEditorForm,
   emptyMilestoneRow,
   programToEditorForm,
+  resolveStreakNameAvailable,
   timezoneFriendlyLabel,
   validateStreakEditorFormWithListLimits,
 } from '@/features/streaks/streakEditorForm';
@@ -34,10 +35,9 @@ import {
   useActivateStreakProgram,
   useSaveStreakProgram,
   useStreakProgram,
-  useStreakProgramNameAvailable,
+  useStreakPrograms,
 } from '@/features/streakProgramsApi';
 import { useCoins } from '@/features/coinsApi';
-import { useDebounce } from '@/hooks/useDebounce';
 import { useOperatorStore } from '@/stores/operatorStore';
 
 function EditorPreviewBridge({ defTz, defCoin }: { defTz: string; defCoin: string }) {
@@ -59,6 +59,7 @@ export default function StreakProgramEditorPage() {
   const defaultTz = op?.timezone ?? 'America/Argentina/Buenos_Aires';
 
   const q = useStreakProgram(isNew ? null : id!);
+  const programsQ = useStreakPrograms();
   const save = useSaveStreakProgram();
   const activate = useActivateStreakProgram();
 
@@ -67,8 +68,10 @@ export default function StreakProgramEditorPage() {
   const [milestoneListError, setMilestoneListError] = useState('');
 
   const nameWatch = form.watch('name');
-  const debouncedName = useDebounce(nameWatch, 400);
-  const nameQ = useStreakProgramNameAvailable(debouncedName, isNew ? null : id);
+  const nameAvailable = useMemo(
+    () => resolveStreakNameAvailable(nameWatch, programsQ.data ?? [], isNew ? null : id),
+    [nameWatch, programsQ.data, isNew, id],
+  );
 
   useEffect(() => {
     if (!isNew && q.data) {
@@ -86,23 +89,9 @@ export default function StreakProgramEditorPage() {
   if (!isNew && q.isLoading) return <Loading label="Cargando programa..." />;
   if (!isNew && q.isError) return <ErrorState onRetry={() => q.refetch()} />;
 
-  const resolveNameAvailable = (): boolean | null => {
-    const cur = nameWatch.trim().toLowerCase();
-    if (cur.length < 3) return null;
-    const orig = !isNew && q.data ? q.data.name.trim().toLowerCase() : '';
-    if (!isNew && cur === orig) return true;
-    if (nameQ.isFetched) return nameQ.data?.available ?? null;
-    return null;
-  };
-
   const persist = async (thenActivate: boolean) => {
     const vals = form.getValues();
     setMilestoneListError('');
-    if (debouncedName.trim().length >= 3 && nameQ.isFetching) {
-      form.setError('name', { type: 'manual', message: 'Esperá la verificación del nombre…' });
-      return;
-    }
-    const nameAvailable = resolveNameAvailable();
     const { fieldErrors, milestonesListError } = validateStreakEditorFormWithListLimits(vals, nameAvailable);
     applyValidationErrors(form, fieldErrors);
     if (milestonesListError) setMilestoneListError(milestonesListError);
@@ -134,9 +123,6 @@ export default function StreakProgramEditorPage() {
         <ConfigSection icon="📛" title="Nombre del programa">
           <input className="field" placeholder="Ej. Racha de login 7 días" {...form.register('name')} />
           <FieldErr path="name" />
-          {debouncedName.trim().length >= 3 && nameQ.isFetching ? (
-            <p className="mt-1 text-[14px] text-text-tertiary">Comprobando que el nombre esté disponible…</p>
-          ) : null}
         </ConfigSection>
 
         <ConfigSection icon="🎯" title="Tipo de actividad">
@@ -272,6 +258,9 @@ export default function StreakProgramEditorPage() {
         onCancel={() => nav('/rachas')}
         onSaveDraft={() => void persist(false)}
         onActivate={() => void persist(true)}
+        activateHint={
+          <FieldHint text="Solo puede haber 1 racha activa por tipo de actividad (login/bet/deposit) en este workspace." />
+        }
         loading={save.isPending || activate.isPending}
       />
     </FormProvider>

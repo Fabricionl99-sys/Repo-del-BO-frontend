@@ -12,6 +12,7 @@ export function StickyBottomBar({
   onActivate,
   onSaveChanges,
   saveChangesLabel = 'Guardar cambios',
+  activateHint,
   loading,
 }: {
   onCancel: () => void;
@@ -19,6 +20,7 @@ export function StickyBottomBar({
   onActivate?: () => void;
   onSaveChanges?: () => void;
   saveChangesLabel?: string;
+  activateHint?: ReactNode;
   loading?: boolean;
 }) {
   return (
@@ -48,14 +50,18 @@ export function StickyBottomBar({
           </button>
         ) : null}
         {onActivate ? (
-          <button
-            type="button"
-            onClick={onActivate}
-            disabled={loading}
-            className="rounded-lg bg-accent px-3.5 py-2 text-[15px] font-semibold text-text-onAccent"
-          >
-            Activar
-          </button>
+          <span className="inline-flex items-center gap-1.5">
+            <button
+              type="button"
+              onClick={onActivate}
+              disabled={loading}
+              title="Solo puede haber 1 racha activa por tipo de actividad (login/bet/deposit) en este workspace."
+              className="rounded-lg bg-accent px-3.5 py-2 text-[15px] font-semibold text-text-onAccent"
+            >
+              Activar
+            </button>
+            {activateHint}
+          </span>
         ) : null}
       </div>
     </div>
