@@ -92,11 +92,18 @@ function ModuleCard({
             <span className="text-[13px] font-medium text-text-tertiary">/mes</span>
           </span>
         </div>
+        {mod.active && mod.lastCycleAmountUsd != null ? (
+          <p className="text-[13px] text-text-tertiary">
+            Pagaste {formatUsd(mod.lastCycleAmountUsd)} en este ciclo
+            {mod.nextRenewalAt ? ` (renueva el ${formatModuleDate(mod.nextRenewalAt)})` : ''}
+          </p>
+        ) : null}
         {mod.active &&
         mod.lockedOperatorPrice != null &&
+        mod.lockedOperatorPrice > 0 &&
         mod.lockedOperatorPrice !== mod.price_usd_monthly ? (
           <p className="text-[13px] text-text-tertiary">
-            Tu tarifa actual: {formatUsd(mod.lockedOperatorPrice)}/mes
+            Tarifa personalizada: {formatUsd(mod.lockedOperatorPrice)}/mes
           </p>
         ) : null}
         {mod.active && mod.pendingDeactivation ? (
