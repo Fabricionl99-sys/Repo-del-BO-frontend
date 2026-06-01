@@ -4,10 +4,11 @@ import { Button } from '@/components/ui/Button';
 import { cn } from '@/lib/cn';
 import type { Avatar } from '@/types/avatars';
 
-import { unlockMethodLabel } from '../avatarForm';
+import { unlockMethodLabel, getAvatarImageUrl } from '../avatarForm';
 
 export function AvatarCard({ avatar, onEdit }: { avatar: Avatar; onEdit: () => void }) {
   const archived = avatar.status === 'archived';
+  const imageUrl = getAvatarImageUrl(avatar);
 
   return (
     <button
@@ -19,8 +20,8 @@ export function AvatarCard({ avatar, onEdit }: { avatar: Avatar; onEdit: () => v
       )}
     >
       <div className="relative aspect-square bg-bg-tertiary">
-        {avatar.image_url ? (
-          <img src={avatar.image_url} alt={avatar.name} loading="lazy" className="h-full w-full object-cover" />
+        {imageUrl ? (
+          <img src={imageUrl} alt={avatar.name} loading="lazy" className="h-full w-full object-cover" />
         ) : (
           <div className="flex h-full items-center justify-center text-text-tertiary">
             <UserCircle2 size={40} />

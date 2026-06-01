@@ -4,6 +4,7 @@ import {
   avatarFormSchema,
   defaultAvatarForm,
   formToCreatePayload,
+  getAvatarImageUrl,
 } from './avatarForm';
 
 describe('avatarFormSchema', () => {
@@ -56,5 +57,27 @@ describe('avatarFormSchema', () => {
     const payload = formToCreatePayload(values, 'https://example.com/leon.png');
     expect(payload.unlock_config).toEqual({ required_level: 10 });
     expect(payload.image_url).toBe('https://example.com/leon.png');
+  });
+});
+
+describe('getAvatarImageUrl', () => {
+  it('prefiere image_urls.original sobre image_url', () => {
+    expect(
+      getAvatarImageUrl({
+        image_urls: { original: 'https://cdn.example.com/original.png' },
+        image_url: 'https://cdn.example.com/alias.png',
+      }),
+    ).toBe('https://cdn.example.com/original.png');
+  });
+
+  it('usa image_url como fallback', () => {
+    expect(getAvatarImageUrl({ image_url: 'https://cdn.example.com/alias.png' })).toBe(
+      'https://cdn.example.com/alias.png',
+    );
+  });
+
+  it('devuelve null si no hay imagen', () => {
+    expect(getAvatarImageUrl({})).toBeNull();
+    expect(getAvatarImageUrl(null)).toBeNull();
   });
 });

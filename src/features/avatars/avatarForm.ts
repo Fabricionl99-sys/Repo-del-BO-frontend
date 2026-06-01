@@ -165,6 +165,13 @@ function unlockFieldsFromAvatar(avatar: Avatar): Pick<
   }
 }
 
+export function getAvatarImageUrl(
+  avatar: Pick<Avatar, 'image_urls' | 'image_url'> | null | undefined,
+): string | null {
+  if (!avatar) return null;
+  return avatar.image_urls?.original ?? avatar.image_url ?? null;
+}
+
 export function avatarToForm(avatar: Avatar): AvatarFormValues {
   return {
     code: avatar.code,

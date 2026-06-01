@@ -57,12 +57,20 @@ export type AvatarUnlockConfig =
   | ManualUnlockConfig
   | AutoUnlockConfig;
 
+export interface AvatarImageUrls {
+  original?: string | null;
+}
+
 export interface Avatar {
   id: string;
   code: string;
   name: string;
   description: string;
-  image_url: string;
+  /** Alias de image_urls.original (compat backend). */
+  image_url?: string | null;
+  image_urls?: AvatarImageUrls | null;
+  /** Legacy raw paths — no usar para display. */
+  image_paths?: unknown;
   category_id: string;
   category_code?: string;
   category_name?: string;

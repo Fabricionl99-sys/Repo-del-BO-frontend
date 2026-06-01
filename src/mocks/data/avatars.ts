@@ -148,12 +148,14 @@ export const avatars: Avatar[] = avatarSeeds.map((seed, index) => {
   const cat = avatarCategories.find((c) => c.id === seed.category_id)!;
   const meta = categoryMeta(seed.category_id);
   const archived = seed.active === false;
+  const imageUrl = `https://dummyimage.com/256x256/${seed.color}/0E1116&text=${encodeURIComponent(seed.name.slice(0, 2))}`;
   return {
     id: `av_${seed.code}`,
     code: seed.code,
     name: seed.name,
     description: `Avatar ${seed.name} en categoría ${cat.name}`,
-    image_url: `https://dummyimage.com/256x256/${seed.color}/0E1116&text=${encodeURIComponent(seed.name.slice(0, 2))}`,
+    image_urls: { original: imageUrl },
+    image_url: imageUrl,
     category_id: seed.category_id,
     ...meta,
     is_active: seed.active !== false,
@@ -200,7 +202,7 @@ export const avatarInventory: PlayerAvatarInventoryItem[] = Array.from({ length:
     avatar_id: avatar.id,
     avatar_code: avatar.code,
     avatar_name: avatar.name,
-    avatar_image_url: avatar.image_url,
+    avatar_image_url: avatar.image_urls?.original ?? avatar.image_url ?? '',
     category_id: avatar.category_id,
     category_name: cat.name,
     unlocked_at: iso(i % 45),

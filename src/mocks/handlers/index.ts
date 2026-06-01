@@ -1908,6 +1908,7 @@ handlers.push(
       name: body.name,
       description: body.description,
       image_url: body.image_url,
+      image_urls: { original: body.image_url },
       category_id: body.category_id,
       category_code: cat?.code,
       category_name: cat?.name,
@@ -1929,6 +1930,9 @@ handlers.push(
     const body = (await request.json()) as Partial<AvatarMetadataPayload & { image_url?: string }>;
     const item = avatars.find((a) => a.id === params.id) ?? avatars[0];
     Object.assign(item, body, { updated_at: new Date().toISOString() });
+    if (body.image_url !== undefined) {
+      item.image_urls = { original: body.image_url };
+    }
     if (body.category_id) {
       const cat = avatarCategories.find((c) => c.id === body.category_id);
       item.category_code = cat?.code;
@@ -1965,7 +1969,7 @@ handlers.push(
       avatar_id: avatar.id,
       avatar_code: avatar.code,
       avatar_name: avatar.name,
-      avatar_image_url: avatar.image_url,
+      avatar_image_url: avatar.image_urls?.original ?? avatar.image_url ?? '',
       category_id: avatar.category_id,
       category_name: cat.name,
       unlocked_at: new Date().toISOString(),

@@ -18,6 +18,7 @@ import {
   defaultAvatarForm,
   formToCreatePayload,
   formToMetadataPayload,
+  getAvatarImageUrl,
   type AvatarFormValues,
 } from '../avatarForm';
 import { AvatarRestrictionsFields } from './AvatarRestrictionsFields';
@@ -67,7 +68,7 @@ export function AvatarFormModal({
   useEffect(() => {
     if (!open) return;
     reset(avatar ? avatarToForm(avatar) : defaultAvatarForm());
-    setImageUrl(avatar?.image_url ?? '');
+    setImageUrl(getAvatarImageUrl(avatar) ?? '');
     setImageError(undefined);
   }, [open, avatar, reset]);
 
@@ -82,10 +83,11 @@ export function AvatarFormModal({
     }
 
     if (isEdit && avatar) {
+      const originalImageUrl = getAvatarImageUrl(avatar) ?? '';
       await updateAvatar.mutateAsync({
         id: avatar.id,
         ...formToMetadataPayload(values),
-        ...(imageUrl !== avatar.image_url ? { image_url: imageUrl } : {}),
+        ...(imageUrl !== originalImageUrl ? { image_url: imageUrl } : {}),
       });
     } else {
       await createAvatar.mutateAsync(formToCreatePayload(values, imageUrl));
