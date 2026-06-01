@@ -1,6 +1,7 @@
 import { ImagePlus, Upload } from 'lucide-react';
 import { useRef, useState } from 'react';
 
+import { maybeCompressImageForUpload } from '@/components/media/mediaUploadValidation';
 import { cn } from '@/lib/cn';
 
 import type { UploadValidationResult } from '../brandingUploadValidation';
@@ -31,12 +32,13 @@ export function BrandingUploadZone({
   const handleFile = async (file: File | undefined) => {
     if (!file) return;
     setLocalError(undefined);
-    const result = await validate(file);
+    const prepared = await maybeCompressImageForUpload(file);
+    const result = await validate(prepared);
     if (!result.ok) {
       setLocalError(result.error);
       return;
     }
-    onValidated(file, result.previewUrl);
+    onValidated(prepared, result.previewUrl);
   };
 
   return (

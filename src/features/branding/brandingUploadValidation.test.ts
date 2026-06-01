@@ -28,31 +28,23 @@ describe('validateLogoUpload', () => {
     const file = new File(['x'], 'logo.gif', { type: 'image/gif' });
     const result = await validateLogoUpload(file);
     expect(result.ok).toBe(false);
-    if (!result.ok) expect(result.error).toMatch(/formato no permitido/);
+    if (!result.ok) expect(result.error).toMatch(/Formato no permitido/);
   });
 
-  it('rechaza archivos mayores a 500 KB', async () => {
+  it('rechaza archivos mayores a 5 MB', async () => {
     mockImage({ width: 256, height: 256 });
-    const file = new File([new Uint8Array(500 * 1024 + 1)], 'big.png', { type: 'image/png' });
+    const file = new File([new Uint8Array(5 * 1024 * 1024 + 1)], 'big.png', { type: 'image/png' });
+    Object.defineProperty(file, 'size', { value: 5 * 1024 * 1024 + 1 });
     const result = await validateLogoUpload(file);
     expect(result.ok).toBe(false);
-    if (!result.ok) expect(result.error).toMatch(/500 KB/);
+    if (!result.ok) expect(result.error).toMatch(/5 MB/);
   });
 
-  it('rechaza dimensiones fuera de rango', async () => {
-    mockImage({ width: 128, height: 128 });
-    const file = new File(['x'], 'small.png', { type: 'image/png' });
-    const result = await validateLogoUpload(file);
-    expect(result.ok).toBe(false);
-    if (!result.ok) expect(result.error).toMatch(/200px/);
-  });
-
-  it('rechaza imágenes no cuadradas', async () => {
+  it('acepta PNG no cuadrado', async () => {
     mockImage({ width: 512, height: 400 });
     const file = new File(['x'], 'rect.png', { type: 'image/png' });
     const result = await validateLogoUpload(file);
-    expect(result.ok).toBe(false);
-    if (!result.ok) expect(result.error).toMatch(/cuadrada/);
+    expect(result.ok).toBe(true);
   });
 
   it('acepta PNG cuadrado válido', async () => {
@@ -64,26 +56,27 @@ describe('validateLogoUpload', () => {
 });
 
 describe('validateFaviconUpload', () => {
-  it('rechaza archivos mayores a 100 KB', async () => {
+  it('rechaza archivos mayores a 1 MB', async () => {
     mockImage({ width: 32, height: 32 });
-    const file = new File([new Uint8Array(100 * 1024 + 1)], 'big.ico', { type: 'image/png' });
+    const file = new File([new Uint8Array(1024 * 1024 + 1)], 'big.ico', { type: 'image/png' });
+    Object.defineProperty(file, 'size', { value: 1024 * 1024 + 1 });
     const result = await validateFaviconUpload(file);
     expect(result.ok).toBe(false);
-    if (!result.ok) expect(result.error).toMatch(/100 KB/);
+    if (!result.ok) expect(result.error).toMatch(/1 MB/);
   });
 });
 
 describe('validateBackgroundUpload', () => {
-  it('rechaza dimensiones menores a 1920×1080', async () => {
-    mockImage({ width: 1280, height: 720 });
+  it('rechaza dimensiones menores a 800x400', async () => {
+    mockImage({ width: 600, height: 300 });
     const file = new File(['x'], 'small.jpg', { type: 'image/jpeg' });
     const result = await validateBackgroundUpload(file);
     expect(result.ok).toBe(false);
-    if (!result.ok) expect(result.error).toMatch(/1920px/);
+    if (!result.ok) expect(result.error).toMatch(/600x300px/);
   });
 
-  it('acepta background válido', async () => {
-    mockImage({ width: 1920, height: 1080 });
+  it('acepta background 1024x500', async () => {
+    mockImage({ width: 1024, height: 500 });
     const file = new File(['x'], 'bg.jpg', { type: 'image/jpeg' });
     const result = await validateBackgroundUpload(file);
     expect(result.ok).toBe(true);

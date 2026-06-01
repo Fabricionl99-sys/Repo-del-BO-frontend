@@ -1,5 +1,13 @@
 import type { MediaAspectRatio, MediaContext, MediaPurpose } from '@/types/media';
 
+import {
+  BANNER_MIN_DIMENSIONS,
+  BANNER_UPLOAD_HINT,
+  DEFAULT_IMAGE_FORMATS,
+  GENERIC_IMAGE_UPLOAD_HINT,
+  IMAGE_MAX_SIZE_KB,
+} from './mediaUploadConstants';
+
 export interface MediaUploaderConfig {
   maxSizeKB: number;
   allowedFormats: string[];
@@ -8,39 +16,27 @@ export interface MediaUploaderConfig {
   aspectRatio: MediaAspectRatio;
   /** Backend sharp crop (cover, center) → PNG N×N. Skips FE square/dimension checks. */
   serverResizeSquare?: number;
-  /** Skip min/max dimension and aspect ratio checks (backend is source of truth). */
+  /** Skip min/max dimension checks (backend is source of truth). */
   skipDimensionValidation?: boolean;
   /** Override auto-generated hint under the uploader. */
   customHint?: string;
 }
 
-const DEFAULT_FORMATS = ['png', 'jpg', 'jpeg', 'webp'];
-
-function moduleBannerHint(entity: string): string {
-  const prefix = entity === 'noticia' ? 'Banner de la noticia' : `Banner del ${entity}`;
-  const suffix =
-    entity === 'noticia'
-      ? 'Cualquier dimensión válida.'
-      : 'Cualquier dimensión válida — el backend acepta lo que subas.';
-  return `${prefix}. Sugerido: 1920×540 o similar (relación 16:9 o más ancho que alto). Máximo 10 MB. ${suffix}`;
-}
-
-function moduleBannerPreset(entity: string): MediaUploaderConfig {
+function moduleBannerPreset(): MediaUploaderConfig {
   return {
-    maxSizeKB: 10240,
-    allowedFormats: DEFAULT_FORMATS,
-    minDimensions: null,
+    maxSizeKB: IMAGE_MAX_SIZE_KB,
+    allowedFormats: [...DEFAULT_IMAGE_FORMATS],
+    minDimensions: { ...BANNER_MIN_DIMENSIONS },
     maxDimensions: null,
     aspectRatio: 'banner',
-    skipDimensionValidation: true,
-    customHint: moduleBannerHint(entity),
+    customHint: BANNER_UPLOAD_HINT,
   };
 }
 
-function freeImagePreset(customHint: string): MediaUploaderConfig {
+function freeImagePreset(customHint = GENERIC_IMAGE_UPLOAD_HINT): MediaUploaderConfig {
   return {
-    maxSizeKB: 10240,
-    allowedFormats: DEFAULT_FORMATS,
+    maxSizeKB: IMAGE_MAX_SIZE_KB,
+    allowedFormats: [...DEFAULT_IMAGE_FORMATS],
     minDimensions: null,
     maxDimensions: null,
     aspectRatio: 'free',
@@ -52,8 +48,8 @@ function freeImagePreset(customHint: string): MediaUploaderConfig {
 /** Preset para imágenes cuadradas normalizadas server-side (POST /admin/storage/upload). */
 function autoSquarePreset(size: number, aspectRatio: MediaAspectRatio = 'square'): MediaUploaderConfig {
   return {
-    maxSizeKB: 2048,
-    allowedFormats: DEFAULT_FORMATS,
+    maxSizeKB: IMAGE_MAX_SIZE_KB,
+    allowedFormats: [...DEFAULT_IMAGE_FORMATS],
     minDimensions: null,
     maxDimensions: null,
     aspectRatio,
@@ -66,68 +62,79 @@ const PRESETS: Record<string, MediaUploaderConfig> = {
   'chests:thumbnail': autoSquarePreset(256),
   'shop:main_image': autoSquarePreset(512),
   'login_popups:banner': {
-    maxSizeKB: 1000,
-    allowedFormats: ['png', 'jpg', 'jpeg'],
-    minDimensions: { width: 1200, height: 300 },
+    maxSizeKB: IMAGE_MAX_SIZE_KB,
+    allowedFormats: [...DEFAULT_IMAGE_FORMATS],
+    minDimensions: { ...BANNER_MIN_DIMENSIONS },
     maxDimensions: null,
     aspectRatio: 'banner',
+    customHint: BANNER_UPLOAD_HINT,
   },
-  'news:banner': moduleBannerPreset('noticia'),
+  'news:banner': moduleBannerPreset(),
   'news:thumbnail': autoSquarePreset(256),
-  'predictions:banner': moduleBannerPreset('prode'),
+  'predictions:banner': moduleBannerPreset(),
   'predictions:thumbnail': autoSquarePreset(256),
-  'tournaments:banner': moduleBannerPreset('torneo'),
-  'rankings:banner': moduleBannerPreset('ranking'),
+  'tournaments:banner': moduleBannerPreset(),
+  'rankings:banner': moduleBannerPreset(),
   'bonuses:thumbnail': autoSquarePreset(256),
   'branding:logo': {
-    maxSizeKB: 500,
-    allowedFormats: [...DEFAULT_FORMATS, 'svg'],
-    minDimensions: { width: 200, height: 200 },
-    maxDimensions: { width: 1024, height: 1024 },
-    aspectRatio: 'square',
-  },
-  'branding:icon': {
-    maxSizeKB: 100,
-    allowedFormats: ['png', 'ico'],
-    minDimensions: { width: 16, height: 16 },
-    maxDimensions: { width: 256, height: 256 },
-    aspectRatio: 'square',
-  },
-  'branding:background': {
-    maxSizeKB: 2000,
-    allowedFormats: DEFAULT_FORMATS,
-    minDimensions: { width: 1920, height: 1080 },
+    maxSizeKB: IMAGE_MAX_SIZE_KB,
+    allowedFormats: [...DEFAULT_IMAGE_FORMATS, 'svg'],
+    minDimensions: null,
     maxDimensions: null,
     aspectRatio: 'free',
+    skipDimensionValidation: true,
+    customHint: '5 MB max · PNG/JPG/WebP/SVG',
+  },
+  'branding:icon': {
+    maxSizeKB: 1024,
+    allowedFormats: ['png', 'ico'],
+    minDimensions: null,
+    maxDimensions: null,
+    aspectRatio: 'free',
+    skipDimensionValidation: true,
+    customHint: '1 MB max · PNG/ICO',
+  },
+  'branding:background': {
+    maxSizeKB: IMAGE_MAX_SIZE_KB,
+    allowedFormats: [...DEFAULT_IMAGE_FORMATS],
+    minDimensions: { ...BANNER_MIN_DIMENSIONS },
+    maxDimensions: null,
+    aspectRatio: 'banner',
+    customHint: BANNER_UPLOAD_HINT,
   },
   'settings:logo': {
-    maxSizeKB: 500,
-    allowedFormats: [...DEFAULT_FORMATS, 'svg'],
-    minDimensions: { width: 200, height: 200 },
-    maxDimensions: { width: 1024, height: 1024 },
-    aspectRatio: 'square',
+    maxSizeKB: IMAGE_MAX_SIZE_KB,
+    allowedFormats: [...DEFAULT_IMAGE_FORMATS, 'svg'],
+    minDimensions: null,
+    maxDimensions: null,
+    aspectRatio: 'free',
+    skipDimensionValidation: true,
+    customHint: '5 MB max · PNG/JPG/WebP/SVG',
   },
   'avatars:main_image': autoSquarePreset(512, 'circle'),
   'wheels:main_image': autoSquarePreset(512),
   'wheels:logo': {
-    maxSizeKB: 300,
-    allowedFormats: DEFAULT_FORMATS,
-    minDimensions: { width: 128, height: 128 },
-    maxDimensions: { width: 512, height: 512 },
+    maxSizeKB: IMAGE_MAX_SIZE_KB,
+    allowedFormats: [...DEFAULT_IMAGE_FORMATS],
+    minDimensions: null,
+    maxDimensions: null,
     aspectRatio: 'circle',
+    skipDimensionValidation: true,
+    customHint: GENERIC_IMAGE_UPLOAD_HINT,
   },
   'wheels:prize_image': autoSquarePreset(256),
-  'raffles:banner': moduleBannerPreset('sorteo'),
-  'raffles:main_image': moduleBannerPreset('sorteo'),
-  'raffles:prize_image': freeImagePreset('Imagen del premio físico. Cualquier dimensión. Máximo 10 MB.'),
+  'raffles:banner': moduleBannerPreset(),
+  'raffles:main_image': moduleBannerPreset(),
+  'raffles:prize_image': freeImagePreset(),
 };
 
 const FALLBACK: MediaUploaderConfig = {
-  maxSizeKB: 500,
-  allowedFormats: DEFAULT_FORMATS,
+  maxSizeKB: IMAGE_MAX_SIZE_KB,
+  allowedFormats: [...DEFAULT_IMAGE_FORMATS],
   minDimensions: null,
   maxDimensions: null,
   aspectRatio: 'free',
+  customHint: GENERIC_IMAGE_UPLOAD_HINT,
 };
 
 export function resolveMediaUploaderConfig(

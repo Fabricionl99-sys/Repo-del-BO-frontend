@@ -12,6 +12,7 @@ import {
   acceptFromFormats,
   buildValidationHint,
   formatFileSize,
+  maybeCompressImageForUpload,
   validateExternalImageUrl,
   validateMediaFile,
 } from './mediaUploadValidation';
@@ -125,13 +126,14 @@ export function MediaUploader({
   const handleFile = async (file: File | undefined) => {
     if (!file) return;
     setLocalError(undefined);
-    const result = await validateMediaFile(file, validationOpts);
+    const prepared = await maybeCompressImageForUpload(file);
+    const result = await validateMediaFile(prepared, validationOpts);
     if (!result.ok) {
       setLocalError(result.error);
       toast.error(result.error);
       return;
     }
-    await handleValidatedFile(file, result.previewUrl);
+    await handleValidatedFile(prepared, result.previewUrl);
   };
 
   const handleExternalBlur = async () => {

@@ -25,7 +25,7 @@ describe('MediaUploader', () => {
       />,
     );
     expect(screen.getByText('Cargar archivo')).toBeInTheDocument();
-    expect(screen.getByText(/Máximo 2 MB/)).toBeInTheDocument();
+    expect(screen.getByText(/5 MB max/)).toBeInTheDocument();
   });
 
   it('cambia a modo URL externa', () => {
@@ -69,7 +69,7 @@ describe('MediaUploader', () => {
     fireEvent.change(input, { target: { files: [big] } });
 
     await waitFor(() => {
-      expect(screen.getByText(/Máximo 1 KB/)).toBeInTheDocument();
+      expect(screen.getByText(/Max permitido: 1 KB/)).toBeInTheDocument();
     });
     expect(onChange).not.toHaveBeenCalled();
   });

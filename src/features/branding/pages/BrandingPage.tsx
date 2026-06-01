@@ -335,7 +335,7 @@ export default function BrandingPage() {
                 <p className="label-section mb-2">Logo</p>
                 <BrandingUploadZone
                   previewUrl={config.logo_url}
-                  hint="PNG/JPG/WebP/SVG · máx 2 MB"
+                  hint="5 MB max · PNG/JPG/WebP/SVG"
                   accept="image/png,image/jpeg,image/webp,image/svg+xml"
                   validate={validateLogoUpload}
                   error={uploadLogo.error ? 'Error al subir logo' : undefined}
@@ -348,7 +348,7 @@ export default function BrandingPage() {
                 <p className="label-section mb-2">Favicon</p>
                 <BrandingUploadZone
                   previewUrl={config.favicon_url}
-                  hint="PNG/ICO · máx 512 KB"
+                  hint="1 MB max · PNG/ICO"
                   accept="image/png,image/x-icon,image/vnd.microsoft.icon"
                   validate={validateFaviconUpload}
                   error={uploadFavicon.error ? 'Error al subir favicon' : undefined}
@@ -362,7 +362,7 @@ export default function BrandingPage() {
               <p className="label-section mb-2">Imagen de fondo (opcional)</p>
               <BrandingUploadZone
                 previewUrl={config.background_image_url}
-                hint="PNG/JPG/WebP · máx 5 MB"
+                hint="5 MB max · PNG/JPG/WebP · recomendado 1200x600px"
                 accept="image/png,image/jpeg,image/webp"
                 validate={validateBackgroundUpload}
                 error={uploadBackground.error ? 'Error al subir background' : undefined}
