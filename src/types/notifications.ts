@@ -57,6 +57,13 @@ export interface NotificationChannel {
   last_test_status: LastTestStatus;
 }
 
+export interface NotificationAudienceFilter {
+  vip_only?: boolean;
+  player_level_min?: number;
+  player_level_max?: number;
+  new_player_only_within_days?: number;
+}
+
 export interface NotificationTemplate {
   id: string;
   code: string;
@@ -71,6 +78,7 @@ export interface NotificationTemplate {
   cta_url: string | null;
   is_active: boolean;
   language: string;
+  audience_filter?: NotificationAudienceFilter | null;
 }
 
 export interface NotificationHistoryItem {

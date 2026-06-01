@@ -1,6 +1,12 @@
 import { z } from 'zod';
 
-import type { ChannelType, NotificationTemplate, NotificationTemplatePayload, TriggerEvent } from '@/types/notifications';
+import type {
+  ChannelType,
+  NotificationAudienceFilter,
+  NotificationTemplate,
+  NotificationTemplatePayload,
+  TriggerEvent,
+} from '@/types/notifications';
 
 /**
  * Decisión founder (Sprint #6): en gamificación SOLO usamos in_app + push web.
@@ -19,40 +25,83 @@ function emptyToNull(value: unknown) {
   return value;
 }
 
-export const notificationTemplateSchema = z.object({
-  code: z
-    .string()
-    .min(2, 'Code: mínimo 2 caracteres')
-    .max(64)
-    .regex(/^[a-z][a-z0-9_]*$/, 'Code en snake_case (a-z, 0-9, _)'),
-  name: z.string().min(2, 'Nombre requerido').max(120),
-  description: z.string().max(500),
-  trigger_event: z.enum([
-    'welcome',
-    'level_up',
-    'mission_completed',
-    'streak_completed',
-    'streak_in_danger',
-    'chest_received',
-    'shop_purchase',
-    'ranking_won',
-    'wallet_low_balance',
-    'reward_pending',
-    'manual',
-  ]),
-  // Backend acepta 4 channels; UI WINGOAT solo expone in_app + push.
-  channels: z.array(z.enum(['in_app', 'email', 'push', 'sms'])).min(1, 'Seleccioná al menos un canal').refine(
-    (chs) => chs.every((c) => VISIBLE_CHANNELS.includes(c)),
-    'Email y SMS los maneja el CRM del operador — usá in_app o push',
-  ),
-  subject: z.preprocess(emptyToNull, z.string().max(200).nullable()),
-  body: z.string().min(1, 'El mensaje es obligatorio'),
-  body_html: z.preprocess(emptyToNull, z.string().nullable()),
-  cta_text: z.preprocess(emptyToNull, z.string().max(100).nullable()),
-  cta_url: z.preprocess(emptyToNull, z.string().nullable()),
-  is_active: z.boolean(),
-  language: z.string(),
-});
+function emptyToNullNumber(value: unknown) {
+  if (value === '' || value === undefined || value === null) return null;
+  if (typeof value === 'number' && Number.isNaN(value)) return null;
+  return value;
+}
+
+export const notificationTemplateSchema = z
+  .object({
+    code: z
+      .string()
+      .min(2, 'Code: mínimo 2 caracteres')
+      .max(64)
+      .regex(/^[a-z][a-z0-9_]*$/, 'Code en snake_case (a-z, 0-9, _)'),
+    name: z.string().min(2, 'Nombre requerido').max(120),
+    description: z.string().max(500),
+    trigger_event: z.enum([
+      'welcome',
+      'level_up',
+      'mission_completed',
+      'streak_completed',
+      'streak_in_danger',
+      'chest_received',
+      'shop_purchase',
+      'ranking_won',
+      'wallet_low_balance',
+      'reward_pending',
+      'manual',
+    ]),
+    // Backend acepta 4 channels; UI WINGOAT solo expone in_app + push.
+    channels: z.array(z.enum(['in_app', 'email', 'push', 'sms'])).min(1, 'Seleccioná al menos un canal').refine(
+      (chs) => chs.every((c) => VISIBLE_CHANNELS.includes(c)),
+      'Email y SMS los maneja el CRM del operador — usá in_app o push',
+    ),
+    subject: z.preprocess(emptyToNull, z.string().max(200).nullable()),
+    body: z.string().min(1, 'El mensaje es obligatorio'),
+    body_html: z.preprocess(emptyToNull, z.string().nullable()),
+    cta_text: z.preprocess(emptyToNull, z.string().max(100).nullable()),
+    cta_url: z.preprocess(emptyToNull, z.string().nullable()),
+    is_active: z.boolean(),
+    language: z.string(),
+    limit_audience: z.boolean(),
+    vip_only: z.boolean(),
+    player_level_min: z.preprocess(emptyToNullNumber, z.number().int().min(0).nullable()),
+    player_level_max: z.preprocess(emptyToNullNumber, z.number().int().min(0).nullable()),
+    new_players_only: z.boolean(),
+    new_player_only_within_days: z.preprocess(emptyToNullNumber, z.number().int().nullable()),
+  })
+  .superRefine((data, ctx) => {
+    if (!data.limit_audience) return;
+
+    const min = data.player_level_min;
+    const max = data.player_level_max;
+    if (min != null && max != null && max < min) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'El nivel máximo debe ser mayor o igual al mínimo',
+        path: ['player_level_max'],
+      });
+    }
+
+    if (data.new_players_only) {
+      const days = data.new_player_only_within_days;
+      if (days == null) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: 'Indicá entre 1 y 365 días',
+          path: ['new_player_only_within_days'],
+        });
+      } else if (days < 1 || days > 365) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: 'Debe estar entre 1 y 365 días',
+          path: ['new_player_only_within_days'],
+        });
+      }
+    }
+  });
 
 export type NotificationTemplateFormValues = z.infer<typeof notificationTemplateSchema>;
 
@@ -83,6 +132,40 @@ export function triggersTakenForLanguage(
   );
 }
 
+function hasAudienceFilterFields(filter: NotificationAudienceFilter | null | undefined): boolean {
+  if (!filter) return false;
+  return Boolean(
+    filter.vip_only ||
+      filter.player_level_min != null ||
+      filter.player_level_max != null ||
+      filter.new_player_only_within_days != null,
+  );
+}
+
+export function formToAudienceFilter(
+  values: Pick<
+    NotificationTemplateFormValues,
+    | 'limit_audience'
+    | 'vip_only'
+    | 'player_level_min'
+    | 'player_level_max'
+    | 'new_players_only'
+    | 'new_player_only_within_days'
+  >,
+): NotificationAudienceFilter | null {
+  if (!values.limit_audience) return null;
+
+  const filter: NotificationAudienceFilter = {};
+  if (values.vip_only) filter.vip_only = true;
+  if (values.player_level_min != null) filter.player_level_min = values.player_level_min;
+  if (values.player_level_max != null) filter.player_level_max = values.player_level_max;
+  if (values.new_players_only && values.new_player_only_within_days != null) {
+    filter.new_player_only_within_days = values.new_player_only_within_days;
+  }
+
+  return Object.keys(filter).length > 0 ? filter : null;
+}
+
 export function defaultTemplateForm(): NotificationTemplateFormValues {
   return {
     code: '',
@@ -97,10 +180,19 @@ export function defaultTemplateForm(): NotificationTemplateFormValues {
     cta_url: null,
     is_active: true,
     language: 'es',
+    limit_audience: false,
+    vip_only: false,
+    player_level_min: null,
+    player_level_max: null,
+    new_players_only: false,
+    new_player_only_within_days: null,
   };
 }
 
 export function templateToForm(t: NotificationTemplate): NotificationTemplateFormValues {
+  const af = t.audience_filter;
+  const limitAudience = hasAudienceFilterFields(af);
+
   return {
     code: t.code,
     name: t.name,
@@ -114,6 +206,12 @@ export function templateToForm(t: NotificationTemplate): NotificationTemplateFor
     cta_url: t.cta_url,
     is_active: t.is_active,
     language: t.language,
+    limit_audience: limitAudience,
+    vip_only: af?.vip_only ?? false,
+    player_level_min: af?.player_level_min ?? null,
+    player_level_max: af?.player_level_max ?? null,
+    new_players_only: af?.new_player_only_within_days != null,
+    new_player_only_within_days: af?.new_player_only_within_days ?? null,
   };
 }
 
@@ -131,5 +229,6 @@ export function formToTemplatePayload(values: NotificationTemplateFormValues): N
     cta_url: values.cta_url?.trim() || null,
     is_active: values.is_active,
     language: values.language || 'es',
+    audience_filter: formToAudienceFilter(values),
   };
 }

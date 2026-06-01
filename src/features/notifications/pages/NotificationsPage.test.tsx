@@ -83,6 +83,26 @@ describe('NotificationsPage', () => {
     expect(await screen.findByText(/El mensaje es obligatorio/i)).toBeInTheDocument();
   });
 
+  it('muestra sección audiencia y disclaimer de filtros AND', async () => {
+    wrap('/notificaciones/templates/nuevo');
+    await screen.findByText('Nuevo template', { selector: 'h2' });
+    expect(screen.getByText('Limitar audiencia')).toBeInTheDocument();
+    expect(screen.queryByText(/usá el módulo Noticias/i)).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole('switch', { name: 'Limitar audiencia' }));
+    expect(
+      await screen.findByText(/SOLO se envía a jugadores que cumplan TODAS las condiciones/i),
+    ).toBeInTheDocument();
+  });
+
+  it('carga audience_filter al editar template existente', async () => {
+    wrap('/notificaciones/templates/ntpl_level_up');
+    await screen.findByText('Editar template', { selector: 'h2' });
+    const vipCheckbox = screen.getByRole('checkbox', { name: /Solo jugadores VIP/i }) as HTMLInputElement;
+    expect(vipCheckbox.checked).toBe(true);
+    const minLevel = document.querySelector('input[name="player_level_min"]') as HTMLInputElement;
+    expect(minLevel.value).toBe('5');
+  });
+
   it('filtra historial por status', async () => {
     wrap();
     await screen.findByText('In-app');

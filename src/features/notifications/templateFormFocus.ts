@@ -14,6 +14,9 @@ const FIELD_ORDER: (keyof NotificationTemplateFormValues)[] = [
   'body_html',
   'cta_text',
   'cta_url',
+  'player_level_min',
+  'player_level_max',
+  'new_player_only_within_days',
 ];
 
 function scrollIntoViewIfSupported(el: Element | null | undefined) {

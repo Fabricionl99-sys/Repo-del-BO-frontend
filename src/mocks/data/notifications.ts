@@ -67,6 +67,7 @@ export const notificationTemplates: NotificationTemplate[] = [
     cta_url: 'https://widget.niveles.io/missions',
     is_active: true,
     language: 'es',
+    audience_filter: null,
   },
   {
     id: 'ntpl_level_up',
@@ -82,6 +83,11 @@ export const notificationTemplates: NotificationTemplate[] = [
     cta_url: 'https://widget.niveles.io/rewards',
     is_active: true,
     language: 'es',
+    audience_filter: {
+      vip_only: true,
+      player_level_min: 5,
+      player_level_max: 20,
+    },
   },
   {
     id: 'ntpl_mission',

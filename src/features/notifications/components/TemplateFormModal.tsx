@@ -80,6 +80,9 @@ export function TemplateFormModal({
   const language = values.language ?? 'es';
   const channels = values.channels ?? ['in_app'];
   const isActive = values.is_active ?? true;
+  const limitAudience = values.limit_audience ?? false;
+  const newPlayersOnly = values.new_players_only ?? false;
+  const vipOnly = values.vip_only ?? false;
   const isCreate = !template;
 
   const duplicateExisting = useMemo(
@@ -242,10 +245,6 @@ export function TemplateFormModal({
                     );
                   })}
                 </select>
-                <p className="mt-2 text-[13px] leading-relaxed text-text-tertiary">
-                  Las notificaciones se envían automáticamente cuando ocurre este evento (ej. welcome se envía a
-                  quien recién se registra). Para mensajes targeted por nivel o VIP, usá el módulo Noticias.
-                </p>
               </label>
               <label className="block">
                 <span className="mb-1 block text-[14px] text-text-secondary">idioma</span>
@@ -321,6 +320,101 @@ export function TemplateFormModal({
                 {errors.cta_url && <p className="mt-1 text-[14px] text-danger">{errors.cta_url.message}</p>}
               </label>
             </div>
+          </section>
+
+          <section>
+            <p className="label-section mb-3">audiencia</p>
+            <label className="flex items-center justify-between rounded-lg border border-border-subtle px-3 py-2">
+              <span className="text-[15px]">Limitar audiencia</span>
+              <Switch
+                checked={limitAudience}
+                aria-label="Limitar audiencia"
+                onChange={(v) => setValue('limit_audience', v, { shouldValidate: true })}
+              />
+            </label>
+            {limitAudience ? (
+              <div className="mt-3 space-y-4 rounded-lg border border-border-subtle bg-bg-secondary/50 p-4">
+                <label className="flex items-center gap-2 text-[14px]">
+                  <input type="checkbox" {...register('vip_only')} />
+                  Solo jugadores VIP
+                </label>
+
+                <div>
+                  <p className="mb-2 text-[14px] text-text-secondary">Rango de nivel</p>
+                  <div className="grid grid-cols-2 gap-3 max-md:grid-cols-1">
+                    <label className="block">
+                      <span className="mb-1 block text-[13px] text-text-tertiary">Nivel mínimo (opcional)</span>
+                      <input
+                        type="number"
+                        min={0}
+                        className="field"
+                        placeholder="Sin mínimo"
+                        {...register('player_level_min', { valueAsNumber: true })}
+                      />
+                      {errors.player_level_min && (
+                        <p className="mt-1 text-[14px] text-danger">{errors.player_level_min.message}</p>
+                      )}
+                    </label>
+                    <label className="block">
+                      <span className="mb-1 block text-[13px] text-text-tertiary">Nivel máximo (opcional)</span>
+                      <input
+                        type="number"
+                        min={0}
+                        className="field"
+                        placeholder="Sin máximo"
+                        {...register('player_level_max', { valueAsNumber: true })}
+                      />
+                      {errors.player_level_max && (
+                        <p className="mt-1 text-[14px] text-danger">{errors.player_level_max.message}</p>
+                      )}
+                    </label>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="flex items-center gap-2 text-[14px]">
+                    <input
+                      type="checkbox"
+                      checked={newPlayersOnly}
+                      onChange={(e) => {
+                        const checked = e.target.checked;
+                        setValue('new_players_only', checked, { shouldValidate: true });
+                        if (!checked) {
+                          setValue('new_player_only_within_days', null, { shouldValidate: true });
+                        } else if (values.new_player_only_within_days == null) {
+                          setValue('new_player_only_within_days', 7, { shouldValidate: true });
+                        }
+                      }}
+                    />
+                    Solo nuevos jugadores
+                  </label>
+                  {newPlayersOnly ? (
+                    <label className="mt-2 block">
+                      <span className="mb-1 block text-[13px] text-text-tertiary">
+                        Registrados en los últimos N días
+                      </span>
+                      <input
+                        type="number"
+                        min={1}
+                        max={365}
+                        className="field w-32"
+                        {...register('new_player_only_within_days', { valueAsNumber: true })}
+                      />
+                      {errors.new_player_only_within_days && (
+                        <p className="mt-1 text-[14px] text-danger">{errors.new_player_only_within_days.message}</p>
+                      )}
+                    </label>
+                  ) : null}
+                </div>
+
+                <p className="text-[13px] leading-relaxed text-text-tertiary">
+                  Si seleccionás filtros, la notification SOLO se envía a jugadores que cumplan TODAS las condiciones.
+                  {vipOnly && newPlayersOnly
+                    ? ' Ej.: un jugador debe ser VIP y haberse registrado en los últimos N días.'
+                    : null}
+                </p>
+              </div>
+            ) : null}
           </section>
         </div>
 
