@@ -21,6 +21,7 @@ import {
   useGrantChestManual,
   usePlayerSearch,
 } from '@/features/chests/chestsApi';
+import { chestCatalogState } from '@/features/chests/chestTypeShape';
 import { useDebounce } from '@/hooks/useDebounce';
 import { cn } from '@/lib/cn';
 import { formatRelativeDate } from '@/lib/format';
@@ -35,7 +36,12 @@ import type {
 const tabs = ['Tipos de Cofre', 'Inventario', 'Entregar manual'] as const;
 type Tab = (typeof tabs)[number];
 
-const statusFilters: Array<'all' | 'active' | 'archived'> = ['all', 'active', 'archived'];
+const statusFilters: Array<'all' | 'active' | 'inactive' | 'archived'> = [
+  'all',
+  'active',
+  'inactive',
+  'archived',
+];
 
 const inventoryStatusLabels: Record<ChestInventoryStatus, string> = {
   unopened: 'no abierto',
@@ -59,7 +65,7 @@ export default function ChestsPage() {
   const chestsActive = isModuleActive(activeModuleCodes, 'chests');
 
   const [tab, setTab] = useState<Tab>('Tipos de Cofre');
-  const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'archived'>('active');
+  const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'inactive' | 'archived'>('active');
   const [search, setSearch] = useState('');
   const debouncedSearch = useDebounce(search, 250);
 
@@ -81,7 +87,12 @@ export default function ChestsPage() {
   const debouncedGrantQuery = useDebounce(grantPlayerQuery, 250);
 
   const typesQ = useChestTypes({
-    status: statusFilter,
+    status:
+      statusFilter === 'archived'
+        ? 'archived'
+        : statusFilter === 'all'
+          ? 'all'
+          : 'active',
     search: debouncedSearch || undefined,
   });
 
@@ -99,12 +110,16 @@ export default function ChestsPage() {
   const playerSearchQ = usePlayerSearch(debouncedGrantQuery);
   const grantManual = useGrantChestManual();
 
-  const types = mock === 'empty' ? [] : (typesQ.data ?? []);
+  const typesRaw = mock === 'empty' ? [] : (typesQ.data ?? []);
+  const types = useMemo(() => {
+    if (statusFilter === 'all' || statusFilter === 'archived') return typesRaw;
+    return typesRaw.filter((t) => chestCatalogState(t) === statusFilter);
+  }, [typesRaw, statusFilter]);
   const inventory = mock === 'empty' ? [] : (inventoryQ.data?.items ?? []);
-  const existingCodes = useMemo(() => types.map((t) => t.code), [types]);
+  const existingCodes = useMemo(() => typesRaw.map((t) => t.code), [typesRaw]);
   const chestTypeOptions = useMemo(
-    () => types.filter((t) => t.status === 'active').map((t) => ({ code: t.code, name: t.name })),
-    [types],
+    () => typesRaw.filter((t) => chestCatalogState(t) === 'active').map((t) => ({ code: t.code, name: t.name })),
+    [typesRaw],
   );
 
   if (!chestsActive && mock !== 'loading') {
@@ -262,8 +277,8 @@ export default function ChestsPage() {
                     label={f === 'all' ? 'todos' : f}
                     count={
                       f === 'all'
-                        ? types.length
-                        : types.filter((t) => t.status === f).length
+                        ? typesRaw.length
+                        : typesRaw.filter((t) => chestCatalogState(t) === f).length
                     }
                     active={statusFilter === f}
                     onClick={() => setStatusFilter(f)}

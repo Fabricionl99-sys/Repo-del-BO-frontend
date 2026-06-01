@@ -58,12 +58,14 @@ export interface ChestPrize {
 }
 
 export interface ChestType {
+  id: string;
   code: string;
   name: string;
   description: string;
   image_url: string;
   color_theme: string;
   is_active: boolean;
+  archived_at: string | null;
   default_expiration_hours: number | null;
   has_pity_system: boolean;
   pity_threshold: number | null;

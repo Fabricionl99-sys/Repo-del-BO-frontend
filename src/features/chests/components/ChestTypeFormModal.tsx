@@ -1,6 +1,7 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Plus, Trash2 } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
+import type { FieldErrors } from 'react-hook-form';
 import { useForm, useWatch } from 'react-hook-form';
 
 import { MediaUploaderRhf } from '@/components/media/MediaUploaderRhf';
@@ -9,7 +10,16 @@ import { ErrorState } from '@/components/ui/ErrorState';
 import { Loading } from '@/components/ui/Loading';
 import { Modal } from '@/components/ui/Modal';
 import { Switch } from '@/components/ui/Switch';
-import { useAddChestPrize, useCreateChestType, useDeleteChestPrize, useChestType, useUpdateChestPrize, useUpdateChestType } from '@/features/chests/chestsApi';
+import {
+  useAddChestPrize,
+  useCreateChestType,
+  useDeleteChestPrize,
+  useChestType,
+  useToggleChestActive,
+  useUpdateChestPrize,
+  useUpdateChestType,
+} from '@/features/chests/chestsApi';
+import { toast } from '@/stores/toastStore';
 import {
   formToPrizePayload,
   probabilitiesValid,
@@ -31,6 +41,8 @@ import { ChestPrizeFormModal } from './ChestPrizeFormModal';
 import { ColorThemePicker } from './ColorThemePicker';
 import { ProbabilityBar } from './ProbabilityBar';
 
+const FORM_ID = 'chest-type-form-modal';
+
 export function ChestTypeFormModal({
   open,
   chestTypeCode,
@@ -49,6 +61,7 @@ export function ChestTypeFormModal({
   const chestType = isEdit ? (chestTypeQ.data ?? null) : null;
   const createType = useCreateChestType();
   const updateType = useUpdateChestType();
+  const toggleActive = useToggleChestActive();
   const addPrize = useAddChestPrize();
   const updatePrize = useUpdateChestPrize();
   const deletePrize = useDeleteChestPrize();
@@ -56,6 +69,8 @@ export function ChestTypeFormModal({
   const [prizes, setPrizes] = useState<ChestPrize[]>([]);
   const [prizeEditor, setPrizeEditor] = useState<ChestPrize | null | 'new'>(null);
   const [probabilityError, setProbabilityError] = useState<string | undefined>();
+  const [formError, setFormError] = useState<string | undefined>();
+  const [activeState, setActiveState] = useState(true);
 
   const form = useForm<ChestTypeFormValues>({
     resolver: zodResolver(chestTypeFormSchema),
@@ -73,9 +88,9 @@ export function ChestTypeFormModal({
   } = form;
 
   const colorTheme = useWatch({ control, name: 'color_theme' });
-  const isActive = useWatch({ control, name: 'is_active' });
   const noExpiration = useWatch({ control, name: 'no_expiration' });
   const hasPity = useWatch({ control, name: 'has_pity_system' });
+  const isActiveCreate = useWatch({ control, name: 'is_active' });
   const canSave = probabilitiesValid(prizes) && prizes.length > 0;
 
   const rarePrizes = useMemo(() => prizes.filter((p) => p.is_rare), [prizes]);
@@ -87,7 +102,9 @@ export function ChestTypeFormModal({
 
     reset(chestType ? chestTypeToForm(chestType) : defaultChestTypeForm());
     setPrizes(chestType?.prizes ?? []);
+    setActiveState(chestType?.is_active ?? true);
     setProbabilityError(undefined);
+    setFormError(undefined);
     setPrizeEditor(null);
   }, [open, isEdit, chestType, chestTypeQ.isLoading, reset]);
 
@@ -127,7 +144,15 @@ export function ChestTypeFormModal({
     setPrizes((prev) => prev.filter((p) => p.id !== prize.id));
   };
 
-  const submit = handleSubmit(async (values) => {
+  const onInvalid = (fieldErrors: FieldErrors<ChestTypeFormValues>) => {
+    const message = Object.keys(fieldErrors).length
+      ? 'Revisá los campos marcados en el formulario.'
+      : 'No se pudo validar el formulario.';
+    setFormError(message);
+    toast.error(message);
+  };
+
+  const onSubmit = async (values: ChestTypeFormValues) => {
     const validation = validateChestTypeSave(values, prizes, existingCodes, chestType?.code);
     if (validation.probabilityError) {
       setProbabilityError(validation.probabilityError);
@@ -138,18 +163,31 @@ export function ChestTypeFormModal({
     }
     if (Object.keys(validation.fieldErrors).length > 0 || validation.probabilityError) return;
 
+    setFormError(undefined);
     if (chestType) {
-      await updateType.mutateAsync({ code: chestType.code, ...formToMetadataPayload(values) });
+      await updateType.mutateAsync({
+        code: chestType.code,
+        ...formToMetadataPayload(values),
+        prizes,
+      });
     } else {
-      // Sprint #6 fix: NO strip prize ids — el adapter en chestsApi.ts
-      // los necesita para resolver pity_guaranteed_prize_id (UUID local) →
-      // pity_guaranteed_prize_index (int) que espera el backend.
-      // El backend schema ahora es .passthrough() así que el id local extra
-      // no rompe.
       await createType.mutateAsync(formToCreatePayload(values, prizes));
     }
     onClose();
-  });
+  };
+
+  const submit = handleSubmit(onSubmit, onInvalid);
+
+  const handleToggleActive = async (active: boolean) => {
+    if (!chestType?.id) return;
+    const prev = activeState;
+    setActiveState(active);
+    try {
+      await toggleActive.mutateAsync({ id: chestType.id, active, code: chestType.code });
+    } catch {
+      setActiveState(prev);
+    }
+  };
 
   if (!open) return null;
 
@@ -181,17 +219,41 @@ export function ChestTypeFormModal({
           <>
             <Button variant="ghost" onClick={onClose}>Cancelar</Button>
             <Button
+              type="submit"
+              form={FORM_ID}
               variant="primary"
               loading={createType.isPending || updateType.isPending}
               disabled={!canSave}
-              onClick={submit}
             >
               Guardar tipo de cofre
             </Button>
           </>
         }
       >
-        <div className="space-y-6">
+        {isEdit && chestType && !chestType.archived_at && (
+          <div className="mb-4 flex items-center justify-between rounded-lg border border-border-subtle bg-bg-tertiary px-4 py-3">
+            <div>
+              <p className="text-[14px] font-semibold">Estado del cofre</p>
+              <p className="text-[13px] text-text-tertiary">
+                Activa o desactiva el tipo sin guardar el resto del formulario.
+              </p>
+            </div>
+            <Switch
+              checked={activeState}
+              disabled={toggleActive.isPending}
+              onChange={handleToggleActive}
+              aria-label="activo"
+            />
+          </div>
+        )}
+
+        {formError && (
+          <p className="mb-4 rounded-lg border border-danger/30 bg-danger/10 px-3 py-2 text-[14px] text-danger">
+            {formError}
+          </p>
+        )}
+
+        <form id={FORM_ID} onSubmit={submit} noValidate className="space-y-6">
           <section>
             <h3 className="label-section mb-3">Datos básicos</h3>
             <div className="grid gap-3 sm:grid-cols-2">
@@ -225,11 +287,13 @@ export function ChestTypeFormModal({
               {errors.color_theme && <p className="mt-1 text-[13px] text-danger">{errors.color_theme.message}</p>}
             </div>
             <div className="mt-3 grid gap-3 sm:grid-cols-2">
-              <div className="flex items-center justify-between rounded-lg border border-border-subtle bg-bg-tertiary px-3 py-2">
-                <span className="text-[14px] text-text-secondary">Activo</span>
-                <Switch checked={isActive} onChange={(v) => setValue('is_active', v)} />
-              </div>
-              <div>
+              {!isEdit && (
+                <div className="flex items-center justify-between rounded-lg border border-border-subtle bg-bg-tertiary px-3 py-2">
+                  <span className="text-[14px] text-text-secondary">Activo</span>
+                  <Switch checked={isActiveCreate} onChange={(v) => setValue('is_active', v)} />
+                </div>
+              )}
+              <div className={isEdit ? 'sm:col-span-2' : ''}>
                 <label className="mb-1 flex items-center gap-2 text-[14px] text-text-secondary">
                   <input type="checkbox" {...register('no_expiration')} />
                   Sin expiración
@@ -329,7 +393,7 @@ export function ChestTypeFormModal({
               </table>
             </div>
           </section>
-        </div>
+        </form>
       </Modal>
 
       <ChestPrizeFormModal

@@ -1429,8 +1429,12 @@ import type {
   ChestTypeMetadataPayload,
 } from '@/types/chests';
 
-function findChestType(code: string) {
-  return chestTypes.find((t) => t.code === code);
+function findChestType(codeOrId: string) {
+  return chestTypes.find((t) => t.code === codeOrId || t.id === codeOrId);
+}
+
+function findChestTypeById(id: string) {
+  return chestTypes.find((t) => t.id === id);
 }
 
 handlers.push(
@@ -1470,12 +1474,14 @@ handlers.push(
       id: `prize_${body.code}_${Date.now()}_${i}`,
     }));
     const item: ChestType = {
+      id: `ch_${body.code}_${Date.now()}`,
       code: body.code,
       name: body.name,
       description: body.description,
       image_url: body.image_url,
       color_theme: body.color_theme,
       is_active: body.is_active,
+      archived_at: null,
       default_expiration_hours: body.default_expiration_hours,
       has_pity_system: body.has_pity_system,
       pity_threshold: body.pity_threshold,
@@ -1492,12 +1498,38 @@ handlers.push(
     await wait();
     const item = findChestType(String(params.code));
     if (!item) return new HttpResponse(null, { status: 404 });
-    const body = (await request.json()) as Partial<ChestTypeMetadataPayload>;
-    Object.assign(item, body, { updated_at: new Date().toISOString() });
+    const body = (await request.json()) as Partial<ChestTypeMetadataPayload> & {
+      prizes?: ChestPrizePayload[];
+    };
+    const { is_active: _omit, prizes, ...meta } = body;
+    void _omit;
+    Object.assign(item, meta, { updated_at: new Date().toISOString() });
+    if (prizes) {
+      item.prizes = prizes.map((p, i) => ({
+        ...p,
+        id: item.prizes[i]?.id ?? `prize_${item.code}_${Date.now()}_${i}`,
+      }));
+    }
     if (!Array.isArray(item.prizes)) item.prizes = [];
     return HttpResponse.json({
       data: { ...item, prizes: item.prizes },
     });
+  }),
+  http.post('*/admin/chests/types/:id/activate', async ({ params }) => {
+    await wait();
+    const item = findChestTypeById(String(params.id)) ?? findChestType(String(params.id));
+    if (!item) return new HttpResponse(null, { status: 404 });
+    item.is_active = true;
+    item.updated_at = new Date().toISOString();
+    return HttpResponse.json({ data: item });
+  }),
+  http.post('*/admin/chests/types/:id/deactivate', async ({ params }) => {
+    await wait();
+    const item = findChestTypeById(String(params.id)) ?? findChestType(String(params.id));
+    if (!item) return new HttpResponse(null, { status: 404 });
+    item.is_active = false;
+    item.updated_at = new Date().toISOString();
+    return HttpResponse.json({ data: item });
   }),
   http.delete('*/admin/chests/types/:code', async ({ params }) => {
     await wait();
@@ -1505,6 +1537,7 @@ handlers.push(
     if (item) {
       item.status = 'archived';
       item.is_active = false;
+      item.archived_at = new Date().toISOString();
       item.updated_at = new Date().toISOString();
     }
     return new HttpResponse(null, { status: 204 });

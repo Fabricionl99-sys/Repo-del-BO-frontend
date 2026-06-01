@@ -6,12 +6,14 @@ import type { ChestType } from '@/types/chests';
 import { ChestTypeCard } from './ChestTypeCard';
 
 const baseType: ChestType = {
+  id: 'ch_test',
   code: 'test',
   name: 'Cofre Test',
   description: 'Descripción',
   image_url: '',
   color_theme: '#CD7F32',
   is_active: true,
+  archived_at: null,
   default_expiration_hours: 72,
   has_pity_system: false,
   pity_threshold: null,

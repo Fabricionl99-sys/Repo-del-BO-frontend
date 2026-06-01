@@ -5,12 +5,14 @@ import type { ChestType } from '@/types/chests';
 import { normalizeChestType, normalizeChestTypes } from './chestTypeShape';
 
 const sample: ChestType = {
+  id: 'ch_bronce',
   code: 'bronce',
   name: 'Bronce',
   description: '',
   image_url: '',
   color_theme: '#CD7F32',
   is_active: true,
+  archived_at: null,
   default_expiration_hours: null,
   has_pity_system: false,
   pity_threshold: null,

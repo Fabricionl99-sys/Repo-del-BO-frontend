@@ -1,7 +1,17 @@
 import { PackageX } from 'lucide-react';
 
 import { Button } from '@/components/ui/Button';
+import { chestCatalogState } from '@/features/chests/chestTypeShape';
 import type { ChestType } from '@/types/chests';
+
+const statusBadge: Record<
+  ReturnType<typeof chestCatalogState>,
+  { label: string; className: string }
+> = {
+  active: { label: 'Activo', className: 'bg-success/90 text-text-onAccent' },
+  inactive: { label: 'Inactivo', className: 'bg-bg-primary/80 text-text-secondary' },
+  archived: { label: 'Archivado', className: 'bg-danger/90 text-text-onAccent' },
+};
 
 export function ChestTypeCard({
   type,
@@ -10,7 +20,8 @@ export function ChestTypeCard({
   type: ChestType;
   onEdit: () => void;
 }) {
-  const archived = type.status === 'archived';
+  const catalogState = chestCatalogState(type);
+  const badge = statusBadge[catalogState];
   const prizeCount = type.prizes?.length ?? 0;
 
   return (
@@ -18,7 +29,7 @@ export function ChestTypeCard({
       type="button"
       onClick={onEdit}
       className={`overflow-hidden rounded-xl border-2 bg-bg-secondary text-left transition hover:-translate-y-0.5 hover:border-border-default ${
-        archived ? 'opacity-70' : ''
+        catalogState === 'archived' ? 'opacity-70' : ''
       }`}
       style={{ borderColor: type.color_theme }}
     >
@@ -34,16 +45,11 @@ export function ChestTypeCard({
           className="absolute left-2 top-2 h-3 w-3 rounded-full border border-white/30"
           style={{ backgroundColor: type.color_theme }}
         />
-        {archived && (
-          <span className="absolute right-2 top-2 rounded bg-bg-primary/80 px-2 py-0.5 text-[12px] font-semibold uppercase">
-            archivado
-          </span>
-        )}
-        {!archived && !type.is_active && (
-          <span className="absolute right-2 top-2 rounded bg-warning/90 px-2 py-0.5 text-[12px] font-semibold text-text-onAccent">
-            inactivo
-          </span>
-        )}
+        <span
+          className={`absolute right-2 top-2 rounded px-2 py-0.5 text-[12px] font-semibold uppercase ${badge.className}`}
+        >
+          {badge.label}
+        </span>
       </div>
       <div className="p-4">
         <h4 className="text-[16px] font-bold">{type.name}</h4>
@@ -54,7 +60,7 @@ export function ChestTypeCard({
           {type.has_pity_system && <span className="text-accent">pity ×{type.pity_threshold}</span>}
         </div>
         <Button size="sm" variant="ghost" className="mt-3 w-full" onClick={(e) => { e.stopPropagation(); onEdit(); }}>
-          {archived ? 'ver detalle' : 'editar'}
+          {catalogState === 'archived' ? 'ver detalle' : 'editar'}
         </Button>
       </div>
     </button>

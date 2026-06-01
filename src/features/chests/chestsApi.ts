@@ -1,6 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 import { apiClient } from '@/api/client';
+import { getApiErrorMessage } from '@/api/errors';
 import { trackEvent } from '@/lib/analytics';
 import { unwrapData } from '@/api/response';
 import { normalizeChestType, normalizeChestTypes } from '@/features/chests/chestTypeShape';
@@ -138,6 +139,44 @@ function adaptChestForBackend(payload: ChestTypeCreatePayload): Record<string, u
   };
 }
 
+function adaptChestUpdateForBackend(
+  metadata: Omit<ChestTypeMetadataPayload, 'is_active'>,
+  prizes: ChestPrize[],
+): Record<string, unknown> {
+  let pityIndex: number | null = null;
+  if (metadata.has_pity_system && metadata.pity_guaranteed_prize_id) {
+    const idx = prizes.findIndex((p) => p.id === metadata.pity_guaranteed_prize_id);
+    if (idx >= 0) pityIndex = idx;
+    else {
+      const rareIdx = prizes.findIndex((p) => p.is_rare);
+      pityIndex = rareIdx >= 0 ? rareIdx : 0;
+    }
+  }
+  return {
+    name: metadata.name,
+    description: metadata.description || null,
+    image_url: metadata.image_url || null,
+    color_theme: metadata.color_theme || null,
+    default_expiration_hours: metadata.default_expiration_hours,
+    has_pity_system: metadata.has_pity_system,
+    pity_threshold: metadata.has_pity_system ? metadata.pity_threshold : null,
+    pity_guaranteed_prize_index: pityIndex,
+    prizes: prizes.map((p, i) =>
+      adaptChestPrizeForBackend(
+        {
+          reward_type: p.reward_type,
+          reward_config: p.reward_config,
+          probability_percent: p.probability_percent,
+          image_url: p.image_url,
+          name: p.name,
+          is_rare: p.is_rare,
+        },
+        i,
+      ),
+    ),
+  };
+}
+
 export interface ChestTypesFilters {
   status?: 'active' | 'archived' | 'all';
   search?: string;
@@ -183,27 +222,47 @@ export function useCreateChestType() {
   });
 }
 
-/**
- * Sprint #6 fix — backend NO tiene PATCH para chest types. Solo CREATE.
- * Para "actualizar" en MVP: recreamos el chest_type con mismo code (backend
- * acepta upsert por code via POST si el viejo está archivado). Stub que NO
- * rompe la UI pero el cambio no persiste — Sprint #7 implementa PATCH real.
- */
 export function useUpdateChestType() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async ({ code, ...payload }: ChestTypeMetadataPayload & { code: string }) => {
-      // MVP: noop suave para no romper UI. Sprint #7 → PATCH backend real.
-      // Reintentamos el create con el mismo code que devuelve 409 → simplemente
-      // refrescamos el detail actual.
-      void payload;
-      const res = await apiClient.get(`/admin/chests/types/${code}`);
-      return normalizeChestType(unwrapData<ChestType>(res.data));
+    mutationFn: async ({
+      code,
+      prizes,
+      ...payload
+    }: ChestTypeMetadataPayload & { code: string; prizes: ChestPrize[] }) => {
+      const { is_active: _omit, ...metadata } = payload;
+      void _omit;
+      const body = adaptChestUpdateForBackend(metadata, prizes);
+      const r = await apiClient.patch(`/admin/chests/types/${code}`, body);
+      return normalizeChestType(unwrapData<ChestType>(r.data));
     },
     onSuccess: (_data, vars) => {
-      toast.warning('Edición pendiente — Sprint #7');
+      toast.success('Cofre actualizado');
       qc.invalidateQueries({ queryKey: ['chest-types'] });
       qc.invalidateQueries({ queryKey: ['chest-types', vars.code] });
+    },
+    onError: (err) => {
+      toast.error(getApiErrorMessage(err, 'No se pudo actualizar el cofre'));
+    },
+  });
+}
+
+export function useToggleChestActive() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ id, active }: { id: string; active: boolean; code?: string }) => {
+      const action = active ? 'activate' : 'deactivate';
+      await apiClient.post(`/admin/chests/types/${id}/${action}`);
+    },
+    onSuccess: (_data, vars) => {
+      toast.success('Estado actualizado');
+      qc.invalidateQueries({ queryKey: ['chest-types'] });
+      if (vars.code) {
+        qc.invalidateQueries({ queryKey: ['chest-types', vars.code] });
+      }
+    },
+    onError: (err) => {
+      toast.error(getApiErrorMessage(err, 'No se pudo cambiar el estado'));
     },
   });
 }
