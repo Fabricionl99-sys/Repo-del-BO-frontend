@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { findPrizeOverlap, rangesOverlap, rankingPrizeFormSchema } from './rankingPrizeForm';
+import { findPrizeOverlap, formatPrizeOverlapMessage, rangesOverlap, rankingPrizeFormSchema } from './rankingPrizeForm';
 
 describe('rankingPrizeFormSchema', () => {
   it('rechaza position_from > position_to', () => {
@@ -40,5 +40,11 @@ describe('findPrizeOverlap', () => {
 
   it('permite rangos adyacentes sin overlap', () => {
     expect(findPrizeOverlap(existing, { position_from: 11, position_to: 20 })).toBeUndefined();
+  });
+});
+
+describe('formatPrizeOverlapMessage', () => {
+  it('describe el premio en conflicto', () => {
+    expect(formatPrizeOverlapMessage({ position_from: 1, position_to: 3 })).toContain('premio 1-3');
   });
 });

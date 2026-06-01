@@ -82,10 +82,25 @@ function problemDetail(error: unknown): string | undefined {
   const data = error.response?.data;
   if (!data || typeof data !== 'object') return undefined;
   const o = data as Record<string, unknown>;
-  if (typeof o.detail === 'string' && o.detail.trim()) return o.detail;
-  if (typeof o.message === 'string' && o.message.trim()) return o.message;
-  if (typeof o.title === 'string' && o.title.trim()) return o.title;
+  if (typeof o.detail === 'string' && o.detail.trim()) return o.detail.trim();
+  const message = o.message;
+  if (typeof message === 'string' && message.trim()) return message.trim();
+  if (Array.isArray(message)) {
+    const joined = message
+      .filter((m): m is string => typeof m === 'string' && Boolean(m.trim()))
+      .join(' · ');
+    if (joined) return joined;
+  }
+  if (typeof o.title === 'string' && o.title.trim()) return o.title.trim();
   return undefined;
+}
+
+/** Mensajes legibles del backend (p. ej. solapamiento de rangos en rankings). */
+function isPreservedValidationMessage(message: string): boolean {
+  const lower = message.toLowerCase();
+  if (/solapa|overlap|superpone/.test(lower)) return true;
+  if (/rango\s+\d/.test(lower)) return true;
+  return false;
 }
 
 /** RFC 7807 issues[] — p. ej. avatares 400 tras fix backend. */
@@ -103,13 +118,16 @@ export function getValidationIssuesMessage(error: unknown): string | undefined {
 
 /** Mensaje legible para toasts (Problem+JSON, Nest messages, fallback). */
 export function getApiErrorMessage(error: unknown, fallback: string): string {
+  const status = getHttpStatus(error);
+  const detail = problemDetail(error);
+  if (detail && (status === 400 || status === 422) && isPreservedValidationMessage(detail)) {
+    return detail;
+  }
+
   const issuesMsg = getValidationIssuesMessage(error);
   if (issuesMsg) return issuesMsg;
 
-  const detail = problemDetail(error);
   if (detail) return detail;
-
-  const status = getHttpStatus(error);
   if (status === 403) return 'No tenés permisos para esta acción';
   if (status === 404) return 'Recurso no encontrado';
   if (status === 422 || status === 400) return 'Revisá los datos enviados';

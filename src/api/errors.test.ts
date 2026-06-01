@@ -1,7 +1,12 @@
 import { AxiosError } from 'axios';
 import { describe, expect, it } from 'vitest';
 
-import { getCheckEmailErrorMessage, getSignupErrorMessage, isCheckEmailFormatValidationError } from '@/api/errors';
+import {
+  getApiErrorMessage,
+  getCheckEmailErrorMessage,
+  getSignupErrorMessage,
+  isCheckEmailFormatValidationError,
+} from '@/api/errors';
 
 function axiosError(status: number, data: Record<string, unknown> = {}) {
   return new AxiosError('fail', String(status), undefined, undefined, {
@@ -60,5 +65,20 @@ describe('signup API errors', () => {
   it('check-email 500 → error de conexión, no formato', () => {
     expect(getCheckEmailErrorMessage(axiosError(500))).toMatch(/conexión/i);
     expect(getCheckEmailErrorMessage(axiosError(500))).not.toMatch(/formato/i);
+  });
+});
+
+describe('getApiErrorMessage', () => {
+  it('preserva mensaje de solapamiento de rangos del backend', () => {
+    const detail = 'Rango 4-6 solapa con prize existente 1-3';
+    const err = axiosError(400, { message: detail });
+    expect(getApiErrorMessage(err, 'fallback')).toBe(detail);
+  });
+
+  it('usa issues cuando no hay mensaje preservable', () => {
+    const err = axiosError(400, {
+      issues: [{ path: 'position_from', message: 'Mínimo 1' }],
+    });
+    expect(getApiErrorMessage(err, 'fallback')).toMatch(/position_from/);
   });
 });

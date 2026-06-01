@@ -84,6 +84,13 @@ export function rangesOverlap(
   return a.position_from <= b.position_to && b.position_from <= a.position_to;
 }
 
+export function formatPrizeOverlapMessage(
+  overlap: Pick<RankingPrize, 'position_from' | 'position_to'>,
+): string {
+  const range = formatPositionRange(overlap.position_from, overlap.position_to);
+  return `Esta posición ya está cubierta por el premio ${range}. Editá ese premio o elegí un rango distinto.`;
+}
+
 export function findPrizeOverlap(
   prizes: Pick<RankingPrize, 'id' | 'position_from' | 'position_to'>[],
   candidate: { position_from: number; position_to: number },
