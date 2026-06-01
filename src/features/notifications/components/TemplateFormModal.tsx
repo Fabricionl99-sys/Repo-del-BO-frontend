@@ -1,4 +1,6 @@
+import { zodResolver } from '@hookform/resolvers/zod';
 import { useEffect, useMemo, useRef, useState } from 'react';
+import type { FieldErrors } from 'react-hook-form';
 import { useForm, useWatch } from 'react-hook-form';
 import { Link } from 'react-router-dom';
 
@@ -32,12 +34,18 @@ import {
   useUpdateNotificationTemplate,
 } from '../notificationsApi';
 import { VISIBLE_CHANNELS } from '../notificationForm';
+import { focusFirstTemplateFormError } from '../templateFormFocus';
 import { TemplatePreviewPanel } from './TemplatePreviewPanel';
 import { TemplateServerPreviewModal } from './TemplateServerPreviewModal';
 
-// WINGOAT solo expone in_app + push. Email + SMS los maneja el CRM del operador
-// vía los webhooks que emite la plataforma.
+// Email + SMS los maneja el CRM del operador vía webhooks de la plataforma.
 const channelOptions: ChannelType[] = VISIBLE_CHANNELS;
+
+function scrollFormIntoView(el: HTMLElement | null) {
+  if (el && typeof el.scrollIntoView === 'function') {
+    el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+}
 
 export function TemplateFormModal({
   open,
@@ -55,12 +63,14 @@ export function TemplateFormModal({
   const create = useCreateNotificationTemplate();
   const update = useUpdateNotificationTemplate();
   const bodyRef = useRef<HTMLTextAreaElement | null>(null);
+  const formScrollRef = useRef<HTMLDivElement | null>(null);
   const [previewChannel, setPreviewChannel] = useState<ChannelType>('in_app');
   const [formError, setFormError] = useState<string | undefined>();
   const [serverPreviewOpen, setServerPreviewOpen] = useState(false);
 
   const form = useForm<NotificationTemplateFormValues>({
     defaultValues: defaultTemplateForm(),
+    resolver: zodResolver(notificationTemplateSchema),
   });
 
   const { register, handleSubmit, reset, setValue, control, formState: { errors } } = form;
@@ -91,6 +101,11 @@ export function TemplateFormModal({
     setFormError(undefined);
   }, [open, template, reset]);
 
+  const onInvalid = (fieldErrors: FieldErrors<NotificationTemplateFormValues>) => {
+    setFormError('Revisá los campos marcados en rojo.');
+    focusFirstTemplateFormError(fieldErrors, formScrollRef.current);
+  };
+
   const insertVariable = (key: string) => {
     const el = bodyRef.current;
     const token = `{{${key}}}`;
@@ -113,22 +128,21 @@ export function TemplateFormModal({
   const submit = handleSubmit(async (raw) => {
     if (createBlocked) return;
 
-    const parsed = notificationTemplateSchema.safeParse(raw);
-    if (!parsed.success) {
-      setFormError(parsed.error.issues[0]?.message ?? 'Datos inválidos');
-      return;
-    }
-    const data = parsed.data;
+    setFormError(undefined);
+    const data = template ? { ...raw, code: template.code } : raw;
+
     const placeholderErr = validatePlaceholders(data.body, data.body_html, data.subject, data.trigger_event);
     const subjectErr = validateEmailSubject(data.channels, data.subject);
     const ctaErr = validateCtaUrl(data.cta_url);
     const err = placeholderErr ?? subjectErr ?? ctaErr;
     if (err) {
       setFormError(err);
+      scrollFormIntoView(formScrollRef.current);
       return;
     }
     if (!template && existingCodes.includes(data.code)) {
       setFormError('El code ya existe');
+      focusFirstTemplateFormError({ code: { type: 'manual', message: 'El code ya existe' } });
       return;
     }
     const payload = formToTemplatePayload(data);
@@ -138,7 +152,7 @@ export function TemplateFormModal({
       await create.mutateAsync(payload);
     }
     onClose();
-  });
+  }, onInvalid);
 
   return (
     <Modal
@@ -166,8 +180,14 @@ export function TemplateFormModal({
         </>
       }
     >
-      <div className="grid grid-cols-[1fr_280px] gap-6 max-lg:grid-cols-1">
+      <div ref={formScrollRef} className="grid grid-cols-[1fr_280px] gap-6 max-lg:grid-cols-1">
         <div className="space-y-5">
+          {formError ? (
+            <p className="rounded-lg border border-danger/30 bg-danger/10 px-4 py-3 text-[14px] text-danger" role="alert">
+              {formError}
+            </p>
+          ) : null}
+
           {duplicateExisting ? (
             <div
               className="rounded-lg border border-warning/30 bg-warning/10 px-4 py-3 text-[14px] text-text-secondary"
@@ -191,18 +211,26 @@ export function TemplateFormModal({
             <div className="grid grid-cols-2 gap-3 max-md:grid-cols-1">
               <label className="block">
                 <span className="mb-1 block text-[14px] text-text-secondary">code</span>
-                <input className="field font-mono text-[14px]" disabled={!!template} {...register('code')} />
+                <input
+                  className={cn(
+                    'field font-mono text-[14px]',
+                    template && 'cursor-not-allowed bg-bg-tertiary text-text-secondary',
+                  )}
+                  readOnly={!!template}
+                  {...register('code')}
+                />
                 {errors.code && <p className="mt-1 text-[14px] text-danger">{errors.code.message}</p>}
               </label>
               <label className="block">
                 <span className="mb-1 block text-[14px] text-text-secondary">nombre</span>
                 <input className="field" {...register('name')} />
+                {errors.name && <p className="mt-1 text-[14px] text-danger">{errors.name.message}</p>}
               </label>
               <label className="col-span-2 block max-md:col-span-1">
                 <span className="mb-1 block text-[14px] text-text-secondary">descripción</span>
                 <input className="field" {...register('description')} />
               </label>
-              <label className="block">
+              <label className="col-span-2 block max-md:col-span-1">
                 <span className="mb-1 block text-[14px] text-text-secondary">trigger</span>
                 <select className="field" {...register('trigger_event')}>
                   {Object.entries(TRIGGER_EVENT_LABELS).map(([k, label]) => {
@@ -214,6 +242,10 @@ export function TemplateFormModal({
                     );
                   })}
                 </select>
+                <p className="mt-2 text-[13px] leading-relaxed text-text-tertiary">
+                  Las notificaciones se envían automáticamente cuando ocurre este evento (ej. welcome se envía a
+                  quien recién se registra). Para mensajes targeted por nivel o VIP, usá el módulo Noticias.
+                </p>
               </label>
               <label className="block">
                 <span className="mb-1 block text-[14px] text-text-secondary">idioma</span>
@@ -252,6 +284,7 @@ export function TemplateFormModal({
               <label className="mt-3 block">
                 <span className="mb-1 block text-[14px] text-text-secondary">subject (email) *</span>
                 <input className="field" {...register('subject')} />
+                {errors.subject && <p className="mt-1 text-[14px] text-danger">{errors.subject.message}</p>}
               </label>
             )}
           </section>
@@ -268,6 +301,7 @@ export function TemplateFormModal({
                   bodyRef.current = el;
                 }}
               />
+              {errors.body && <p className="mt-1 text-[14px] text-danger">{errors.body.message}</p>}
             </label>
             {channels.includes('email') && (
               <label className="mt-3 block">
@@ -279,13 +313,14 @@ export function TemplateFormModal({
               <label className="block">
                 <span className="mb-1 block text-[14px] text-text-secondary">cta_text</span>
                 <input className="field" {...register('cta_text')} />
+                {errors.cta_text && <p className="mt-1 text-[14px] text-danger">{errors.cta_text.message}</p>}
               </label>
               <label className="block">
                 <span className="mb-1 block text-[14px] text-text-secondary">cta_url</span>
                 <input className="field" {...register('cta_url')} placeholder="https://..." />
+                {errors.cta_url && <p className="mt-1 text-[14px] text-danger">{errors.cta_url.message}</p>}
               </label>
             </div>
-            {formError && <p className="mt-2 text-[14px] text-danger">{formError}</p>}
           </section>
         </div>
 

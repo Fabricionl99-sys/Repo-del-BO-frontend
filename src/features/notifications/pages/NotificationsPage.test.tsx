@@ -1,6 +1,6 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
-import { MemoryRouter } from 'react-router-dom';
+import { MemoryRouter, Route, Routes } from 'react-router-dom';
 import { describe, expect, it } from 'vitest';
 
 import { useOperatorStore } from '@/stores/operatorStore';
@@ -16,7 +16,11 @@ function wrap(route = '/notificaciones') {
   return render(
     <MemoryRouter initialEntries={[route]}>
       <QueryClientProvider client={new QueryClient({ defaultOptions: { queries: { retry: false } } })}>
-        <NotificationsPage />
+        <Routes>
+          <Route path="/notificaciones" element={<NotificationsPage />} />
+          <Route path="/notificaciones/templates/nuevo" element={<NotificationsPage />} />
+          <Route path="/notificaciones/templates/:id" element={<NotificationsPage />} />
+        </Routes>
       </QueryClientProvider>
     </MemoryRouter>,
   );
@@ -61,6 +65,22 @@ describe('NotificationsPage', () => {
       'href',
       '/notificaciones/templates/ntpl_welcome',
     );
+  });
+
+  it('muestra code al editar template existente', async () => {
+    wrap('/notificaciones/templates/ntpl_welcome');
+    expect(await screen.findByDisplayValue('welcome_player')).toBeInTheDocument();
+    expect(screen.getByText('Editar template', { selector: 'h2' })).toBeInTheDocument();
+  });
+
+  it('muestra error visible al guardar con body vacío', async () => {
+    wrap('/notificaciones/templates/ntpl_welcome');
+    await screen.findByDisplayValue('welcome_player');
+    const body = document.querySelector('textarea[name="body"]') as HTMLTextAreaElement;
+    fireEvent.change(body, { target: { value: '' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Guardar template' }));
+    expect(await screen.findByText(/Revisá los campos marcados en rojo/i)).toBeInTheDocument();
+    expect(await screen.findByText(/El mensaje es obligatorio/i)).toBeInTheDocument();
   });
 
   it('filtra historial por status', async () => {
@@ -126,9 +146,11 @@ describe('NotificationsPage', () => {
     cleanup();
     useOperatorStore.setState({ activeModuleCodes: ['shop'], billingMode: 'wallet' });
     render(
-      <MemoryRouter>
+      <MemoryRouter initialEntries={['/notificaciones']}>
         <QueryClientProvider client={new QueryClient({ defaultOptions: { queries: { retry: false } } })}>
-          <NotificationsPage />
+          <Routes>
+            <Route path="/notificaciones" element={<NotificationsPage />} />
+          </Routes>
         </QueryClientProvider>
       </MemoryRouter>,
     );

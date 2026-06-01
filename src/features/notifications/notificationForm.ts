@@ -13,10 +13,16 @@ import type { ChannelType, NotificationTemplate, NotificationTemplatePayload, Tr
  */
 export const VISIBLE_CHANNELS: ChannelType[] = ['in_app', 'push'];
 
+/** Inputs vacíos → null (backend no exige mínimo en CTA/subject). */
+function emptyToNull(value: unknown) {
+  if (value === '' || value === undefined) return null;
+  return value;
+}
+
 export const notificationTemplateSchema = z.object({
   code: z
     .string()
-    .min(2, 'Mínimo 2 caracteres')
+    .min(2, 'Code: mínimo 2 caracteres')
     .max(64)
     .regex(/^[a-z][a-z0-9_]*$/, 'Code en snake_case (a-z, 0-9, _)'),
   name: z.string().min(2, 'Nombre requerido').max(120),
@@ -39,11 +45,11 @@ export const notificationTemplateSchema = z.object({
     (chs) => chs.every((c) => VISIBLE_CHANNELS.includes(c)),
     'Email y SMS los maneja el CRM del operador — usá in_app o push',
   ),
-  subject: z.string().nullable(),
+  subject: z.preprocess(emptyToNull, z.string().max(200).nullable()),
   body: z.string().min(1, 'El mensaje es obligatorio'),
-  body_html: z.string().nullable(),
-  cta_text: z.string().nullable(),
-  cta_url: z.string().nullable(),
+  body_html: z.preprocess(emptyToNull, z.string().nullable()),
+  cta_text: z.preprocess(emptyToNull, z.string().max(100).nullable()),
+  cta_url: z.preprocess(emptyToNull, z.string().nullable()),
   is_active: z.boolean(),
   language: z.string(),
 });
