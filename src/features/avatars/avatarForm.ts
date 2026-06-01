@@ -10,6 +10,21 @@ import type {
 
 import { defaultRestrictions } from './avatarCategoryForm';
 
+function normalizeRestrictions(
+  restrictions: Avatar['restrictions'] | undefined | null,
+): Avatar['restrictions'] {
+  if (!restrictions) return defaultRestrictions();
+  const minLevel = restrictions.min_level;
+  return {
+    min_level:
+      minLevel === null || minLevel === undefined || Number.isNaN(Number(minLevel))
+        ? null
+        : Number(minLevel),
+    vip_only: restrictions.vip_only ?? false,
+    new_players_only: restrictions.new_players_only ?? false,
+  };
+}
+
 const codeSchema = z
   .string()
   .min(2, 'Mínimo 2 caracteres')
@@ -179,9 +194,9 @@ export function avatarToForm(avatar: Avatar): AvatarFormValues {
     description: avatar.description,
     category_id: avatar.category_id,
     is_active: avatar.is_active,
-    is_premium: avatar.is_premium,
+    is_premium: avatar.is_premium ?? false,
     unlock_method: avatar.unlock_method,
-    restrictions: avatar.restrictions,
+    restrictions: normalizeRestrictions(avatar.restrictions),
     ...unlockFieldsFromAvatar(avatar),
   };
 }

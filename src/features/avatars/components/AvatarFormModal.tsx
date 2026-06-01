@@ -1,5 +1,6 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useEffect, useState } from 'react';
+import type { FieldErrors } from 'react-hook-form';
 import { useForm, useWatch } from 'react-hook-form';
 
 import { MediaUploader } from '@/components/media/MediaUploader';
@@ -9,6 +10,7 @@ import { Modal } from '@/components/ui/Modal';
 import { Switch } from '@/components/ui/Switch';
 import { ConfigSection, ConfiguratorScaffold } from '@/components/configurator/ConfiguratorScaffold';
 import { useArchiveAvatar, useCreateAvatar, useUpdateAvatar } from '@/features/avatars/avatarsApi';
+import { toast } from '@/stores/toastStore';
 import type { Avatar, AvatarCategory } from '@/types/avatars';
 import { MAX_ACTIVE_AVATARS } from '@/types/avatars';
 
@@ -23,6 +25,8 @@ import {
 } from '../avatarForm';
 import { AvatarRestrictionsFields } from './AvatarRestrictionsFields';
 import { AvatarUnlockConfigFields } from './AvatarUnlockConfigFields';
+
+const FORM_ID = 'avatar-form-modal';
 
 export function AvatarFormModal({
   open,
@@ -44,7 +48,10 @@ export function AvatarFormModal({
   const archiveAvatar = useArchiveAvatar();
 
   const [imageUrl, setImageUrl] = useState('');
+  const [initialImageUrl, setInitialImageUrl] = useState('');
+  const [newImageUrl, setNewImageUrl] = useState<string | null>(null);
   const [imageError, setImageError] = useState<string | undefined>();
+  const [formError, setFormError] = useState<string | undefined>();
 
   const form = useForm<AvatarFormValues>({
     resolver: zodResolver(avatarFormSchema),
@@ -58,42 +65,63 @@ export function AvatarFormModal({
     setValue,
     setError,
     control,
-    formState: { errors },
+    formState: { errors, isDirty, isSubmitting },
   } = form;
 
   const isActive = useWatch({ control, name: 'is_active' });
   const isEdit = Boolean(avatar);
   const atLimit = !isEdit && activeCount >= MAX_ACTIVE_AVATARS;
+  const isPending = createAvatar.isPending || updateAvatar.isPending;
+  const saveDisabled = isEdit
+    ? isPending || isSubmitting || (!isDirty && !newImageUrl)
+    : atLimit || isPending || isSubmitting;
 
   useEffect(() => {
     if (!open) return;
+    const original = getAvatarImageUrl(avatar) ?? '';
     reset(avatar ? avatarToForm(avatar) : defaultAvatarForm());
-    setImageUrl(getAvatarImageUrl(avatar) ?? '');
+    setImageUrl(original);
+    setInitialImageUrl(original);
+    setNewImageUrl(null);
     setImageError(undefined);
+    setFormError(undefined);
   }, [open, avatar, reset]);
 
-  const submit = handleSubmit(async (values) => {
+  const onInvalid = (fieldErrors: FieldErrors<AvatarFormValues>) => {
+    const first = Object.keys(fieldErrors)[0];
+    const message = first
+      ? 'Revisá los campos marcados en el formulario.'
+      : 'No se pudo validar el formulario.';
+    setFormError(message);
+    toast.error(message);
+  };
+
+  const onSubmit = async (values: AvatarFormValues) => {
+    setFormError(undefined);
     if (existingCodes.includes(values.code.trim()) && values.code.trim() !== avatar?.code) {
       setError('code', { message: 'El code ya existe' });
       return;
     }
-    if (!imageUrl.trim()) {
+    const hasImage = Boolean(imageUrl.trim() || initialImageUrl.trim());
+    if (!hasImage) {
       setImageError('Subí una imagen para el avatar');
       return;
     }
 
     if (isEdit && avatar) {
-      const originalImageUrl = getAvatarImageUrl(avatar) ?? '';
-      await updateAvatar.mutateAsync({
-        id: avatar.id,
+      const body = {
         ...formToMetadataPayload(values),
-        ...(imageUrl !== originalImageUrl ? { image_url: imageUrl } : {}),
-      });
+        ...(newImageUrl ? { image_url: newImageUrl } : {}),
+      };
+      console.log('Guardar clicked', { body });
+      await updateAvatar.mutateAsync({ id: avatar.id, ...body });
     } else {
       await createAvatar.mutateAsync(formToCreatePayload(values, imageUrl));
     }
     onClose();
-  });
+  };
+
+  const submit = handleSubmit(onSubmit, onInvalid);
 
   return (
     <Modal
@@ -118,10 +146,11 @@ export function AvatarFormModal({
           )}
           <Button variant="ghost" onClick={onClose}>Cancelar</Button>
           <Button
+            type="submit"
+            form={FORM_ID}
             variant="primary"
-            loading={createAvatar.isPending || updateAvatar.isPending}
-            disabled={atLimit}
-            onClick={submit}
+            loading={isPending}
+            disabled={saveDisabled}
           >
             {avatar ? 'Guardar' : 'Crear avatar'}
           </Button>
@@ -134,13 +163,22 @@ export function AvatarFormModal({
         </p>
       )}
 
+      {formError && (
+        <p className="mb-4 rounded-lg border border-danger/30 bg-danger/10 px-3 py-2 text-[14px] text-danger">
+          {formError}
+        </p>
+      )}
+
+      <form id={FORM_ID} onSubmit={submit} noValidate>
       <ConfiguratorScaffold>
         <ConfigSection title="Imagen">
           <MediaUploader
             value={mediaValueFromUrl(imageUrl)}
             onChange={(v) => {
-              setImageUrl(v?.url ?? '');
+              const url = v?.url ?? '';
+              setImageUrl(url);
               setImageError(undefined);
+              setNewImageUrl(url && url !== initialImageUrl ? url : null);
             }}
             context={{ module: 'avatars', purpose: 'main_image' }}
             required={!isEdit}
@@ -198,6 +236,7 @@ export function AvatarFormModal({
           <AvatarRestrictionsFields register={register} setValue={setValue} control={control} />
         </ConfigSection>
       </ConfiguratorScaffold>
+      </form>
     </Modal>
   );
 }
