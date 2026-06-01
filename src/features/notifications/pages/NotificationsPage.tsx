@@ -98,7 +98,7 @@ export default function NotificationsPage() {
   const debouncedPlayerQ = useDebounce(manualPlayerQuery, 250);
 
   const channelsQ = useNotificationChannels();
-  const allTemplatesQ = useNotificationTemplates({ status: 'all' });
+  const allTemplatesQ = useNotificationTemplates();
   const templatesQ = useNotificationTemplates({
     search: debouncedTplSearch || undefined,
     trigger_event: tplTrigger === 'all' ? undefined : tplTrigger,
