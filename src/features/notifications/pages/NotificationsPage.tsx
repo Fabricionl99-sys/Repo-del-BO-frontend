@@ -1,6 +1,6 @@
 import { Bell, Plus, Send } from 'lucide-react';
-import { useMemo, useState } from 'react';
-import { Link, useSearchParams } from 'react-router-dom';
+import { useEffect, useMemo, useState } from 'react';
+import { Link, useLocation, useNavigate, useParams, useSearchParams } from 'react-router-dom';
 
 import { Button } from '@/components/ui/Button';
 import { EmptyState } from '@/components/ui/EmptyState';
@@ -62,7 +62,13 @@ const deliveryStatuses = ['sent', 'delivered', 'failed', 'opened', 'clicked'] as
 
 export default function NotificationsPage() {
   const [params] = useSearchParams();
+  const routeParams = useParams<{ id?: string }>();
+  const navigate = useNavigate();
+  const location = useLocation();
   const mock = params.get('mockState');
+  const isNewTemplateRoute = location.pathname.endsWith('/templates/nuevo');
+  const isEditTemplateRoute =
+    Boolean(routeParams.id) && location.pathname.includes('/templates/') && !isNewTemplateRoute;
   const activeModuleCodes = useOperatorStore((s) => s.activeModuleCodes);
   const notificationsActive = isModuleActive(activeModuleCodes, 'notifications');
 
@@ -92,6 +98,7 @@ export default function NotificationsPage() {
   const debouncedPlayerQ = useDebounce(manualPlayerQuery, 250);
 
   const channelsQ = useNotificationChannels();
+  const allTemplatesQ = useNotificationTemplates({ status: 'all' });
   const templatesQ = useNotificationTemplates({
     search: debouncedTplSearch || undefined,
     trigger_event: tplTrigger === 'all' ? undefined : tplTrigger,
@@ -110,9 +117,32 @@ export default function NotificationsPage() {
   const playerSearchQ = usePlayerSearch(debouncedPlayerQ);
 
   const channels = mock === 'empty' ? [] : (channelsQ.data ?? []);
+  const allTemplates = mock === 'empty-templates' ? [] : (allTemplatesQ.data ?? []);
   const templates = mock === 'empty-templates' ? [] : (templatesQ.data ?? []);
   const history = mock === 'empty-history' ? [] : (historyQ.data ?? []);
-  const existingCodes = useMemo(() => templates.map((t) => t.code), [templates]);
+  const existingCodes = useMemo(() => allTemplates.map((t) => t.code), [allTemplates]);
+
+  const openNewTemplate = () => navigate('/notificaciones/templates/nuevo');
+  const openEditTemplate = (t: NotificationTemplate) => navigate(`/notificaciones/templates/${t.id}`);
+  const closeTemplateEditor = () => {
+    setTemplateEditor(null);
+    if (isNewTemplateRoute || isEditTemplateRoute) {
+      navigate('/notificaciones');
+    }
+  };
+
+  useEffect(() => {
+    if (isNewTemplateRoute) {
+      setTab('Templates');
+      setTemplateEditor('new');
+      return;
+    }
+    if (isEditTemplateRoute && routeParams.id) {
+      setTab('Templates');
+      const found = allTemplates.find((t) => t.id === routeParams.id);
+      if (found) setTemplateEditor(found);
+    }
+  }, [isNewTemplateRoute, isEditTemplateRoute, routeParams.id, allTemplates]);
 
   const manualTemplates = templates.filter((t) => t.is_active);
 
@@ -170,7 +200,7 @@ export default function NotificationsPage() {
       key: 'name',
       header: 'nombre',
       render: (t) => (
-        <button type="button" className="text-left" onClick={() => setTemplateEditor(t)}>
+        <button type="button" className="text-left" onClick={() => openEditTemplate(t)}>
           <b>{t.name}</b>
           <div className="font-mono text-[12px] text-text-tertiary">{t.code}</div>
         </button>
@@ -208,7 +238,7 @@ export default function NotificationsPage() {
       header: '',
       render: (t) => (
         <div className="flex gap-1">
-          <Button size="sm" variant="ghost" onClick={() => setTemplateEditor(t)}>
+          <Button size="sm" variant="ghost" onClick={() => openEditTemplate(t)}>
             editar
           </Button>
           <Button size="sm" variant="ghost" onClick={() => setTemplatePreview(t)}>
@@ -275,7 +305,7 @@ export default function NotificationsPage() {
         subtitle="Canales, templates, historial y envíos manuales a jugadores"
         actions={
           tab === 'Templates' ? (
-            <Button variant="primary" icon={<Plus size={14} />} onClick={() => setTemplateEditor('new')}>
+            <Button variant="primary" icon={<Plus size={14} />} onClick={openNewTemplate}>
               Nuevo template
             </Button>
           ) : undefined
@@ -356,10 +386,10 @@ export default function NotificationsPage() {
             <EmptyState
               title="Sin templates"
               description="Creá tu primer template para automatizar comunicaciones."
-              action={<Button variant="primary" onClick={() => setTemplateEditor('new')}>Crear primer template</Button>}
+              action={<Button variant="primary" onClick={openNewTemplate}>Crear primer template</Button>}
             />
           ) : (
-            <Table columns={templateColumns} rows={templates} rowKey={(t) => t.id} onRowClick={(t) => setTemplateEditor(t)} />
+            <Table columns={templateColumns} rows={templates} rowKey={(t) => t.id} onRowClick={openEditTemplate} />
           )}
         </section>
       )}
@@ -501,7 +531,8 @@ export default function NotificationsPage() {
         open={templateEditor !== null}
         template={templateEditor === 'new' ? null : templateEditor}
         existingCodes={existingCodes}
-        onClose={() => setTemplateEditor(null)}
+        allTemplates={allTemplates}
+        onClose={closeTemplateEditor}
       />
       <HistoryDetailModal open={!!historyDetail} item={historyDetail} onClose={() => setHistoryDetail(null)} />
       <TemplateServerPreviewModal

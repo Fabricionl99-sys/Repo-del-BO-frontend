@@ -1,6 +1,6 @@
 import { z } from 'zod';
 
-import type { ChannelType, NotificationTemplate, NotificationTemplatePayload } from '@/types/notifications';
+import type { ChannelType, NotificationTemplate, NotificationTemplatePayload, TriggerEvent } from '@/types/notifications';
 
 /**
  * Decisión founder (Sprint #6): en gamificación SOLO usamos in_app + push web.
@@ -49,6 +49,33 @@ export const notificationTemplateSchema = z.object({
 });
 
 export type NotificationTemplateFormValues = z.infer<typeof notificationTemplateSchema>;
+
+/** Backend: un template por par (trigger_event, language). */
+export function findTemplateByTriggerLanguage(
+  templates: NotificationTemplate[],
+  trigger_event: TriggerEvent,
+  language: string,
+  excludeId?: string,
+): NotificationTemplate | undefined {
+  return templates.find(
+    (t) =>
+      t.trigger_event === trigger_event &&
+      t.language === language &&
+      (excludeId == null || t.id !== excludeId),
+  );
+}
+
+export function triggersTakenForLanguage(
+  templates: NotificationTemplate[],
+  language: string,
+  excludeId?: string,
+): Set<TriggerEvent> {
+  return new Set(
+    templates
+      .filter((t) => t.language === language && (excludeId == null || t.id !== excludeId))
+      .map((t) => t.trigger_event),
+  );
+}
 
 export function defaultTemplateForm(): NotificationTemplateFormValues {
   return {

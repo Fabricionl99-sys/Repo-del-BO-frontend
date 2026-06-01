@@ -1,17 +1,20 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useForm, useWatch } from 'react-hook-form';
+import { Link } from 'react-router-dom';
 
 import { Button } from '@/components/ui/Button';
 import { Modal } from '@/components/ui/Modal';
 import { Switch } from '@/components/ui/Switch';
 import { cn } from '@/lib/cn';
-import type { ChannelType, NotificationTemplate } from '@/types/notifications';
+import type { ChannelType, NotificationTemplate, TriggerEvent } from '@/types/notifications';
 
 import {
   defaultTemplateForm,
+  findTemplateByTriggerLanguage,
   formToTemplatePayload,
   notificationTemplateSchema,
   templateToForm,
+  triggersTakenForLanguage,
   type NotificationTemplateFormValues,
 } from '../notificationForm';
 import {
@@ -40,11 +43,13 @@ export function TemplateFormModal({
   open,
   template,
   existingCodes,
+  allTemplates,
   onClose,
 }: {
   open: boolean;
   template: NotificationTemplate | null;
   existingCodes: string[];
+  allTemplates: NotificationTemplate[];
   onClose: () => void;
 }) {
   const create = useCreateNotificationTemplate();
@@ -61,9 +66,23 @@ export function TemplateFormModal({
   const { register, handleSubmit, reset, setValue, control, formState: { errors } } = form;
   const bodyField = register('body');
   const values = useWatch({ control });
-  const trigger = values.trigger_event ?? 'welcome';
+  const trigger = (values.trigger_event ?? 'welcome') as TriggerEvent;
+  const language = values.language ?? 'es';
   const channels = values.channels ?? ['in_app'];
   const isActive = values.is_active ?? true;
+  const isCreate = !template;
+
+  const duplicateExisting = useMemo(
+    () => (isCreate ? findTemplateByTriggerLanguage(allTemplates, trigger, language) : undefined),
+    [isCreate, allTemplates, trigger, language],
+  );
+
+  const takenTriggers = useMemo(
+    () => triggersTakenForLanguage(allTemplates, language, template?.id),
+    [allTemplates, language, template?.id],
+  );
+
+  const createBlocked = isCreate && Boolean(duplicateExisting);
 
   useEffect(() => {
     if (!open) return;
@@ -92,6 +111,8 @@ export function TemplateFormModal({
   };
 
   const submit = handleSubmit(async (raw) => {
+    if (createBlocked) return;
+
     const parsed = notificationTemplateSchema.safeParse(raw);
     if (!parsed.success) {
       setFormError(parsed.error.issues[0]?.message ?? 'Datos inválidos');
@@ -134,14 +155,37 @@ export function TemplateFormModal({
               Vista previa
             </Button>
           )}
-          <Button variant="primary" loading={create.isPending || update.isPending} onClick={() => void submit()}>
-            Guardar template
+          <Button
+            variant="primary"
+            loading={create.isPending || update.isPending}
+            disabled={createBlocked}
+            onClick={() => void submit()}
+          >
+            {template ? 'Guardar template' : 'Crear'}
           </Button>
         </>
       }
     >
       <div className="grid grid-cols-[1fr_280px] gap-6 max-lg:grid-cols-1">
         <div className="space-y-5">
+          {duplicateExisting ? (
+            <div
+              className="rounded-lg border border-warning/30 bg-warning/10 px-4 py-3 text-[14px] text-text-secondary"
+              role="alert"
+            >
+              <p>Ya tenés un template para este evento en este idioma.</p>
+              <Link
+                to={`/notificaciones/templates/${duplicateExisting.id}`}
+                className="mt-2 inline-flex"
+                onClick={onClose}
+              >
+                <Button type="button" variant="secondary" size="sm">
+                  Editar el existente →
+                </Button>
+              </Link>
+            </div>
+          ) : null}
+
           <section>
             <p className="label-section mb-3">datos básicos</p>
             <div className="grid grid-cols-2 gap-3 max-md:grid-cols-1">
@@ -161,9 +205,14 @@ export function TemplateFormModal({
               <label className="block">
                 <span className="mb-1 block text-[14px] text-text-secondary">trigger</span>
                 <select className="field" {...register('trigger_event')}>
-                  {Object.entries(TRIGGER_EVENT_LABELS).map(([k, label]) => (
-                    <option key={k} value={k}>{label}</option>
-                  ))}
+                  {Object.entries(TRIGGER_EVENT_LABELS).map(([k, label]) => {
+                    const taken = takenTriggers.has(k as TriggerEvent);
+                    return (
+                      <option key={k} value={k}>
+                        {taken ? `✓ ${label} — ya configurado` : label}
+                      </option>
+                    );
+                  })}
                 </select>
               </label>
               <label className="block">

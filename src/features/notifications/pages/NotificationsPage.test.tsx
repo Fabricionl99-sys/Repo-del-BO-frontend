@@ -31,28 +31,36 @@ describe('NotificationsPage', () => {
   });
 
   it('lista templates y abre modal nuevo', async () => {
-    wrap();
-    await screen.findByText('In-app');
-    fireEvent.click(screen.getByRole('button', { name: 'Templates' }));
-    expect(await screen.findByText('Bienvenida al casino')).toBeInTheDocument();
-    fireEvent.click(screen.getByText('Nuevo template'));
-    expect(screen.getByText('Nuevo template', { selector: 'h2' })).toBeInTheDocument();
+    wrap('/notificaciones/templates/nuevo');
+    expect(await screen.findByText('Nuevo template', { selector: 'h2' })).toBeInTheDocument();
+    expect(screen.getByText(/Ya tenés un template para este evento en este idioma/i)).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Crear' })).toBeDisabled();
   });
 
-  it('crea template desde modal', async () => {
-    wrap();
-    await screen.findByText('In-app');
-    fireEvent.click(screen.getByRole('button', { name: 'Templates' }));
-    await screen.findByText('Bienvenida al casino');
-    fireEvent.click(screen.getByText('Nuevo template'));
+  it('crea template desde modal con combo libre', async () => {
+    wrap('/notificaciones/templates/nuevo');
+    await screen.findByText('Nuevo template', { selector: 'h2' });
+    const triggerSelect = document.querySelector('select[name="trigger_event"]') as HTMLSelectElement;
+    const languageSelect = document.querySelector('select[name="language"]') as HTMLSelectElement;
+    fireEvent.change(triggerSelect, { target: { value: 'wallet_low_balance' } });
+    fireEvent.change(languageSelect, { target: { value: 'en' } });
     const codeInput = document.querySelector('input[name="code"]') as HTMLInputElement;
     const nameInput = document.querySelector('input[name="name"]') as HTMLInputElement;
     fireEvent.change(codeInput, { target: { value: 'test_welcome_ui' } });
     fireEvent.change(nameInput, { target: { value: 'Test UI Welcome' } });
-    fireEvent.click(screen.getByText('Guardar template'));
+    fireEvent.click(screen.getByRole('button', { name: 'Crear' }));
     await waitFor(() => {
       expect(screen.getByText('Test UI Welcome')).toBeInTheDocument();
     });
+  });
+
+  it('muestra link para editar template duplicado', async () => {
+    wrap('/notificaciones/templates/nuevo');
+    await screen.findByText(/Ya tenés un template para este evento/i);
+    expect(screen.getByRole('link', { name: /Editar el existente/i })).toHaveAttribute(
+      'href',
+      '/notificaciones/templates/ntpl_welcome',
+    );
   });
 
   it('filtra historial por status', async () => {
