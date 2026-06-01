@@ -45,12 +45,27 @@ export interface LoginPopupTemplate {
   trigger_event: LoginPopupTrigger;
   priority: LoginPopupPriority;
   max_per_session: number;
-  dismiss_cooldown_hours: number;
+  /** Backend field name */
+  cooldown_hours_after_dismiss?: number;
+  /** Legacy / mock alias */
+  dismiss_cooldown_hours?: number;
+  title?: string;
+  body_text?: string;
+  image_url?: string | null;
+  cta_text?: string | null;
+  cta_action?: LoginPopupCtaAction | null;
+  cta_value?: string | null;
+  secondary_cta_text?: string | null;
+  background_color?: string | null;
+  accent_color?: string | null;
   conditions?: LoginPopupConditions | null;
+  /** Legacy nested shape — fallback only */
   content?: LoginPopupContent | null;
   is_active: boolean;
   target_audience?: LoginPopupAudienceType;
   audience_config?: LoginPopupAudienceConfig | null;
+  valid_from?: string | null;
+  valid_until?: string | null;
   views_count: number;
   click_rate: number;
   created_at: string;
@@ -63,9 +78,17 @@ export interface LoginPopupTemplatePayload {
   trigger_event: LoginPopupTrigger;
   priority: LoginPopupPriority;
   max_per_session: number;
-  dismiss_cooldown_hours: number;
+  cooldown_hours_after_dismiss: number;
   conditions: LoginPopupConditions;
-  content: LoginPopupContent;
+  title: string;
+  body_text: string;
+  image_url?: string | null;
+  cta_text?: string | null;
+  cta_action?: LoginPopupCtaAction | null;
+  cta_value?: string | null;
+  secondary_cta_text?: string | null;
+  background_color?: string | null;
+  accent_color?: string | null;
   is_active: boolean;
   target_audience: LoginPopupAudienceType;
   audience_config: LoginPopupAudienceConfig;

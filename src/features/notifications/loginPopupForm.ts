@@ -167,7 +167,7 @@ export function defaultLoginPopupForm(): LoginPopupFormValues {
 export function templateToForm(
   t: LoginPopupTemplate & { trigger?: LoginPopupTrigger },
 ): LoginPopupFormValues {
-  const content: Partial<LoginPopupContent> = t.content ?? {};
+  const legacy: Partial<LoginPopupContent> = t.content ?? {};
   const conditions = t.conditions ?? {};
   const audience = t.audience_config ?? {};
 
@@ -177,16 +177,17 @@ export function templateToForm(
     trigger_event: normalizeLoginPopupTrigger(t.trigger_event ?? t.trigger),
     priority: t.priority ?? 'medium',
     max_per_session: t.max_per_session ?? 1,
-    dismiss_cooldown_hours: t.dismiss_cooldown_hours ?? 24,
-    title: content.title ?? '',
-    body_text: content.body_text ?? '',
-    image_url: content.image_url ?? '',
-    cta_text: content.cta_text ?? '',
-    cta_action: content.cta_action ?? 'dismiss',
-    cta_value: content.cta_value ?? '',
-    secondary_cta_text: content.secondary_cta_text ?? 'Después',
-    background_color: content.background_color ?? '',
-    accent_color: content.accent_color ?? '',
+    dismiss_cooldown_hours:
+      t.dismiss_cooldown_hours ?? t.cooldown_hours_after_dismiss ?? 24,
+    title: t.title ?? legacy.title ?? '',
+    body_text: t.body_text ?? legacy.body_text ?? '',
+    image_url: t.image_url ?? legacy.image_url ?? '',
+    cta_text: t.cta_text ?? legacy.cta_text ?? '',
+    cta_action: t.cta_action ?? legacy.cta_action ?? 'dismiss',
+    cta_value: t.cta_value ?? legacy.cta_value ?? '',
+    secondary_cta_text: t.secondary_cta_text ?? legacy.secondary_cta_text ?? 'Después',
+    background_color: t.background_color ?? legacy.background_color ?? '',
+    accent_color: t.accent_color ?? legacy.accent_color ?? '',
     has_pending_rewards: Boolean(conditions.has_pending_rewards),
     has_active_streak: Boolean(conditions.has_active_streak),
     streak_age_min_hours: conditions.streak_age_min_hours ?? 20,
@@ -234,7 +235,7 @@ export function formToPayload(values: LoginPopupFormValues): LoginPopupTemplateP
     trigger_event: normalizeLoginPopupTrigger(values.trigger_event),
     priority: values.priority,
     max_per_session: values.max_per_session,
-    dismiss_cooldown_hours: values.dismiss_cooldown_hours,
+    cooldown_hours_after_dismiss: values.dismiss_cooldown_hours,
     conditions: {
       has_pending_rewards: values.has_pending_rewards || undefined,
       has_active_streak: values.has_active_streak || undefined,
@@ -246,17 +247,15 @@ export function formToPayload(values: LoginPopupFormValues): LoginPopupTemplateP
       vip_only: values.vip_only || values.target_audience === 'vip_only' || undefined,
       new_player_only_within_days: values.new_player_only_within_days,
     },
-    content: {
-      title: values.title.trim(),
-      body_text: values.body_text.trim(),
-      image_url: values.image_url.trim() || null,
-      cta_text: values.cta_text.trim() || null,
-      cta_action: values.cta_text.trim() ? values.cta_action : null,
-      cta_value: values.cta_text.trim() ? values.cta_value.trim() || null : null,
-      secondary_cta_text: values.secondary_cta_text.trim() || null,
-      background_color: values.background_color.trim() || null,
-      accent_color: values.accent_color.trim() || null,
-    },
+    title: values.title.trim(),
+    body_text: values.body_text.trim(),
+    image_url: values.image_url.trim() || null,
+    cta_text: values.cta_text.trim() || null,
+    cta_action: values.cta_text.trim() ? values.cta_action : null,
+    cta_value: values.cta_text.trim() ? values.cta_value.trim() || null : null,
+    secondary_cta_text: values.secondary_cta_text.trim() || null,
+    background_color: values.background_color.trim() || null,
+    accent_color: values.accent_color.trim() || null,
     is_active: values.is_active,
     target_audience: values.target_audience,
     audience_config,
