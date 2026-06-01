@@ -176,7 +176,7 @@ export const loginPopupHistory: LoginPopupHistoryItem[] = Array.from({ length: 8
     player_handle: handles[i % handles.length]!,
     status,
     priority: tpl.priority,
-    cta_action: status === 'clicked' ? tpl.content.cta_action ?? 'dismiss' : null,
+    cta_action: status === 'clicked' ? tpl.content?.cta_action ?? 'dismiss' : null,
     shown_at: ago(i % 48),
     context: { session_id: `sess_${i}` },
   };

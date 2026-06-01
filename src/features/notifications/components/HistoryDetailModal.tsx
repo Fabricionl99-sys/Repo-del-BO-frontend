@@ -39,15 +39,15 @@ export function HistoryDetailModal({
         </div>
         <div>
           <dt className="text-text-tertiary">template</dt>
-          <dd>{item.template_name}</dd>
+          <dd>{item.template_name ?? 'Sin template'}</dd>
         </div>
         <div>
           <dt className="text-text-tertiary">canal</dt>
-          <dd>{CHANNEL_LABELS[item.channel_type]}</dd>
+          <dd>{CHANNEL_LABELS[item.channel_type] ?? item.channel_type ?? '—'}</dd>
         </div>
         <div>
           <dt className="text-text-tertiary">trigger</dt>
-          <dd>{TRIGGER_EVENT_LABELS[item.trigger_event]}</dd>
+          <dd>{TRIGGER_EVENT_LABELS[item.trigger_event] ?? item.trigger_event ?? '—'}</dd>
         </div>
         <div>
           <dt className="text-text-tertiary">estado</dt>
@@ -61,7 +61,7 @@ export function HistoryDetailModal({
         </p>
       )}
       <pre className="mt-3 max-h-48 overflow-auto rounded-lg border border-border-subtle bg-bg-tertiary p-3 text-[14px] whitespace-pre-wrap">
-        {item.body_snapshot}
+        {item.body_snapshot ?? 'Sin contenido'}
       </pre>
       {item.error_message && (
         <p className="mt-3 rounded-lg border border-danger/30 bg-danger/10 px-3 py-2 text-[14px] text-danger">

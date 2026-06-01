@@ -2,6 +2,7 @@ import { z } from 'zod';
 
 import type {
   LoginPopupAudienceType,
+  LoginPopupContent,
   LoginPopupCtaAction,
   LoginPopupPriority,
   LoginPopupTemplate,
@@ -166,40 +167,45 @@ export function defaultLoginPopupForm(): LoginPopupFormValues {
 export function templateToForm(
   t: LoginPopupTemplate & { trigger?: LoginPopupTrigger },
 ): LoginPopupFormValues {
+  const content: Partial<LoginPopupContent> = t.content ?? {};
+  const conditions = t.conditions ?? {};
+  const audience = t.audience_config ?? {};
+
   return {
-    code: t.code,
-    name: t.name,
+    code: t.code ?? '',
+    name: t.name ?? '',
     trigger_event: normalizeLoginPopupTrigger(t.trigger_event ?? t.trigger),
-    priority: t.priority,
-    max_per_session: t.max_per_session,
-    dismiss_cooldown_hours: t.dismiss_cooldown_hours,
-    title: t.content.title,
-    body_text: t.content.body_text,
-    image_url: t.content.image_url ?? '',
-    cta_text: t.content.cta_text ?? '',
-    cta_action: t.content.cta_action ?? 'dismiss',
-    cta_value: t.content.cta_value ?? '',
-    secondary_cta_text: t.content.secondary_cta_text ?? 'Después',
-    background_color: t.content.background_color ?? '',
-    accent_color: t.content.accent_color ?? '',
-    has_pending_rewards: Boolean(t.conditions.has_pending_rewards),
-    has_active_streak: Boolean(t.conditions.has_active_streak),
-    streak_age_min_hours: t.conditions.streak_age_min_hours ?? 20,
-    has_daily_spin_available: Boolean(t.conditions.has_daily_spin_available),
-    mission_expires_within_hours: t.conditions.mission_expires_within_hours ?? 6,
-    player_level_min: t.conditions.player_level_min ?? null,
-    player_level_max: t.conditions.player_level_max ?? null,
-    vip_only: Boolean(t.conditions.vip_only),
-    new_player_only_within_days: t.conditions.new_player_only_within_days ?? null,
-    target_audience: t.target_audience,
-    min_level: t.audience_config.min_level ?? null,
-    max_level: t.audience_config.max_level ?? null,
-    player_ids: (t.audience_config.player_ids ?? []).join(', '),
-    is_active: t.is_active,
+    priority: t.priority ?? 'medium',
+    max_per_session: t.max_per_session ?? 1,
+    dismiss_cooldown_hours: t.dismiss_cooldown_hours ?? 24,
+    title: content.title ?? '',
+    body_text: content.body_text ?? '',
+    image_url: content.image_url ?? '',
+    cta_text: content.cta_text ?? '',
+    cta_action: content.cta_action ?? 'dismiss',
+    cta_value: content.cta_value ?? '',
+    secondary_cta_text: content.secondary_cta_text ?? 'Después',
+    background_color: content.background_color ?? '',
+    accent_color: content.accent_color ?? '',
+    has_pending_rewards: Boolean(conditions.has_pending_rewards),
+    has_active_streak: Boolean(conditions.has_active_streak),
+    streak_age_min_hours: conditions.streak_age_min_hours ?? 20,
+    has_daily_spin_available: Boolean(conditions.has_daily_spin_available),
+    mission_expires_within_hours: conditions.mission_expires_within_hours ?? 6,
+    player_level_min: conditions.player_level_min ?? null,
+    player_level_max: conditions.player_level_max ?? null,
+    vip_only: Boolean(conditions.vip_only),
+    new_player_only_within_days: conditions.new_player_only_within_days ?? null,
+    target_audience: t.target_audience ?? 'all',
+    min_level: audience.min_level ?? null,
+    max_level: audience.max_level ?? null,
+    player_ids: (audience.player_ids ?? []).join(', '),
+    is_active: t.is_active ?? true,
   };
 }
 
-export function summarizeConditions(c: LoginPopupTemplate['conditions']): string {
+export function summarizeConditions(c: LoginPopupTemplate['conditions'] | null | undefined): string {
+  if (!c) return 'sin condiciones';
   const parts: string[] = [];
   if (c.has_pending_rewards) parts.push('premios pendientes');
   if (c.has_active_streak) parts.push(`racha>${c.streak_age_min_hours ?? 0}h`);

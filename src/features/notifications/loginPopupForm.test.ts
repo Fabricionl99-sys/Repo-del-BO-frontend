@@ -45,4 +45,23 @@ describe('loginPopupForm trigger_event', () => {
     });
     expect(payload.trigger_event).toBe('on_login_daily_first');
   });
+
+  it('tolera template sin content ni conditions', () => {
+    const form = templateToForm({
+      id: 'lp_sparse',
+      code: 'sparse',
+      name: 'Sparse',
+      trigger_event: 'on_login',
+      priority: 'medium',
+      max_per_session: 1,
+      dismiss_cooldown_hours: 24,
+      is_active: true,
+      views_count: 0,
+      click_rate: 0,
+      created_at: '',
+      updated_at: '',
+    });
+    expect(form.title).toBe('');
+    expect(form.body_text).toBe('');
+  });
 });

@@ -209,14 +209,16 @@ export default function NotificationsPage() {
     {
       key: 'trigger',
       header: 'trigger',
-      render: (t) => <span className="text-[14px]">{TRIGGER_EVENT_LABELS[t.trigger_event]}</span>,
+      render: (t) => (
+        <span className="text-[14px]">{TRIGGER_EVENT_LABELS[t.trigger_event] ?? t.trigger_event ?? '—'}</span>
+      ),
     },
     {
       key: 'channels',
       header: 'canales',
       render: (t) => (
         <div className="flex flex-wrap gap-1">
-          {t.channels.map((c) => (
+          {(t.channels ?? []).map((c) => (
             <span key={c} className="rounded bg-bg-tertiary px-2 py-0.5 text-[12px]">
               {CHANNEL_LABELS[c]}
             </span>
@@ -255,9 +257,9 @@ export default function NotificationsPage() {
       header: 'jugador',
       render: (h) => <span>{h.player_handle}</span>,
     },
-    { key: 'template', header: 'template', render: (h) => h.template_name },
-    { key: 'channel', header: 'canal', render: (h) => CHANNEL_LABELS[h.channel_type] },
-    { key: 'trigger', header: 'trigger', render: (h) => TRIGGER_EVENT_LABELS[h.trigger_event] },
+    { key: 'template', header: 'template', render: (h) => h.template_name ?? 'Sin template' },
+    { key: 'channel', header: 'canal', render: (h) => CHANNEL_LABELS[h.channel_type] ?? h.channel_type ?? '—' },
+    { key: 'trigger', header: 'trigger', render: (h) => TRIGGER_EVENT_LABELS[h.trigger_event] ?? h.trigger_event ?? '—' },
     {
       key: 'status',
       header: 'status',

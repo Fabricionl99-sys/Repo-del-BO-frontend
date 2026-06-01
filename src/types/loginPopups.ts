@@ -46,11 +46,11 @@ export interface LoginPopupTemplate {
   priority: LoginPopupPriority;
   max_per_session: number;
   dismiss_cooldown_hours: number;
-  conditions: LoginPopupConditions;
-  content: LoginPopupContent;
+  conditions?: LoginPopupConditions | null;
+  content?: LoginPopupContent | null;
   is_active: boolean;
-  target_audience: LoginPopupAudienceType;
-  audience_config: LoginPopupAudienceConfig;
+  target_audience?: LoginPopupAudienceType;
+  audience_config?: LoginPopupAudienceConfig | null;
   views_count: number;
   click_rate: number;
   created_at: string;

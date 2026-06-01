@@ -133,13 +133,13 @@ export function LoginPopupFormModal({
         <ConfigSection icon="✏️" title="Contenido del popup">
           <div>
             <label className="mb-1.5 block text-[14px] text-text-secondary">
-              Título ({watch('title').length}/60)
+              Título ({(watch('title') ?? '').length}/60)
             </label>
             <input className="field" maxLength={60} {...register('title')} />
           </div>
           <div className="mt-3">
             <label className="mb-1.5 block text-[14px] text-text-secondary">
-              Cuerpo markdown ({watch('body_text').length}/300)
+              Cuerpo markdown ({(watch('body_text') ?? '').length}/300)
             </label>
             <textarea className="field min-h-[100px]" maxLength={300} {...register('body_text')} />
           </div>

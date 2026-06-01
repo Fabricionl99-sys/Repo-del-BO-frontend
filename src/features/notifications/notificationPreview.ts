@@ -20,7 +20,7 @@ export function buildPreviewFromTemplate(
   channel: ChannelType,
   overrides: Record<string, string | number> = {},
 ) {
-  const body = renderTemplateText(template.body, overrides);
+  const body = renderTemplateText(template.body ?? '', overrides);
   const subject = template.subject ? renderTemplateText(template.subject, overrides) : null;
   const bodyHtml = template.body_html ? renderTemplateText(template.body_html, overrides) : null;
   const ctaText = template.cta_text ? renderTemplateText(template.cta_text, overrides) : null;

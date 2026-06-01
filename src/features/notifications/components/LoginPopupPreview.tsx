@@ -5,15 +5,18 @@ import { cn } from '@/lib/cn';
 import type { LoginPopupContent } from '@/types/loginPopups';
 
 export function LoginPopupPreview({
-  content,
+  content: rawContent,
   className,
 }: {
-  content: Pick<
-    LoginPopupContent,
-    'title' | 'body_text' | 'image_url' | 'cta_text' | 'secondary_cta_text' | 'background_color' | 'accent_color'
+  content: Partial<
+    Pick<
+      LoginPopupContent,
+      'title' | 'body_text' | 'image_url' | 'cta_text' | 'secondary_cta_text' | 'background_color' | 'accent_color'
+    >
   >;
   className?: string;
 }) {
+  const content = rawContent ?? {};
   const [viewport, setViewport] = useState<'mobile' | 'desktop'>('mobile');
   const bg = content.background_color || 'var(--color-bg-elevated, #1e293b)';
   const accent = content.accent_color || 'var(--color-accent, #6366f1)';
