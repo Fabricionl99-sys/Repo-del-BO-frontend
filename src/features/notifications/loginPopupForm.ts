@@ -9,10 +9,20 @@ import type {
   LoginPopupTrigger,
 } from '@/types/loginPopups';
 
+export const LOGIN_POPUP_TRIGGER_OPTIONS = [
+  { value: 'on_login' as const, label: 'Al hacer login (cada vez)' },
+  { value: 'on_login_daily_first' as const, label: 'Solo el primer login del día' },
+] satisfies ReadonlyArray<{ value: LoginPopupTrigger; label: string }>;
+
 export const TRIGGER_LABELS: Record<LoginPopupTrigger, string> = {
-  on_login: 'Cada login',
-  on_login_daily_first: 'Solo primer login del día',
+  on_login: LOGIN_POPUP_TRIGGER_OPTIONS[0].label,
+  on_login_daily_first: LOGIN_POPUP_TRIGGER_OPTIONS[1].label,
 };
+
+export function normalizeLoginPopupTrigger(value: unknown): LoginPopupTrigger {
+  if (value === 'on_login' || value === 'on_login_daily_first') return value;
+  return 'on_login';
+}
 
 export const PRIORITY_LABELS: Record<LoginPopupPriority, string> = {
   urgent: 'Urgente',
@@ -52,7 +62,7 @@ export const AUDIENCE_LABELS: Record<LoginPopupAudienceType, string> = {
 export interface LoginPopupFormValues {
   code: string;
   name: string;
-  trigger: LoginPopupTrigger;
+  trigger_event: LoginPopupTrigger;
   priority: LoginPopupPriority;
   max_per_session: number;
   dismiss_cooldown_hours: number;
@@ -90,7 +100,7 @@ const codeSchema = z
 export const loginPopupFormSchema = z.object({
   code: codeSchema,
   name: z.string().min(2).max(120),
-  trigger: z.enum(['on_login', 'on_login_daily_first']),
+  trigger_event: z.enum(['on_login', 'on_login_daily_first']),
   priority: z.enum(['urgent', 'high', 'medium', 'low']),
   max_per_session: z.number().int().min(1).max(5),
   dismiss_cooldown_hours: z.number().int().min(0).max(168),
@@ -123,7 +133,7 @@ export function defaultLoginPopupForm(): LoginPopupFormValues {
   return {
     code: '',
     name: '',
-    trigger: 'on_login',
+    trigger_event: 'on_login',
     priority: 'medium',
     max_per_session: 1,
     dismiss_cooldown_hours: 24,
@@ -153,11 +163,13 @@ export function defaultLoginPopupForm(): LoginPopupFormValues {
   };
 }
 
-export function templateToForm(t: LoginPopupTemplate): LoginPopupFormValues {
+export function templateToForm(
+  t: LoginPopupTemplate & { trigger?: LoginPopupTrigger },
+): LoginPopupFormValues {
   return {
     code: t.code,
     name: t.name,
-    trigger: t.trigger,
+    trigger_event: normalizeLoginPopupTrigger(t.trigger_event ?? t.trigger),
     priority: t.priority,
     max_per_session: t.max_per_session,
     dismiss_cooldown_hours: t.dismiss_cooldown_hours,
@@ -213,7 +225,7 @@ export function formToPayload(values: LoginPopupFormValues): LoginPopupTemplateP
   return {
     code: values.code.trim(),
     name: values.name.trim(),
-    trigger: values.trigger,
+    trigger_event: normalizeLoginPopupTrigger(values.trigger_event),
     priority: values.priority,
     max_per_session: values.max_per_session,
     dismiss_cooldown_hours: values.dismiss_cooldown_hours,

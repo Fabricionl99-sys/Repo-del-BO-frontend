@@ -42,7 +42,7 @@ export interface LoginPopupTemplate {
   id: string;
   code: string;
   name: string;
-  trigger: LoginPopupTrigger;
+  trigger_event: LoginPopupTrigger;
   priority: LoginPopupPriority;
   max_per_session: number;
   dismiss_cooldown_hours: number;
@@ -60,7 +60,7 @@ export interface LoginPopupTemplate {
 export interface LoginPopupTemplatePayload {
   code: string;
   name: string;
-  trigger: LoginPopupTrigger;
+  trigger_event: LoginPopupTrigger;
   priority: LoginPopupPriority;
   max_per_session: number;
   dismiss_cooldown_hours: number;

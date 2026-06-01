@@ -146,6 +146,12 @@ describe('NotificationsPage', () => {
     expect(await screen.findByText('Mantén tu racha')).toBeInTheDocument();
     fireEvent.click(screen.getByText('Nuevo popup template'));
     expect(screen.getByText('Nuevo popup template', { selector: 'h2' })).toBeInTheDocument();
+    const triggerSelect = document.querySelector('select[name="trigger_event"]') as HTMLSelectElement;
+    expect(triggerSelect).toBeTruthy();
+    expect(Array.from(triggerSelect.options).map((o) => o.value)).toEqual([
+      'on_login',
+      'on_login_daily_first',
+    ]);
   });
 
   it('tab mensaje manual popup', async () => {

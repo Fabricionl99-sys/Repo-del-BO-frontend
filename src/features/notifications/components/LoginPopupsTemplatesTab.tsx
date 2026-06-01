@@ -68,7 +68,7 @@ export function LoginPopupsTemplatesTab() {
       key: 'trigger',
       header: 'Trigger',
       render: (t) => (
-        <span className="rounded-full bg-bg-tertiary px-2 py-0.5 text-[12px]">{TRIGGER_LABELS[t.trigger]}</span>
+        <span className="rounded-full bg-bg-tertiary px-2 py-0.5 text-[12px]">{TRIGGER_LABELS[t.trigger_event]}</span>
       ),
     },
     {

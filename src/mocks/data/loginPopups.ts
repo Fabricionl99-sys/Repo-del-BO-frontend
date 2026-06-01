@@ -14,7 +14,7 @@ export const loginPopupTemplates: LoginPopupTemplate[] = [
     id: 'lp_streak',
     code: 'manten_tu_racha',
     name: 'Mantén tu racha',
-    trigger: 'on_login',
+    trigger_event: 'on_login',
     priority: 'high',
     max_per_session: 1,
     dismiss_cooldown_hours: 24,
@@ -41,7 +41,7 @@ export const loginPopupTemplates: LoginPopupTemplate[] = [
     id: 'lp_pending',
     code: 'premios_pendientes',
     name: 'Premios pendientes',
-    trigger: 'on_login',
+    trigger_event: 'on_login',
     priority: 'high',
     max_per_session: 1,
     dismiss_cooldown_hours: 12,
@@ -65,7 +65,7 @@ export const loginPopupTemplates: LoginPopupTemplate[] = [
     id: 'lp_spin',
     code: 'daily_spin',
     name: 'Daily spin disponible',
-    trigger: 'on_login_daily_first',
+    trigger_event: 'on_login_daily_first',
     priority: 'medium',
     max_per_session: 1,
     dismiss_cooldown_hours: 24,
@@ -89,7 +89,7 @@ export const loginPopupTemplates: LoginPopupTemplate[] = [
     id: 'lp_mission',
     code: 'mision_expira',
     name: 'Misión por expirar',
-    trigger: 'on_login',
+    trigger_event: 'on_login',
     priority: 'urgent',
     max_per_session: 1,
     dismiss_cooldown_hours: 6,
@@ -115,7 +115,7 @@ export const loginPopupTemplates: LoginPopupTemplate[] = [
     id: 'lp_vip',
     code: 'bienvenido_vip',
     name: 'Bienvenido VIP',
-    trigger: 'on_login_daily_first',
+    trigger_event: 'on_login_daily_first',
     priority: 'medium',
     max_per_session: 1,
     dismiss_cooldown_hours: 48,
@@ -139,7 +139,7 @@ export const loginPopupTemplates: LoginPopupTemplate[] = [
     id: 'lp_weekend',
     code: 'promo_finde',
     name: 'Promoción especial fin de semana',
-    trigger: 'on_login',
+    trigger_event: 'on_login',
     priority: 'low',
     max_per_session: 1,
     dismiss_cooldown_hours: 72,
@@ -227,7 +227,7 @@ export function filterLoginPopupTemplates(params: URLSearchParams): LoginPopupTe
   const status = params.get('status');
   const search = params.get('search')?.toLowerCase();
 
-  if (trigger && trigger !== 'all') list = list.filter((t) => t.trigger === trigger);
+  if (trigger && trigger !== 'all') list = list.filter((t) => t.trigger_event === trigger);
   if (priority && priority !== 'all') list = list.filter((t) => t.priority === priority);
   if (status === 'active') list = list.filter((t) => t.is_active);
   if (status === 'inactive') list = list.filter((t) => !t.is_active);

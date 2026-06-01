@@ -11,6 +11,7 @@ import { useSaveLoginPopupTemplate } from '@/features/notifications/loginPopupsA
 import {
   AUDIENCE_LABELS,
   CTA_ACTION_LABELS,
+  LOGIN_POPUP_TRIGGER_OPTIONS,
   PRIORITY_LABELS,
   TRIGGER_LABELS,
   WIDGET_SECTIONS,
@@ -20,7 +21,7 @@ import {
   templateToForm,
   type LoginPopupFormValues,
 } from '@/features/notifications/loginPopupForm';
-import type { LoginPopupPriority, LoginPopupTemplate, LoginPopupTrigger } from '@/types/loginPopups';
+import type { LoginPopupPriority, LoginPopupTemplate } from '@/types/loginPopups';
 
 import { LoginPopupPreview } from './LoginPopupPreview';
 
@@ -87,14 +88,18 @@ export function LoginPopupFormModal({
               <input className="field" {...register('name')} />
             </div>
           </div>
-          <div className="mt-3 space-y-2">
-            <p className="text-[14px] font-medium text-text-secondary">Trigger</p>
-            {(Object.keys(TRIGGER_LABELS) as LoginPopupTrigger[]).map((tr) => (
-              <label key={tr} className="flex items-center gap-2 text-[14px]">
-                <input type="radio" value={tr} {...register('trigger')} />
-                {TRIGGER_LABELS[tr]}
-              </label>
-            ))}
+          <div className="mt-3">
+            <label className="mb-1.5 block text-[14px] text-text-secondary">Trigger</label>
+            <select className="field" {...register('trigger_event')}>
+              {LOGIN_POPUP_TRIGGER_OPTIONS.map(({ value, label }) => (
+                <option key={value} value={value}>
+                  {label}
+                </option>
+              ))}
+            </select>
+            {errors.trigger_event && (
+              <p className="mt-1 text-[13px] text-danger">{errors.trigger_event.message}</p>
+            )}
           </div>
           <div className="mt-3 space-y-2">
             <p className="text-[14px] font-medium text-text-secondary">Prioridad</p>
