@@ -34,6 +34,7 @@ function occasion(
 
 export const seedWheels: WheelType[] = [
   {
+    id: 'wh_daily',
     code: 'daily',
     name: 'Rueda Daily',
     description: 'Giro diario gratuito con premios balanceados para retención.',
@@ -77,6 +78,7 @@ export const seedWheels: WheelType[] = [
     updated_at: iso(3),
   },
   {
+    id: 'wh_vip',
     code: 'vip',
     name: 'Rueda VIP',
     description: 'Ruleta exclusiva con pity y probabilidades visibles.',
@@ -117,6 +119,7 @@ export const seedWheels: WheelType[] = [
     updated_at: iso(5),
   },
   {
+    id: 'wh_welcome',
     code: 'welcome',
     name: 'Rueda Welcome',
     description: 'Bienvenida para nuevos jugadores sin expiración de spins.',

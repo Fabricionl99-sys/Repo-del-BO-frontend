@@ -37,6 +37,7 @@ export interface WheelOccasion {
 }
 
 export interface WheelType {
+  id: string;
   code: string;
   name: string;
   description: string;

@@ -26,6 +26,7 @@ describe('wheels mocks', () => {
   it('reset restores catalog', () => {
     wheelTypes.push({
       ...seedWheels[0],
+      id: 'wh_temp',
       code: 'temp',
       name: 'Temp',
     });

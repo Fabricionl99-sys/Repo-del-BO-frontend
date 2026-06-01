@@ -22,8 +22,12 @@ import type {
 const wait = () =>
   import.meta.env.MODE === 'test' ? Promise.resolve() : delay(200 + Math.random() * 600);
 
-function findWheel(code: string) {
-  return wheelTypes.find((w) => w.code === code);
+function findWheel(codeOrId: string) {
+  return wheelTypes.find((w) => w.code === codeOrId || w.id === codeOrId);
+}
+
+function findWheelById(id: string) {
+  return wheelTypes.find((w) => w.id === id);
 }
 
 function activeOccasionCount(wheel: WheelType) {
@@ -83,6 +87,7 @@ export const wheelsHandlers = [
       id: `prize_${body.code}_${Date.now()}_${i}`,
     }));
     const item: WheelType = {
+      id: `wh_${body.code}_${Date.now()}`,
       code: body.code,
       name: body.name,
       description: body.description,
@@ -132,6 +137,25 @@ export const wheelsHandlers = [
     void occasionsPatch;
     Object.assign(item, meta, { updated_at: new Date().toISOString() });
     return HttpResponse.json({ data: item });
+  }),
+
+  http.post('*/admin/wheels/types/:id/archive', async ({ params, request }) => {
+    await wait();
+    const id = String(params.id);
+    const item = findWheelById(id) ?? findWheel(id);
+    if (!item) return new HttpResponse(null, { status: 404 });
+    const mode = new URL(request.url).searchParams.get('mode');
+    item.status = 'archived';
+    item.is_active = false;
+    item.updated_at = new Date().toISOString();
+    let prizes_deleted = 0;
+    if (mode === 'emergency') {
+      clearSpinHistoryForWheel(item.code);
+      prizes_deleted = item.prizes.length;
+    }
+    return HttpResponse.json({
+      data: { wheel: item, prizes_deleted },
+    });
   }),
 
   http.delete('*/admin/wheels/types/:code', async ({ params, request }) => {
@@ -246,6 +270,7 @@ export const wheelsHandlers = [
       id: `prize_${body.code}_${Date.now()}_${i}`,
     }));
     const item: WheelType = {
+      id: `wh_${body.code}_${Date.now()}`,
       code: body.code,
       name: body.name,
       description: body.description,

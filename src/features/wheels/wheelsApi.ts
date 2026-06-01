@@ -1,6 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 import { apiClient } from '@/api/client';
+import { getApiErrorMessage } from '@/api/errors';
 import { unwrapData, unwrapPaginatedList } from '@/api/response';
 import { toast } from '@/stores/toastStore';
 import { buildBackendBonusRewardConfig } from '@/lib/bonusRewardConfig';
@@ -8,7 +9,6 @@ import { extractWheelPrizes } from '@/features/wheels/wheelDetailShape';
 import type {
   SpinHistoryEntry,
   SpinHistoryQuery,
-  WheelArchivePayload,
   WheelCatalogResponse,
   WheelGrantManualPayload,
   WheelManualGrantHistoryItem,
@@ -169,6 +169,7 @@ function normalizeBackendWheel(raw: Record<string, unknown>): WheelType {
     typeof raw.spin_expiration_hours === 'number' ? (raw.spin_expiration_hours as number) : null;
   const prizesRaw = extractWheelPrizes(raw);
   return {
+    id: String(raw.id ?? ''),
     code: String(raw.code ?? ''),
     name: String(raw.name ?? ''),
     description: typeof raw.description === 'string' ? raw.description : '',
@@ -347,12 +348,25 @@ export function useUpdateWheel() {
 export function useArchiveWheel() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: ({ code, ...payload }: WheelArchivePayload & { code: string }) =>
-      apiClient.delete(`/admin/wheels/types/${code}`, { data: payload }),
-    onSuccess: () => {
-      toast.success('Rueda archivada');
+    mutationFn: async ({ id, mode }: { id: string; mode: 'normal' | 'emergency' }) => {
+      const backendMode = mode === 'normal' ? 'preserve' : 'emergency';
+      const res = await apiClient.post(
+        `/admin/wheels/types/${id}/archive?mode=${backendMode}`,
+      );
+      return unwrapData<{ wheel: WheelType; prizes_deleted: number }>(res.data);
+    },
+    onSuccess: (data) => {
+      const count = data?.prizes_deleted;
+      toast.success(
+        typeof count === 'number'
+          ? `Rueda archivada (${count} premios eliminados)`
+          : 'Rueda archivada',
+      );
       qc.invalidateQueries({ queryKey: ['wheels'] });
       qc.invalidateQueries({ queryKey: ['wheels', 'spin-history'] });
+    },
+    onError: (err) => {
+      toast.error(getApiErrorMessage(err, 'No se pudo archivar la rueda'));
     },
   });
 }

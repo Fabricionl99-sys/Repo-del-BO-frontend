@@ -38,9 +38,8 @@ export function ArchiveWheelModal({
       return;
     }
     await archive.mutateAsync({
-      code: wheel.code,
+      id: wheel.id,
       mode,
-      reason: mode === 'emergency' ? reason.trim() : undefined,
     });
     onArchived?.();
     onClose();
