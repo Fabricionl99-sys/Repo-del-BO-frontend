@@ -5,6 +5,7 @@ import { useForm, useWatch } from 'react-hook-form';
 
 import { BannerWidgetPreview } from '@/components/media/BannerWidgetPreview';
 import { MediaUploaderRhf } from '@/components/media/MediaUploaderRhf';
+import { FieldHint } from '@/components/ui/FieldHint';
 import { Button } from '@/components/ui/Button';
 import { Modal } from '@/components/ui/Modal';
 import { Switch } from '@/components/ui/Switch';
@@ -20,9 +21,11 @@ import {
 import {
   defaultRankingForm,
   formToCreatePayload,
-  formToMetadataPayload,
+  formToMetadataPatchPayload,
   METRIC_LABELS,
   PERIOD_LABELS,
+  RANKING_IMMUTABLE_CODE_HINT,
+  RANKING_IMMUTABLE_METRIC_PERIOD_HINT,
   RANKING_METRIC_TYPES,
   RANKING_PERIOD_TYPES,
   rankingFormSchema,
@@ -160,7 +163,11 @@ export function RankingFormModal({
     if (Object.keys(fieldErrors).length > 0) return;
 
     if (ranking) {
-      await updateRanking.mutateAsync({ code: ranking.code, ...formToMetadataPayload(values) });
+      await updateRanking.mutateAsync({
+        id: ranking.id,
+        code: ranking.code,
+        ...formToMetadataPatchPayload(values),
+      });
       const pending = prizes.filter((p) => p.id.startsWith('local_'));
       for (const p of pending) {
         const created = await addPrize.mutateAsync({
@@ -245,7 +252,10 @@ export function RankingFormModal({
             <h3 className="label-section mb-3">Datos básicos</h3>
             <div className="grid gap-3 sm:grid-cols-2">
               <div>
-                <label className="mb-1.5 block text-[14px] text-text-secondary">code</label>
+                <label className="mb-1.5 flex items-center text-[14px] text-text-secondary">
+                  code
+                  {ranking && <FieldHint text={RANKING_IMMUTABLE_CODE_HINT} />}
+                </label>
                 <input className="field font-mono text-[14px]" disabled={Boolean(ranking)} {...register('code')} />
                 {errors.code && <p className="mt-1 text-[13px] text-danger">{errors.code.message}</p>}
               </div>
@@ -279,16 +289,22 @@ export function RankingFormModal({
             </div>
             <div className="mt-3 grid gap-3 sm:grid-cols-2">
               <div>
-                <label className="mb-1.5 block text-[14px] text-text-secondary">metric_type</label>
-                <select className="field" {...register('metric_type')}>
+                <label className="mb-1.5 flex items-center text-[14px] text-text-secondary">
+                  metric_type
+                  {ranking && <FieldHint text={RANKING_IMMUTABLE_METRIC_PERIOD_HINT} />}
+                </label>
+                <select className="field disabled:cursor-not-allowed disabled:opacity-70" disabled={Boolean(ranking)} {...register('metric_type')}>
                   {RANKING_METRIC_TYPES.map((m) => (
                     <option key={m} value={m}>{METRIC_LABELS[m]}</option>
                   ))}
                 </select>
               </div>
               <div>
-                <label className="mb-1.5 block text-[14px] text-text-secondary">period_type</label>
-                <select className="field" {...register('period_type')}>
+                <label className="mb-1.5 flex items-center text-[14px] text-text-secondary">
+                  period_type
+                  {ranking && <FieldHint text={RANKING_IMMUTABLE_METRIC_PERIOD_HINT} />}
+                </label>
+                <select className="field disabled:cursor-not-allowed disabled:opacity-70" disabled={Boolean(ranking)} {...register('period_type')}>
                   {RANKING_PERIOD_TYPES.map((p) => (
                     <option key={p} value={p}>{PERIOD_LABELS[p]}</option>
                   ))}
@@ -299,8 +315,11 @@ export function RankingFormModal({
               <div className="mt-3 grid gap-3 sm:grid-cols-3">
                 {periodType === 'weekly' && (
                   <div>
-                    <label className="mb-1.5 block text-[14px] text-text-secondary">día reset</label>
-                    <select className="field" {...register('reset_weekday')}>
+                    <label className="mb-1.5 flex items-center text-[14px] text-text-secondary">
+                      día reset
+                      {ranking && <FieldHint text={RANKING_IMMUTABLE_METRIC_PERIOD_HINT} />}
+                    </label>
+                    <select className="field disabled:cursor-not-allowed disabled:opacity-70" disabled={Boolean(ranking)} {...register('reset_weekday')}>
                       {WEEKDAY_OPTIONS.map((d) => (
                         <option key={d.value} value={d.value}>{d.label}</option>
                       ))}
@@ -309,15 +328,35 @@ export function RankingFormModal({
                 )}
                 {periodType === 'monthly' && (
                   <div>
-                    <label className="mb-1.5 block text-[14px] text-text-secondary">día del mes</label>
-                    <input type="number" min={1} max={28} className="field" {...register('reset_day_of_month', { valueAsNumber: true })} />
+                    <label className="mb-1.5 flex items-center text-[14px] text-text-secondary">
+                      día del mes
+                      {ranking && <FieldHint text={RANKING_IMMUTABLE_METRIC_PERIOD_HINT} />}
+                    </label>
+                    <input type="number" min={1} max={28} className="field disabled:cursor-not-allowed disabled:opacity-70" disabled={Boolean(ranking)} {...register('reset_day_of_month', { valueAsNumber: true })} />
                   </div>
                 )}
                 <div>
-                  <label className="mb-1.5 block text-[14px] text-text-secondary">hora reset (UTC)</label>
-                  <input type="time" className="field" {...register('reset_time')} />
+                  <label className="mb-1.5 flex items-center text-[14px] text-text-secondary">
+                    hora reset (UTC)
+                    {ranking && <FieldHint text={RANKING_IMMUTABLE_METRIC_PERIOD_HINT} />}
+                  </label>
+                  <input type="time" className="field disabled:cursor-not-allowed disabled:opacity-70" disabled={Boolean(ranking)} {...register('reset_time')} />
                   {errors.reset_time && <p className="mt-1 text-[13px] text-danger">{errors.reset_time.message}</p>}
                 </div>
+                {ranking && (
+                  <div>
+                    <label className="mb-1.5 flex items-center text-[14px] text-text-secondary">
+                      timezone
+                      {ranking && <FieldHint text={RANKING_IMMUTABLE_METRIC_PERIOD_HINT} />}
+                    </label>
+                    <input
+                      className="field disabled:cursor-not-allowed disabled:opacity-70"
+                      disabled
+                      readOnly
+                      value={rankingDetail?.timezone ?? 'UTC'}
+                    />
+                  </div>
+                )}
               </div>
             )}
             <div className="mt-3 grid gap-3 sm:grid-cols-3">

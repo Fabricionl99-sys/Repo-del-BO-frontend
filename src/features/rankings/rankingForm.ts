@@ -3,6 +3,7 @@ import { z } from 'zod';
 import type {
   RankingConfig,
   RankingCreatePayload,
+  RankingMetadataPatchPayload,
   RankingMetadataPayload,
   RankingMetricType,
   RankingPeriodType,
@@ -49,6 +50,12 @@ export const PERIOD_LABELS: Record<RankingPeriodType, string> = {
   monthly: 'Mensual',
   all_time: 'All-time',
 };
+
+export const RANKING_IMMUTABLE_METRIC_PERIOD_HINT =
+  'Para cambiar métrica o período, archivá este ranking y creá uno nuevo (los datos del leaderboard quedan asociados al ranking original).';
+
+export const RANKING_IMMUTABLE_CODE_HINT =
+  'El code no se puede modificar después de crear el ranking.';
 
 export interface RankingFormValues {
   code: string;
@@ -188,6 +195,23 @@ export function formToMetadataPayload(values: RankingFormValues): RankingMetadat
     metric_type: values.metric_type,
     period_type: values.period_type,
     period_resets_at: buildPeriodResetsAt(values),
+    is_active: values.is_active,
+    is_visible_to_players: values.is_visible_to_players,
+    max_visible_positions: values.max_visible_positions,
+    restrictions: {
+      min_level: values.min_level,
+      vip_only: values.vip_only,
+      new_players_only: values.new_players_only,
+    },
+  };
+}
+
+/** Solo campos permitidos por PATCH /admin/rankings/:id (backend .strict). */
+export function formToMetadataPatchPayload(values: RankingFormValues): RankingMetadataPatchPayload {
+  return {
+    name: values.name.trim(),
+    description: values.description.trim(),
+    image_url: values.image_url.trim() || null,
     is_active: values.is_active,
     is_visible_to_players: values.is_visible_to_players,
     max_visible_positions: values.max_visible_positions,

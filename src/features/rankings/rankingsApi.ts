@@ -9,7 +9,7 @@ import type {
   LeaderboardResponse,
   RankingConfig,
   RankingCreatePayload,
-  RankingMetadataPayload,
+  RankingMetadataPatchPayload,
   RankingPrize,
   RankingPrizePayload,
   RankingsFilters,
@@ -158,13 +158,26 @@ export function useCreateRanking() {
 export function useUpdateRanking() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: ({ code, ...payload }: RankingMetadataPayload & { code: string }) => {
-      // Para PATCH, droppeamos los campos que el backend rechaza/computa.
-      const body = { ...payload } as Record<string, unknown>;
-      delete body.period_resets_at;
-      delete body.is_active;
+    mutationFn: ({
+      id,
+      code: _code,
+      ...payload
+    }: RankingMetadataPatchPayload & { id: string; code: string }) => {
+      const body: Record<string, unknown> = {};
+      if (payload.name !== undefined) body.name = payload.name;
+      if (payload.description !== undefined) body.description = payload.description;
+      if (payload.image_url !== undefined) body.image_url = payload.image_url;
+      if (payload.restrictions !== undefined) body.restrictions = payload.restrictions;
+      if (payload.is_visible_to_players !== undefined) {
+        body.is_visible_to_players = payload.is_visible_to_players;
+      }
+      if (payload.max_visible_positions !== undefined) {
+        body.max_visible_positions = payload.max_visible_positions;
+      }
+      if (payload.is_active !== undefined) body.is_active = payload.is_active;
+
       return apiClient
-        .patch(`/admin/rankings/${code}`, body)
+        .patch(`/admin/rankings/${id}`, body)
         .then((r) => normalizeRankingConfig(unwrapData<RankingConfig>(r.data)));
     },
     onSuccess: (_data, vars) => {

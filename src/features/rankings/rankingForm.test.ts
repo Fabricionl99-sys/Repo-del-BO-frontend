@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest';
 import {
   buildPeriodResetsAt,
   defaultRankingForm,
+  formToMetadataPatchPayload,
   rankingFormSchema,
   validateRankingSave,
 } from './rankingForm';
@@ -46,5 +47,26 @@ describe('validateRankingSave', () => {
     const values = { ...defaultRankingForm(), code: 'top_xp_daily', name: 'Duplicado' };
     const errors = validateRankingSave(values, ['top_xp_daily']);
     expect(errors.code).toMatch(/ya existe/i);
+  });
+});
+
+describe('formToMetadataPatchPayload', () => {
+  it('no incluye campos inmutables del ranking', () => {
+    const values = {
+      ...defaultRankingForm(),
+      code: 'weekly_test',
+      name: 'Test',
+      metric_type: 'amount_wagered' as const,
+      period_type: 'monthly' as const,
+    };
+    const patch = formToMetadataPatchPayload(values);
+    expect(patch).toMatchObject({
+      name: 'Test',
+      is_active: true,
+      restrictions: expect.objectContaining({ vip_only: false }),
+    });
+    expect(patch).not.toHaveProperty('metric_type');
+    expect(patch).not.toHaveProperty('period_type');
+    expect(patch).not.toHaveProperty('period_resets_at');
   });
 });

@@ -104,6 +104,17 @@ export interface RankingMetadataPayload {
   restrictions: RankingRestrictions;
 }
 
+/** Campos editables vía PATCH /admin/rankings/:id (RankingPatchSchema .strict). */
+export interface RankingMetadataPatchPayload {
+  name: string;
+  description: string;
+  image_url?: string | null;
+  is_active: boolean;
+  is_visible_to_players: boolean;
+  max_visible_positions: number;
+  restrictions: RankingRestrictions;
+}
+
 export interface RankingCreatePayload extends RankingMetadataPayload {
   code: string;
   prizes: Omit<RankingPrize, 'id'>[];

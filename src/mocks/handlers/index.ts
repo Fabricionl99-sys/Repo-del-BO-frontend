@@ -1735,13 +1735,21 @@ handlers.push(
     };
     return HttpResponse.json({ data: item }, { status: 201 });
   }),
-  http.patch('*/admin/rankings/:code', async ({ params, request }) => {
+  http.patch('*/admin/rankings/:idOrCode', async ({ params, request }) => {
     await wait();
-    const item = findRanking(String(params.code));
+    const item = findRanking(String(params.idOrCode));
     if (!item) return new HttpResponse(null, { status: 404 });
     const body = (await request.json()) as Partial<RankingMetadataPayload>;
-    Object.assign(item, body, { updated_at: new Date().toISOString() });
-    if (body.restrictions) item.restrictions = body.restrictions;
+    const allowed: Partial<RankingMetadataPayload> = {};
+    if (body.name !== undefined) allowed.name = body.name;
+    if (body.description !== undefined) allowed.description = body.description;
+    if (body.image_url !== undefined) allowed.image_url = body.image_url;
+    if (body.restrictions !== undefined) allowed.restrictions = body.restrictions;
+    if (body.is_visible_to_players !== undefined) allowed.is_visible_to_players = body.is_visible_to_players;
+    if (body.max_visible_positions !== undefined) allowed.max_visible_positions = body.max_visible_positions;
+    if (body.is_active !== undefined) allowed.is_active = body.is_active;
+    Object.assign(item, allowed, { updated_at: new Date().toISOString() });
+    if (allowed.restrictions) item.restrictions = allowed.restrictions;
     if (!Array.isArray(item.prizes)) item.prizes = [];
     return HttpResponse.json({
       data: { ...item, prizes: item.prizes },
