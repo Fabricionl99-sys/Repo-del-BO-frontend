@@ -1,6 +1,6 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useEffect, useMemo, useRef, useState } from 'react';
-import type { FieldErrors } from 'react-hook-form';
+import type { FieldErrors, Resolver } from 'react-hook-form';
 import { useForm, useWatch } from 'react-hook-form';
 import { Link } from 'react-router-dom';
 
@@ -70,7 +70,7 @@ export function TemplateFormModal({
 
   const form = useForm<NotificationTemplateFormValues>({
     defaultValues: defaultTemplateForm(),
-    resolver: zodResolver(notificationTemplateSchema),
+    resolver: zodResolver(notificationTemplateSchema) as Resolver<NotificationTemplateFormValues>,
   });
 
   const { register, handleSubmit, reset, setValue, control, formState: { errors } } = form;
