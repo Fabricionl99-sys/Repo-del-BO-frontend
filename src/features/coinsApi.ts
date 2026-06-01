@@ -161,23 +161,19 @@ export function useSaveCoin() {
   });
 }
 
-/** Activa/desactiva por código de moneda (prod: POST activate / DELETE active/:code). */
+/** Activa/desactiva moneda operador (tabla currencies) vía PUT is_active. */
 export function useSetCoinActive() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async ({ code, active }: { code: string; active: boolean }) => {
-      if (active) {
-        await apiClient.post('/admin/currencies/activate', { code });
-      } else {
-        await apiClient.delete(`/admin/currencies/active/${encodeURIComponent(code)}`);
-      }
+    mutationFn: async ({ id, active }: { id: string; active: boolean }) => {
+      await apiClient.put(`/admin/currencies/${id}`, { is_active: active });
     },
-    onSuccess: (_data, { active }) => {
-      toast.success(active ? 'Moneda activada' : 'Moneda desactivada');
+    onSuccess: () => {
+      toast.success('Estado actualizado');
       qc.invalidateQueries({ queryKey: ['coins'] });
     },
     onError: (error) => {
-      toast.error(getApiErrorMessage(error, 'No se pudo cambiar el estado de la moneda'));
+      toast.error(getApiErrorMessage(error, 'No se pudo actualizar el estado'));
     },
   });
 }
@@ -185,8 +181,8 @@ export function useSetCoinActive() {
 export function useDeleteCoin() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async (code: string) => {
-      return apiClient.delete(`/admin/currencies/active/${encodeURIComponent(code)}`);
+    mutationFn: async (id: string) => {
+      await apiClient.put(`/admin/currencies/${id}`, { is_active: false });
     },
     onSuccess: () => {
       toast.success('Moneda desactivada');
