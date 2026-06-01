@@ -108,10 +108,18 @@ export function RankingFormModal({
     try {
       if (ranking) {
         if (prizeId) {
-          const updated = await updatePrize.mutateAsync({ code: ranking.code, prizeId, ...payload });
+          const updated = await updatePrize.mutateAsync({
+            rankingCode: ranking.code,
+            prizeId,
+            ...payload,
+          });
           setPrizes((prev) => prev.map((p) => (p.id === prizeId ? updated : p)));
         } else {
-          const created = await addPrize.mutateAsync({ code: ranking.code, ...payload });
+          const created = await addPrize.mutateAsync({
+            rankingId: ranking.id,
+            rankingCode: ranking.code,
+            ...payload,
+          });
           setPrizes((prev) => [...prev, created]);
         }
         return;
@@ -129,7 +137,7 @@ export function RankingFormModal({
 
   const handleRemovePrize = async (prize: RankingPrize) => {
     if (ranking) {
-      await deletePrize.mutateAsync({ code: ranking.code, prizeId: prize.id });
+      await deletePrize.mutateAsync({ rankingCode: ranking.code, prizeId: prize.id });
     }
     setPrizes((prev) => prev.filter((p) => p.id !== prize.id));
   };
@@ -146,7 +154,8 @@ export function RankingFormModal({
       const pending = prizes.filter((p) => p.id.startsWith('local_'));
       for (const p of pending) {
         const created = await addPrize.mutateAsync({
-          code: ranking.code,
+          rankingId: ranking.id,
+          rankingCode: ranking.code,
           ...rankingPrizeToPayload(p),
         });
         setPrizes((prev) => prev.map((x) => (x.id === p.id ? created : x)));
@@ -156,7 +165,11 @@ export function RankingFormModal({
       const created = await createRanking.mutateAsync(formToCreatePayload(values, prizePayloads));
       if (prizePayloads.length > 0 && (created.prizes?.length ?? 0) < prizePayloads.length) {
         for (const payload of prizePayloads) {
-          await addPrize.mutateAsync({ code: created.code, ...payload });
+          await addPrize.mutateAsync({
+            rankingId: created.id,
+            rankingCode: created.code,
+            ...payload,
+          });
         }
       }
     }

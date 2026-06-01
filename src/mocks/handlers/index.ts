@@ -1652,8 +1652,20 @@ import type {
   RankingPrizePayload,
 } from '@/types/rankings';
 
-function findRanking(code: string) {
-  return rankingConfigs.find((r) => r.code === code);
+function findRanking(codeOrId: string) {
+  return rankingConfigs.find((r) => r.code === codeOrId || r.id === codeOrId);
+}
+
+function findRankingById(id: string) {
+  return rankingConfigs.find((r) => r.id === id);
+}
+
+function findRankingPrize(prizeId: string) {
+  for (const ranking of rankingConfigs) {
+    const prize = ranking.prizes.find((p) => p.id === prizeId);
+    if (prize) return { ranking, prize };
+  }
+  return null;
 }
 
 handlers.push(
@@ -1745,33 +1757,32 @@ handlers.push(
     }
     return new HttpResponse(null, { status: 204 });
   }),
-  http.post('*/admin/rankings/:code/prizes', async ({ params, request }) => {
+  http.post('*/admin/rankings/:id/prizes', async ({ params, request }) => {
     await wait();
-    const item = findRanking(String(params.code));
+    const id = String(params.id);
+    const item = findRankingById(id) ?? findRanking(id);
     if (!item) return new HttpResponse(null, { status: 404 });
     const body = (await request.json()) as RankingPrizePayload;
-    const prize: RankingPrize = { ...body, id: `rp_${params.code}_${Date.now()}` };
+    const prize: RankingPrize = { ...body, id: `rp_${item.code}_${Date.now()}` };
     item.prizes.push(prize);
     item.updated_at = new Date().toISOString();
     return HttpResponse.json({ data: prize }, { status: 201 });
   }),
-  http.patch('*/admin/rankings/:code/prizes/:prizeId', async ({ params, request }) => {
+  http.patch('*/admin/rankings/prizes/:prizeId', async ({ params, request }) => {
     await wait();
-    const item = findRanking(String(params.code));
-    if (!item) return new HttpResponse(null, { status: 404 });
-    const prize = item.prizes.find((p) => p.id === params.prizeId);
-    if (!prize) return new HttpResponse(null, { status: 404 });
-    Object.assign(prize, (await request.json()) as RankingPrizePayload);
-    item.updated_at = new Date().toISOString();
-    return HttpResponse.json({ data: prize });
+    const found = findRankingPrize(String(params.prizeId));
+    if (!found) return new HttpResponse(null, { status: 404 });
+    Object.assign(found.prize, (await request.json()) as RankingPrizePayload);
+    found.ranking.updated_at = new Date().toISOString();
+    return HttpResponse.json({ data: found.prize });
   }),
-  http.delete('*/admin/rankings/:code/prizes/:prizeId', async ({ params }) => {
+  http.delete('*/admin/rankings/prizes/:prizeId', async ({ params }) => {
     await wait();
-    const item = findRanking(String(params.code));
-    if (!item) return new HttpResponse(null, { status: 404 });
-    const index = item.prizes.findIndex((p) => p.id === params.prizeId);
-    if (index >= 0) item.prizes.splice(index, 1);
-    item.updated_at = new Date().toISOString();
+    const found = findRankingPrize(String(params.prizeId));
+    if (!found) return new HttpResponse(null, { status: 404 });
+    const index = found.ranking.prizes.findIndex((p) => p.id === params.prizeId);
+    if (index >= 0) found.ranking.prizes.splice(index, 1);
+    found.ranking.updated_at = new Date().toISOString();
     return new HttpResponse(null, { status: 204 });
   }),
   http.get('*/admin/rankings/:code/leaderboard', async ({ params }) => {

@@ -38,6 +38,8 @@ export interface RewardSelectorProps {
   operatorContext?: RewardOperatorContext;
   disabled?: boolean;
   fieldErrors?: Partial<Record<keyof RewardFormFields, { message?: string }>>;
+  /** Oculta el selector manual/auto; muestra hint fijo auto USD (rankings, etc.). */
+  currencyModeAutoUsdOnly?: boolean;
 }
 
 function patchFields(
@@ -56,6 +58,7 @@ export function RewardSelector({
   operatorContext: contextProp,
   disabled = false,
   fieldErrors,
+  currencyModeAutoUsdOnly = false,
 }: RewardSelectorProps) {
   const { context: fetchedContext, isLoading } = useRewardOperatorContext();
   const { isBonusTypeActive, capabilityDisabledTooltip } = useCapabilityChecks();
@@ -145,7 +148,13 @@ export function RewardSelector({
         })}
       </div>
 
-      {showCurrencyMode && (
+      {showCurrencyMode && currencyModeAutoUsdOnly && (
+        <p className="text-[13px] text-text-tertiary">
+          Premio en USD (se convierte auto a la moneda del jugador).
+        </p>
+      )}
+
+      {showCurrencyMode && !currencyModeAutoUsdOnly && (
         <div>
           <label className="mb-1.5 block text-[14px] text-text-secondary">Modo de moneda</label>
           <select

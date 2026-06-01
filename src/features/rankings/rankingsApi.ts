@@ -144,7 +144,7 @@ export function useCreateRanking() {
     mutationFn: (payload: RankingCreatePayload) =>
       apiClient
         .post('/admin/rankings', adaptRankingForBackend(payload))
-        .then((r) => unwrapData<RankingConfig>(r.data)),
+        .then((r) => normalizeRankingConfig(unwrapData<RankingConfig>(r.data))),
     onSuccess: () => {
       toast.success('Ranking creado');
       qc.invalidateQueries({ queryKey: ['rankings'] });
@@ -165,7 +165,7 @@ export function useUpdateRanking() {
       delete body.is_active;
       return apiClient
         .patch(`/admin/rankings/${code}`, body)
-        .then((r) => unwrapData<RankingConfig>(r.data));
+        .then((r) => normalizeRankingConfig(unwrapData<RankingConfig>(r.data)));
     },
     onSuccess: (_data, vars) => {
       toast.success('Ranking actualizado');
@@ -192,14 +192,17 @@ export function useArchiveRanking() {
 export function useAddRankingPrize() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: ({ code, ...payload }: RankingPrizePayload & { code: string }) =>
+    mutationFn: ({
+      rankingId,
+      ...payload
+    }: RankingPrizePayload & { rankingId: string; rankingCode: string }) =>
       apiClient
-        .post(`/admin/rankings/${code}/prizes`, adaptRankingPrizeForBackend(payload))
+        .post(`/admin/rankings/${rankingId}/prizes`, adaptRankingPrizeForBackend(payload))
         .then((r) => unwrapData<RankingPrize>(r.data)),
     onSuccess: (_data, vars) => {
       toast.success('Premio agregado');
       qc.invalidateQueries({ queryKey: ['rankings'] });
-      qc.invalidateQueries({ queryKey: ['rankings', vars.code] });
+      qc.invalidateQueries({ queryKey: ['rankings', vars.rankingCode] });
     },
     onError: (error) => {
       toast.error(getApiErrorMessage(error, 'No se pudo agregar el premio'));
@@ -211,17 +214,20 @@ export function useUpdateRankingPrize() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: ({
-      code,
+      rankingCode,
       prizeId,
       ...payload
-    }: RankingPrizePayload & { code: string; prizeId: string }) =>
+    }: RankingPrizePayload & { rankingCode: string; prizeId: string }) =>
       apiClient
-        .patch(`/admin/rankings/${code}/prizes/${prizeId}`, adaptRankingPrizeForBackend(payload))
+        .patch(`/admin/rankings/prizes/${prizeId}`, adaptRankingPrizeForBackend(payload))
         .then((r) => unwrapData<RankingPrize>(r.data)),
     onSuccess: (_data, vars) => {
       toast.success('Premio actualizado');
       qc.invalidateQueries({ queryKey: ['rankings'] });
-      qc.invalidateQueries({ queryKey: ['rankings', vars.code] });
+      qc.invalidateQueries({ queryKey: ['rankings', vars.rankingCode] });
+    },
+    onError: (error) => {
+      toast.error(getApiErrorMessage(error, 'No se pudo actualizar el premio'));
     },
   });
 }
@@ -229,12 +235,15 @@ export function useUpdateRankingPrize() {
 export function useDeleteRankingPrize() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: ({ code, prizeId }: { code: string; prizeId: string }) =>
-      apiClient.delete(`/admin/rankings/${code}/prizes/${prizeId}`),
+    mutationFn: ({ prizeId }: { rankingCode: string; prizeId: string }) =>
+      apiClient.delete(`/admin/rankings/prizes/${prizeId}`),
     onSuccess: (_data, vars) => {
       toast.success('Premio eliminado');
       qc.invalidateQueries({ queryKey: ['rankings'] });
-      qc.invalidateQueries({ queryKey: ['rankings', vars.code] });
+      qc.invalidateQueries({ queryKey: ['rankings', vars.rankingCode] });
+    },
+    onError: (error) => {
+      toast.error(getApiErrorMessage(error, 'No se pudo eliminar el premio'));
     },
   });
 }

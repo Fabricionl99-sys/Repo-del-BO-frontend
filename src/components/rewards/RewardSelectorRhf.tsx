@@ -13,6 +13,7 @@ export function RewardSelectorRhf<T extends FieldValues>({
   operatorContext,
   disabled,
   fieldErrors,
+  currencyModeAutoUsdOnly,
 }: {
   moduleKey: RewardModuleKey;
   control: Control<T>;
@@ -21,6 +22,7 @@ export function RewardSelectorRhf<T extends FieldValues>({
   operatorContext?: RewardOperatorContext;
   disabled?: boolean;
   fieldErrors?: Partial<Record<keyof RewardFormFields, { message?: string }>>;
+  currencyModeAutoUsdOnly?: boolean;
 }) {
   return (
     <Controller
@@ -35,6 +37,7 @@ export function RewardSelectorRhf<T extends FieldValues>({
           operatorContext={operatorContext}
           disabled={disabled}
           fieldErrors={fieldErrors}
+          currencyModeAutoUsdOnly={currencyModeAutoUsdOnly}
         />
       )}
     />

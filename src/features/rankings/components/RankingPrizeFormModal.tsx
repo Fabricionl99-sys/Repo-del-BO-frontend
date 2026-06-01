@@ -86,7 +86,7 @@ export function RankingPrizeFormModal({
             {errors.position_to && <p className="mt-1 text-[13px] text-danger">{errors.position_to.message}</p>}
           </div>
         </div>
-        <RewardSelectorRhf moduleKey="rankings" control={control} name="reward" />
+        <RewardSelectorRhf moduleKey="rankings" control={control} name="reward" currencyModeAutoUsdOnly />
         <div className="flex items-center justify-between rounded-lg border border-border-subtle bg-bg-tertiary px-3 py-2">
           <span className="text-[14px] text-text-secondary">Premio activo</span>
           <Switch checked={isActive} onChange={(v) => setValue('is_active', v)} />
