@@ -24,7 +24,7 @@ export function RankingCard({
   onEdit: () => void;
 }) {
   const archived = ranking.status === 'archived';
-  const prizeCount = ranking.prizes?.length ?? 0;
+  const prizeCount = ranking.prizes?.length;
   const isAllTime = ranking.period_type === 'all_time';
   const periodStart = fmtShortDate(ranking.current_period_start);
   const periodEnd = fmtShortDate(ranking.current_period_end);
@@ -66,8 +66,12 @@ export function RankingCard({
             <span>{METRIC_LABELS[ranking.metric_type]}</span>
             <span>·</span>
             <span>{PERIOD_LABELS[ranking.period_type]}</span>
-            <span>·</span>
-            <span>{prizeCount} premios</span>
+            {prizeCount != null && (
+              <>
+                <span>·</span>
+                <span>{prizeCount} premios</span>
+              </>
+            )}
           </div>
           {!isAllTime && (periodStart || nextReset) && (
             <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-[12px] text-text-tertiary">

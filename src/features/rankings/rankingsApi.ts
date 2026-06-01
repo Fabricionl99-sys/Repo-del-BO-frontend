@@ -3,7 +3,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { apiClient } from '@/api/client';
 import { getApiErrorMessage } from '@/api/errors';
 import { unwrapData } from '@/api/response';
-import { normalizeRankingConfig, normalizeRankingConfigs } from '@/features/rankings/rankingShape';
+import { normalizeRankingConfig, normalizeRankingConfigs, normalizeRankingPrize } from '@/features/rankings/rankingShape';
 import { toast } from '@/stores/toastStore';
 import type {
   LeaderboardResponse,
@@ -198,7 +198,7 @@ export function useAddRankingPrize() {
     }: RankingPrizePayload & { rankingId: string; rankingCode: string }) =>
       apiClient
         .post(`/admin/rankings/${rankingId}/prizes`, adaptRankingPrizeForBackend(payload))
-        .then((r) => unwrapData<RankingPrize>(r.data)),
+        .then((r) => normalizeRankingPrize(unwrapData<RankingPrize>(r.data))),
     onSuccess: (_data, vars) => {
       toast.success('Premio agregado');
       qc.invalidateQueries({ queryKey: ['rankings'] });
@@ -220,7 +220,7 @@ export function useUpdateRankingPrize() {
     }: RankingPrizePayload & { rankingCode: string; prizeId: string }) =>
       apiClient
         .patch(`/admin/rankings/prizes/${prizeId}`, adaptRankingPrizeForBackend(payload))
-        .then((r) => unwrapData<RankingPrize>(r.data)),
+        .then((r) => normalizeRankingPrize(unwrapData<RankingPrize>(r.data))),
     onSuccess: (_data, vars) => {
       toast.success('Premio actualizado');
       qc.invalidateQueries({ queryKey: ['rankings'] });

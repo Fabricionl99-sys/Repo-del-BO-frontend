@@ -41,7 +41,8 @@ describe('RankingsPage', () => {
     await screen.findByText('Top XP Diario');
     fireEvent.click(screen.getAllByText('editar')[0]);
     expect(await screen.findByText('Editar ranking', { selector: 'h2' })).toBeInTheDocument();
-    expect(screen.getByText('2-3')).toBeInTheDocument();
+    expect(await screen.findByText('Premios actuales (3)')).toBeInTheDocument();
+    expect(await screen.findByText(/\[#2-3\]/)).toBeInTheDocument();
   });
 
   it('tab leaderboard y recalcular', async () => {

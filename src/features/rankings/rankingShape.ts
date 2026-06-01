@@ -1,7 +1,7 @@
 import { asArray } from '@/lib/asArray';
 import type { RankingConfig, RankingPrize } from '@/types/rankings';
 
-function normalizeRankingPrize(raw: RankingPrize | Record<string, unknown>): RankingPrize {
+export function normalizeRankingPrize(raw: RankingPrize | Record<string, unknown>): RankingPrize {
   const r = raw as Record<string, unknown>;
   return {
     id: String(r.id ?? ''),
@@ -17,7 +17,7 @@ export function normalizeRankingConfig(raw: RankingConfig | Record<string, unkno
   const r = raw as Record<string, unknown>;
   const asRanking = raw as RankingConfig;
   const prizesRaw = asArray(
-    asRanking.prizes?.length ? asRanking.prizes : (r.prizes as unknown[] | undefined),
+    (r.prizes as RankingPrize[] | undefined) ?? asRanking.prizes,
   );
   const archivedAt = r.archived_at;
   const status: RankingConfig['status'] =

@@ -91,6 +91,11 @@ export function formatPrizeOverlapMessage(
   return `Esta posición ya está cubierta por el premio ${range}. Editá ese premio o elegí un rango distinto.`;
 }
 
+export function formatPrizeRowLabel(prize: RankingPrize): string {
+  const range = formatPositionRange(prize.position_from, prize.position_to);
+  return `[#${range}] ${summarizeRankingReward(prize)}`;
+}
+
 export function findPrizeOverlap(
   prizes: Pick<RankingPrize, 'id' | 'position_from' | 'position_to'>[],
   candidate: { position_from: number; position_to: number },

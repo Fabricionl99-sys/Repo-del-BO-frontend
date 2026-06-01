@@ -13,6 +13,7 @@ import {
   useAddRankingPrize,
   useCreateRanking,
   useDeleteRankingPrize,
+  useRanking,
   useUpdateRanking,
   useUpdateRankingPrize,
 } from '@/features/rankings/rankingsApi';
@@ -31,9 +32,8 @@ import {
   type RankingFormValues,
 } from '@/features/rankings/rankingForm';
 import {
-  formatPositionRange,
+  formatPrizeRowLabel,
   formToPrizePayload,
-  summarizeRankingReward,
 } from '@/features/rankings/rankingPrizeForm';
 import type { RankingConfig, RankingPrize, RankingPrizePayload } from '@/types/rankings';
 import { getApiErrorMessage } from '@/api/errors';
@@ -68,9 +68,13 @@ export function RankingFormModal({
   const updatePrize = useUpdateRankingPrize();
   const deletePrize = useDeleteRankingPrize();
   const chestTypesQ = useChestTypeOptions();
+  const detailQ = useRanking(open && ranking ? ranking.code : null);
 
   const [prizes, setPrizes] = useState<RankingPrize[]>([]);
   const [prizeEditor, setPrizeEditor] = useState<RankingPrize | null | 'new'>(null);
+
+  const rankingDetail = ranking ? (detailQ.data ?? ranking) : null;
+  const prizesLoading = Boolean(ranking && detailQ.isLoading && !detailQ.data);
 
   const form = useForm<RankingFormValues>({
     resolver: zodResolver(rankingFormSchema),
@@ -96,10 +100,16 @@ export function RankingFormModal({
 
   useEffect(() => {
     if (!open) return;
-    reset(ranking ? rankingToForm(ranking) : defaultRankingForm());
-    setPrizes(ranking?.prizes ?? []);
+    reset(rankingDetail ? rankingToForm(rankingDetail) : defaultRankingForm());
+    if (!ranking) {
+      setPrizes([]);
+    } else if (detailQ.data) {
+      setPrizes(detailQ.data.prizes ?? []);
+    } else {
+      setPrizes([]);
+    }
     setPrizeEditor(null);
-  }, [open, ranking, reset]);
+  }, [open, ranking?.code, detailQ.data, rankingDetail, reset]);
 
   const handlePrizeSave = async (
     payload: ReturnType<typeof formToPrizePayload>,
@@ -353,18 +363,30 @@ export function RankingFormModal({
 
           <section>
             <div className="mb-3 flex items-center justify-between">
-              <h3 className="label-section">Premios</h3>
-              <Button size="sm" variant="ghost" icon={<Plus size={14} />} onClick={() => setPrizeEditor('new')}>
+              <h3 className="label-section">
+                Premios actuales ({prizesLoading ? '…' : prizes.length})
+              </h3>
+              <Button
+                size="sm"
+                variant="ghost"
+                icon={<Plus size={14} />}
+                disabled={prizesLoading}
+                onClick={() => setPrizeEditor('new')}
+              >
                 Agregar premio
               </Button>
             </div>
+            {prizesLoading ? (
+              <div className="rounded-lg border border-border-subtle bg-bg-tertiary px-4 py-6 text-center text-[14px] text-text-tertiary">
+                Cargando premios del ranking…
+              </div>
+            ) : (
             <div className="overflow-x-auto rounded-lg border border-border-subtle">
               <table className="w-full text-[14px]">
                 <thead className="bg-bg-tertiary text-left text-text-tertiary">
                   <tr>
-                    <th className="px-3 py-2">posición</th>
-                    <th className="px-3 py-2">reward_type</th>
-                    <th className="px-3 py-2">config</th>
+                    <th className="px-3 py-2">premio</th>
+                    <th className="px-3 py-2">tipo</th>
                     <th className="px-3 py-2">activo</th>
                     <th className="px-3 py-2" />
                   </tr>
@@ -372,13 +394,14 @@ export function RankingFormModal({
                 <tbody>
                   {prizes.map((prize) => (
                     <tr key={prize.id} className="border-t border-border-subtle">
-                      <td className="px-3 py-2 font-mono">{formatPositionRange(prize.position_from, prize.position_to)}</td>
-                      <td className="px-3 py-2">{prize.reward_type}</td>
-                      <td className="px-3 py-2 text-text-secondary">{summarizeRankingReward(prize)}</td>
+                      <td className="px-3 py-2">
+                        <span className="font-mono text-[13px]">{formatPrizeRowLabel(prize)}</span>
+                      </td>
+                      <td className="px-3 py-2 text-text-secondary">{prize.reward_type}</td>
                       <td className="px-3 py-2">{prize.is_active ? '✓' : '—'}</td>
                       <td className="px-3 py-2">
                         <div className="flex gap-1">
-                          <Button size="sm" variant="ghost" onClick={() => setPrizeEditor(prize)}>editar</Button>
+                          <Button size="sm" variant="ghost" onClick={() => setPrizeEditor(prize)}>Editar</Button>
                           <Button size="sm" variant="ghost" icon={<Trash2 size={12} />} onClick={() => handleRemovePrize(prize)} />
                         </div>
                       </td>
@@ -386,12 +409,13 @@ export function RankingFormModal({
                   ))}
                   {prizes.length === 0 && (
                     <tr>
-                      <td colSpan={5} className="px-3 py-6 text-center text-text-tertiary">Sin premios configurados</td>
+                      <td colSpan={4} className="px-3 py-6 text-center text-text-tertiary">Sin premios configurados</td>
                     </tr>
                   )}
                 </tbody>
               </table>
             </div>
+            )}
           </section>
         </div>
       </Modal>

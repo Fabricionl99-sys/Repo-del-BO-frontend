@@ -26,6 +26,7 @@ import {
   summarizeRankingReward,
 } from '@/features/rankings/rankingPrizeForm';
 import {
+  useRanking,
   useRankingLeaderboard,
   useRankings,
   useRecomputeRanking,
@@ -72,10 +73,16 @@ export default function RankingsPage() {
   const existingCodes = useMemo(() => rankings.map((r) => r.code), [rankings]);
 
   const leaderboardCode = selectedCode || activeRankings[0]?.code || '';
+  const leaderboardRankingQ = useRanking(
+    tab === 'Leaderboards en vivo' && leaderboardCode ? leaderboardCode : null,
+  );
   const leaderboardQ = useRankingLeaderboard(tab === 'Leaderboards en vivo' ? leaderboardCode : null);
   const recompute = useRecomputeRanking();
 
-  const selectedRanking = rankings.find((r) => r.code === leaderboardCode) ?? activeRankings[0];
+  const selectedRanking =
+    leaderboardRankingQ.data
+    ?? rankings.find((r) => r.code === leaderboardCode)
+    ?? activeRankings[0];
 
   if (!rankingsActive && mock !== 'loading') {
     return (

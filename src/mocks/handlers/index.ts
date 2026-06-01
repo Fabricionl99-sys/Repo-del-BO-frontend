@@ -1687,7 +1687,7 @@ handlers.push(
       );
     }
     return HttpResponse.json({
-      data: list.map((r) => ({ ...r, prizes: Array.isArray(r.prizes) ? r.prizes : [] })),
+      data: list.map(({ prizes: _prizes, ...r }) => r),
     });
   }),
   http.get('*/admin/rankings/:code', async ({ params }) => {
