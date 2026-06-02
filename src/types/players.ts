@@ -1,0 +1,59 @@
+import type {
+  WidgetInventoryItem,
+  WidgetMission,
+  WidgetNewsItem,
+  WidgetRankingData,
+  WidgetShopProduct,
+} from '@/types/widgetPreview';
+
+export interface PlayerCoinBalance {
+  currency_code: string;
+  balance: string;
+}
+
+/** Shape devuelto por GET /admin/preview-widget/players */
+export interface AdminPlayerSummary {
+  id: string;
+  external_player_id: string;
+  total_xp: string;
+  current_level: number;
+  last_event_at: string | null;
+  created_at: string;
+  coins: PlayerCoinBalance[];
+}
+
+export interface AdminPlayerDetail {
+  player: AdminPlayerSummary;
+  missions?: WidgetMission[];
+  inventory?: WidgetInventoryItem[];
+  shop_products?: WidgetShopProduct[];
+  rankings?: WidgetRankingData;
+  news?: WidgetNewsItem[];
+}
+
+export interface GrantAvatarsManualPayload {
+  player_state_id: string;
+  avatar_ids: string[];
+  reason: string;
+}
+
+export interface GrantAvatarsManualResult {
+  granted: number;
+  alreadyOwned: number;
+  failed: number;
+}
+
+export interface GrantChestsManualPayload {
+  player_state_id: string;
+  chest_type_codes: string[];
+  notes?: string;
+}
+
+export interface GrantChestsManualResult {
+  granted: number;
+  failed: number;
+}
+
+export interface SetPlayerCurrencyPayload {
+  currency_code: string;
+}

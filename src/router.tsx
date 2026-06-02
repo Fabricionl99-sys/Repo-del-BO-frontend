@@ -47,6 +47,7 @@ const WalletPage = lazy(() => import('@/features/wallet/pages/WalletPage'));
 const ModulesPage = lazy(() => import('@/features/modules/pages/ModulesPage'));
 const BonusesPage = lazy(() => import('@/features/operatorBonuses/pages/BonusesPage'));
 const WidgetPreviewPage = lazy(() => import('@/features/widget-preview/pages/WidgetPreviewPage'));
+const PlayersPage = lazy(() => import('@/features/players/pages/PlayersPage'));
 const RafflesPage = lazy(() => import('@/features/raffles/pages/RafflesPage'));
 const RaffleDetailPage = lazy(() => import('@/features/raffles/pages/RaffleDetailPage'));
 const WheelsPage = lazy(() => import('@/features/wheels/pages/WheelsPage'));
@@ -100,6 +101,7 @@ export const router = createBrowserRouter([
       { path: 'reglas-xp', element: wrap(<RulesListPage />) },
       { path: 'reglas-xp/:id', element: wrap(<RuleEditorPage />) },
       { path: 'curva-niveles', element: wrap(<LevelsCurvePage />) },
+      { path: 'jugadores', element: wrap(<PlayersPage />) },
       { path: 'monedas', element: wrap(<CoinsPage />) },
       { path: 'misiones', element: wrap(<MissionsPage />) },
       { path: 'misiones/nueva', element: wrap(<MissionEditorPage />) },

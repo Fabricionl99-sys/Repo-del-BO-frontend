@@ -2356,6 +2356,12 @@ handlers.push(
 );
 
 import { buildPlayerWidgetData, getPreviewPlayers } from '@/mocks/data/widgetPreview';
+import {
+  adminPlayerSummaries,
+  getAdminPlayerDetail,
+  getAdminPlayers,
+  setPlayerCurrency,
+} from '@/mocks/data/adminPlayers';
 
 function playerIdFromUrl(url: string): string | null {
   return new URL(url).searchParams.get('player_id');
@@ -2364,7 +2370,37 @@ function playerIdFromUrl(url: string): string | null {
 handlers.push(
   http.get('*/admin/preview-widget/players', async () => {
     await wait();
-    return HttpResponse.json({ data: getPreviewPlayers() });
+    return HttpResponse.json({ data: getAdminPlayers() });
+  }),
+  http.get('*/admin/preview-widget/player', async ({ request }) => {
+    await wait();
+    const playerId = playerIdFromUrl(request.url);
+    const data = playerId ? getAdminPlayerDetail(playerId) : null;
+    if (!data) return new HttpResponse(null, { status: 404 });
+    return HttpResponse.json({ data });
+  }),
+  http.post('*/admin/avatars/grant-manual', async ({ request }) => {
+    await wait();
+    const body = (await request.json()) as {
+      player_state_id: string;
+      avatar_ids: string[];
+      reason?: string;
+    };
+    const ids = body.avatar_ids ?? [];
+    return HttpResponse.json({
+      data: {
+        granted: ids.length,
+        alreadyOwned: 0,
+        failed: 0,
+      },
+    });
+  }),
+  http.post('*/admin/players/:id/currency', async ({ params, request }) => {
+    await wait();
+    const body = (await request.json()) as { currency_code: string };
+    const updated = setPlayerCurrency(String(params.id), body.currency_code);
+    if (!updated) return new HttpResponse(null, { status: 404 });
+    return HttpResponse.json({ data: updated });
   }),
   http.get('*/player/widget', async ({ request }) => {
     await wait();

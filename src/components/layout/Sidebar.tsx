@@ -59,6 +59,7 @@ const sections = [
     items: [
       ['/reglas-xp', 'Reglas de XP', Zap] as const,
       ['/curva-niveles', 'Curva de niveles', LineChart] as const,
+      ['/jugadores', 'Jugadores', Users] as const,
       ['/monedas', 'Monedas', Coins] as const,
     ],
   },
