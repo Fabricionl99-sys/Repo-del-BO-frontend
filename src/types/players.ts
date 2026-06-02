@@ -34,7 +34,7 @@ export interface AdminPlayerDetail {
 export interface GrantAvatarsManualPayload {
   player_state_id: string;
   avatar_ids: string[];
-  reason: string;
+  reason?: string;
 }
 
 export interface GrantAvatarsManualResult {

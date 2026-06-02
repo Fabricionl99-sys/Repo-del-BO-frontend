@@ -5,7 +5,6 @@ import { getApiErrorMessage, getHttpStatus } from '@/api/errors';
 import { unwrapData } from '@/api/response';
 import { toast } from '@/stores/toastStore';
 import {
-  DEFAULT_AVATAR_GRANT_REASON,
   type Avatar,
   type AvatarCategory,
   type AvatarCategoryPayload,
@@ -232,14 +231,14 @@ export function useGrantAvatarManual() {
     mutationFn: (payload: {
       playerStateId: string;
       avatarIds: string[];
-      reason: string;
+      reason?: string;
     }) => {
-      const reason = payload.reason.trim() || DEFAULT_AVATAR_GRANT_REASON;
+      const reason = payload.reason?.trim() ?? '';
       return apiClient
         .post('/admin/avatars/grant-manual', {
           player_state_id: payload.playerStateId,
           avatar_ids: payload.avatarIds,
-          reason,
+          ...(reason ? { reason } : {}),
         })
         .then((r) => unwrapData<AvatarGrantManualResult>(r.data));
     },

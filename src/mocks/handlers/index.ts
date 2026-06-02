@@ -819,8 +819,11 @@ handlers.push(
   http.delete('*/admin/notifications/templates/:id', async ({ params }) => {
     await wait();
     const item = notificationTemplates.find((t) => t.id === params.id);
-    if (item) item.is_active = false;
-    return new HttpResponse(null, { status: 204 });
+    if (!item) return new HttpResponse(null, { status: 404 });
+    item.is_active = false;
+    return HttpResponse.json({
+      data: { ...item, archived: true, archived_at: new Date().toISOString() },
+    });
   }),
   http.post('*/admin/notifications/templates/:id/preview', async ({ params, request }) => {
     await wait();

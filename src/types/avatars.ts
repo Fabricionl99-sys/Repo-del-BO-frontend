@@ -150,7 +150,7 @@ export interface AvatarInventoryQuery {
 export interface AvatarGrantManualPayload {
   player_state_id: string;
   avatar_ids: string[];
-  reason: string;
+  reason?: string;
 }
 
 export interface AvatarGrantManualResult {
@@ -160,6 +160,11 @@ export interface AvatarGrantManualResult {
 }
 
 export const DEFAULT_AVATAR_GRANT_REASON = 'Asignación manual desde BO';
+
+/** Copy compartido para entrega manual → notificación in_app del jugador (td-107). */
+export const GRANT_PLAYER_MESSAGE_LABEL = 'Mensaje al jugador (aparece en su notificación)';
+export const GRANT_PLAYER_MESSAGE_PLACEHOLDER =
+  'Ej: Premio por participar en el torneo del fin de semana';
 
 export interface AvatarsCatalogStats {
   active_count: number;

@@ -87,6 +87,7 @@ describe('AvatarsPage', () => {
     wrap();
     await screen.findByText('León Dorado');
     fireEvent.click(screen.getByRole('button', { name: 'Asignación manual' }));
+    expect(screen.getByText('Mensaje al jugador (aparece en su notificación)')).toBeInTheDocument();
     fireEvent.change(screen.getByPlaceholderText('handle o id (mín. 2 chars)...'), {
       target: { value: 'crypto' },
     });

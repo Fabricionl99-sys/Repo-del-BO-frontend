@@ -10,6 +10,7 @@ import {
   templateToForm,
   triggersTakenForLanguage,
 } from './notificationForm';
+import { normalizeNotificationTemplate } from './notificationTemplateShape';
 
 describe('notificationForm combo helpers', () => {
   it('finds template by trigger and language', () => {
@@ -71,5 +72,26 @@ describe('notificationForm audience_filter', () => {
       player_level_min: 5,
       player_level_max: 20,
     });
+  });
+});
+
+describe('notificationForm content_by_channel', () => {
+  it('maps in_app body to form and save payload', () => {
+    const template = normalizeNotificationTemplate({
+      id: 'ntpl_manual',
+      code: 'manual_broadcast',
+      name: 'Broadcast manual',
+      trigger_event: 'manual',
+      channels: ['in_app'],
+      body: '',
+      content_by_channel: {
+        in_app: { body: 'Te entregamos un avatar de regalo.' },
+      },
+    });
+    const form = templateToForm(template);
+    expect(form.body).toBe('Te entregamos un avatar de regalo.');
+    expect(formToTemplatePayload(form).content_by_channel?.in_app?.body).toBe(
+      'Te entregamos un avatar de regalo.',
+    );
   });
 });

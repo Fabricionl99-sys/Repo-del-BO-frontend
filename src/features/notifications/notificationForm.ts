@@ -8,6 +8,8 @@ import type {
   TriggerEvent,
 } from '@/types/notifications';
 
+import { buildContentByChannel } from './notificationTemplateShape';
+
 /**
  * Decisión founder (Sprint #6): en gamificación SOLO usamos in_app + push web.
  * El email y SMS los maneja el CRM del operador a través de los webhooks que
@@ -230,5 +232,6 @@ export function formToTemplatePayload(values: NotificationTemplateFormValues): N
     is_active: values.is_active,
     language: values.language || 'es',
     audience_filter: formToAudienceFilter(values),
+    content_by_channel: buildContentByChannel(values),
   };
 }

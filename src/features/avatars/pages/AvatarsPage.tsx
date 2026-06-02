@@ -27,7 +27,7 @@ import type {
   AvatarUnlockedVia,
   PlayerAvatarInventoryItem,
 } from '@/types/avatars';
-import { MAX_ACTIVE_AVATARS, DEFAULT_AVATAR_GRANT_REASON } from '@/types/avatars';
+import { MAX_ACTIVE_AVATARS, GRANT_PLAYER_MESSAGE_LABEL, GRANT_PLAYER_MESSAGE_PLACEHOLDER } from '@/types/avatars';
 
 import { unlockMethodLabel } from '../avatarForm';
 import {
@@ -211,7 +211,7 @@ export default function AvatarsPage() {
     await grantManual.mutateAsync({
       playerStateId: grantPlayerId.trim(),
       avatarIds: [grantAvatarId],
-      reason: grantReason.trim() || DEFAULT_AVATAR_GRANT_REASON,
+      reason: grantReason.trim() || undefined,
     });
     setGrantPlayerId('');
     setGrantPlayerQuery('');
@@ -483,8 +483,13 @@ export default function AvatarsPage() {
             </select>
           </div>
           <div>
-            <label className="mb-1.5 block text-[14px] text-text-secondary">Razón (opcional)</label>
-            <textarea className="field min-h-16" value={grantReason} onChange={(e) => setGrantReason(e.target.value)} />
+            <label className="mb-1.5 block text-[14px] text-text-secondary">{GRANT_PLAYER_MESSAGE_LABEL}</label>
+            <textarea
+              className="field min-h-16"
+              placeholder={GRANT_PLAYER_MESSAGE_PLACEHOLDER}
+              value={grantReason}
+              onChange={(e) => setGrantReason(e.target.value)}
+            />
           </div>
           <Button
             variant="primary"

@@ -185,14 +185,25 @@ export const notificationTemplates: NotificationTemplate[] = [
     name: 'Broadcast manual',
     description: 'Template para envíos desde el BO',
     trigger_event: 'manual',
-    channels: ['in_app', 'email', 'push'],
-    subject: 'Mensaje de {{operator_name}}',
-    body: 'Hola {{player_name}}, tenemos novedades para vos.',
-    body_html: '<p>Hola {{player_name}},</p><p>Tenemos novedades para vos.</p>',
+    channels: ['in_app', 'push'],
+    subject: null,
+    body: '',
+    body_html: null,
     cta_text: 'Ver más',
     cta_url: 'https://widget.niveles.io',
-    is_active: false,
+    is_active: true,
     language: 'es',
+    content_by_channel: {
+      in_app: {
+        title: '¡Tenés un nuevo premio!',
+        body: 'Te entregamos un avatar de regalo. Revisá tu colección.',
+      },
+      push: {
+        body: 'Tenemos novedades para vos.',
+      },
+    },
+  } as NotificationTemplate & {
+    content_by_channel?: Record<string, { title?: string; body?: string }>;
   },
 ];
 

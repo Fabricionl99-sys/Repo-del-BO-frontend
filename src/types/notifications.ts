@@ -81,6 +81,19 @@ export interface NotificationTemplate {
   audience_filter?: NotificationAudienceFilter | null;
 }
 
+export interface NotificationChannelContent {
+  title?: string | null;
+  body?: string | null;
+  body_html?: string | null;
+  subject?: string | null;
+  cta_text?: string | null;
+  cta_url?: string | null;
+}
+
+export type NotificationTemplatePayload = Omit<NotificationTemplate, 'id'> & {
+  content_by_channel?: Partial<Record<ChannelType, NotificationChannelContent>>;
+};
+
 export interface NotificationHistoryItem {
   id: string;
   player_id: string;
@@ -110,8 +123,6 @@ export interface NotificationStats {
     sms: number;
   }>;
 }
-
-export type NotificationTemplatePayload = Omit<NotificationTemplate, 'id'>;
 
 export type ChannelPatchPayload = {
   is_enabled?: boolean;

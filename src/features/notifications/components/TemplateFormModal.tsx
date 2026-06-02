@@ -31,6 +31,7 @@ import {
 } from '../notificationVariables';
 import {
   useCreateNotificationTemplate,
+  useNotificationTemplate,
   useUpdateNotificationTemplate,
 } from '../notificationsApi';
 import { VISIBLE_CHANNELS } from '../notificationForm';
@@ -62,6 +63,9 @@ export function TemplateFormModal({
 }) {
   const create = useCreateNotificationTemplate();
   const update = useUpdateNotificationTemplate();
+  const detailQ = useNotificationTemplate(
+    open && template?.id && !template.body.trim() ? template.id : null,
+  );
   const bodyRef = useRef<HTMLTextAreaElement | null>(null);
   const formScrollRef = useRef<HTMLDivElement | null>(null);
   const [previewChannel, setPreviewChannel] = useState<ChannelType>('in_app');
@@ -99,10 +103,12 @@ export function TemplateFormModal({
 
   useEffect(() => {
     if (!open) return;
-    reset(template ? templateToForm(template) : defaultTemplateForm());
-    setPreviewChannel(template?.channels[0] ?? 'in_app');
+    const source =
+      template && !template.body.trim() && detailQ.data ? detailQ.data : template;
+    reset(source ? templateToForm(source) : defaultTemplateForm());
+    setPreviewChannel((source ?? template)?.channels[0] ?? 'in_app');
     setFormError(undefined);
-  }, [open, template, reset]);
+  }, [open, template, detailQ.data, reset]);
 
   const onInvalid = (fieldErrors: FieldErrors<NotificationTemplateFormValues>) => {
     setFormError('Revisá los campos marcados en rojo.');

@@ -1,8 +1,10 @@
-import { Bell, Plus, Send } from 'lucide-react';
+import { Bell, Pencil, Plus, Send, Trash2 } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import { Link, useLocation, useNavigate, useParams, useSearchParams } from 'react-router-dom';
 
 import { Button } from '@/components/ui/Button';
+import { ArchiveConfirmModal } from '@/components/lifecycle/ArchiveConfirmModal';
+import { CardActionItem, CardActionsMenu } from '@/components/lifecycle/CardActionsMenu';
 import { PlayerSearchResults } from '@/components/players/PlayerSearchResults';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { ErrorState } from '@/components/ui/ErrorState';
@@ -42,6 +44,7 @@ import {
   useNotificationHistory,
   useNotificationStats,
   useNotificationTemplates,
+  useArchiveNotificationTemplate,
   useSendManualNotification,
   useTestNotificationChannel,
 } from '../notificationsApi';
@@ -96,6 +99,7 @@ export default function NotificationsPage() {
   const [manualTemplateCode, setManualTemplateCode] = useState('');
   const [manualVariablesJson, setManualVariablesJson] = useState('{}');
   const [templatePreview, setTemplatePreview] = useState<NotificationTemplate | null>(null);
+  const [archiveTemplateTarget, setArchiveTemplateTarget] = useState<NotificationTemplate | null>(null);
   const debouncedPlayerQ = useDebounce(manualPlayerQuery, 250);
 
   const channelsQ = useNotificationChannels();
@@ -115,6 +119,7 @@ export default function NotificationsPage() {
   const statsQ = useNotificationStats();
   const testChannel = useTestNotificationChannel();
   const sendManual = useSendManualNotification();
+  const archiveTemplate = useArchiveNotificationTemplate();
   const playerSearchQ = usePlayerSearch(debouncedPlayerQ);
 
   const channels = mock === 'empty' ? [] : (channelsQ.data ?? []);
@@ -240,13 +245,33 @@ export default function NotificationsPage() {
       key: 'actions',
       header: '',
       render: (t) => (
-        <div className="flex gap-1">
-          <Button size="sm" variant="ghost" onClick={() => openEditTemplate(t)}>
-            editar
-          </Button>
+        <div className="relative flex justify-end gap-1" onClick={(e) => e.stopPropagation()}>
           <Button size="sm" variant="ghost" onClick={() => setTemplatePreview(t)}>
             vista previa
           </Button>
+          <CardActionsMenu>
+            {(close) => (
+              <>
+                <CardActionItem
+                  label="Editar"
+                  icon={<Pencil className="h-4 w-4" />}
+                  onClick={() => {
+                    close();
+                    openEditTemplate(t);
+                  }}
+                />
+                <CardActionItem
+                  label="Archivar"
+                  icon={<Trash2 className="h-4 w-4" />}
+                  danger
+                  onClick={() => {
+                    close();
+                    setArchiveTemplateTarget(t);
+                  }}
+                />
+              </>
+            )}
+          </CardActionsMenu>
         </div>
       ),
     },
@@ -532,6 +557,17 @@ export default function NotificationsPage() {
         open={!!templatePreview}
         template={templatePreview}
         onClose={() => setTemplatePreview(null)}
+      />
+      <ArchiveConfirmModal
+        open={archiveTemplateTarget !== null}
+        title={archiveTemplateTarget ? `Archivar "${archiveTemplateTarget.name}"` : 'Archivar template'}
+        description="El template dejará de enviarse. Podés verlo en la lista filtrando por archivados."
+        loading={archiveTemplate.isPending}
+        onClose={() => setArchiveTemplateTarget(null)}
+        onConfirm={async () => {
+          if (!archiveTemplateTarget) return;
+          await archiveTemplate.mutateAsync(archiveTemplateTarget.id);
+        }}
       />
     </>
   );

@@ -1,5 +1,6 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
 import { describe, expect, it } from 'vitest';
 
@@ -65,6 +66,24 @@ describe('NotificationsPage', () => {
       'href',
       '/notificaciones/templates/ntpl_welcome',
     );
+  });
+
+  it('carga body in_app desde content_by_channel al editar', async () => {
+    wrap('/notificaciones/templates/ntpl_manual');
+    expect(
+      await screen.findByDisplayValue('Te entregamos un avatar de regalo. Revisá tu colección.'),
+    ).toBeInTheDocument();
+  });
+
+  it('muestra acción archivar en menú de template', async () => {
+    const user = userEvent.setup();
+    wrap();
+    await screen.findByText('In-app');
+    fireEvent.click(screen.getByRole('button', { name: 'Templates' }));
+    await screen.findByText('Bienvenida al casino');
+    await user.click(screen.getAllByTitle('Acciones')[0]);
+    expect(screen.getByRole('button', { name: 'Archivar' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Editar' })).toBeInTheDocument();
   });
 
   it('muestra code al editar template existente', async () => {

@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { Button } from '@/components/ui/Button';
 import { Modal } from '@/components/ui/Modal';
 import { useAvatars } from '@/features/avatars/avatarsApi';
+import { GRANT_PLAYER_MESSAGE_LABEL, GRANT_PLAYER_MESSAGE_PLACEHOLDER } from '@/types/avatars';
 import { useGrantAvatarsManual } from '@/features/players/playersApi';
 
 export function GrantAvatarsModal({
@@ -19,7 +20,7 @@ export function GrantAvatarsModal({
   const avatarsQ = useAvatars({ status: 'active' });
   const grant = useGrantAvatarsManual();
   const [selected, setSelected] = useState<string[]>([]);
-  const [reason, setReason] = useState('Entrega manual desde BO');
+  const [reason, setReason] = useState('');
 
   const toggle = (id: string) => {
     setSelected((current) =>
@@ -29,16 +30,16 @@ export function GrantAvatarsModal({
 
   const handleClose = () => {
     setSelected([]);
-    setReason('Entrega manual desde BO');
+    setReason('');
     onClose();
   };
 
   const submit = async () => {
-    if (!playerId || selected.length === 0 || !reason.trim()) return;
+    if (!playerId || selected.length === 0) return;
     await grant.mutateAsync({
       player_state_id: playerId,
       avatar_ids: selected,
-      reason: reason.trim(),
+      reason: reason.trim() || undefined,
     });
     onGranted?.();
     handleClose();
@@ -60,7 +61,7 @@ export function GrantAvatarsModal({
           <Button
             variant="primary"
             loading={grant.isPending}
-            disabled={!playerId || selected.length === 0 || !reason.trim()}
+            disabled={!playerId || selected.length === 0}
             onClick={submit}
           >
             Entregar ({selected.length})
@@ -95,8 +96,13 @@ export function GrantAvatarsModal({
           )}
         </div>
         <label className="block space-y-1">
-          <span className="text-[14px] font-medium text-text-secondary">Motivo</span>
-          <textarea className="field min-h-[80px]" value={reason} onChange={(e) => setReason(e.target.value)} />
+          <span className="text-[14px] font-medium text-text-secondary">{GRANT_PLAYER_MESSAGE_LABEL}</span>
+          <textarea
+            className="field min-h-[80px]"
+            placeholder={GRANT_PLAYER_MESSAGE_PLACEHOLDER}
+            value={reason}
+            onChange={(e) => setReason(e.target.value)}
+          />
         </label>
       </div>
     </Modal>

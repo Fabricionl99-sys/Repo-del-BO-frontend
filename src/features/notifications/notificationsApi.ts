@@ -19,6 +19,8 @@ import type {
   TemplatePreviewResult,
 } from '@/types/notifications';
 
+import { normalizeNotificationTemplate } from './notificationTemplateShape';
+
 export function useNotificationChannels() {
   return useQuery({
     queryKey: ['notification-channels'],
@@ -78,7 +80,8 @@ export function useNotificationTemplates(params?: {
       if (params?.search) sp.set('search', params.search);
       const q = sp.toString();
       const res = await apiClient.get(`/admin/notifications/templates${q ? `?${q}` : ''}`);
-      return unwrapData<NotificationTemplate[]>(res.data);
+      const rows = unwrapData<Record<string, unknown>[]>(res.data);
+      return rows.map(normalizeNotificationTemplate);
     },
   });
 }
@@ -88,7 +91,9 @@ export function useNotificationTemplate(id: string | null) {
     queryKey: ['notification-template', id],
     enabled: !!id,
     queryFn: () =>
-      apiClient.get(`/admin/notifications/templates/${id}`).then((r) => unwrapData<NotificationTemplate>(r.data)),
+      apiClient
+        .get(`/admin/notifications/templates/${id}`)
+        .then((r) => normalizeNotificationTemplate(unwrapData<Record<string, unknown>>(r.data))),
   });
 }
 
@@ -126,6 +131,10 @@ export function useArchiveNotificationTemplate() {
     onSuccess: () => {
       toast.success('Template archivado');
       qc.invalidateQueries({ queryKey: ['notification-templates'] });
+      qc.invalidateQueries({ queryKey: ['notification-template'] });
+    },
+    onError: (err) => {
+      toast.error(getApiErrorMessage(err, 'No se pudo archivar'));
     },
   });
 }
