@@ -2,7 +2,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 import { apiClient } from '@/api/client';
 import { getApiErrorMessage } from '@/api/errors';
-import { unwrapData } from '@/api/response';
+import { unwrapData, unwrapDataList } from '@/api/response';
 import { normalizeAdminPlayer, normalizePlayerSearchResult } from '@/features/players/normalizePlayer';
 import { toast } from '@/stores/toastStore';
 import { trackEvent } from '@/lib/analytics';
@@ -70,19 +70,20 @@ export function usePlayerDetail(playerId: string | null) {
   });
 }
 
-export function usePlayerSearch(query: string) {
+export function usePlayerSearch(query: string, options?: { enabled?: boolean }) {
   const q = query.trim();
+  const pickerEnabled = options?.enabled ?? true;
   return useQuery({
     queryKey: ['player-search', q],
-    enabled: q.length >= 2,
+    enabled: pickerEnabled && q.length >= 2,
     queryFn: () =>
       apiClient
         .get(`/admin/players/search?q=${encodeURIComponent(q)}`)
         .then((r) => {
-          const rows = unwrapData<unknown[]>(r.data) ?? [];
+          const rows = unwrapDataList<Record<string, unknown>>(r.data);
           const data = rows
-            .map((row) => normalizePlayerSearchResult(row as Record<string, unknown>))
-            .filter((p) => p.player_id.length > 0);
+            .map((row) => normalizePlayerSearchResult(row))
+            .filter((p) => p.player_id.length > 0 && p.player_id !== 'undefined');
           trackEvent('player_searched');
           return data satisfies PlayerSearchResult[];
         }),

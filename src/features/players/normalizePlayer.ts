@@ -12,48 +12,57 @@ export function adminSummaryToPlayerSearchResult(player: AdminPlayerSummary): Pl
   };
 }
 
-export function normalizePlayerSearchResult(raw: Record<string, unknown>): PlayerSearchResult {
-  if (raw.player_id != null && raw.external_player_id != null && raw.id == null) {
-    return {
-      player_id: String(raw.player_id),
-      external_player_id: String(raw.external_player_id),
-      level: Number(raw.level ?? raw.current_level ?? 1),
-      coins: Array.isArray(raw.coins)
-        ? String((raw.coins[0] as Record<string, unknown>)?.balance ?? '0')
-        : String(raw.coins ?? '0'),
-      currency_code: Array.isArray(raw.coins)
-        ? String((raw.coins[0] as Record<string, unknown>)?.currency_code ?? 'main')
-        : String(raw.currency_code ?? 'main'),
-    };
-  }
-
-  if (raw.external_player_id != null && raw.id != null) {
-    return adminSummaryToPlayerSearchResult(normalizeAdminPlayer(raw));
-  }
-
-  const player_id = String(raw.player_id ?? raw.player_state_id ?? '');
-  const external_player_id = String(
-    raw.player_handle ?? raw.display_name ?? raw.external_player_id ?? player_id,
-  );
-  const level = Number(raw.current_level ?? raw.level ?? 1);
-
+function coinsFromRaw(raw: Record<string, unknown>): { coins: string; currency_code: string } {
   if (Array.isArray(raw.coins) && raw.coins.length > 0) {
     const first = raw.coins[0] as Record<string, unknown>;
     return {
-      player_id,
-      external_player_id,
-      level,
       coins: String(first.balance ?? first.amount ?? '0'),
       currency_code: String(first.currency_code ?? 'main'),
     };
   }
-
   return {
-    player_id,
-    external_player_id,
-    level,
     coins: String(raw.coins ?? '0'),
     currency_code: String(raw.currency_code ?? 'main'),
+  };
+}
+
+export function normalizePlayerSearchResult(raw: Record<string, unknown>): PlayerSearchResult {
+  const playerStateId = String(raw.id ?? raw.player_state_id ?? raw.player_id ?? '').trim();
+  const externalPlayerId = String(
+    raw.external_player_id ?? raw.player_handle ?? raw.display_name ?? '',
+  ).trim();
+  const level = Number(raw.current_level ?? raw.level ?? 1);
+  const { coins, currency_code } = coinsFromRaw(raw);
+
+  if (playerStateId && externalPlayerId) {
+    return {
+      player_id: playerStateId,
+      external_player_id: externalPlayerId,
+      level,
+      coins,
+      currency_code,
+    };
+  }
+
+  if (raw.player_id != null && raw.external_player_id != null) {
+    return {
+      player_id: String(raw.player_id).trim(),
+      external_player_id: String(raw.external_player_id).trim(),
+      level,
+      coins,
+      currency_code,
+    };
+  }
+
+  const fallbackId = playerStateId || String(raw.player_id ?? raw.player_state_id ?? '').trim();
+  const fallbackExternal = externalPlayerId || fallbackId;
+
+  return {
+    player_id: fallbackId,
+    external_player_id: fallbackExternal,
+    level,
+    coins,
+    currency_code,
   };
 }
 

@@ -65,7 +65,7 @@ describe('MissionsPage', () => {
     await screen.findByText(/Apostá \$500 esta semana/);
     fireEvent.click(screen.getByRole('button', { name: 'Asignación manual' }));
     expect(screen.getByText('Mensaje al jugador (aparece en su notificación)')).toBeInTheDocument();
-    fireEvent.change(screen.getByPlaceholderText('external_player_id (mín. 2 chars)...'), {
+    fireEvent.change(screen.getByPlaceholderText('handle o id (mín. 2 chars)...'), {
       target: { value: 'crypto' },
     });
     const listbox = await screen.findByRole('listbox');
@@ -77,7 +77,24 @@ describe('MissionsPage', () => {
     fireEvent.change(missionSelect, { target: { value: 'mission_weekly_bet_500' } });
     fireEvent.click(screen.getByRole('button', { name: 'Asignar' }));
     await waitFor(() => {
-      expect(screen.getByPlaceholderText('external_player_id (mín. 2 chars)...')).toHaveValue('');
+      expect(screen.getByPlaceholderText('handle o id (mín. 2 chars)...')).toHaveValue('');
+    });
+  });
+
+  it('modal asignar manualmente desde catálogo', async () => {
+    wrap(<MissionsPage />);
+    await screen.findByText(/Apostá \$500 esta semana/);
+    fireEvent.click(screen.getAllByTitle('acciones')[0]!);
+    fireEvent.click(screen.getByRole('button', { name: 'Asignar manualmente' }));
+    expect(screen.getByRole('dialog')).toBeInTheDocument();
+    fireEvent.change(screen.getByPlaceholderText('handle o id (mín. 2 chars)...'), {
+      target: { value: 'crypto' },
+    });
+    await waitFor(() => expect(screen.getByText('crypto_king_88')).toBeInTheDocument());
+    fireEvent.click(screen.getByText('crypto_king_88'));
+    fireEvent.click(screen.getByRole('button', { name: 'Asignar' }));
+    await waitFor(() => {
+      expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
     });
   });
 });

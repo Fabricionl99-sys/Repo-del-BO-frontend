@@ -1,8 +1,8 @@
-import { MoreVertical, Pencil, Plus, Trash2 } from 'lucide-react';
+import { MoreVertical, Pencil, Plus, Trash2, UserPlus } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 
-import { PlayerSearchResults } from '@/components/players/PlayerSearchResults';
+import { PlayerSearchPicker } from '@/components/players/PlayerSearchPicker';
 import { ArchiveConfirmModal } from '@/components/lifecycle/ArchiveConfirmModal';
 import { PermanentDeleteModal } from '@/components/lifecycle/PermanentDeleteModal';
 import { Button } from '@/components/ui/Button';
@@ -18,11 +18,7 @@ import { StatusPill } from '@/components/ui/StatusPill';
 import { Switch } from '@/components/ui/Switch';
 import { Table, type Column } from '@/components/ui/Table';
 import { Toolbar } from '@/components/ui/Toolbar';
-import {
-  actionTypeLabel,
-  MISSION_ACTION_TYPES,
-  type MissionActionType,
-} from '@/features/missions/missionActions';
+import { MissionGrantManualModal } from '@/features/missions/components/MissionGrantManualModal';
 import {
   useArchiveMission,
   useDeleteMissionPermanent,
@@ -32,7 +28,11 @@ import {
   useSetMissionActive,
   type AdminMissionListItem,
 } from '@/features/missionsApi';
-import { usePlayerSearch } from '@/features/players/playersApi';
+import {
+  actionTypeLabel,
+  MISSION_ACTION_TYPES,
+  type MissionActionType,
+} from '@/features/missions/missionActions';
 import { useDebounce } from '@/hooks/useDebounce';
 import { cn } from '@/lib/cn';
 import { formatRelativeDate } from '@/lib/format';
@@ -59,13 +59,11 @@ export default function MissionsPage() {
   const [archiveTarget, setArchiveTarget] = useState<AdminMissionListItem | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<AdminMissionListItem | null>(null);
   const [grantPlayerId, setGrantPlayerId] = useState('');
-  const [grantPlayerQuery, setGrantPlayerQuery] = useState('');
   const [grantMissionId, setGrantMissionId] = useState('');
   const [grantReason, setGrantReason] = useState('');
+  const [grantModalMission, setGrantModalMission] = useState<AdminMissionListItem | null>(null);
 
   const debouncedSearch = useDebounce(search, 250);
-  const debouncedGrantQuery = useDebounce(grantPlayerQuery, 250);
-  const playerSearchQ = usePlayerSearch(debouncedGrantQuery);
 
   const allRows = mock === 'empty' ? [] : (q.data ?? []);
   const grantMissions = grantMissionsQ.data ?? [];
@@ -104,7 +102,6 @@ export default function MissionsPage() {
       reason: grantReason.trim() || undefined,
     });
     setGrantPlayerId('');
-    setGrantPlayerQuery('');
     setGrantMissionId('');
     setGrantReason('');
   };
@@ -299,29 +296,11 @@ export default function MissionsPage() {
 
       {tab === 'Asignación manual' && (
         <div className="max-w-lg space-y-4 rounded-xl border border-border-subtle bg-bg-secondary p-6">
-          <div>
-            <label className="mb-1.5 block text-[14px] text-text-secondary">Buscar jugador</label>
-            <SearchInput
-              placeholder="external_player_id (mín. 2 chars)..."
-              value={grantPlayerQuery}
-              onChange={(e) => setGrantPlayerQuery(e.target.value)}
-            />
-            <PlayerSearchResults
-              results={playerSearchQ.data}
-              onSelect={(p) => {
-                setGrantPlayerId(p.player_id);
-                setGrantPlayerQuery(p.external_player_id);
-              }}
-            />
-          </div>
-          <div>
-            <label className="mb-1.5 block text-[14px] text-text-secondary">player_id seleccionado</label>
-            <input
-              className="field font-mono text-[14px]"
-              value={grantPlayerId}
-              onChange={(e) => setGrantPlayerId(e.target.value)}
-            />
-          </div>
+          <PlayerSearchPicker
+            enabled
+            selectedPlayerId={grantPlayerId}
+            onSelectedPlayerIdChange={setGrantPlayerId}
+          />
           <div>
             <label className="mb-1.5 block text-[14px] text-text-secondary">Misión a asignar</label>
             {grantMissions.length === 0 ? (
@@ -362,6 +341,18 @@ export default function MissionsPage() {
       )}
 
       <RowContextMenu anchor={menuAnchor} onClose={closeMenu}>
+        {menuMission?.status !== 'archived' && menuMission?.isActive && (
+          <button
+            type="button"
+            className="flex w-full items-center gap-2 px-3 py-2 text-left text-[14px] hover:bg-bg-tertiary"
+            onClick={() => {
+              setGrantModalMission(menuMission!);
+              closeMenu();
+            }}
+          >
+            <UserPlus size={14} /> Asignar manualmente
+          </button>
+        )}
         {menuMission?.status !== 'archived' && (
           <>
             <button
@@ -399,6 +390,12 @@ export default function MissionsPage() {
           </button>
         )}
       </RowContextMenu>
+
+      <MissionGrantManualModal
+        open={grantModalMission !== null}
+        mission={grantModalMission ? { id: grantModalMission.id, name: grantModalMission.name } : null}
+        onClose={() => setGrantModalMission(null)}
+      />
 
       <ArchiveConfirmModal
         open={archiveTarget !== null}
