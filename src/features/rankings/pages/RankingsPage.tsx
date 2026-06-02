@@ -3,6 +3,8 @@ import { useMemo, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 
 import { Button } from '@/components/ui/Button';
+import { ArchiveConfirmModal } from '@/components/lifecycle/ArchiveConfirmModal';
+import { PermanentDeleteModal } from '@/components/lifecycle/PermanentDeleteModal';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { ErrorState } from '@/components/ui/ErrorState';
 import { FilterPill } from '@/components/ui/FilterPill';
@@ -26,6 +28,8 @@ import {
   summarizeRankingReward,
 } from '@/features/rankings/rankingPrizeForm';
 import {
+  useArchiveRanking,
+  useDeleteRankingPermanent,
   useRanking,
   useRankingLeaderboard,
   useRankings,
@@ -56,6 +60,8 @@ export default function RankingsPage() {
   const debouncedSearch = useDebounce(search, 250);
 
   const [editorRanking, setEditorRanking] = useState<RankingConfig | null | 'new'>(null);
+  const [archiveRankingTarget, setArchiveRankingTarget] = useState<RankingConfig | null>(null);
+  const [deleteRankingTarget, setDeleteRankingTarget] = useState<RankingConfig | null>(null);
   const [selectedCode, setSelectedCode] = useState<string>('');
 
   const rankingsQ = useRankings({
@@ -73,6 +79,8 @@ export default function RankingsPage() {
   const existingCodes = useMemo(() => rankings.map((r) => r.code), [rankings]);
 
   const leaderboardCode = selectedCode || activeRankings[0]?.code || '';
+  const archiveRanking = useArchiveRanking();
+  const deleteRankingPermanent = useDeleteRankingPermanent();
   const leaderboardRankingQ = useRanking(
     tab === 'Leaderboards en vivo' && leaderboardCode ? leaderboardCode : null,
   );
@@ -253,7 +261,13 @@ export default function RankingsPage() {
           ) : (
             <div className="grid grid-cols-3 gap-4 max-[1300px]:grid-cols-2 max-md:grid-cols-1">
               {rankings.map((r) => (
-                <RankingCard key={r.code} ranking={r} onEdit={() => setEditorRanking(r)} />
+                <RankingCard
+                  key={r.code}
+                  ranking={r}
+                  onEdit={() => setEditorRanking(r)}
+                  onArchive={() => setArchiveRankingTarget(r)}
+                  onDeletePermanent={() => setDeleteRankingTarget(r)}
+                />
               ))}
               <button
                 type="button"
@@ -328,6 +342,38 @@ export default function RankingsPage() {
         ranking={editorRanking === 'new' ? null : editorRanking}
         existingCodes={existingCodes}
         onClose={() => setEditorRanking(null)}
+      />
+
+      <ArchiveConfirmModal
+        open={archiveRankingTarget !== null}
+        title={archiveRankingTarget ? `Archivar "${archiveRankingTarget.name}"` : 'Archivar ranking'}
+        description="El ranking dejará de estar activo. Los datos del leaderboard quedan asociados al ranking original."
+        loading={archiveRanking.isPending}
+        onClose={() => setArchiveRankingTarget(null)}
+        onConfirm={async (reason) => {
+          if (!archiveRankingTarget) return;
+          await archiveRanking.mutateAsync({
+            id: archiveRankingTarget.id,
+            code: archiveRankingTarget.code,
+            reason,
+          });
+        }}
+      />
+
+      <PermanentDeleteModal
+        open={deleteRankingTarget !== null}
+        itemKind="ranking"
+        itemName={deleteRankingTarget?.name ?? ''}
+        confirmCode={deleteRankingTarget?.code ?? ''}
+        loading={deleteRankingPermanent.isPending}
+        onClose={() => setDeleteRankingTarget(null)}
+        onConfirm={async () => {
+          if (!deleteRankingTarget) return;
+          await deleteRankingPermanent.mutateAsync({
+            id: deleteRankingTarget.id,
+            code: deleteRankingTarget.code,
+          });
+        }}
       />
     </>
   );

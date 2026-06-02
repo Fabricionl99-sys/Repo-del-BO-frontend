@@ -127,6 +127,8 @@ export function getApiErrorMessage(error: unknown, fallback: string): string {
   const issuesMsg = getValidationIssuesMessage(error);
   if (issuesMsg) return issuesMsg;
 
+  if (detail && status === 409) return detail;
+
   if (detail) return detail;
   if (status === 403) return 'No tenés permisos para esta acción';
   if (status === 404) return 'Recurso no encontrado';

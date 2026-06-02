@@ -1,13 +1,17 @@
-import { Target, Plus } from 'lucide-react';
+import { Target, Plus, MoreVertical } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 
 import { Button } from '@/components/ui/Button';
+import { ArchiveConfirmModal } from '@/components/lifecycle/ArchiveConfirmModal';
+import { PermanentDeleteModal } from '@/components/lifecycle/PermanentDeleteModal';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { ErrorState } from '@/components/ui/ErrorState';
 import { FilterPill } from '@/components/ui/FilterPill';
+import { IconButton } from '@/components/ui/IconButton';
 import { Loading } from '@/components/ui/Loading';
 import { PageHeader } from '@/components/ui/PageHeader';
+import { RowContextMenu, openRowContextMenu, type RowContextMenuAnchor } from '@/components/ui/RowContextMenu';
 import { SearchInput } from '@/components/ui/SearchInput';
 import { StatusPill } from '@/components/ui/StatusPill';
 import { Table, type Column } from '@/components/ui/Table';
@@ -18,6 +22,7 @@ import { PredictionProgramDetailModal } from '@/features/predictions/components/
 import { PredictionsSubNav } from '@/features/predictions/components/PredictionsSubNav';
 import {
   useArchivePredictionPool,
+  useDeletePredictionPermanent,
   useOpenPredictionPool,
   usePredictionPoolsList,
 } from '@/features/predictions/predictionsApi';
@@ -62,6 +67,10 @@ export default function PredictionsPage() {
 
   const [editorPool, setEditorPool] = useState<PredictionPool | null | 'new'>(null);
   const [detailPool, setDetailPool] = useState<PredictionPool | null>(null);
+  const [archivePoolTarget, setArchivePoolTarget] = useState<PredictionPool | null>(null);
+  const [deletePoolTarget, setDeletePoolTarget] = useState<PredictionPool | null>(null);
+  const [menuAnchor, setMenuAnchor] = useState<RowContextMenuAnchor | null>(null);
+  const [menuPool, setMenuPool] = useState<PredictionPool | null>(null);
 
   const listQ = usePredictionPoolsList({
     status: statusFilter,
@@ -71,6 +80,7 @@ export default function PredictionsPage() {
   });
   const publishMut = useOpenPredictionPool();
   const archiveMut = useArchivePredictionPool();
+  const deletePermanentMut = useDeletePredictionPermanent();
 
   const pools = useMemo(
     () => (mock === 'empty' ? [] : asArray(listQ.data)),
@@ -79,14 +89,14 @@ export default function PredictionsPage() {
   const existingCodes = useMemo(() => pools.map((p) => p.code), [pools]);
   const categories = useMemo(() => ['all', ...new Set(pools.map((p) => p.category))], [pools]);
 
-  const archivePool = (pool: PredictionPool) => {
-    if (!window.confirm(`¿Archivar "${pool.name}"? Dejará de estar visible para jugadores.`)) return;
-    void archiveMut.mutateAsync(pool.code ?? pool.id);
-  };
-
   const publishPool = (pool: PredictionPool) => {
     if (!window.confirm(`¿Publicar "${pool.name}"? Los jugadores podrán participar.`)) return;
     void publishMut.mutateAsync(pool.code ?? pool.id);
+  };
+
+  const closeMenu = () => {
+    setMenuAnchor(null);
+    setMenuPool(null);
   };
 
   useEffect(() => {
@@ -125,10 +135,10 @@ export default function PredictionsPage() {
     },
     {
       key: 'actions',
-      header: 'Acciones',
+      header: '',
       align: 'right',
       render: (pool) => (
-        <div className="flex flex-wrap justify-end gap-1">
+        <div className="flex justify-end gap-1">
           <Button
             size="sm"
             variant="secondary"
@@ -140,43 +150,16 @@ export default function PredictionsPage() {
           >
             Ver detalle
           </Button>
-          {pool.status === 'draft' ? (
-            <>
-              <Button
-                size="sm"
-                variant="ghost"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setEditorPool(pool);
-                }}
-              >
-                Editar
-              </Button>
-              <Button
-                size="sm"
-                loading={publishMut.isPending}
-                onClick={(e) => {
-                  e.stopPropagation();
-                  publishPool(pool);
-                }}
-              >
-                Publicar
-              </Button>
-            </>
-          ) : null}
-          {pool.status === 'open' ? (
-            <Button
-              size="sm"
-              variant="danger"
-              loading={archiveMut.isPending}
-              onClick={(e) => {
-                e.stopPropagation();
-                archivePool(pool);
-              }}
-            >
-              Archivar
-            </Button>
-          ) : null}
+          <IconButton
+            icon={MoreVertical}
+            title="Acciones"
+            size="sm"
+            onClick={(e) => {
+              e.stopPropagation();
+              setMenuPool(pool);
+              setMenuAnchor(openRowContextMenu(e, pool.id, menuAnchor));
+            }}
+          />
         </div>
       ),
     },
@@ -295,8 +278,87 @@ export default function PredictionsPage() {
           setEditorPool(pool);
         }}
         onArchive={(pool) => {
-          archivePool(pool);
           setDetailPool(null);
+          setArchivePoolTarget(pool);
+        }}
+      />
+
+      <RowContextMenu anchor={menuAnchor} onClose={closeMenu}>
+        {menuPool?.status === 'draft' && (
+          <>
+            <button
+              type="button"
+              className="block w-full px-3 py-2 text-left text-[14px] hover:bg-bg-tertiary"
+              onClick={() => {
+                setEditorPool(menuPool);
+                closeMenu();
+              }}
+            >
+              Editar
+            </button>
+            <button
+              type="button"
+              className="block w-full px-3 py-2 text-left text-[14px] hover:bg-bg-tertiary"
+              onClick={() => {
+                publishPool(menuPool);
+                closeMenu();
+              }}
+            >
+              Publicar
+            </button>
+          </>
+        )}
+        {menuPool?.status === 'open' && (
+          <button
+            type="button"
+            className="block w-full px-3 py-2 text-left text-[14px] text-danger hover:bg-bg-tertiary"
+            onClick={() => {
+              setArchivePoolTarget(menuPool);
+              closeMenu();
+            }}
+          >
+            Archivar
+          </button>
+        )}
+        {menuPool?.status === 'cancelled' && (
+          <button
+            type="button"
+            className="block w-full px-3 py-2 text-left text-[14px] text-danger hover:bg-bg-tertiary"
+            onClick={() => {
+              setDeletePoolTarget(menuPool);
+              closeMenu();
+            }}
+          >
+            Eliminar definitivo
+          </button>
+        )}
+      </RowContextMenu>
+
+      <ArchiveConfirmModal
+        open={archivePoolTarget !== null}
+        title={archivePoolTarget ? `Archivar "${archivePoolTarget.name}"` : 'Archivar prode'}
+        description="El programa dejará de estar visible para jugadores."
+        loading={archiveMut.isPending}
+        onClose={() => setArchivePoolTarget(null)}
+        onConfirm={async (reason) => {
+          if (!archivePoolTarget) return;
+          await archiveMut.mutateAsync({
+            code: archivePoolTarget.code ?? archivePoolTarget.id,
+            reason,
+          });
+        }}
+      />
+
+      <PermanentDeleteModal
+        open={deletePoolTarget !== null}
+        itemKind="prode"
+        itemName={deletePoolTarget?.name ?? ''}
+        confirmCode={deletePoolTarget?.code ?? deletePoolTarget?.id ?? ''}
+        loading={deletePermanentMut.isPending}
+        onClose={() => setDeletePoolTarget(null)}
+        onConfirm={async () => {
+          if (!deletePoolTarget) return;
+          await deletePermanentMut.mutateAsync(deletePoolTarget.code ?? deletePoolTarget.id);
         }}
       />
     </>

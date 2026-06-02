@@ -1,7 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 import { apiClient } from '@/api/client';
-import { getApiErrorMessage } from '@/api/errors';
+import { getApiErrorMessage, getHttpStatus } from '@/api/errors';
 import { unwrapData } from '@/api/response';
 import { normalizeRankingConfig, normalizeRankingConfigs, normalizeRankingPrize } from '@/features/rankings/rankingShape';
 import { toast } from '@/stores/toastStore';
@@ -194,10 +194,34 @@ export function useUpdateRanking() {
 export function useArchiveRanking() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: (code: string) => apiClient.delete(`/admin/rankings/${code}`),
-    onSuccess: () => {
+    mutationFn: ({ id, reason }: { id: string; code: string; reason?: string }) =>
+      apiClient.delete(`/admin/rankings/${id}`, {
+        data: reason ? { reason } : undefined,
+      }),
+    onSuccess: (_data, vars) => {
       toast.success('Ranking archivado');
       qc.invalidateQueries({ queryKey: ['rankings'] });
+      qc.invalidateQueries({ queryKey: ['rankings', vars.code] });
+    },
+    onError: (error) => {
+      toast.error(getApiErrorMessage(error, 'No se pudo archivar el ranking'));
+    },
+  });
+}
+
+export function useDeleteRankingPermanent() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id }: { id: string; code: string }) =>
+      apiClient.delete(`/admin/rankings/${id}/permanent`),
+    onSuccess: (_data, vars) => {
+      toast.success('Ranking eliminado definitivamente');
+      qc.invalidateQueries({ queryKey: ['rankings'] });
+      qc.invalidateQueries({ queryKey: ['rankings', vars.code] });
+    },
+    onError: (error) => {
+      if (getHttpStatus(error) === 409) return;
+      toast.error(getApiErrorMessage(error, 'No se pudo eliminar el ranking'));
     },
   });
 }

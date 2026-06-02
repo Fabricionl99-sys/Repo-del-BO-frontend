@@ -137,7 +137,7 @@ export function AvatarFormModal({
               variant="ghost"
               className="mr-auto text-danger"
               onClick={async () => {
-                await archiveAvatar.mutateAsync(avatar.id);
+                await archiveAvatar.mutateAsync({ id: avatar.id });
                 onClose();
               }}
             >

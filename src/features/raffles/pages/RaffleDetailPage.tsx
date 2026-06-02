@@ -1,6 +1,8 @@
 import { useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 
+import { ArchiveConfirmModal } from '@/components/lifecycle/ArchiveConfirmModal';
+import { PermanentDeleteModal } from '@/components/lifecycle/PermanentDeleteModal';
 import { Button } from '@/components/ui/Button';
 import { ErrorState } from '@/components/ui/ErrorState';
 import { Loading } from '@/components/ui/Loading';
@@ -10,6 +12,7 @@ import { RaffleFormModal } from '@/features/raffles/components/RaffleFormModal';
 import { RaffleStatusBadge } from '@/features/raffles/components/RaffleStatusBadge';
 import {
   useCancelRaffle,
+  useDeleteRafflePermanent,
   useOpenRaffle,
   useRaffleDetail,
   useRaffleWinners,
@@ -26,7 +29,10 @@ export default function RaffleDetailPage() {
   const { currency: entryCurrency } = useCurrency(detailQ.data?.entry_cost_currency_id);
   const openRaffle = useOpenRaffle();
   const cancelRaffle = useCancelRaffle();
+  const deletePermanent = useDeleteRafflePermanent();
   const [editOpen, setEditOpen] = useState(false);
+  const [cancelOpen, setCancelOpen] = useState(false);
+  const [deleteOpen, setDeleteOpen] = useState(false);
 
   if (detailQ.isLoading) return <Loading label="Cargando sorteo…" />;
   if (detailQ.isError || !detailQ.data) {
@@ -39,8 +45,7 @@ export default function RaffleDetailPage() {
     ? `https://api.social2game.com/v1/public/raffles/${tenantId}/${raffle.code}/verify`
     : null;
 
-  const handleCancel = async () => {
-    const reason = window.prompt('Motivo de cancelación (opcional)') ?? undefined;
+  const handleCancel = async (reason?: string) => {
     await cancelRaffle.mutateAsync({ code: raffle.code, reason });
   };
 
@@ -82,13 +87,13 @@ export default function RaffleDetailPage() {
             <Button variant="secondary" onClick={() => setEditOpen(true)}>
               Editar
             </Button>
-            <Button variant="danger" disabled={cancelRaffle.isPending} onClick={() => void handleCancel()}>
+            <Button variant="danger" disabled={cancelRaffle.isPending} onClick={() => setCancelOpen(true)}>
               Cancelar
             </Button>
           </>
         ) : null}
         {raffle.status === 'open' ? (
-          <Button variant="danger" disabled={cancelRaffle.isPending} onClick={() => void handleCancel()}>
+          <Button variant="danger" disabled={cancelRaffle.isPending} onClick={() => setCancelOpen(true)}>
             Cancelar (reembolso gemas)
           </Button>
         ) : null}
@@ -96,6 +101,11 @@ export default function RaffleDetailPage() {
           <a href={verifyUrl} target="_blank" rel="noreferrer">
             <Button variant="secondary">Verificación pública</Button>
           </a>
+        ) : null}
+        {raffle.status === 'cancelled' ? (
+          <Button variant="danger" onClick={() => setDeleteOpen(true)}>
+            Eliminar definitivo
+          </Button>
         ) : null}
       </div>
 
@@ -139,6 +149,28 @@ export default function RaffleDetailPage() {
       ) : null}
 
       <RaffleFormModal open={editOpen} raffle={raffle} onClose={() => setEditOpen(false)} />
+
+      <ArchiveConfirmModal
+        open={cancelOpen}
+        title={`Cancelar "${raffle.name}"`}
+        description="El sorteo se cancelará y se reembolsarán las gemas de las entradas."
+        confirmLabel="Cancelar sorteo"
+        loading={cancelRaffle.isPending}
+        onClose={() => setCancelOpen(false)}
+        onConfirm={handleCancel}
+      />
+
+      <PermanentDeleteModal
+        open={deleteOpen}
+        itemKind="sorteo"
+        itemName={raffle.name}
+        confirmCode={raffle.code}
+        loading={deletePermanent.isPending}
+        onClose={() => setDeleteOpen(false)}
+        onConfirm={async () => {
+          await deletePermanent.mutateAsync(raffle.code);
+        }}
+      />
     </div>
   );
 }

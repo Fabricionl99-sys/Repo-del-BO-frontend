@@ -3,6 +3,8 @@ import { useMemo, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 
 import { Button } from '@/components/ui/Button';
+import { ArchiveConfirmModal } from '@/components/lifecycle/ArchiveConfirmModal';
+import { PermanentDeleteModal } from '@/components/lifecycle/PermanentDeleteModal';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { ErrorState } from '@/components/ui/ErrorState';
 import { FilterPill } from '@/components/ui/FilterPill';
@@ -27,9 +29,11 @@ import { MAX_ACTIVE_AVATARS } from '@/types/avatars';
 
 import { unlockMethodLabel } from '../avatarForm';
 import {
+  useArchiveAvatar,
   useAvatarCategories,
   useAvatarInventory,
   useAvatars,
+  useDeleteAvatarPermanent,
   useGrantAvatarManual,
   usePlayerSearch,
   useReorderAvatarCategories,
@@ -70,6 +74,8 @@ export default function AvatarsPage() {
 
   const [editorAvatar, setEditorAvatar] = useState<Avatar | null | 'new'>(null);
   const [editorCategory, setEditorCategory] = useState<AvatarCategory | null | 'new'>(null);
+  const [archiveAvatarTarget, setArchiveAvatarTarget] = useState<Avatar | null>(null);
+  const [deleteAvatarTarget, setDeleteAvatarTarget] = useState<Avatar | null>(null);
 
   const [invAvatarId, setInvAvatarId] = useState<string | 'all'>('all');
   const [invCategoryId, setInvCategoryId] = useState<string | 'all'>('all');
@@ -105,6 +111,8 @@ export default function AvatarsPage() {
   });
 
   const reorderCategories = useReorderAvatarCategories();
+  const archiveAvatar = useArchiveAvatar();
+  const deleteAvatarPermanent = useDeleteAvatarPermanent();
   const playerSearchQ = usePlayerSearch(debouncedGrantQuery);
   const grantManual = useGrantAvatarManual();
 
@@ -334,7 +342,13 @@ export default function AvatarsPage() {
           ) : (
             <div className="grid grid-cols-4 gap-4 max-[1300px]:grid-cols-3 max-md:grid-cols-1">
               {avatarItems.map((avatar) => (
-                <AvatarCard key={avatar.id} avatar={avatar} onEdit={() => setEditorAvatar(avatar)} />
+                <AvatarCard
+                  key={avatar.id}
+                  avatar={avatar}
+                  onEdit={() => setEditorAvatar(avatar)}
+                  onArchive={() => setArchiveAvatarTarget(avatar)}
+                  onDeletePermanent={() => setDeleteAvatarTarget(avatar)}
+                />
               ))}
               {!atLimit && (
                 <button
@@ -504,6 +518,31 @@ export default function AvatarsPage() {
         existingCodes={existingCategoryCodes}
         nextOrder={categories.length}
         onClose={() => setEditorCategory(null)}
+      />
+
+      <ArchiveConfirmModal
+        open={archiveAvatarTarget !== null}
+        title={archiveAvatarTarget ? `Archivar "${archiveAvatarTarget.name}"` : 'Archivar avatar'}
+        description="El avatar dejará de estar disponible para nuevos desbloqueos."
+        loading={archiveAvatar.isPending}
+        onClose={() => setArchiveAvatarTarget(null)}
+        onConfirm={async (reason) => {
+          if (!archiveAvatarTarget) return;
+          await archiveAvatar.mutateAsync({ id: archiveAvatarTarget.id, reason });
+        }}
+      />
+
+      <PermanentDeleteModal
+        open={deleteAvatarTarget !== null}
+        itemKind="avatar"
+        itemName={deleteAvatarTarget?.name ?? ''}
+        confirmCode={deleteAvatarTarget?.code ?? ''}
+        loading={deleteAvatarPermanent.isPending}
+        onClose={() => setDeleteAvatarTarget(null)}
+        onConfirm={async () => {
+          if (!deleteAvatarTarget) return;
+          await deleteAvatarPermanent.mutateAsync(deleteAvatarTarget.id);
+        }}
       />
     </>
   );

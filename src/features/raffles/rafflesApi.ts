@@ -1,6 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 import { apiClient } from '@/api/client';
+import { getApiErrorMessage, getHttpStatus } from '@/api/errors';
 import { unwrapData, unwrapDataList } from '@/api/response';
 import { toast } from '@/stores/toastStore';
 import type {
@@ -126,7 +127,26 @@ export function useCancelRaffle() {
       void qc.invalidateQueries({ queryKey: keys.all });
       toast.success('Sorteo cancelado · gemas reembolsadas');
     },
-    onError: () => toast.error('No se pudo cancelar el sorteo'),
+    onError: (error) => {
+      toast.error(getApiErrorMessage(error, 'No se pudo cancelar el sorteo'));
+    },
+  });
+}
+
+export function useDeleteRafflePermanent() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (code: string) => {
+      await apiClient.delete(`/admin/raffles/${code}/permanent`);
+    },
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: keys.all });
+      toast.success('Sorteo eliminado definitivamente');
+    },
+    onError: (error) => {
+      if (getHttpStatus(error) === 409) return;
+      toast.error(getApiErrorMessage(error, 'No se pudo eliminar el sorteo'));
+    },
   });
 }
 

@@ -75,6 +75,12 @@ describe('getApiErrorMessage', () => {
     expect(getApiErrorMessage(err, 'fallback')).toBe(detail);
   });
 
+  it('preserva detail en 409 conflict', () => {
+    const detail = 'No se puede eliminar: 12 jugadores tienen este avatar';
+    const err = axiosError(409, { detail });
+    expect(getApiErrorMessage(err, 'fallback')).toBe(detail);
+  });
+
   it('usa issues cuando no hay mensaje preservable', () => {
     const err = axiosError(400, {
       issues: [{ path: 'position_from', message: 'Mínimo 1' }],

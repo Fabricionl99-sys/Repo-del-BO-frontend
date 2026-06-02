@@ -25,7 +25,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 import { apiClient } from '@/api/client';
-import { getApiErrorMessage } from '@/api/errors';
+import { getApiErrorMessage, getHttpStatus } from '@/api/errors';
 import { unwrapData, unwrapDataList } from '@/api/response';
 import { toast } from '@/stores/toastStore';
 import type {
@@ -653,9 +653,9 @@ export function useDeletePredictionEvent() {
 export function useCancelPredictionPool() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: (idOrCode: string) =>
+    mutationFn: ({ code, reason }: { code: string; reason?: string }) =>
       apiClient
-        .post(`/admin/predictions/${idOrCode}/archive`)
+        .post(`/admin/predictions/${code}/archive`, reason ? { reason } : undefined)
         .then((r) => unwrapData<BackendTournament>(r.data))
         .then(adaptTournamentToPool),
     onSuccess: () => {
@@ -670,3 +670,19 @@ export function useCancelPredictionPool() {
 
 /** Alias semántico — el backend expone POST …/archive, no "cancel". */
 export const useArchivePredictionPool = useCancelPredictionPool;
+export const useArchivePrediction = useCancelPredictionPool;
+
+export function useDeletePredictionPermanent() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (code: string) => apiClient.delete(`/admin/predictions/${code}/permanent`),
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: ['prediction-pools'] });
+      toast.success('Prode eliminado definitivamente');
+    },
+    onError: (error) => {
+      if (getHttpStatus(error) === 409) return;
+      toast.error(getApiErrorMessage(error, 'No se pudo eliminar el prode'));
+    },
+  });
+}

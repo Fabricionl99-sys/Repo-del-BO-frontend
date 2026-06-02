@@ -1,13 +1,17 @@
-import { Plus } from 'lucide-react';
+import { MoreVertical, Plus } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 
+import { ArchiveConfirmModal } from '@/components/lifecycle/ArchiveConfirmModal';
+import { PermanentDeleteModal } from '@/components/lifecycle/PermanentDeleteModal';
 import { Button } from '@/components/ui/Button';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { ErrorState } from '@/components/ui/ErrorState';
 import { FilterPill } from '@/components/ui/FilterPill';
+import { IconButton } from '@/components/ui/IconButton';
 import { Loading } from '@/components/ui/Loading';
 import { PageHeader } from '@/components/ui/PageHeader';
+import { RowContextMenu, openRowContextMenu, type RowContextMenuAnchor } from '@/components/ui/RowContextMenu';
 import { SearchInput } from '@/components/ui/SearchInput';
 import { Table, type Column } from '@/components/ui/Table';
 import { Toolbar } from '@/components/ui/Toolbar';
@@ -15,7 +19,12 @@ import { isModuleActive } from '@/features/billing/moduleCatalog';
 import { DeliverPhysicalModal } from '@/features/raffles/components/DeliverPhysicalModal';
 import { RaffleFormModal } from '@/features/raffles/components/RaffleFormModal';
 import { RaffleStatusBadge } from '@/features/raffles/components/RaffleStatusBadge';
-import { usePendingPhysicalWinners, useRaffles } from '@/features/raffles/rafflesApi';
+import {
+  useCancelRaffle,
+  useDeleteRafflePermanent,
+  usePendingPhysicalWinners,
+  useRaffles,
+} from '@/features/raffles/rafflesApi';
 import { useDebounce } from '@/hooks/useDebounce';
 import { formatRelativeDate } from '@/lib/format';
 import { useOperatorStore } from '@/stores/operatorStore';
@@ -46,9 +55,20 @@ export default function RafflesPage() {
   const debouncedSearch = useDebounce(search, 250);
   const [editor, setEditor] = useState<RaffleDetail | null | 'new'>(null);
   const [deliverWinner, setDeliverWinner] = useState<RaffleWinnerRow | null>(null);
+  const [cancelTarget, setCancelTarget] = useState<RaffleRow | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<RaffleRow | null>(null);
+  const [menuAnchor, setMenuAnchor] = useState<RowContextMenuAnchor | null>(null);
+  const [menuRaffle, setMenuRaffle] = useState<RaffleRow | null>(null);
 
   const listQ = useRaffles({ status: statusFilter, search: debouncedSearch || undefined });
   const pendingQ = usePendingPhysicalWinners();
+  const cancelRaffle = useCancelRaffle();
+  const deletePermanent = useDeleteRafflePermanent();
+
+  const closeMenu = () => {
+    setMenuAnchor(null);
+    setMenuRaffle(null);
+  };
 
   const columns: Column<RaffleRow>[] = useMemo(
     () => [
@@ -62,13 +82,25 @@ export default function RafflesPage() {
         key: 'actions',
         header: '',
         render: (r) => (
-          <Button variant="ghost" size="sm" onClick={() => navigate(`/sorteos/${r.code}`)}>
-            Ver
-          </Button>
+          <div className="flex justify-end gap-1">
+            <Button variant="ghost" size="sm" onClick={() => navigate(`/sorteos/${r.code}`)}>
+              Ver
+            </Button>
+            <IconButton
+              icon={MoreVertical}
+              title="Acciones"
+              size="sm"
+              onClick={(e) => {
+                e.stopPropagation();
+                setMenuRaffle(r);
+                setMenuAnchor(openRowContextMenu(e, r.id, menuAnchor));
+              }}
+            />
+          </div>
         ),
       },
     ],
-    [navigate],
+    [navigate, menuAnchor],
   );
 
   if (!rafflesActive) {
@@ -163,6 +195,73 @@ export default function RafflesPage() {
           )}
         </>
       )}
+
+      <RowContextMenu anchor={menuAnchor} onClose={closeMenu}>
+        {menuRaffle && (menuRaffle.status === 'draft' || menuRaffle.status === 'open') && (
+          <>
+            {menuRaffle.status === 'draft' && (
+              <button
+                type="button"
+                className="block w-full px-3 py-2 text-left text-[14px] hover:bg-bg-tertiary"
+                onClick={() => {
+                  navigate(`/sorteos/${menuRaffle.code}`);
+                  closeMenu();
+                }}
+              >
+                Editar
+              </button>
+            )}
+            <button
+              type="button"
+              className="block w-full px-3 py-2 text-left text-[14px] text-danger hover:bg-bg-tertiary"
+              onClick={() => {
+                setCancelTarget(menuRaffle);
+                closeMenu();
+              }}
+            >
+              Cancelar
+            </button>
+          </>
+        )}
+        {menuRaffle?.status === 'cancelled' && (
+          <button
+            type="button"
+            className="block w-full px-3 py-2 text-left text-[14px] text-danger hover:bg-bg-tertiary"
+            onClick={() => {
+              setDeleteTarget(menuRaffle);
+              closeMenu();
+            }}
+          >
+            Eliminar definitivo
+          </button>
+        )}
+      </RowContextMenu>
+
+      <ArchiveConfirmModal
+        open={cancelTarget !== null}
+        title={cancelTarget ? `Cancelar "${cancelTarget.name}"` : 'Cancelar sorteo'}
+        description="El sorteo se cancelará y se reembolsarán las gemas de las entradas."
+        confirmLabel="Cancelar sorteo"
+        loading={cancelRaffle.isPending}
+        onClose={() => setCancelTarget(null)}
+        onConfirm={async (reason) => {
+          if (!cancelTarget) return;
+          await cancelRaffle.mutateAsync({ code: cancelTarget.code, reason });
+        }}
+      />
+
+      <PermanentDeleteModal
+        open={deleteTarget !== null}
+        itemKind="sorteo"
+        itemName={deleteTarget?.name ?? ''}
+        confirmCode={deleteTarget?.code ?? ''}
+        loading={deletePermanent.isPending}
+        onClose={() => setDeleteTarget(null)}
+        onConfirm={async () => {
+          if (!deleteTarget) return;
+          await deletePermanent.mutateAsync(deleteTarget.code);
+        }}
+      />
 
       <RaffleFormModal open={editor !== null} raffle={editor === 'new' ? null : editor} onClose={() => setEditor(null)} />
       <DeliverPhysicalModal open={Boolean(deliverWinner)} winner={deliverWinner} onClose={() => setDeliverWinner(null)} />

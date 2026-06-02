@@ -109,6 +109,22 @@ export const rafflesHandlers = [
     return HttpResponse.json({ data: row });
   }),
 
+  http.delete('*/admin/raffles/:code/permanent', async ({ params }) => {
+    await wait();
+    const code = String(params.code);
+    const detail = findRaffleByCode(code);
+    if (!detail) return HttpResponse.json({ code: 'NOT_FOUND' }, { status: 404 });
+    if (detail.status !== 'cancelled') {
+      return HttpResponse.json(
+        { detail: 'El sorteo debe estar cancelado antes de eliminarlo definitivamente' },
+        { status: 409 },
+      );
+    }
+    const idx = mockRaffles.findIndex((r) => r.code === code);
+    if (idx >= 0) mockRaffles.splice(idx, 1);
+    return new HttpResponse(null, { status: 204 });
+  }),
+
   http.post('*/admin/raffles/winners/:id/deliver', async ({ params, request }) => {
     await wait();
     const winner = mockPendingPhysical.find((w) => w.id === params.id);

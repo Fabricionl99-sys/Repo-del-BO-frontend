@@ -1,7 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 import { apiClient } from '@/api/client';
-import { getApiErrorMessage } from '@/api/errors';
+import { getApiErrorMessage, getHttpStatus } from '@/api/errors';
 import { unwrapData } from '@/api/response';
 import { toast } from '@/stores/toastStore';
 import type {
@@ -151,11 +151,33 @@ export function useUpdateAvatar() {
 export function useArchiveAvatar() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: (id: string) => apiClient.delete(`/admin/avatars/${id}`),
+    mutationFn: ({ id, reason }: { id: string; reason?: string }) =>
+      apiClient.delete(`/admin/avatars/${id}`, {
+        data: reason ? { reason } : undefined,
+      }),
     onSuccess: () => {
       toast.success('Avatar archivado');
       qc.invalidateQueries({ queryKey: ['avatars'] });
       qc.invalidateQueries({ queryKey: ['avatar-categories'] });
+    },
+    onError: (error) => {
+      toast.error(getApiErrorMessage(error, 'No se pudo archivar el avatar'));
+    },
+  });
+}
+
+export function useDeleteAvatarPermanent() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (id: string) => apiClient.delete(`/admin/avatars/${id}/permanent`),
+    onSuccess: () => {
+      toast.success('Avatar eliminado definitivamente');
+      qc.invalidateQueries({ queryKey: ['avatars'] });
+      qc.invalidateQueries({ queryKey: ['avatar-categories'] });
+    },
+    onError: (error) => {
+      if (getHttpStatus(error) === 409) return;
+      toast.error(getApiErrorMessage(error, 'No se pudo eliminar el avatar'));
     },
   });
 }

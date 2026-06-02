@@ -1217,6 +1217,29 @@ handlers.push(
     item.updated_at = new Date().toISOString();
     return HttpResponse.json({ data: poolToBackendTournament(item) });
   }),
+  http.post('*/admin/predictions/:idOrCode/archive', async ({ params }) => {
+    await wait();
+    const item = getPoolByIdOrCode(params.idOrCode as string);
+    if (!item) return HttpResponse.json({ message: 'Not found' }, { status: 404 });
+    item.status = 'cancelled';
+    item.updated_at = new Date().toISOString();
+    return HttpResponse.json({ data: poolToBackendTournament(item) });
+  }),
+  http.delete('*/admin/predictions/:idOrCode/permanent', async ({ params }) => {
+    await wait();
+    const idOrCode = String(params.idOrCode);
+    const item = getPoolByIdOrCode(idOrCode);
+    if (!item) return HttpResponse.json({ message: 'Not found' }, { status: 404 });
+    if (item.status !== 'cancelled') {
+      return HttpResponse.json(
+        { detail: 'El prode debe estar archivado antes de eliminarlo definitivamente' },
+        { status: 409 },
+      );
+    }
+    const idx = predictionPools.findIndex((p) => p.id === item.id || p.code === item.code);
+    if (idx >= 0) predictionPools.splice(idx, 1);
+    return new HttpResponse(null, { status: 204 });
+  }),
   http.post('*/admin/predictions/events/:eventId/resolve', async ({ params, request }) => {
     await wait();
     const body = (await request.json()) as { correct_option_id?: string; actual_result?: string };
@@ -1755,14 +1778,29 @@ handlers.push(
       data: { ...item, prizes: item.prizes },
     });
   }),
-  http.delete('*/admin/rankings/:code', async ({ params }) => {
+  http.delete('*/admin/rankings/:idOrCode', async ({ params }) => {
     await wait();
-    const item = findRanking(String(params.code));
-    if (item) {
-      item.status = 'archived';
-      item.is_active = false;
-      item.updated_at = new Date().toISOString();
+    const item = findRanking(String(params.idOrCode));
+    if (!item) return new HttpResponse(null, { status: 404 });
+    item.status = 'archived';
+    item.is_active = false;
+    item.updated_at = new Date().toISOString();
+    return new HttpResponse(null, { status: 204 });
+  }),
+  http.delete('*/admin/rankings/:idOrCode/permanent', async ({ params }) => {
+    await wait();
+    const idOrCode = String(params.idOrCode);
+    const item = findRanking(idOrCode);
+    if (!item) return new HttpResponse(null, { status: 404 });
+    if (item.status !== 'archived') {
+      return HttpResponse.json(
+        { detail: 'El ranking debe estar archivado antes de eliminarlo definitivamente' },
+        { status: 409 },
+      );
     }
+    const idx = rankingConfigs.findIndex((r) => r.id === item.id || r.code === item.code);
+    if (idx >= 0) rankingConfigs.splice(idx, 1);
+    delete leaderboardsByCode[item.code];
     return new HttpResponse(null, { status: 204 });
   }),
   http.post('*/admin/rankings/:id/prizes', async ({ params, request }) => {
@@ -2001,6 +2039,21 @@ handlers.push(
       item.is_active = false;
       item.updated_at = new Date().toISOString();
     }
+    syncCategoryAvatarCounts();
+    return new HttpResponse(null, { status: 204 });
+  }),
+  http.delete('*/admin/avatars/:id/permanent', async ({ params }) => {
+    await wait();
+    const item = avatars.find((a) => a.id === params.id);
+    if (!item) return new HttpResponse(null, { status: 404 });
+    if (item.status !== 'archived') {
+      return HttpResponse.json(
+        { detail: 'El avatar debe estar archivado antes de eliminarlo definitivamente' },
+        { status: 409 },
+      );
+    }
+    const idx = avatars.findIndex((a) => a.id === params.id);
+    if (idx >= 0) avatars.splice(idx, 1);
     syncCategoryAvatarCounts();
     return new HttpResponse(null, { status: 204 });
   }),
