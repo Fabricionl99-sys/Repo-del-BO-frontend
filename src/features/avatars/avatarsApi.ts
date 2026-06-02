@@ -4,17 +4,18 @@ import { apiClient } from '@/api/client';
 import { getApiErrorMessage, getHttpStatus } from '@/api/errors';
 import { unwrapData } from '@/api/response';
 import { toast } from '@/stores/toastStore';
-import type {
-  Avatar,
-  AvatarCategory,
-  AvatarCategoryPayload,
-  AvatarCreatePayload,
-  AvatarGrantManualPayload,
-  AvatarInventoryQuery,
-  AvatarMetadataPayload,
-  AvatarsCatalogQuery,
-  AvatarsCatalogStats,
-  PlayerAvatarInventoryItem,
+import {
+  DEFAULT_AVATAR_GRANT_REASON,
+  type Avatar,
+  type AvatarCategory,
+  type AvatarCategoryPayload,
+  type AvatarCreatePayload,
+  type AvatarGrantManualResult,
+  type AvatarInventoryQuery,
+  type AvatarMetadataPayload,
+  type AvatarsCatalogQuery,
+  type AvatarsCatalogStats,
+  type PlayerAvatarInventoryItem,
 } from '@/types/avatars';
 
 import { filterAvatarsForGrant, normalizeAvatar } from './avatarShape';
@@ -228,14 +229,31 @@ export function useAvatarInventory(params: AvatarInventoryQuery = {}) {
 export function useGrantAvatarManual() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: ({ avatarId, ...payload }: AvatarGrantManualPayload & { avatarId: string }) =>
-      apiClient
-        .post(`/admin/avatars/${avatarId}/grant-manual`, payload)
-        .then((r) => unwrapData<PlayerAvatarInventoryItem>(r.data)),
-    onSuccess: () => {
-      toast.success('Avatar asignado correctamente');
+    mutationFn: (payload: {
+      playerStateId: string;
+      avatarIds: string[];
+      reason: string;
+    }) => {
+      const reason = payload.reason.trim() || DEFAULT_AVATAR_GRANT_REASON;
+      return apiClient
+        .post('/admin/avatars/grant-manual', {
+          player_state_id: payload.playerStateId,
+          avatar_ids: payload.avatarIds,
+          reason,
+        })
+        .then((r) => unwrapData<AvatarGrantManualResult>(r.data));
+    },
+    onSuccess: (result) => {
+      const parts: string[] = [];
+      if (result.granted > 0) parts.push(`${result.granted} entregados`);
+      if (result.alreadyOwned > 0) parts.push(`${result.alreadyOwned} ya poseídos`);
+      if (result.failed > 0) parts.push(`${result.failed} fallidos`);
+      toast.success(parts.join(' · ') || 'Avatar entregado');
       qc.invalidateQueries({ queryKey: ['avatar-inventory'] });
       qc.invalidateQueries({ queryKey: ['avatars', 'grant-manual'] });
+    },
+    onError: (error) => {
+      toast.error(getApiErrorMessage(error, 'No se pudo entregar el avatar'));
     },
   });
 }

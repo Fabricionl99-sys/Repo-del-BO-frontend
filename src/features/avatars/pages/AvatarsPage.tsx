@@ -27,7 +27,7 @@ import type {
   AvatarUnlockedVia,
   PlayerAvatarInventoryItem,
 } from '@/types/avatars';
-import { MAX_ACTIVE_AVATARS } from '@/types/avatars';
+import { MAX_ACTIVE_AVATARS, DEFAULT_AVATAR_GRANT_REASON } from '@/types/avatars';
 
 import { unlockMethodLabel } from '../avatarForm';
 import {
@@ -209,9 +209,9 @@ export default function AvatarsPage() {
   const handleGrant = async () => {
     if (!grantPlayerId?.trim() || !grantAvatarId) return;
     await grantManual.mutateAsync({
-      avatarId: grantAvatarId,
-      player_id: grantPlayerId.trim(),
-      reason: grantReason.trim() || undefined,
+      playerStateId: grantPlayerId.trim(),
+      avatarIds: [grantAvatarId],
+      reason: grantReason.trim() || DEFAULT_AVATAR_GRANT_REASON,
     });
     setGrantPlayerId('');
     setGrantPlayerQuery('');

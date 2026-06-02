@@ -148,9 +148,18 @@ export interface AvatarInventoryQuery {
 }
 
 export interface AvatarGrantManualPayload {
-  player_id: string;
-  reason?: string;
+  player_state_id: string;
+  avatar_ids: string[];
+  reason: string;
 }
+
+export interface AvatarGrantManualResult {
+  granted: number;
+  alreadyOwned: number;
+  failed: number;
+}
+
+export const DEFAULT_AVATAR_GRANT_REASON = 'Asignación manual desde BO';
 
 export interface AvatarsCatalogStats {
   active_count: number;
