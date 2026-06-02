@@ -115,6 +115,35 @@ export function setPlayerCurrency(playerId: string, currency_code: string): Admi
   return player;
 }
 
+export function grantPlayerXp(
+  playerId: string,
+  amount: number,
+): { player_state_id: string; amount: number; new_total_xp: number } | null {
+  const player = adminPlayerSummaries.find((p) => p.id === playerId);
+  if (!player) return null;
+  const prev = Number(player.total_xp) || 0;
+  const newTotal = prev + amount;
+  player.total_xp = String(newTotal);
+  return { player_state_id: playerId, amount, new_total_xp: newTotal };
+}
+
+export function grantPlayerCoins(
+  playerId: string,
+  currency_code: string,
+  amount: number,
+): { player_state_id: string; currency_code: string; amount: number; new_balance: number } | null {
+  const player = adminPlayerSummaries.find((p) => p.id === playerId);
+  if (!player) return null;
+  const coin = player.coins.find((c) => c.currency_code === currency_code);
+  if (coin) {
+    const newBalance = (Number(coin.balance) || 0) + amount;
+    coin.balance = String(newBalance);
+    return { player_state_id: playerId, currency_code, amount, new_balance: newBalance };
+  }
+  player.coins.push({ currency_code, balance: String(amount) });
+  return { player_state_id: playerId, currency_code, amount, new_balance: amount };
+}
+
 export function searchAdminPlayers(q: string, limit = 10) {
   return getAdminPlayers({ search: q, limit }).map(adminSummaryToPlayerSearchResult);
 }

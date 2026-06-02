@@ -2388,6 +2388,8 @@ import {
   adminPlayerSummaries,
   getAdminPlayerDetail,
   getAdminPlayers,
+  grantPlayerCoins,
+  grantPlayerXp,
   setPlayerCurrency,
 } from '@/mocks/data/adminPlayers';
 
@@ -2433,6 +2435,37 @@ handlers.push(
     const updated = setPlayerCurrency(String(params.id), body.currency_code);
     if (!updated) return new HttpResponse(null, { status: 404 });
     return HttpResponse.json({ data: updated });
+  }),
+  http.post('*/admin/players/:id/grant-xp', async ({ params, request }) => {
+    await wait();
+    const body = (await request.json()) as { amount: number; reason?: string };
+    const amount = Number(body.amount);
+    if (!Number.isInteger(amount) || amount < 1 || amount > 1_000_000) {
+      return HttpResponse.json({ message: 'Invalid amount' }, { status: 400 });
+    }
+    const result = grantPlayerXp(String(params.id), amount);
+    if (!result) return new HttpResponse(null, { status: 404 });
+    return HttpResponse.json({
+      data: { granted: true, ...result },
+    });
+  }),
+  http.post('*/admin/players/:id/grant-coins', async ({ params, request }) => {
+    await wait();
+    const body = (await request.json()) as { currency_code: string; amount: number; reason?: string };
+    const amount = Number(body.amount);
+    if (!Number.isInteger(amount) || amount < 1 || amount > 10_000_000) {
+      return HttpResponse.json({ message: 'Invalid amount' }, { status: 400 });
+    }
+    const code = String(body.currency_code ?? '');
+    const known = coins.some((c) => c.active && c.symbol === code);
+    if (!known) {
+      return HttpResponse.json({ message: 'Currency not found' }, { status: 404 });
+    }
+    const result = grantPlayerCoins(String(params.id), code, amount);
+    if (!result) return new HttpResponse(null, { status: 404 });
+    return HttpResponse.json({
+      data: { granted: true, ...result },
+    });
   }),
   http.get('*/player/widget', async ({ request }) => {
     await wait();

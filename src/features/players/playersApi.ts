@@ -6,6 +6,7 @@ import { unwrapData } from '@/api/response';
 import { normalizeAdminPlayer, normalizePlayerSearchResult } from '@/features/players/normalizePlayer';
 import { toast } from '@/stores/toastStore';
 import { trackEvent } from '@/lib/analytics';
+import { formatNumber } from '@/lib/format';
 import type {
   AdminPlayerDetail,
   AdminPlayerSummary,
@@ -13,6 +14,10 @@ import type {
   GrantAvatarsManualResult,
   GrantChestsManualPayload,
   GrantChestsManualResult,
+  GrantPlayerCoinsPayload,
+  GrantPlayerCoinsResult,
+  GrantPlayerXpPayload,
+  GrantPlayerXpResult,
   PlayerSearchResult,
   SetPlayerCurrencyPayload,
 } from '@/types/players';
@@ -158,6 +163,48 @@ export function useSetPlayerCurrency() {
     },
     onError: (error) => {
       toast.error(getApiErrorMessage(error, 'No se pudo cambiar la moneda'));
+    },
+  });
+}
+
+export function useGrantPlayerXp() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ playerId, ...body }: GrantPlayerXpPayload & { playerId: string }) =>
+      apiClient
+        .post(`/admin/players/${playerId}/grant-xp`, body)
+        .then((r) => unwrapData<GrantPlayerXpResult>(r.data)),
+    onSuccess: (result, vars) => {
+      toast.success(`XP otorgado · nuevo total: ${formatNumber(result.new_total_xp)} XP`);
+      qc.invalidateQueries({ queryKey: ['players-list'] });
+      qc.invalidateQueries({ queryKey: playerDetailKey(vars.playerId) });
+      qc.invalidateQueries({ queryKey: ['preview-widget-players'] });
+      qc.invalidateQueries({ queryKey: ['player-widget', vars.playerId] });
+    },
+    onError: (error) => {
+      toast.error(getApiErrorMessage(error, 'No se pudo otorgar XP'));
+    },
+  });
+}
+
+export function useGrantPlayerCoins() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ playerId, ...body }: GrantPlayerCoinsPayload & { playerId: string }) =>
+      apiClient
+        .post(`/admin/players/${playerId}/grant-coins`, body)
+        .then((r) => unwrapData<GrantPlayerCoinsResult>(r.data)),
+    onSuccess: (result, vars) => {
+      toast.success(
+        `Monedas otorgadas · nuevo balance: ${formatNumber(result.new_balance)} ${result.currency_code}`,
+      );
+      qc.invalidateQueries({ queryKey: ['players-list'] });
+      qc.invalidateQueries({ queryKey: playerDetailKey(vars.playerId) });
+      qc.invalidateQueries({ queryKey: ['preview-widget-players'] });
+      qc.invalidateQueries({ queryKey: ['player-widget', vars.playerId] });
+    },
+    onError: (error) => {
+      toast.error(getApiErrorMessage(error, 'No se pudieron otorgar monedas'));
     },
   });
 }

@@ -1,4 +1,4 @@
-import { Gift, RefreshCw, UserCircle2, Wallet } from 'lucide-react';
+import { Gift, Plus, RefreshCw, UserCircle2, Wallet } from 'lucide-react';
 import { useState } from 'react';
 
 import { Button } from '@/components/ui/Button';
@@ -10,6 +10,8 @@ import { StatusPill } from '@/components/ui/StatusPill';
 import { Table } from '@/components/ui/Table';
 import { GrantAvatarsModal } from '@/features/players/components/GrantAvatarsModal';
 import { GrantChestsModal } from '@/features/players/components/GrantChestsModal';
+import { GrantCoinsModal } from '@/features/players/components/GrantCoinsModal';
+import { GrantXpModal } from '@/features/players/components/GrantXpModal';
 import { SetCurrencyModal } from '@/features/players/components/SetCurrencyModal';
 import { usePlayerDetail } from '@/features/players/playersApi';
 import { formatNumber, formatRelativeDate } from '@/lib/format';
@@ -29,6 +31,8 @@ export function PlayerDetailPanel({
   const [avatarsOpen, setAvatarsOpen] = useState(false);
   const [chestsOpen, setChestsOpen] = useState(false);
   const [currencyOpen, setCurrencyOpen] = useState(false);
+  const [xpOpen, setXpOpen] = useState(false);
+  const [coinsOpen, setCoinsOpen] = useState(false);
 
   const player = detailQ.data?.player ?? summary;
   const primaryCoin = player.coins[0]?.currency_code;
@@ -124,6 +128,14 @@ export function PlayerDetailPanel({
             rowKey={(row) => row.id}
             emptyState={<p className="p-4 text-[14px] text-text-tertiary">Sin balances de moneda</p>}
           />
+          <div className="flex flex-wrap gap-2 border-t border-border-subtle p-4">
+            <Button variant="secondary" size="sm" icon={<Plus size={14} />} onClick={() => setXpOpen(true)}>
+              Dar XP
+            </Button>
+            <Button variant="secondary" size="sm" icon={<Plus size={14} />} onClick={() => setCoinsOpen(true)}>
+              Dar monedas
+            </Button>
+          </div>
         </Card>
       ) : null}
 
@@ -145,6 +157,18 @@ export function PlayerDetailPanel({
         currentCode={primaryCoin}
         onClose={() => setCurrencyOpen(false)}
         onSaved={refresh}
+      />
+      <GrantXpModal
+        open={xpOpen}
+        playerId={playerId}
+        onClose={() => setXpOpen(false)}
+        onGranted={refresh}
+      />
+      <GrantCoinsModal
+        open={coinsOpen}
+        playerId={playerId}
+        onClose={() => setCoinsOpen(false)}
+        onGranted={refresh}
       />
     </div>
   );

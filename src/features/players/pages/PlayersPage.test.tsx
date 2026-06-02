@@ -38,6 +38,29 @@ describe('PlayersPage', () => {
     fireEvent.click(await screen.findByRole('button', { name: 'Entregar avatares' }));
     expect(await screen.findByText('Entregar avatares', { selector: 'h2' })).toBeInTheDocument();
   });
+
+  it('muestra botones de dar XP y monedas bajo wallet', async () => {
+    wrap();
+    fireEvent.click(await screen.findByText('demo_fabricio'));
+    expect(await screen.findByRole('button', { name: 'Dar XP' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Dar monedas' })).toBeInTheDocument();
+  });
+
+  it('abre modal dar XP', async () => {
+    wrap();
+    fireEvent.click(await screen.findByText('demo_fabricio'));
+    fireEvent.click(await screen.findByRole('button', { name: 'Dar XP' }));
+    expect(await screen.findByText('Dar XP', { selector: 'h2' })).toBeInTheDocument();
+    expect(screen.getByLabelText(/Cantidad/i)).toBeInTheDocument();
+  });
+
+  it('abre modal dar monedas', async () => {
+    wrap();
+    fireEvent.click(await screen.findByText('demo_fabricio'));
+    fireEvent.click(await screen.findByRole('button', { name: 'Dar monedas' }));
+    expect(await screen.findByText('Dar monedas', { selector: 'h2' })).toBeInTheDocument();
+    expect(screen.getByRole('combobox')).toBeInTheDocument();
+  });
 });
 
 describe('PlayersPage refresh hint', () => {

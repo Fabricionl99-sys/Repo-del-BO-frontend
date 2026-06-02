@@ -58,6 +58,32 @@ export interface SetPlayerCurrencyPayload {
   currency_code: string;
 }
 
+export interface GrantPlayerXpPayload {
+  amount: number;
+  reason?: string;
+}
+
+export interface GrantPlayerXpResult {
+  granted: boolean;
+  player_state_id: string;
+  amount: number;
+  new_total_xp: number;
+}
+
+export interface GrantPlayerCoinsPayload {
+  currency_code: string;
+  amount: number;
+  reason?: string;
+}
+
+export interface GrantPlayerCoinsResult {
+  granted: boolean;
+  player_state_id: string;
+  currency_code: string;
+  amount: number;
+  new_balance: number;
+}
+
 /** Shape devuelto por GET /admin/players/search (td-105). */
 export interface PlayerSearchResult {
   /** player_state_id interno — usar en grants/API. */
