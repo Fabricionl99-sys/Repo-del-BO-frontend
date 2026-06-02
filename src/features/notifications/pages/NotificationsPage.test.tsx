@@ -49,9 +49,7 @@ describe('NotificationsPage', () => {
     const languageSelect = document.querySelector('select[name="language"]') as HTMLSelectElement;
     fireEvent.change(triggerSelect, { target: { value: 'wallet_low_balance' } });
     fireEvent.change(languageSelect, { target: { value: 'en' } });
-    const codeInput = document.querySelector('input[name="code"]') as HTMLInputElement;
     const nameInput = document.querySelector('input[name="name"]') as HTMLInputElement;
-    fireEvent.change(codeInput, { target: { value: 'test_welcome_ui' } });
     fireEvent.change(nameInput, { target: { value: 'Test UI Welcome' } });
     fireEvent.click(screen.getByRole('button', { name: 'Crear' }));
     await waitFor(() => {
@@ -75,6 +73,14 @@ describe('NotificationsPage', () => {
     ).toBeInTheDocument();
   });
 
+  it('muestra botón Eliminar visible en cada fila activa', async () => {
+    wrap();
+    await screen.findByText('In-app');
+    fireEvent.click(screen.getByRole('button', { name: 'Templates' }));
+    await screen.findByText('Bienvenida al casino');
+    expect(screen.getAllByRole('button', { name: 'Eliminar' }).length).toBeGreaterThan(0);
+  });
+
   it('muestra acción archivar en menú de template', async () => {
     const user = userEvent.setup();
     wrap();
@@ -86,15 +92,17 @@ describe('NotificationsPage', () => {
     expect(screen.getByRole('button', { name: 'Editar' })).toBeInTheDocument();
   });
 
-  it('muestra code al editar template existente', async () => {
+  it('permite editar template existente sin campo code', async () => {
     wrap('/notificaciones/templates/ntpl_welcome');
-    expect(await screen.findByDisplayValue('welcome_player')).toBeInTheDocument();
+    expect(await screen.findByDisplayValue('Bienvenida al casino')).toBeInTheDocument();
     expect(screen.getByText('Editar template', { selector: 'h2' })).toBeInTheDocument();
+    expect(document.querySelector('input[name="code"]')).toBeNull();
+    expect(screen.getByRole('button', { name: 'Guardar template' })).toBeEnabled();
   });
 
   it('muestra error visible al guardar con body vacío', async () => {
     wrap('/notificaciones/templates/ntpl_welcome');
-    await screen.findByDisplayValue('welcome_player');
+    await screen.findByDisplayValue('Bienvenida al casino');
     const body = document.querySelector('textarea[name="body"]') as HTMLTextAreaElement;
     fireEvent.change(body, { target: { value: '' } });
     fireEvent.click(screen.getByRole('button', { name: 'Guardar template' }));
@@ -115,9 +123,9 @@ describe('NotificationsPage', () => {
 
   it('carga audience_filter al editar template existente', async () => {
     wrap('/notificaciones/templates/ntpl_level_up');
-    await screen.findByText('Editar template', { selector: 'h2' });
-    const vipCheckbox = screen.getByRole('checkbox', { name: /Solo jugadores VIP/i }) as HTMLInputElement;
-    expect(vipCheckbox.checked).toBe(true);
+    await screen.findByDisplayValue('Subiste de nivel');
+    const vipCheckbox = await screen.findByRole('checkbox', { name: /Solo jugadores VIP/i });
+    expect(vipCheckbox).toBeChecked();
     const minLevel = document.querySelector('input[name="player_level_min"]') as HTMLInputElement;
     expect(minLevel.value).toBe('5');
   });

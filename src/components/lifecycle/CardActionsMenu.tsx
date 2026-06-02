@@ -4,12 +4,21 @@ import { useState, type ReactNode } from 'react';
 import { IconButton } from '@/components/ui/IconButton';
 import { cn } from '@/lib/cn';
 
-export function CardActionsMenu({ children }: { children: (close: () => void) => ReactNode }) {
+export function CardActionsMenu({
+  children,
+  inline,
+}: {
+  children: (close: () => void) => ReactNode;
+  inline?: boolean;
+}) {
   const [open, setOpen] = useState(false);
   const close = () => setOpen(false);
 
   return (
-    <div className="absolute right-2 top-2 z-10" onClick={(e) => e.stopPropagation()}>
+    <div
+      className={cn(inline ? 'relative inline-flex' : 'absolute right-2 top-2 z-10')}
+      onClick={(e) => e.stopPropagation()}
+    >
       <IconButton
         icon={MoreVertical}
         title="Acciones"

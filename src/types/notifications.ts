@@ -66,7 +66,8 @@ export interface NotificationAudienceFilter {
 
 export interface NotificationTemplate {
   id: string;
-  code: string;
+  /** Display-only slug derived from name; not persisted by backend. */
+  code?: string;
   name: string;
   description: string;
   trigger_event: TriggerEvent;
@@ -90,7 +91,14 @@ export interface NotificationChannelContent {
   cta_url?: string | null;
 }
 
-export type NotificationTemplatePayload = Omit<NotificationTemplate, 'id'> & {
+export type NotificationTemplatePayload = {
+  name: string;
+  description: string;
+  trigger_event: TriggerEvent;
+  channels: ChannelType[];
+  is_active: boolean;
+  language: string;
+  audience_filter?: NotificationAudienceFilter | null;
   content_by_channel?: Partial<Record<ChannelType, NotificationChannelContent>>;
 };
 
@@ -132,7 +140,7 @@ export type ChannelPatchPayload = {
 export interface ManualSendPayload {
   playerStateId: string;
   triggerEvent: TriggerEvent;
-  templateCode?: string;
+  templateId?: string;
   variables?: Record<string, string | number>;
 }
 

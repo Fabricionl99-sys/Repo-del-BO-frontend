@@ -51,23 +51,20 @@ function scrollFormIntoView(el: HTMLElement | null) {
 export function TemplateFormModal({
   open,
   template,
-  existingCodes,
   allTemplates,
   onClose,
 }: {
   open: boolean;
   template: NotificationTemplate | null;
-  existingCodes: string[];
   allTemplates: NotificationTemplate[];
   onClose: () => void;
 }) {
   const create = useCreateNotificationTemplate();
   const update = useUpdateNotificationTemplate();
-  const detailQ = useNotificationTemplate(
-    open && template?.id && !template.body.trim() ? template.id : null,
-  );
+  const detailQ = useNotificationTemplate(open && template?.id ? template.id : null);
   const bodyRef = useRef<HTMLTextAreaElement | null>(null);
   const formScrollRef = useRef<HTMLDivElement | null>(null);
+  const detailAppliedRef = useRef(false);
   const [previewChannel, setPreviewChannel] = useState<ChannelType>('in_app');
   const [formError, setFormError] = useState<string | undefined>();
   const [serverPreviewOpen, setServerPreviewOpen] = useState(false);
@@ -102,12 +99,24 @@ export function TemplateFormModal({
   const createBlocked = isCreate && Boolean(duplicateExisting);
 
   useEffect(() => {
-    if (!open) return;
-    const source =
-      template && !template.body.trim() && detailQ.data ? detailQ.data : template;
-    reset(source ? templateToForm(source) : defaultTemplateForm());
-    setPreviewChannel((source ?? template)?.channels[0] ?? 'in_app');
+    if (!open) {
+      detailAppliedRef.current = false;
+      return;
+    }
+    reset(template ? templateToForm(template) : defaultTemplateForm());
+    setPreviewChannel(template?.channels[0] ?? 'in_app');
     setFormError(undefined);
+  }, [open, template, reset]);
+
+  useEffect(() => {
+    if (!open || !template?.id || !detailQ.data || detailAppliedRef.current) return;
+    if (template.body.trim()) {
+      detailAppliedRef.current = true;
+      return;
+    }
+    reset(templateToForm(detailQ.data));
+    setPreviewChannel(detailQ.data.channels[0] ?? 'in_app');
+    detailAppliedRef.current = true;
   }, [open, template, detailQ.data, reset]);
 
   const onInvalid = (fieldErrors: FieldErrors<NotificationTemplateFormValues>) => {
@@ -138,23 +147,17 @@ export function TemplateFormModal({
     if (createBlocked) return;
 
     setFormError(undefined);
-    const data = template ? { ...raw, code: template.code } : raw;
 
-    const placeholderErr = validatePlaceholders(data.body, data.body_html, data.subject, data.trigger_event);
-    const subjectErr = validateEmailSubject(data.channels, data.subject);
-    const ctaErr = validateCtaUrl(data.cta_url);
+    const placeholderErr = validatePlaceholders(raw.body, raw.body_html, raw.subject, raw.trigger_event);
+    const subjectErr = validateEmailSubject(raw.channels, raw.subject);
+    const ctaErr = validateCtaUrl(raw.cta_url);
     const err = placeholderErr ?? subjectErr ?? ctaErr;
     if (err) {
       setFormError(err);
       scrollFormIntoView(formScrollRef.current);
       return;
     }
-    if (!template && existingCodes.includes(data.code)) {
-      setFormError('El code ya existe');
-      focusFirstTemplateFormError({ code: { type: 'manual', message: 'El code ya existe' } });
-      return;
-    }
-    const payload = formToTemplatePayload(data);
+    const payload = formToTemplatePayload(raw);
     if (template) {
       await update.mutateAsync({ id: template.id, ...payload });
     } else {
@@ -218,19 +221,7 @@ export function TemplateFormModal({
           <section>
             <p className="label-section mb-3">datos básicos</p>
             <div className="grid grid-cols-2 gap-3 max-md:grid-cols-1">
-              <label className="block">
-                <span className="mb-1 block text-[14px] text-text-secondary">code</span>
-                <input
-                  className={cn(
-                    'field font-mono text-[14px]',
-                    template && 'cursor-not-allowed bg-bg-tertiary text-text-secondary',
-                  )}
-                  readOnly={!!template}
-                  {...register('code')}
-                />
-                {errors.code && <p className="mt-1 text-[14px] text-danger">{errors.code.message}</p>}
-              </label>
-              <label className="block">
+              <label className="col-span-2 block max-md:col-span-1">
                 <span className="mb-1 block text-[14px] text-text-secondary">nombre</span>
                 <input className="field" {...register('name')} />
                 {errors.name && <p className="mt-1 text-[14px] text-danger">{errors.name.message}</p>}

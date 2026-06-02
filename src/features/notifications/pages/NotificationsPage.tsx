@@ -1,5 +1,5 @@
 import { Bell, Pencil, Plus, Send, Trash2 } from 'lucide-react';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Link, useLocation, useNavigate, useParams, useSearchParams } from 'react-router-dom';
 
 import { Button } from '@/components/ui/Button';
@@ -96,7 +96,7 @@ export default function NotificationsPage() {
   const [manualPlayerQuery, setManualPlayerQuery] = useState('');
   const [manualPlayerStateId, setManualPlayerStateId] = useState('');
   const [manualTriggerEvent, setManualTriggerEvent] = useState<TriggerEvent>('manual');
-  const [manualTemplateCode, setManualTemplateCode] = useState('');
+  const [manualTemplateId, setManualTemplateId] = useState('');
   const [manualVariablesJson, setManualVariablesJson] = useState('{}');
   const [templatePreview, setTemplatePreview] = useState<NotificationTemplate | null>(null);
   const [archiveTemplateTarget, setArchiveTemplateTarget] = useState<NotificationTemplate | null>(null);
@@ -126,7 +126,6 @@ export default function NotificationsPage() {
   const allTemplates = mock === 'empty-templates' ? [] : (allTemplatesQ.data ?? []);
   const templates = mock === 'empty-templates' ? [] : (templatesQ.data ?? []);
   const history = mock === 'empty-history' ? [] : (historyQ.data ?? []);
-  const existingCodes = useMemo(() => allTemplates.map((t) => t.code), [allTemplates]);
 
   const openNewTemplate = () => navigate('/notificaciones/templates/nuevo');
   const openEditTemplate = (t: NotificationTemplate) => navigate(`/notificaciones/templates/${t.id}`);
@@ -208,7 +207,9 @@ export default function NotificationsPage() {
       render: (t) => (
         <button type="button" className="text-left" onClick={() => openEditTemplate(t)}>
           <b>{t.name}</b>
-          <div className="font-mono text-[12px] text-text-tertiary">{t.code}</div>
+          <div className="font-mono text-[12px] text-text-tertiary">
+            {TRIGGER_EVENT_LABELS[t.trigger_event] ?? t.trigger_event} · {t.language}
+          </div>
         </button>
       ),
     },
@@ -245,11 +246,21 @@ export default function NotificationsPage() {
       key: 'actions',
       header: '',
       render: (t) => (
-        <div className="relative flex justify-end gap-1" onClick={(e) => e.stopPropagation()}>
+        <div className="relative flex flex-wrap items-center justify-end gap-2" onClick={(e) => e.stopPropagation()}>
           <Button size="sm" variant="ghost" onClick={() => setTemplatePreview(t)}>
             vista previa
           </Button>
-          <CardActionsMenu>
+          {t.is_active ? (
+            <Button
+              variant="danger"
+              size="md"
+              icon={<Trash2 size={16} />}
+              onClick={() => setArchiveTemplateTarget(t)}
+            >
+              Eliminar
+            </Button>
+          ) : null}
+          <CardActionsMenu inline>
             {(close) => (
               <>
                 <CardActionItem
@@ -320,7 +331,7 @@ export default function NotificationsPage() {
     await sendManual.mutateAsync({
       playerStateId: manualPlayerStateId.trim(),
       triggerEvent: manualTriggerEvent,
-      ...(manualTemplateCode ? { templateCode: manualTemplateCode } : {}),
+      ...(manualTemplateId ? { templateId: manualTemplateId } : {}),
       ...(variables ? { variables } : {}),
     });
     setTab('Historial');
@@ -383,7 +394,7 @@ export default function NotificationsPage() {
           <Toolbar
             search={
               <SearchInput
-                placeholder="Buscar por nombre o code..."
+                placeholder="Buscar por nombre..."
                 value={tplSearch}
                 onChange={(e) => setTplSearch(e.target.value)}
               />
@@ -507,12 +518,12 @@ export default function NotificationsPage() {
             </select>
           </label>
           <label className="block">
-            <span className="mb-1 block text-[14px] text-text-secondary">templateCode (opcional)</span>
-            <select className="field" value={manualTemplateCode} onChange={(e) => setManualTemplateCode(e.target.value)}>
+            <span className="mb-1 block text-[14px] text-text-secondary">template (opcional)</span>
+            <select className="field" value={manualTemplateId} onChange={(e) => setManualTemplateId(e.target.value)}>
               <option value="">Sin template (solo trigger)</option>
               {manualTemplates.map((t) => (
-                <option key={t.id} value={t.code}>
-                  {t.name} ({t.code})
+                <option key={t.id} value={t.id}>
+                  {t.name} ({t.trigger_event} · {t.language})
                 </option>
               ))}
             </select>
@@ -548,7 +559,6 @@ export default function NotificationsPage() {
       <TemplateFormModal
         open={templateEditor !== null}
         template={templateEditor === 'new' ? null : templateEditor}
-        existingCodes={existingCodes}
         allTemplates={allTemplates}
         onClose={closeTemplateEditor}
       />

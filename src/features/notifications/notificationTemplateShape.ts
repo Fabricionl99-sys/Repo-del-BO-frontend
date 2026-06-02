@@ -1,5 +1,19 @@
 import type { ChannelType, NotificationTemplate, TriggerEvent } from '@/types/notifications';
 
+/** Slug for display only — backend identifies templates by id + (trigger, language). */
+export function templateDisplayCode(name: string): string {
+  return (
+    name
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .toLowerCase()
+      .trim()
+      .replace(/[^a-z0-9]+/g, '_')
+      .replace(/^_+|_+$/g, '')
+      .slice(0, 64) || 'template'
+  );
+}
+
 export type NotificationChannelContent = {
   title?: string | null;
   body?: string | null;
@@ -53,10 +67,12 @@ export function normalizeNotificationTemplate(raw: Record<string, unknown>): Not
   const inApp = channelContent(t, 'in_app');
   const email = channelContent(t, 'email');
 
+  const name = String(t.name ?? '');
+
   return {
     id: String(t.id ?? ''),
-    code: String(t.code ?? ''),
-    name: String(t.name ?? ''),
+    code: t.code?.trim() || templateDisplayCode(name),
+    name,
     description: String(t.description ?? ''),
     trigger_event: t.trigger_event ?? 'welcome',
     channels: Array.isArray(t.channels) && t.channels.length > 0 ? t.channels : ['in_app'],

@@ -35,11 +35,6 @@ function emptyToNullNumber(value: unknown) {
 
 export const notificationTemplateSchema = z
   .object({
-    code: z
-      .string()
-      .min(2, 'Code: mínimo 2 caracteres')
-      .max(64)
-      .regex(/^[a-z][a-z0-9_]*$/, 'Code en snake_case (a-z, 0-9, _)'),
     name: z.string().min(2, 'Nombre requerido').max(120),
     description: z.string().max(500),
     trigger_event: z.enum([
@@ -170,7 +165,6 @@ export function formToAudienceFilter(
 
 export function defaultTemplateForm(): NotificationTemplateFormValues {
   return {
-    code: '',
     name: '',
     description: '',
     trigger_event: 'welcome',
@@ -196,7 +190,6 @@ export function templateToForm(t: NotificationTemplate): NotificationTemplateFor
   const limitAudience = hasAudienceFilterFields(af);
 
   return {
-    code: t.code ?? '',
     name: t.name ?? '',
     description: t.description ?? '',
     trigger_event: t.trigger_event ?? 'welcome',
@@ -219,16 +212,10 @@ export function templateToForm(t: NotificationTemplate): NotificationTemplateFor
 
 export function formToTemplatePayload(values: NotificationTemplateFormValues): NotificationTemplatePayload {
   return {
-    code: values.code.trim(),
     name: values.name.trim(),
     description: values.description?.trim() ?? '',
     trigger_event: values.trigger_event,
     channels: values.channels,
-    subject: values.subject?.trim() || null,
-    body: values.body,
-    body_html: values.body_html?.trim() || null,
-    cta_text: values.cta_text?.trim() || null,
-    cta_url: values.cta_url?.trim() || null,
     is_active: values.is_active,
     language: values.language || 'es',
     audience_filter: formToAudienceFilter(values),

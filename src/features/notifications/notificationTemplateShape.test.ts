@@ -37,6 +37,17 @@ describe('normalizeNotificationTemplate', () => {
       }).body,
     ).toBe('Flat body');
   });
+
+  it('derives display code from name when API omits code', () => {
+    expect(
+      normalizeNotificationTemplate({
+        id: 'x',
+        name: 'Bienvenida al Casino',
+        trigger_event: 'welcome',
+        channels: ['in_app'],
+      }).code,
+    ).toBe('bienvenida_al_casino');
+  });
 });
 
 describe('buildContentByChannel', () => {

@@ -33,7 +33,7 @@ aws --region "$AWS_REGION" s3 cp dist/index.html "s3://${S2G_PRODUCTION_BUCKET}/
 echo "→ Invalidating CloudFront ${S2G_PRODUCTION_CF_DISTRIBUTION_ID}..."
 aws --region "$AWS_REGION" cloudfront create-invalidation \
   --distribution-id "${S2G_PRODUCTION_CF_DISTRIBUTION_ID}" \
-  --paths "/*" \
+  --paths "/assets/*" "/index.html" \
   --query 'Invalidation.{id:Id,status:Status}' --output table
 
 echo "✓ Production deploy complete → https://app.social2game.com"

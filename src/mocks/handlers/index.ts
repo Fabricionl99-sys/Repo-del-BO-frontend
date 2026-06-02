@@ -788,7 +788,10 @@ handlers.push(
     if (status === 'archived') list = list.filter((t) => !t.is_active);
     if (search) {
       list = list.filter(
-        (t) => t.name.toLowerCase().includes(search) || t.code.toLowerCase().includes(search),
+        (t) =>
+          t.name.toLowerCase().includes(search) ||
+          (t.code ?? '').toLowerCase().includes(search) ||
+          t.trigger_event.includes(search),
       );
     }
     return HttpResponse.json({ data: list });
@@ -802,10 +805,21 @@ handlers.push(
   http.post('*/admin/notifications/templates', async ({ request }) => {
     await wait();
     const body = (await request.json()) as NotificationTemplatePayload;
-    if (notificationTemplates.some((t) => t.code === body.code)) {
-      return HttpResponse.json({ message: 'code duplicado' }, { status: 409 });
+    const duplicate = notificationTemplates.find(
+      (t) => t.trigger_event === body.trigger_event && t.language === body.language,
+    );
+    if (duplicate) {
+      return HttpResponse.json({ message: 'template duplicado para trigger e idioma' }, { status: 409 });
     }
-    const item = { ...body, id: `ntpl_${Date.now()}` };
+    const item = {
+      ...body,
+      id: `ntpl_${Date.now()}`,
+      subject: null,
+      body: body.content_by_channel?.in_app?.body ?? '',
+      body_html: null,
+      cta_text: body.content_by_channel?.in_app?.cta_text ?? null,
+      cta_url: body.content_by_channel?.in_app?.cta_url ?? null,
+    };
     notificationTemplates.unshift(item);
     return HttpResponse.json({ data: item }, { status: 201 });
   }),
@@ -856,15 +870,15 @@ handlers.push(
     await wait();
     const body = (await request.json()) as ManualSendPayload;
     const tpl =
-      (body.templateCode
-        ? notificationTemplates.find((t) => t.code === body.templateCode)
+      (body.templateId
+        ? notificationTemplates.find((t) => t.id === body.templateId)
         : notificationTemplates.find((t) => t.trigger_event === body.triggerEvent)) ??
       notificationTemplates[0];
     notificationHistory.unshift({
       id: `nh_${Date.now()}`,
       player_id: body.playerStateId,
       player_handle: body.playerStateId,
-      template_code: tpl.code,
+      template_code: tpl.code ?? tpl.id,
       template_name: tpl.name,
       channel_type: tpl.channels[0] ?? 'in_app',
       trigger_event: body.triggerEvent,

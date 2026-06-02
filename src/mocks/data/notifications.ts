@@ -228,7 +228,7 @@ function buildHistory(): NotificationHistoryItem[] {
       id: `nh_${1000 + i}`,
       player_id: player.player_id,
       player_handle: player.player_handle,
-      template_code: tpl.code,
+      template_code: tpl.code ?? tpl.id,
       template_name: tpl.name,
       channel_type: channel,
       trigger_event: tpl.trigger_event,

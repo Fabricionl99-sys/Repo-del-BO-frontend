@@ -93,5 +93,6 @@ describe('notificationForm content_by_channel', () => {
     expect(formToTemplatePayload(form).content_by_channel?.in_app?.body).toBe(
       'Te entregamos un avatar de regalo.',
     );
+    expect(formToTemplatePayload(form)).not.toHaveProperty('code');
   });
 });

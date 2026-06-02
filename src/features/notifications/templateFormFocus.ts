@@ -3,7 +3,6 @@ import type { FieldErrors } from 'react-hook-form';
 import type { NotificationTemplateFormValues } from './notificationForm';
 
 const FIELD_ORDER: (keyof NotificationTemplateFormValues)[] = [
-  'code',
   'name',
   'description',
   'trigger_event',
