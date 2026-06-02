@@ -109,7 +109,7 @@ export function EventFormModal({
         <label className="block space-y-1">
           <span className="text-[14px] font-medium">Evento / pregunta</span>
           <input
-            className="input w-full"
+            className="field w-full"
             value={question}
             onChange={(e) => setQuestion(e.target.value)}
             placeholder="Ej. Argentina vs Brasil"
@@ -119,7 +119,7 @@ export function EventFormModal({
           <span className="text-[14px] font-medium">Cierra predicciones</span>
           <input
             type="datetime-local"
-            className="input w-full"
+            className="field w-full"
             value={deadline}
             onChange={(e) => setDeadline(e.target.value)}
           />
@@ -129,7 +129,7 @@ export function EventFormModal({
           {options.map((opt, i) => (
             <div key={i} className="flex gap-2">
               <input
-                className="input flex-1"
+                className="field flex-1"
                 value={opt.text}
                 onChange={(e) => {
                   const next = [...options];
