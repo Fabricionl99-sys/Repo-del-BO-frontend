@@ -1,10 +1,10 @@
-import { Bell, Pencil, Plus, Send, Trash2 } from 'lucide-react';
+import { Archive, Bell, Pencil, Plus, Send, Trash2 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { Link, useLocation, useNavigate, useParams, useSearchParams } from 'react-router-dom';
 
 import { Button } from '@/components/ui/Button';
 import { ArchiveConfirmModal } from '@/components/lifecycle/ArchiveConfirmModal';
-import { CardActionItem, CardActionsMenu } from '@/components/lifecycle/CardActionsMenu';
+import { PermanentDeleteModal } from '@/components/lifecycle/PermanentDeleteModal';
 import { PlayerSearchResults } from '@/components/players/PlayerSearchResults';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { ErrorState } from '@/components/ui/ErrorState';
@@ -37,7 +37,6 @@ import { LoginPopupsTemplatesTab } from '../components/LoginPopupsTemplatesTab';
 import { ManualLoginPopupTab } from '../components/ManualLoginPopupTab';
 import { NotificationStatsPanel } from '../components/NotificationStatsPanel';
 import { TemplateFormModal } from '../components/TemplateFormModal';
-import { TemplateServerPreviewModal } from '../components/TemplateServerPreviewModal';
 import { CHANNEL_LABELS, TRIGGER_EVENT_LABELS } from '../notificationVariables';
 import {
   useNotificationChannels,
@@ -45,6 +44,7 @@ import {
   useNotificationStats,
   useNotificationTemplates,
   useArchiveNotificationTemplate,
+  useDeleteNotificationTemplatePermanent,
   useSendManualNotification,
   useTestNotificationChannel,
 } from '../notificationsApi';
@@ -98,17 +98,17 @@ export default function NotificationsPage() {
   const [manualTriggerEvent, setManualTriggerEvent] = useState<TriggerEvent>('manual');
   const [manualTemplateId, setManualTemplateId] = useState('');
   const [manualVariablesJson, setManualVariablesJson] = useState('{}');
-  const [templatePreview, setTemplatePreview] = useState<NotificationTemplate | null>(null);
   const [archiveTemplateTarget, setArchiveTemplateTarget] = useState<NotificationTemplate | null>(null);
+  const [deleteTemplateTarget, setDeleteTemplateTarget] = useState<NotificationTemplate | null>(null);
   const debouncedPlayerQ = useDebounce(manualPlayerQuery, 250);
 
   const channelsQ = useNotificationChannels();
-  const allTemplatesQ = useNotificationTemplates();
+  const allTemplatesQ = useNotificationTemplates({ status: 'all' });
   const templatesQ = useNotificationTemplates({
     search: debouncedTplSearch || undefined,
     trigger_event: tplTrigger === 'all' ? undefined : tplTrigger,
     channel: tplChannel === 'all' ? undefined : tplChannel,
-    status: tplStatus === 'all' ? undefined : tplStatus,
+    status: tplStatus,
   });
   const historyQ = useNotificationHistory({
     player_id: histPlayer || undefined,
@@ -120,6 +120,7 @@ export default function NotificationsPage() {
   const testChannel = useTestNotificationChannel();
   const sendManual = useSendManualNotification();
   const archiveTemplate = useArchiveNotificationTemplate();
+  const deleteTemplatePermanent = useDeleteNotificationTemplatePermanent();
   const playerSearchQ = usePlayerSearch(debouncedPlayerQ);
 
   const channels = mock === 'empty' ? [] : (channelsQ.data ?? []);
@@ -245,46 +246,40 @@ export default function NotificationsPage() {
     {
       key: 'actions',
       header: '',
-      render: (t) => (
-        <div className="relative flex flex-wrap items-center justify-end gap-2" onClick={(e) => e.stopPropagation()}>
-          <Button size="sm" variant="ghost" onClick={() => setTemplatePreview(t)}>
-            vista previa
-          </Button>
-          {t.is_active ? (
-            <Button
-              variant="danger"
-              size="md"
-              icon={<Trash2 size={16} />}
-              onClick={() => setArchiveTemplateTarget(t)}
-            >
-              Eliminar
+      width: '280px',
+      align: 'right',
+      render: (t) => {
+        const showArchive = tplStatus === 'active' || (tplStatus === 'all' && t.is_active);
+        const showPermanentDelete = tplStatus === 'archived' || (tplStatus === 'all' && !t.is_active);
+
+        return (
+          <div className="flex flex-wrap items-center justify-end gap-2" onClick={(e) => e.stopPropagation()}>
+            <Button size="sm" variant="secondary" icon={<Pencil size={14} />} onClick={() => openEditTemplate(t)}>
+              Editar
             </Button>
-          ) : null}
-          <CardActionsMenu inline>
-            {(close) => (
-              <>
-                <CardActionItem
-                  label="Editar"
-                  icon={<Pencil className="h-4 w-4" />}
-                  onClick={() => {
-                    close();
-                    openEditTemplate(t);
-                  }}
-                />
-                <CardActionItem
-                  label="Archivar"
-                  icon={<Trash2 className="h-4 w-4" />}
-                  danger
-                  onClick={() => {
-                    close();
-                    setArchiveTemplateTarget(t);
-                  }}
-                />
-              </>
-            )}
-          </CardActionsMenu>
-        </div>
-      ),
+            {showArchive ? (
+              <Button
+                size="sm"
+                variant="secondary"
+                icon={<Archive size={14} />}
+                onClick={() => setArchiveTemplateTarget(t)}
+              >
+                Archivar
+              </Button>
+            ) : null}
+            {showPermanentDelete ? (
+              <Button
+                variant="danger"
+                size="sm"
+                icon={<Trash2 size={14} />}
+                onClick={() => setDeleteTemplateTarget(t)}
+              >
+                Eliminar definitivo
+              </Button>
+            ) : null}
+          </div>
+        );
+      },
     },
   ];
 
@@ -563,11 +558,6 @@ export default function NotificationsPage() {
         onClose={closeTemplateEditor}
       />
       <HistoryDetailModal open={!!historyDetail} item={historyDetail} onClose={() => setHistoryDetail(null)} />
-      <TemplateServerPreviewModal
-        open={!!templatePreview}
-        template={templatePreview}
-        onClose={() => setTemplatePreview(null)}
-      />
       <ArchiveConfirmModal
         open={archiveTemplateTarget !== null}
         title={archiveTemplateTarget ? `Archivar "${archiveTemplateTarget.name}"` : 'Archivar template'}
@@ -577,6 +567,19 @@ export default function NotificationsPage() {
         onConfirm={async () => {
           if (!archiveTemplateTarget) return;
           await archiveTemplate.mutateAsync(archiveTemplateTarget.id);
+          setArchiveTemplateTarget(null);
+        }}
+      />
+      <PermanentDeleteModal
+        open={deleteTemplateTarget !== null}
+        itemKind="template"
+        itemName={deleteTemplateTarget?.name ?? ''}
+        confirmCode={deleteTemplateTarget?.name ?? ''}
+        loading={deleteTemplatePermanent.isPending}
+        onClose={() => setDeleteTemplateTarget(null)}
+        onConfirm={async () => {
+          if (!deleteTemplateTarget) return;
+          await deleteTemplatePermanent.mutateAsync(deleteTemplateTarget.id);
         }}
       />
     </>

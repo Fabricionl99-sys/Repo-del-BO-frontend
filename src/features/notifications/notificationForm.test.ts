@@ -4,7 +4,9 @@ import { notificationTemplates } from '@/mocks/data/notifications';
 
 import {
   defaultTemplateForm,
+  defaultTemplateFormForCreate,
   findTemplateByTriggerLanguage,
+  firstAvailableTriggerLanguage,
   formToAudienceFilter,
   formToTemplatePayload,
   templateToForm,
@@ -27,6 +29,14 @@ describe('notificationForm combo helpers', () => {
     const taken = triggersTakenForLanguage(notificationTemplates, 'es');
     expect(taken.has('welcome')).toBe(true);
     expect(taken.has('level_up')).toBe(true);
+  });
+
+  it('picks first free trigger+language for create defaults', () => {
+    const slot = firstAvailableTriggerLanguage(notificationTemplates);
+    expect(findTemplateByTriggerLanguage(notificationTemplates, slot.trigger_event, slot.language)).toBeUndefined();
+    const form = defaultTemplateFormForCreate(notificationTemplates);
+    expect(form.trigger_event).toBe(slot.trigger_event);
+    expect(form.language).toBe(slot.language);
   });
 });
 

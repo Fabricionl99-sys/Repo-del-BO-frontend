@@ -830,6 +830,20 @@ handlers.push(
     Object.assign(item, body);
     return HttpResponse.json({ data: item });
   }),
+  http.delete('*/admin/notifications/templates/:id/permanent', async ({ params }) => {
+    await wait();
+    const item = notificationTemplates.find((t) => t.id === params.id);
+    if (!item) return new HttpResponse(null, { status: 404 });
+    if (item.is_active) {
+      return HttpResponse.json(
+        { message: 'El template debe estar archivado antes de eliminarlo definitivamente' },
+        { status: 409 },
+      );
+    }
+    const idx = notificationTemplates.findIndex((t) => t.id === params.id);
+    if (idx >= 0) notificationTemplates.splice(idx, 1);
+    return HttpResponse.json({ data: { deleted: true } });
+  }),
   http.delete('*/admin/notifications/templates/:id', async ({ params }) => {
     await wait();
     const item = notificationTemplates.find((t) => t.id === params.id);

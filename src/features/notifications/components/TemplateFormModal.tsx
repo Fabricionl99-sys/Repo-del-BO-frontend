@@ -12,6 +12,7 @@ import type { ChannelType, NotificationTemplate, TriggerEvent } from '@/types/no
 
 import {
   defaultTemplateForm,
+  defaultTemplateFormForCreate,
   findTemplateByTriggerLanguage,
   formToTemplatePayload,
   notificationTemplateSchema,
@@ -103,10 +104,10 @@ export function TemplateFormModal({
       detailAppliedRef.current = false;
       return;
     }
-    reset(template ? templateToForm(template) : defaultTemplateForm());
+    reset(template ? templateToForm(template) : defaultTemplateFormForCreate(allTemplates));
     setPreviewChannel(template?.channels[0] ?? 'in_app');
     setFormError(undefined);
-  }, [open, template, reset]);
+  }, [open, template, allTemplates, reset]);
 
   useEffect(() => {
     if (!open || !template?.id || !detailQ.data || detailAppliedRef.current) return;
@@ -144,7 +145,11 @@ export function TemplateFormModal({
   };
 
   const submit = handleSubmit(async (raw) => {
-    if (createBlocked) return;
+    if (createBlocked) {
+      setFormError('Ya tenés un template para este trigger e idioma. Elegí otra combinación o editá el existente.');
+      scrollFormIntoView(formScrollRef.current);
+      return;
+    }
 
     setFormError(undefined);
 
@@ -184,7 +189,6 @@ export function TemplateFormModal({
           <Button
             variant="primary"
             loading={create.isPending || update.isPending}
-            disabled={createBlocked}
             onClick={() => void submit()}
           >
             {template ? 'Guardar template' : 'Crear'}

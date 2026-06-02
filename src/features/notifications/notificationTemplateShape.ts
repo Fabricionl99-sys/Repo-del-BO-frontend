@@ -81,7 +81,10 @@ export function normalizeNotificationTemplate(raw: Record<string, unknown>): Not
     body_html: t.body_html ?? email?.body_html ?? null,
     cta_text: t.cta_text ?? inApp?.cta_text ?? null,
     cta_url: t.cta_url ?? inApp?.cta_url ?? null,
-    is_active: t.archived === true || t.archived_at ? false : (t.is_active ?? true),
+    is_active:
+      typeof t.is_active === 'boolean'
+        ? t.is_active
+        : !(t.archived === true || Boolean(t.archived_at)),
     language: t.language ?? 'es',
     audience_filter: t.audience_filter ?? null,
   };

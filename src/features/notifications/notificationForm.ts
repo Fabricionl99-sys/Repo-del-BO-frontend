@@ -129,6 +129,46 @@ export function triggersTakenForLanguage(
   );
 }
 
+const TEMPLATE_LANGUAGES = ['es', 'en', 'pt'] as const;
+
+const TEMPLATE_TRIGGERS: TriggerEvent[] = [
+  'welcome',
+  'level_up',
+  'mission_completed',
+  'streak_completed',
+  'streak_in_danger',
+  'chest_received',
+  'shop_purchase',
+  'ranking_won',
+  'wallet_low_balance',
+  'reward_pending',
+  'manual',
+];
+
+/** First (trigger, language) pair without an existing template — for create form defaults. */
+export function firstAvailableTriggerLanguage(templates: NotificationTemplate[]): {
+  trigger_event: TriggerEvent;
+  language: string;
+} {
+  for (const language of TEMPLATE_LANGUAGES) {
+    for (const trigger_event of TEMPLATE_TRIGGERS) {
+      if (!findTemplateByTriggerLanguage(templates, trigger_event, language)) {
+        return { trigger_event, language };
+      }
+    }
+  }
+  return { trigger_event: 'manual', language: 'es' };
+}
+
+export function defaultTemplateFormForCreate(templates: NotificationTemplate[]): NotificationTemplateFormValues {
+  const slot = firstAvailableTriggerLanguage(templates);
+  return {
+    ...defaultTemplateForm(),
+    trigger_event: slot.trigger_event,
+    language: slot.language,
+  };
+}
+
 function hasAudienceFilterFields(filter: NotificationAudienceFilter | null | undefined): boolean {
   if (!filter) return false;
   return Boolean(

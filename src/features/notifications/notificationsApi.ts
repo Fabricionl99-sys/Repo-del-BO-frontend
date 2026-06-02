@@ -1,7 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 import { apiClient } from '@/api/client';
-import { getApiErrorMessage } from '@/api/errors';
+import { getApiErrorMessage, getHttpStatus } from '@/api/errors';
 import { unwrapData, unwrapPaginatedList } from '@/api/response';
 import { toast } from '@/stores/toastStore';
 import type {
@@ -67,7 +67,7 @@ export function useTestNotificationChannel() {
 export function useNotificationTemplates(params?: {
   trigger_event?: string;
   channel?: string;
-  status?: 'active' | 'archived';
+  status?: 'active' | 'archived' | 'all';
   search?: string;
 }) {
   return useQuery({
@@ -135,6 +135,22 @@ export function useArchiveNotificationTemplate() {
     },
     onError: (err) => {
       toast.error(getApiErrorMessage(err, 'No se pudo archivar'));
+    },
+  });
+}
+
+export function useDeleteNotificationTemplatePermanent() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (id: string) => apiClient.delete(`/admin/notifications/templates/${id}/permanent`),
+    onSuccess: () => {
+      toast.success('Template eliminado definitivamente');
+      qc.invalidateQueries({ queryKey: ['notification-templates'] });
+      qc.invalidateQueries({ queryKey: ['notification-template'] });
+    },
+    onError: (error) => {
+      if (getHttpStatus(error) === 409) return;
+      toast.error(getApiErrorMessage(error, 'No se pudo eliminar el template'));
     },
   });
 }

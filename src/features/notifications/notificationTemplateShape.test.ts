@@ -48,6 +48,19 @@ describe('normalizeNotificationTemplate', () => {
       }).code,
     ).toBe('bienvenida_al_casino');
   });
+
+  it('trusts backend is_active when archived_at is also present', () => {
+    expect(
+      normalizeNotificationTemplate({
+        id: 'x',
+        name: 'Activo',
+        trigger_event: 'welcome',
+        channels: ['in_app'],
+        is_active: true,
+        archived_at: '2026-01-01T00:00:00.000Z',
+      }).is_active,
+    ).toBe(true);
+  });
 });
 
 describe('buildContentByChannel', () => {

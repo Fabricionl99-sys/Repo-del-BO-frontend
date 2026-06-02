@@ -1,6 +1,5 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
-import userEvent from '@testing-library/user-event';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
 import { describe, expect, it } from 'vitest';
 
@@ -35,11 +34,11 @@ describe('NotificationsPage', () => {
     await waitFor(() => expect(screen.getByText('In-app')).toBeInTheDocument());
   });
 
-  it('lista templates y abre modal nuevo', async () => {
+  it('lista templates y abre modal nuevo con combo libre preseleccionado', async () => {
     wrap('/notificaciones/templates/nuevo');
     expect(await screen.findByText('Nuevo template', { selector: 'h2' })).toBeInTheDocument();
-    expect(screen.getByText(/Ya tenés un template para este evento en este idioma/i)).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'Crear' })).toBeDisabled();
+    expect(screen.queryByText(/Ya tenés un template para este evento en este idioma/i)).not.toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Crear' })).toBeEnabled();
   });
 
   it('crea template desde modal con combo libre', async () => {
@@ -59,7 +58,12 @@ describe('NotificationsPage', () => {
 
   it('muestra link para editar template duplicado', async () => {
     wrap('/notificaciones/templates/nuevo');
-    await screen.findByText(/Ya tenés un template para este evento/i);
+    await screen.findByText('Nuevo template', { selector: 'h2' });
+    const triggerSelect = document.querySelector('select[name="trigger_event"]') as HTMLSelectElement;
+    const languageSelect = document.querySelector('select[name="language"]') as HTMLSelectElement;
+    fireEvent.change(triggerSelect, { target: { value: 'welcome' } });
+    fireEvent.change(languageSelect, { target: { value: 'es' } });
+    expect(await screen.findByText(/Ya tenés un template para este evento/i)).toBeInTheDocument();
     expect(screen.getByRole('link', { name: /Editar el existente/i })).toHaveAttribute(
       'href',
       '/notificaciones/templates/ntpl_welcome',
@@ -73,23 +77,44 @@ describe('NotificationsPage', () => {
     ).toBeInTheDocument();
   });
 
-  it('muestra botón Eliminar visible en cada fila activa', async () => {
+  it('muestra botones Editar y Archivar inline en filas activas', async () => {
     wrap();
     await screen.findByText('In-app');
     fireEvent.click(screen.getByRole('button', { name: 'Templates' }));
     await screen.findByText('Bienvenida al casino');
-    expect(screen.getAllByRole('button', { name: 'Eliminar' }).length).toBeGreaterThan(0);
+    expect(screen.getAllByRole('button', { name: 'Editar' }).length).toBeGreaterThan(0);
+    expect(screen.getAllByRole('button', { name: 'Archivar' }).length).toBeGreaterThan(0);
+    expect(screen.queryByRole('button', { name: 'Eliminar definitivo' })).not.toBeInTheDocument();
   });
 
-  it('muestra acción archivar en menú de template', async () => {
-    const user = userEvent.setup();
+  it('tab archivados muestra Eliminar definitivo y no Archivar', async () => {
     wrap();
     await screen.findByText('In-app');
     fireEvent.click(screen.getByRole('button', { name: 'Templates' }));
     await screen.findByText('Bienvenida al casino');
-    await user.click(screen.getAllByTitle('Acciones')[0]);
-    expect(screen.getByRole('button', { name: 'Archivar' })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'Editar' })).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'archived' }));
+    await screen.findByText('Promo legacy archivada');
+    expect(screen.getByRole('button', { name: 'Eliminar definitivo' })).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Archivar' })).not.toBeInTheDocument();
+  });
+
+  it('filtra templates archivados con status=archived', async () => {
+    wrap();
+    await screen.findByText('In-app');
+    fireEvent.click(screen.getByRole('button', { name: 'Templates' }));
+    await screen.findByText('Bienvenida al casino');
+    fireEvent.click(screen.getByRole('button', { name: 'archived' }));
+    expect(await screen.findByText('Promo legacy archivada')).toBeInTheDocument();
+    expect(screen.queryByText('Bienvenida al casino')).not.toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Eliminar definitivo' })).toBeInTheDocument();
+  });
+
+  it('no muestra menú ⋮ en templates', async () => {
+    wrap();
+    await screen.findByText('In-app');
+    fireEvent.click(screen.getByRole('button', { name: 'Templates' }));
+    await screen.findByText('Bienvenida al casino');
+    expect(screen.queryByTitle('Acciones')).not.toBeInTheDocument();
   });
 
   it('permite editar template existente sin campo code', async () => {
