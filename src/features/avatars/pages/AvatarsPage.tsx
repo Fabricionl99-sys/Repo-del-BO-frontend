@@ -2,6 +2,7 @@ import { Plus, UserCircle2 } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 
+import { PlayerSearchResults } from '@/components/players/PlayerSearchResults';
 import { Button } from '@/components/ui/Button';
 import { ArchiveConfirmModal } from '@/components/lifecycle/ArchiveConfirmModal';
 import { PermanentDeleteModal } from '@/components/lifecycle/PermanentDeleteModal';
@@ -455,25 +456,13 @@ export default function AvatarsPage() {
               value={grantPlayerQuery}
               onChange={(e) => setGrantPlayerQuery(e.target.value)}
             />
-            {playerSearchQ.data && playerSearchQ.data.length > 0 && (
-              <ul className="mt-2 max-h-40 overflow-y-auto rounded-lg border border-border-subtle bg-bg-primary">
-                {playerSearchQ.data.map((p) => (
-                  <li key={p.player_id}>
-                    <button
-                      type="button"
-                      className="w-full px-3 py-2 text-left text-[14px] hover:bg-bg-tertiary"
-                      onClick={() => {
-                        setGrantPlayerId(p.player_id);
-                        setGrantPlayerQuery(p.player_handle);
-                      }}
-                    >
-                      {p.player_handle}
-                      <span className="ml-2 font-mono text-[12px] text-text-tertiary">{p.player_id}</span>
-                    </button>
-                  </li>
-                ))}
-              </ul>
-            )}
+            <PlayerSearchResults
+              results={playerSearchQ.data}
+              onSelect={(p) => {
+                setGrantPlayerId(p.player_id);
+                setGrantPlayerQuery(p.player_handle);
+              }}
+            />
           </div>
           <div>
             <label className="mb-1.5 block text-[14px] text-text-secondary">player_id seleccionado</label>

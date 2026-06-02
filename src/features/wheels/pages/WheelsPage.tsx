@@ -3,6 +3,7 @@ import { useMemo, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 
 import { Button } from '@/components/ui/Button';
+import { PlayerSearchResults } from '@/components/players/PlayerSearchResults';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { ErrorState } from '@/components/ui/ErrorState';
 import { FilterPill } from '@/components/ui/FilterPill';
@@ -324,24 +325,15 @@ export default function WheelsPage() {
                 value={grantPlayerQuery}
                 onChange={(e) => setGrantPlayerQuery(e.target.value)}
               />
-              {playerSearchQ.data && playerSearchQ.data.length > 0 && (
-                <ul className="mt-1 max-h-32 overflow-auto rounded-lg border border-border-subtle">
-                  {playerSearchQ.data.map((p) => (
-                    <li key={p.player_id}>
-                      <button
-                        type="button"
-                        className="w-full px-3 py-2 text-left text-[14px] hover:bg-bg-tertiary"
-                        onClick={() => {
-                          setGrantPlayerId(p.player_id);
-                          setGrantPlayerQuery(p.player_handle);
-                        }}
-                      >
-                        {p.player_handle} <span className="text-text-tertiary">({p.player_id})</span>
-                      </button>
-                    </li>
-                  ))}
-                </ul>
-              )}
+              <PlayerSearchResults
+                results={playerSearchQ.data}
+                maxHeight="max-h-32"
+                className="mt-1"
+                onSelect={(p) => {
+                  setGrantPlayerId(p.player_id);
+                  setGrantPlayerQuery(p.player_handle);
+                }}
+              />
             </div>
             <div>
               <label className="mb-1.5 block text-[14px] text-text-secondary">Rueda</label>

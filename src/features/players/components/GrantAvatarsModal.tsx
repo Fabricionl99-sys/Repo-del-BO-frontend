@@ -81,7 +81,7 @@ export function GrantAvatarsModal({
             items.map((avatar) => (
               <label
                 key={avatar.id}
-                className="flex cursor-pointer items-center gap-3 rounded-md px-2 py-2 hover:bg-bg-tertiary"
+                className="flex cursor-pointer items-center gap-3 rounded-md border border-transparent px-2 py-2 text-text-primary hover:border-border-subtle hover:bg-bg-tertiary"
               >
                 <input
                   type="checkbox"

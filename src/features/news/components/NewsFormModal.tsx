@@ -5,6 +5,7 @@ import { useForm, useWatch } from 'react-hook-form';
 
 import { BannerWidgetPreview } from '@/components/media/BannerWidgetPreview';
 import { MediaUploaderRhf } from '@/components/media/MediaUploaderRhf';
+import { PlayerSearchChips } from '@/components/players/PlayerSearchResults';
 import { Button } from '@/components/ui/Button';
 import { Modal } from '@/components/ui/Modal';
 import { Switch } from '@/components/ui/Switch';
@@ -305,23 +306,13 @@ export function NewsFormModal({
                   value={playerQuery}
                   onChange={(e) => setPlayerQuery(e.target.value)}
                 />
-                {playerSearchQ.data && playerSearchQ.data.length > 0 && (
-                  <div className="mb-2 flex flex-wrap gap-1">
-                    {playerSearchQ.data.slice(0, 5).map((p) => (
-                      <button
-                        key={p.player_id}
-                        type="button"
-                        className="rounded-full bg-bg-tertiary px-2 py-0.5 text-[12px] hover:bg-accent-subtle"
-                        onClick={() => {
-                          const current = form.getValues('player_ids');
-                          setValue('player_ids', current ? `${current}, ${p.player_handle}` : p.player_handle);
-                        }}
-                      >
-                        + {p.player_handle}
-                      </button>
-                    ))}
-                  </div>
-                )}
+                <PlayerSearchChips
+                  results={playerSearchQ.data}
+                  onSelect={(p) => {
+                    const current = form.getValues('player_ids');
+                    setValue('player_ids', current ? `${current}, ${p.player_handle}` : p.player_handle);
+                  }}
+                />
                 <textarea className="field min-h-20" {...register('player_ids')} placeholder="crypto_king_88, MariaG_bet" />
                 {errors.player_ids && <p className="mt-1 text-[13px] text-danger">{errors.player_ids.message}</p>}
               </div>

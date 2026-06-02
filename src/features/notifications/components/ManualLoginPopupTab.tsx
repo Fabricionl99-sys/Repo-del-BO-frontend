@@ -2,6 +2,7 @@ import { Send } from 'lucide-react';
 import { useState } from 'react';
 
 import { MediaUploader } from '@/components/media/MediaUploader';
+import { PlayerSearchResults } from '@/components/players/PlayerSearchResults';
 import { Button } from '@/components/ui/Button';
 import { SearchInput } from '@/components/ui/SearchInput';
 import { Table, type Column } from '@/components/ui/Table';
@@ -76,24 +77,15 @@ export function ManualLoginPopupTab() {
             onChange={(e) => setPlayerQuery(e.target.value)}
           />
         </label>
-        {playersQ.data && playersQ.data.length > 0 && (
-          <ul className="mb-3 max-h-32 overflow-auto rounded-lg border border-border-subtle">
-            {playersQ.data.map((p) => (
-              <li key={p.player_id}>
-                <button
-                  type="button"
-                  className="w-full px-3 py-2 text-left text-[14px] hover:bg-bg-tertiary"
-                  onClick={() => {
-                    setPlayerId(p.player_id);
-                    setPlayerQuery(p.player_handle);
-                  }}
-                >
-                  {p.player_handle}
-                </button>
-              </li>
-            ))}
-          </ul>
-        )}
+        <PlayerSearchResults
+          results={playersQ.data}
+          maxHeight="max-h-32"
+          className="mb-3 mt-0"
+          onSelect={(p) => {
+            setPlayerId(p.player_id);
+            setPlayerQuery(p.player_handle);
+          }}
+        />
         <label className="mb-3 block">
           <span className="mb-1 block text-[14px] text-text-secondary">Título</span>
           <input className="field" value={title} onChange={(e) => setTitle(e.target.value)} maxLength={60} />
