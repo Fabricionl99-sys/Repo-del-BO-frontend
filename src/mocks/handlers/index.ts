@@ -363,6 +363,46 @@ handlers.push(
   }),
   http.delete('*/admin/missions/:id', async ({ params }) => {
     await wait();
+    const item = adminMissions.find((m) => m.id === params.id);
+    if (item) {
+      item.status = 'archived';
+      item.archived_at = new Date().toISOString();
+      item.is_active = false;
+      item.updated_at = new Date().toISOString();
+    }
+    return new HttpResponse(null, { status: 204 });
+  }),
+  http.post('*/admin/missions/:id/archive', async ({ params, request }) => {
+    await wait();
+    const item = adminMissions.find((m) => m.id === params.id);
+    if (!item) return new HttpResponse(null, { status: 404 });
+    const body = (await request.json().catch(() => null)) as { reason?: string } | null;
+    item.status = 'archived';
+    item.archived_at = new Date().toISOString();
+    item.is_active = false;
+    item.updated_at = new Date().toISOString();
+    if (body?.reason) item.archive_reason = body.reason;
+    return HttpResponse.json({ data: item });
+  }),
+  http.delete('*/admin/missions/:id/permanent', async ({ params }) => {
+    await wait();
+    const item = adminMissions.find((m) => m.id === params.id);
+    if (!item) return new HttpResponse(null, { status: 404 });
+    if (item.status !== 'archived') {
+      return HttpResponse.json(
+        { detail: 'La misión debe estar archivada antes de eliminarla definitivamente' },
+        { status: 409 },
+      );
+    }
+    const started = Number((item.progress as { started?: number } | undefined)?.started ?? 0);
+    if (started > 0) {
+      return HttpResponse.json(
+        {
+          detail: `${started} asignaciones de jugadores asociadas a esta misión. Mantenela archivada para preservar el historial.`,
+        },
+        { status: 409 },
+      );
+    }
     const index = adminMissions.findIndex((m) => m.id === params.id);
     if (index >= 0) adminMissions.splice(index, 1);
     return new HttpResponse(null, { status: 204 });

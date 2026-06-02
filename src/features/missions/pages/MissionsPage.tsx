@@ -2,6 +2,8 @@ import { MoreVertical, Pencil, Plus, Trash2 } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 
+import { ArchiveConfirmModal } from '@/components/lifecycle/ArchiveConfirmModal';
+import { PermanentDeleteModal } from '@/components/lifecycle/PermanentDeleteModal';
 import { Button } from '@/components/ui/Button';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { ErrorState } from '@/components/ui/ErrorState';
@@ -21,7 +23,8 @@ import {
   type MissionActionType,
 } from '@/features/missions/missionActions';
 import {
-  useDeleteMission,
+  useArchiveMission,
+  useDeleteMissionPermanent,
   useMissions,
   useSetMissionActive,
   type AdminMissionListItem,
@@ -35,11 +38,14 @@ export default function MissionsPage() {
   const q = useMissions();
   const nav = useNavigate();
   const setActive = useSetMissionActive();
-  const del = useDeleteMission();
+  const archiveMission = useArchiveMission();
+  const deleteMissionPermanent = useDeleteMissionPermanent();
 
   const [actionFilter, setActionFilter] = useState<MissionActionType | 'all'>('all');
   const [search, setSearch] = useState('');
   const [menuAnchor, setMenuAnchor] = useState<RowContextMenuAnchor | null>(null);
+  const [archiveTarget, setArchiveTarget] = useState<AdminMissionListItem | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<AdminMissionListItem | null>(null);
   const debouncedSearch = useDebounce(search, 250);
 
   const allRows = mock === 'empty' ? [] : (q.data ?? []);
@@ -61,6 +67,7 @@ export default function MissionsPage() {
   }, [allRows, actionFilter, debouncedSearch]);
 
   const menuMission = menuAnchor ? allRows.find((m) => m.id === menuAnchor.id) : undefined;
+  const closeMenu = () => setMenuAnchor(null);
 
   const cols: Column<AdminMissionListItem>[] = [
     {
@@ -71,7 +78,7 @@ export default function MissionsPage() {
         <div onClick={(e) => e.stopPropagation()}>
           <Switch
             checked={m.isActive}
-            disabled={setActive.isPending}
+            disabled={setActive.isPending || m.status === 'archived'}
             onChange={(active) => setActive.mutate({ id: m.id, active })}
             aria-label={m.isActive ? `Desactivar ${m.name}` : `Activar ${m.name}`}
           />
@@ -82,7 +89,12 @@ export default function MissionsPage() {
       key: 'name',
       header: 'misión',
       render: (m) => (
-        <button type="button" onClick={() => nav(`/misiones/${m.id}`)} className="text-left hover:text-accent">
+        <button
+          type="button"
+          onClick={() => nav(`/misiones/${m.id}`)}
+          className="text-left hover:text-accent"
+          disabled={m.status === 'archived'}
+        >
           <b>{m.name}</b>
           <div className="text-[13px] text-text-tertiary">{m.description}</div>
         </button>
@@ -119,8 +131,8 @@ export default function MissionsPage() {
       header: 'estado',
       render: (m) => (
         <StatusPill
-          status={m.isActive ? 'active' : 'draft'}
-          label={m.isActive ? 'activa' : 'inactiva'}
+          status={m.status === 'archived' ? 'archived' : m.isActive ? 'active' : 'draft'}
+          label={m.status === 'archived' ? 'archivada' : m.isActive ? 'activa' : 'inactiva'}
         />
       ),
     },
@@ -223,15 +235,16 @@ export default function MissionsPage() {
           }
         />
       )}
-      <RowContextMenu anchor={menuAnchor} onClose={() => setMenuAnchor(null)}>
-        {menuMission && (
+
+      <RowContextMenu anchor={menuAnchor} onClose={closeMenu}>
+        {menuMission?.status !== 'archived' && (
           <>
             <button
               type="button"
               className="flex w-full items-center gap-2 px-3 py-2 text-left text-[14px] hover:bg-bg-tertiary"
               onClick={() => {
-                setMenuAnchor(null);
-                nav(`/misiones/${menuMission.id}`);
+                closeMenu();
+                nav(`/misiones/${menuMission!.id}`);
               }}
             >
               <Pencil size={14} /> Editar
@@ -240,17 +253,52 @@ export default function MissionsPage() {
               type="button"
               className="flex w-full items-center gap-2 px-3 py-2 text-left text-[14px] text-danger hover:bg-bg-tertiary"
               onClick={() => {
-                setMenuAnchor(null);
-                if (window.confirm(`¿Eliminar la misión "${menuMission.name}"?`)) {
-                  void del.mutateAsync(menuMission.id);
-                }
+                setArchiveTarget(menuMission!);
+                closeMenu();
               }}
             >
-              <Trash2 size={14} /> Eliminar
+              <Trash2 size={14} /> Archivar
             </button>
           </>
         )}
+        {menuMission?.status === 'archived' && (
+          <button
+            type="button"
+            className="flex w-full items-center gap-2 px-3 py-2 text-left text-[14px] text-danger hover:bg-bg-tertiary"
+            onClick={() => {
+              setDeleteTarget(menuMission);
+              closeMenu();
+            }}
+          >
+            <Trash2 size={14} /> Eliminar definitivo
+          </button>
+        )}
       </RowContextMenu>
+
+      <ArchiveConfirmModal
+        open={archiveTarget !== null}
+        title={archiveTarget ? `Archivar "${archiveTarget.name}"` : 'Archivar misión'}
+        description="La misión dejará de estar disponible para nuevos jugadores. El historial de asignaciones se conserva."
+        loading={archiveMission.isPending}
+        onClose={() => setArchiveTarget(null)}
+        onConfirm={async (reason) => {
+          if (!archiveTarget) return;
+          await archiveMission.mutateAsync({ id: archiveTarget.id, reason });
+        }}
+      />
+
+      <PermanentDeleteModal
+        open={deleteTarget !== null}
+        itemKind="misión"
+        itemName={deleteTarget?.name ?? ''}
+        confirmCode={deleteTarget?.code ?? ''}
+        loading={deleteMissionPermanent.isPending}
+        onClose={() => setDeleteTarget(null)}
+        onConfirm={async () => {
+          if (!deleteTarget) return;
+          await deleteMissionPermanent.mutateAsync(deleteTarget.id);
+        }}
+      />
     </>
   );
 }

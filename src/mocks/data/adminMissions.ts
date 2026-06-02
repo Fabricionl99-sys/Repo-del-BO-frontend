@@ -100,6 +100,33 @@ export const adminMissions: BackendMissionRecord[] = [
       },
     ],
   },
+  {
+    id: 'mission_legacy_bonus',
+    code: 'legacy_bonus_week',
+    name: 'Bonus semanal (archivada)',
+    description: 'Misión retirada del catálogo activo.',
+    type: 'daily',
+    is_active: false,
+    status: 'archived',
+    archived_at: ago(30),
+    daily_validity_hours: 24,
+    timezone: 'UTC',
+    restrictions: { min_level: null, vip_only: false, new_players_only: false },
+    updated_at: ago(30),
+    progress: { started: 0, completed: 0 },
+    steps: [
+      {
+        actions: [{ config: { type: 'bet_amount', amount: 100, aggregation_mode: 'cumulative' }, display_order: 0 }],
+        rewards: [
+          {
+            reward_type_id: 7,
+            reward_config: { kind: 'coins', amount: 200, currency_code: 'coin_oro' },
+            display_order: 0,
+          },
+        ],
+      },
+    ],
+  },
 ];
 
 export const seedAdminMissions: BackendMissionRecord[] = JSON.parse(JSON.stringify(adminMissions));

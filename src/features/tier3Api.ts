@@ -10,7 +10,8 @@ export {
   useMission,
   useSaveMission,
   useSetMissionActive,
-  useDeleteMission,
+  useArchiveMission,
+  useDeleteMissionPermanent,
 } from '@/features/missionsApi';
 
 function useList<T>(key:string,path:string){return useQuery({queryKey:[key],queryFn:()=>apiClient.get(path).then(r=>r.data as T[])})}

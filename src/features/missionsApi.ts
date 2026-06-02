@@ -1,7 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 import { apiClient } from '@/api/client';
-import { getApiErrorMessage } from '@/api/errors';
+import { getApiErrorMessage, getHttpStatus } from '@/api/errors';
 import { unwrapData } from '@/api/response';
 import {
   actionFromBackend,
@@ -22,6 +22,7 @@ export interface AdminMissionListItem {
   code: string;
   type: 'daily' | 'escalonada';
   isActive: boolean;
+  status: 'active' | 'archived';
   daily_validity_hours: number;
   actions: MissionActionFormValues[];
   requirementsSummary: string;
@@ -59,15 +60,22 @@ function buildRewardSummary(raw: Record<string, unknown>): string {
   return desc || 'Premio';
 }
 
+function missionStatus(raw: Record<string, unknown>): 'active' | 'archived' {
+  if (raw.status === 'archived' || raw.archived_at) return 'archived';
+  return 'active';
+}
+
 function normalizeListItem(raw: Record<string, unknown>): AdminMissionListItem {
   const actions = extractActions(raw);
+  const status = missionStatus(raw);
   return {
     id: String(raw.id ?? ''),
     name: String(raw.name ?? ''),
     description: typeof raw.description === 'string' ? raw.description : '',
     code: String(raw.code ?? ''),
     type: raw.type === 'escalonada' ? 'escalonada' : 'daily',
-    isActive: Boolean(raw.is_active),
+    isActive: status === 'archived' ? false : Boolean(raw.is_active),
+    status,
     daily_validity_hours: typeof raw.daily_validity_hours === 'number' ? raw.daily_validity_hours : 24,
     actions,
     requirementsSummary: summarizeActions(actions),
@@ -173,15 +181,31 @@ export function useSetMissionActive() {
   });
 }
 
-export function useDeleteMission() {
+export function useArchiveMission() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: (id: string) => apiClient.delete(`/admin/missions/${id}`),
+    mutationFn: ({ id, reason }: { id: string; reason?: string }) =>
+      apiClient.post(`/admin/missions/${id}/archive`, reason ? { reason } : undefined),
     onSuccess: () => {
-      toast.success('Misión eliminada');
+      toast.success('Misión archivada');
       qc.invalidateQueries({ queryKey: ['missions'] });
     },
     onError: (error) => {
+      toast.error(getApiErrorMessage(error, 'No se pudo archivar la misión'));
+    },
+  });
+}
+
+export function useDeleteMissionPermanent() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (id: string) => apiClient.delete(`/admin/missions/${id}/permanent`),
+    onSuccess: () => {
+      toast.success('Misión eliminada definitivamente');
+      qc.invalidateQueries({ queryKey: ['missions'] });
+    },
+    onError: (error) => {
+      if (getHttpStatus(error) === 409) return;
       toast.error(getApiErrorMessage(error, 'No se pudo eliminar la misión'));
     },
   });
