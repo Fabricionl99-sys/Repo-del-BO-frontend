@@ -79,6 +79,8 @@ export interface Avatar {
   unlock_method: AvatarUnlockMethod;
   unlock_config: AvatarUnlockConfig;
   restrictions: AvatarRestrictions;
+  /** Presente cuando el backend expone archived_at (td-96). */
+  archived_at?: string | null;
   status: 'active' | 'archived';
   created_at: string;
   updated_at: string;

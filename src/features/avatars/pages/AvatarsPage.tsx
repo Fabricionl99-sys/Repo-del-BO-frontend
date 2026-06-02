@@ -35,10 +35,12 @@ import {
   useAvatarCategories,
   useAvatarInventory,
   useAvatars,
+  useAvatarsForGrant,
   useDeleteAvatarPermanent,
   useGrantAvatarManual,
   useReorderAvatarCategories,
 } from '../avatarsApi';
+import { filterAvatarsForGrant } from '../avatarShape';
 import { AvatarCard } from '../components/AvatarCard';
 import { AvatarCategoryFormModal } from '../components/AvatarCategoryFormModal';
 import { AvatarFormModal } from '../components/AvatarFormModal';
@@ -100,6 +102,7 @@ export default function AvatarsPage() {
     is_premium: premiumFilter === 'all' ? undefined : premiumFilter === 'premium',
     search: debouncedSearch || undefined,
   });
+  const grantAvatarsQ = useAvatarsForGrant();
   const inventoryQ = useAvatarInventory({
     avatar_id: invAvatarId === 'all' ? undefined : invAvatarId,
     category_id: invCategoryId === 'all' ? undefined : invCategoryId,
@@ -123,10 +126,11 @@ export default function AvatarsPage() {
   const inventory = mock === 'empty' ? [] : (inventoryQ.data?.items ?? []);
   const existingAvatarCodes = useMemo(() => avatarItems.map((a) => a.code), [avatarItems]);
   const existingCategoryCodes = useMemo(() => categories.map((c) => c.code), [categories]);
-  const activeAvatars = useMemo(
-    () => avatarItems.filter((a) => a.status === 'active'),
+  const grantEligibleAvatars = useMemo(
+    () => filterAvatarsForGrant(avatarItems),
     [avatarItems],
   );
+  const grantAvatars = grantAvatarsQ.data ?? grantEligibleAvatars;
 
   if (!avatarsActive && mock !== 'loading') {
     return (
@@ -149,7 +153,8 @@ export default function AvatarsPage() {
   const catalogLoading = mock !== 'empty' && tab === 'Catálogo' && avatarsQ.isLoading;
   const categoriesLoading = mock !== 'empty-categories' && tab === 'Categorías' && categoriesQ.isLoading;
   const inventoryLoading = mock !== 'empty' && tab === 'Inventario' && inventoryQ.isLoading;
-  if (mock === 'loading' || catalogLoading || categoriesLoading || inventoryLoading) {
+  const grantLoading = tab === 'Asignación manual' && grantAvatarsQ.isLoading;
+  if (mock === 'loading' || catalogLoading || categoriesLoading || inventoryLoading || grantLoading) {
     return <Loading label="Cargando avatares..." />;
   }
 
@@ -396,7 +401,7 @@ export default function AvatarsPage() {
               <label className="mb-1 block text-[13px] text-text-tertiary">avatar</label>
               <select className="field py-1.5 text-[14px]" value={invAvatarId} onChange={(e) => setInvAvatarId(e.target.value)}>
                 <option value="all">todos</option>
-                {activeAvatars.map((a) => (
+                {grantEligibleAvatars.map((a) => (
                   <option key={a.id} value={a.id}>{a.name}</option>
                 ))}
               </select>
@@ -472,7 +477,7 @@ export default function AvatarsPage() {
             <label className="mb-1.5 block text-[14px] text-text-secondary">Avatar</label>
             <select className="field" value={grantAvatarId} onChange={(e) => setGrantAvatarId(e.target.value)}>
               <option value="">Elegí…</option>
-              {activeAvatars.map((a) => (
+              {grantAvatars.map((a) => (
                 <option key={a.id} value={a.id}>{a.name}</option>
               ))}
             </select>

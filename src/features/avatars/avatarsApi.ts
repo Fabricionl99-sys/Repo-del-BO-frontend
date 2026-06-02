@@ -17,6 +17,8 @@ import type {
   PlayerAvatarInventoryItem,
 } from '@/types/avatars';
 
+import { filterAvatarsForGrant, normalizeAvatar } from './avatarShape';
+
 export function useAvatarCategories() {
   return useQuery({
     queryKey: ['avatar-categories'],
@@ -90,7 +92,24 @@ export function useAvatars(filters: AvatarsCatalogQuery = {}) {
       if (filters.search) sp.set('search', filters.search);
       const qs = sp.toString();
       const res = await apiClient.get(`/admin/avatars${qs ? `?${qs}` : ''}`);
-      return unwrapData<{ items: Avatar[]; stats: AvatarsCatalogStats }>(res.data);
+      const data = unwrapData<{ items: unknown[]; stats: AvatarsCatalogStats }>(res.data);
+      return {
+        items: (data.items ?? []).map((row) => normalizeAvatar(row as Record<string, unknown>)),
+        stats: data.stats ?? { active_count: 0, max_active: 500 },
+      };
+    },
+  });
+}
+
+/** Lista para Asignación manual — mismo GET /admin/avatars, sin filtros del catálogo. */
+export function useAvatarsForGrant() {
+  return useQuery({
+    queryKey: ['avatars', 'grant-manual'],
+    queryFn: async () => {
+      const res = await apiClient.get('/admin/avatars?status=active');
+      const data = unwrapData<{ items: unknown[] }>(res.data);
+      const items = (data.items ?? []).map((row) => normalizeAvatar(row as Record<string, unknown>));
+      return filterAvatarsForGrant(items);
     },
   });
 }
@@ -99,7 +118,10 @@ export function useAvatar(id: string | null) {
   return useQuery({
     queryKey: ['avatars', id],
     enabled: Boolean(id),
-    queryFn: () => apiClient.get(`/admin/avatars/${id}`).then((r) => unwrapData<Avatar>(r.data)),
+    queryFn: () =>
+      apiClient
+        .get(`/admin/avatars/${id}`)
+        .then((r) => normalizeAvatar(unwrapData<Record<string, unknown>>(r.data))),
   });
 }
 
@@ -213,6 +235,7 @@ export function useGrantAvatarManual() {
     onSuccess: () => {
       toast.success('Avatar asignado correctamente');
       qc.invalidateQueries({ queryKey: ['avatar-inventory'] });
+      qc.invalidateQueries({ queryKey: ['avatars', 'grant-manual'] });
     },
   });
 }
