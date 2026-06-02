@@ -15,7 +15,7 @@ import type {
   SetPlayerCurrencyPayload,
 } from '@/types/players';
 
-export const playersListKey = ['players', 'list'] as const;
+export const playersListQueryKey = (search = '') => ['players-list', search] as const;
 export const playerDetailKey = (id: string | null) => ['players', 'detail', id] as const;
 
 function normalizeList(raw: unknown[]): AdminPlayerSummary[] {
@@ -34,13 +34,21 @@ function normalizeDetail(raw: Record<string, unknown>): AdminPlayerDetail {
   };
 }
 
-export function usePlayersList() {
+export function usePlayersList(opts?: { search?: string }) {
+  const search = opts?.search?.trim() ?? '';
   return useQuery({
-    queryKey: playersListKey,
-    queryFn: () =>
-      apiClient
-        .get('/admin/preview-widget/players')
-        .then((r) => normalizeList(unwrapData<unknown[]>(r.data) ?? [])),
+    queryKey: playersListQueryKey(search),
+    queryFn: async () => {
+      const params = new URLSearchParams();
+      if (search) {
+        params.set('search', search);
+        params.set('limit', '50');
+      }
+      const qs = params.toString();
+      const path = qs ? `/admin/preview-widget/players?${qs}` : '/admin/preview-widget/players';
+      const r = await apiClient.get(path);
+      return normalizeList(unwrapData<unknown[]>(r.data) ?? []);
+    },
   });
 }
 
@@ -64,7 +72,7 @@ export function useGrantAvatarsManual() {
         .then((r) => unwrapData<GrantAvatarsManualResult>(r.data)),
     onSuccess: (result, vars) => {
       toast.success(`Avatares entregados: ${result.granted} · ya tenía: ${result.alreadyOwned}`);
-      qc.invalidateQueries({ queryKey: playersListKey });
+      qc.invalidateQueries({ queryKey: ['players-list'] });
       qc.invalidateQueries({ queryKey: playerDetailKey(vars.player_state_id) });
       qc.invalidateQueries({ queryKey: ['preview-widget-players'] });
       qc.invalidateQueries({ queryKey: ['player-widget', vars.player_state_id] });
@@ -102,7 +110,7 @@ export function useGrantChestsManual() {
       if (result.failed > 0) {
         toast.warning(`${result.failed} cofre(s) no se pudieron entregar`);
       }
-      qc.invalidateQueries({ queryKey: playersListKey });
+      qc.invalidateQueries({ queryKey: ['players-list'] });
       qc.invalidateQueries({ queryKey: playerDetailKey(vars.player_state_id) });
       qc.invalidateQueries({ queryKey: ['preview-widget-players'] });
       qc.invalidateQueries({ queryKey: ['player-widget', vars.player_state_id] });
@@ -122,7 +130,7 @@ export function useSetPlayerCurrency() {
         .then((r) => unwrapData<AdminPlayerSummary>(r.data)),
     onSuccess: (_data, vars) => {
       toast.success('Moneda del jugador actualizada');
-      qc.invalidateQueries({ queryKey: playersListKey });
+      qc.invalidateQueries({ queryKey: ['players-list'] });
       qc.invalidateQueries({ queryKey: playerDetailKey(vars.playerId) });
       qc.invalidateQueries({ queryKey: ['preview-widget-players'] });
       qc.invalidateQueries({ queryKey: ['player-widget', vars.playerId] });

@@ -58,12 +58,22 @@ export const adminPlayerSummaries: AdminPlayerSummary[] = [
   },
 ];
 
-export function getAdminPlayers(): AdminPlayerSummary[] {
-  return [...adminPlayerSummaries].sort((a, b) => {
-    const ta = a.last_event_at ? new Date(a.last_event_at).getTime() : 0;
-    const tb = b.last_event_at ? new Date(b.last_event_at).getTime() : 0;
-    return tb - ta;
-  });
+export function getAdminPlayers(opts?: { search?: string; limit?: number }): AdminPlayerSummary[] {
+  const search = opts?.search?.trim().toLowerCase() ?? '';
+  let list = [...adminPlayerSummaries];
+
+  if (search) {
+    list = list.filter((p) => p.external_player_id.toLowerCase().includes(search));
+  } else {
+    list.sort((a, b) => {
+      const ta = a.last_event_at ? new Date(a.last_event_at).getTime() : 0;
+      const tb = b.last_event_at ? new Date(b.last_event_at).getTime() : 0;
+      return tb - ta;
+    });
+  }
+
+  const limit = Math.min(opts?.limit ?? (search ? 50 : 20), 100);
+  return list.slice(0, limit);
 }
 
 export function getAdminPlayerDetail(playerId: string): AdminPlayerDetail | null {

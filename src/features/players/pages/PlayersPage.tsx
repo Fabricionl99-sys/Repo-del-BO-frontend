@@ -1,4 +1,4 @@
-import { RefreshCw } from 'lucide-react';
+import { RefreshCw, X } from 'lucide-react';
 import { useMemo, useState } from 'react';
 
 import { Button } from '@/components/ui/Button';
@@ -7,17 +7,21 @@ import { EmptyState } from '@/components/ui/EmptyState';
 import { ErrorState } from '@/components/ui/ErrorState';
 import { Loading } from '@/components/ui/Loading';
 import { PageHeader } from '@/components/ui/PageHeader';
+import { SearchInput } from '@/components/ui/SearchInput';
 import { StatusPill } from '@/components/ui/StatusPill';
 import {
   PlayerDetailEmpty,
   PlayerDetailPanel,
 } from '@/features/players/components/PlayerDetailPanel';
 import { usePlayersList } from '@/features/players/playersApi';
+import { useDebounce } from '@/hooks/useDebounce';
 import { formatRelativeDate } from '@/lib/format';
 import { cn } from '@/lib/cn';
 
 export default function PlayersPage() {
-  const listQ = usePlayersList();
+  const [searchQuery, setSearchQuery] = useState('');
+  const debouncedSearch = useDebounce(searchQuery.trim(), 300);
+  const listQ = usePlayersList({ search: debouncedSearch || undefined });
   const [selectedId, setSelectedId] = useState<string | null>(null);
 
   const players = listQ.data ?? [];
@@ -25,12 +29,13 @@ export default function PlayersPage() {
     () => players.find((p) => p.id === selectedId) ?? null,
     [players, selectedId],
   );
+  const isSearching = debouncedSearch.length > 0;
 
   return (
     <>
       <PageHeader
         title="Jugadores"
-        subtitle="Top 20 por última actividad · entregas manuales y soporte"
+        subtitle="Buscá por ID externo o explorá los más recientes · entregas manuales y soporte"
         actions={
           <Button
             variant="secondary"
@@ -45,10 +50,37 @@ export default function PlayersPage() {
 
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-[minmax(280px,1fr)_minmax(0,2fr)]">
         <aside className="space-y-3">
+          <div className="relative">
+            <SearchInput
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Buscar por ID externo del jugador..."
+              className={searchQuery ? 'pr-9' : undefined}
+              aria-label="Buscar jugador por ID externo"
+            />
+            {searchQuery ? (
+              <button
+                type="button"
+                aria-label="Limpiar búsqueda"
+                className="absolute right-2 top-1/2 -translate-y-1/2 rounded p-1 text-text-tertiary transition hover:bg-bg-elevated hover:text-text-primary"
+                onClick={() => setSearchQuery('')}
+              >
+                <X size={14} />
+              </button>
+            ) : null}
+          </div>
+
           {listQ.isLoading ? <Loading label="Cargando jugadores..." /> : null}
           {listQ.isError ? <ErrorState onRetry={() => listQ.refetch()} /> : null}
           {!listQ.isLoading && !listQ.isError && players.length === 0 ? (
-            <EmptyState title="Sin jugadores" description="Todavía no hay jugadores sincronizados." />
+            isSearching ? (
+              <EmptyState
+                title="Sin resultados"
+                description="No encontramos jugadores con ese ID"
+              />
+            ) : (
+              <EmptyState title="Sin jugadores" description="Todavía no hay jugadores sincronizados." />
+            )
           ) : null}
           {players.map((player) => {
             const active = player.id === selectedId;
@@ -78,7 +110,9 @@ export default function PlayersPage() {
               </button>
             );
           })}
-          <p className="px-1 text-[12px] text-text-tertiary">Mostrando los 20 más recientes</p>
+          <p className="px-1 text-[12px] text-text-tertiary">
+            {isSearching ? 'Mostrando hasta 50 matches' : 'Mostrando los 20 más recientes'}
+          </p>
         </aside>
 
         <section>

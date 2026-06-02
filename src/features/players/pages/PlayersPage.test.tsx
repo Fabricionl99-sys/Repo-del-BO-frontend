@@ -46,3 +46,50 @@ describe('PlayersPage refresh hint', () => {
     expect(await screen.findByText('Mostrando los 20 más recientes')).toBeInTheDocument();
   });
 });
+
+describe('PlayersPage search', () => {
+  it('filtra jugadores por ID externo con debounce', async () => {
+    wrap();
+    expect(await screen.findByText('demo_fabricio')).toBeInTheDocument();
+
+    fireEvent.change(screen.getByPlaceholderText('Buscar por ID externo del jugador...'), {
+      target: { value: 'vip' },
+    });
+
+    await waitFor(
+      () => {
+        expect(screen.getByText('vip_roller')).toBeInTheDocument();
+        expect(screen.queryByText('demo_fabricio')).not.toBeInTheDocument();
+      },
+      { timeout: 2000 },
+    );
+    expect(screen.getByText('Mostrando hasta 50 matches')).toBeInTheDocument();
+  });
+
+  it('muestra empty state cuando no hay matches', async () => {
+    wrap();
+    await screen.findByText('demo_fabricio');
+
+    fireEvent.change(screen.getByPlaceholderText('Buscar por ID externo del jugador...'), {
+      target: { value: 'zzzz_no_existe' },
+    });
+
+    expect(await screen.findByText('No encontramos jugadores con ese ID', {}, { timeout: 2000 })).toBeInTheDocument();
+  });
+
+  it('limpia búsqueda con botón ✕', async () => {
+    wrap();
+    await screen.findByText('demo_fabricio');
+
+    fireEvent.change(screen.getByPlaceholderText('Buscar por ID externo del jugador...'), {
+      target: { value: 'vip' },
+    });
+    await waitFor(() => expect(screen.queryByText('demo_fabricio')).not.toBeInTheDocument(), {
+      timeout: 2000,
+    });
+
+    fireEvent.click(screen.getByLabelText('Limpiar búsqueda'));
+
+    expect(await screen.findByText('demo_fabricio', {}, { timeout: 2000 })).toBeInTheDocument();
+  });
+});

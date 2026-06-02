@@ -2368,9 +2368,13 @@ function playerIdFromUrl(url: string): string | null {
 }
 
 handlers.push(
-  http.get('*/admin/preview-widget/players', async () => {
+  http.get('*/admin/preview-widget/players', async ({ request }) => {
     await wait();
-    return HttpResponse.json({ data: getAdminPlayers() });
+    const url = new URL(request.url);
+    const search = url.searchParams.get('search') ?? undefined;
+    const limitRaw = url.searchParams.get('limit');
+    const limit = limitRaw ? Number(limitRaw) : undefined;
+    return HttpResponse.json({ data: getAdminPlayers({ search, limit }) });
   }),
   http.get('*/admin/preview-widget/player', async ({ request }) => {
     await wait();
