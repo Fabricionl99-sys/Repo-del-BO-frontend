@@ -1,6 +1,6 @@
 import { delay, http, HttpResponse } from 'msw';
 
-import { playerSearchResults } from '@/mocks/data/chests';
+import { findPlayerSearchResult } from '@/mocks/data/chests';
 import {
   clearSpinHistoryForWheel,
   computeWheelStats,
@@ -218,11 +218,11 @@ export const wheelsHandlers = [
     await wait();
     const body = (await request.json()) as WheelGrantManualPayload;
     const wheel = findWheel(body.wheel_code) ?? wheelTypes[0];
-    const player = playerSearchResults.find((p) => p.player_id === body.player_id);
+    const player = findPlayerSearchResult(body.player_id);
     const entry = {
       id: `grant_${Date.now()}`,
       player_id: body.player_id,
-      player_handle: player?.player_handle ?? body.player_id,
+      player_handle: player?.external_player_id ?? body.player_id,
       wheel_code: wheel.code,
       wheel_name: wheel.name,
       quantity: body.quantity,

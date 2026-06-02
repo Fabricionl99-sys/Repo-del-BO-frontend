@@ -15,6 +15,7 @@ import { SearchInput } from '@/components/ui/SearchInput';
 import { Table, type Column } from '@/components/ui/Table';
 import { Toolbar } from '@/components/ui/Toolbar';
 import { isModuleActive } from '@/features/billing/moduleCatalog';
+import { usePlayerSearch } from '@/features/players/playersApi';
 import { useDebounce } from '@/hooks/useDebounce';
 import { cn } from '@/lib/cn';
 import { formatRelativeDate } from '@/lib/format';
@@ -36,7 +37,6 @@ import {
   useAvatars,
   useDeleteAvatarPermanent,
   useGrantAvatarManual,
-  usePlayerSearch,
   useReorderAvatarCategories,
 } from '../avatarsApi';
 import { AvatarCard } from '../components/AvatarCard';
@@ -202,7 +202,7 @@ export default function AvatarsPage() {
   ];
 
   const handleGrant = async () => {
-    if (!grantPlayerId.trim() || !grantAvatarId) return;
+    if (!grantPlayerId?.trim() || !grantAvatarId) return;
     await grantManual.mutateAsync({
       avatarId: grantAvatarId,
       player_id: grantPlayerId.trim(),
@@ -460,7 +460,7 @@ export default function AvatarsPage() {
               results={playerSearchQ.data}
               onSelect={(p) => {
                 setGrantPlayerId(p.player_id);
-                setGrantPlayerQuery(p.player_handle);
+                setGrantPlayerQuery(p.external_player_id);
               }}
             />
           </div>
@@ -484,7 +484,7 @@ export default function AvatarsPage() {
           <Button
             variant="primary"
             loading={grantManual.isPending}
-            disabled={!grantPlayerId.trim() || !grantAvatarId}
+            disabled={!grantPlayerId?.trim() || !grantAvatarId}
             onClick={handleGrant}
           >
             Asignar

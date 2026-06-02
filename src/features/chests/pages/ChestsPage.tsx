@@ -406,7 +406,7 @@ export default function ChestsPage() {
               results={playerSearchQ.data}
               onSelect={(p) => {
                 setGrantPlayerId(p.player_id);
-                setGrantPlayerQuery(p.player_handle);
+                setGrantPlayerQuery(p.external_player_id);
               }}
             />
           </div>

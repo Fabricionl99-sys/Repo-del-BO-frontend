@@ -22,10 +22,10 @@ import {
   OCCASION_TYPE_LABELS,
   SPIN_DELIVERY_LABELS,
 } from '@/features/wheels/wheelForm';
+import { usePlayerSearch } from '@/features/players/playersApi';
 import {
   useGrantWheelManual,
   useManualGrantHistory,
-  usePlayerSearch,
   useSpinHistory,
   useWheelsCatalog,
   useWheelOptions,
@@ -331,7 +331,7 @@ export default function WheelsPage() {
                 className="mt-1"
                 onSelect={(p) => {
                   setGrantPlayerId(p.player_id);
-                  setGrantPlayerQuery(p.player_handle);
+                  setGrantPlayerQuery(p.external_player_id);
                 }}
               />
             </div>

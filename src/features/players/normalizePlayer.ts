@@ -1,5 +1,47 @@
-import type { AdminPlayerSummary } from '@/types/players';
+import type { AdminPlayerSummary, PlayerSearchResult } from '@/types/players';
 import type { PreviewPlayerSummary } from '@/types/widgetPreview';
+
+export function adminSummaryToPlayerSearchResult(player: AdminPlayerSummary): PlayerSearchResult {
+  const main = player.coins[0];
+  return {
+    player_id: player.id,
+    external_player_id: player.external_player_id,
+    level: player.current_level,
+    coins: main?.balance ?? '0',
+    currency_code: main?.currency_code ?? 'main',
+  };
+}
+
+export function normalizePlayerSearchResult(raw: Record<string, unknown>): PlayerSearchResult {
+  if (raw.external_player_id != null || raw.id != null) {
+    return adminSummaryToPlayerSearchResult(normalizeAdminPlayer(raw));
+  }
+
+  const player_id = String(raw.player_id ?? raw.player_state_id ?? '');
+  const external_player_id = String(
+    raw.player_handle ?? raw.display_name ?? raw.external_player_id ?? player_id,
+  );
+  const level = Number(raw.current_level ?? raw.level ?? 1);
+
+  if (Array.isArray(raw.coins) && raw.coins.length > 0) {
+    const first = raw.coins[0] as Record<string, unknown>;
+    return {
+      player_id,
+      external_player_id,
+      level,
+      coins: String(first.balance ?? first.amount ?? '0'),
+      currency_code: String(first.currency_code ?? 'main'),
+    };
+  }
+
+  return {
+    player_id,
+    external_player_id,
+    level,
+    coins: String(raw.coins ?? '0'),
+    currency_code: String(raw.currency_code ?? 'main'),
+  };
+}
 
 export function normalizeAdminPlayer(raw: Record<string, unknown>): AdminPlayerSummary {
   if (raw.external_player_id != null) {

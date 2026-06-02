@@ -310,7 +310,10 @@ export function NewsFormModal({
                   results={playerSearchQ.data}
                   onSelect={(p) => {
                     const current = form.getValues('player_ids');
-                    setValue('player_ids', current ? `${current}, ${p.player_handle}` : p.player_handle);
+                    setValue(
+                      'player_ids',
+                      current ? `${current}, ${p.external_player_id}` : p.external_player_id,
+                    );
                   }}
                 />
                 <textarea className="field min-h-20" {...register('player_ids')} placeholder="crypto_king_88, MariaG_bet" />

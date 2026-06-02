@@ -3,8 +3,9 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { apiClient } from '@/api/client';
 import { getApiErrorMessage } from '@/api/errors';
 import { unwrapData } from '@/api/response';
-import { normalizeAdminPlayer } from '@/features/players/normalizePlayer';
+import { normalizeAdminPlayer, normalizePlayerSearchResult } from '@/features/players/normalizePlayer';
 import { toast } from '@/stores/toastStore';
+import { trackEvent } from '@/lib/analytics';
 import type {
   AdminPlayerDetail,
   AdminPlayerSummary,
@@ -12,6 +13,7 @@ import type {
   GrantAvatarsManualResult,
   GrantChestsManualPayload,
   GrantChestsManualResult,
+  PlayerSearchResult,
   SetPlayerCurrencyPayload,
 } from '@/types/players';
 
@@ -60,6 +62,25 @@ export function usePlayerDetail(playerId: string | null) {
       apiClient
         .get(`/admin/preview-widget/player?player_id=${playerId}`)
         .then((r) => normalizeDetail(unwrapData<Record<string, unknown>>(r.data))),
+  });
+}
+
+export function usePlayerSearch(query: string) {
+  const q = query.trim();
+  return useQuery({
+    queryKey: ['player-search', q],
+    enabled: q.length >= 2,
+    queryFn: () =>
+      apiClient
+        .get(`/admin/players/search?q=${encodeURIComponent(q)}`)
+        .then((r) => {
+          const rows = unwrapData<unknown[]>(r.data) ?? [];
+          const data = rows
+            .map((row) => normalizePlayerSearchResult(row as Record<string, unknown>))
+            .filter((p) => p.player_id.length > 0);
+          trackEvent('player_searched');
+          return data satisfies PlayerSearchResult[];
+        }),
   });
 }
 

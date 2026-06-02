@@ -1,4 +1,5 @@
 import type { AdminPlayerDetail, AdminPlayerSummary } from '@/types/players';
+import { adminSummaryToPlayerSearchResult } from '@/features/players/normalizePlayer';
 import { buildPlayerWidgetData } from '@/mocks/data/widgetPreview';
 
 const iso = (offsetMs: number) => new Date(Date.now() - offsetMs).toISOString();
@@ -112,4 +113,13 @@ export function setPlayerCurrency(playerId: string, currency_code: string): Admi
     player.coins.unshift({ currency_code, balance: '0' });
   }
   return player;
+}
+
+export function searchAdminPlayers(q: string, limit = 10) {
+  return getAdminPlayers({ search: q, limit }).map(adminSummaryToPlayerSearchResult);
+}
+
+export function getPlayerSearchResultById(playerId: string) {
+  const player = adminPlayerSummaries.find((p) => p.id === playerId);
+  return player ? adminSummaryToPlayerSearchResult(player) : undefined;
 }

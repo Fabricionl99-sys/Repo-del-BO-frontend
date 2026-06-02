@@ -217,4 +217,3 @@ export function useGrantAvatarManual() {
   });
 }
 
-export { usePlayerSearch } from '@/features/chests/chestsApi';

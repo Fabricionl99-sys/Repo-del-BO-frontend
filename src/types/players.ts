@@ -57,3 +57,13 @@ export interface GrantChestsManualResult {
 export interface SetPlayerCurrencyPayload {
   currency_code: string;
 }
+
+/** Shape devuelto por GET /admin/players/search (td-105). */
+export interface PlayerSearchResult {
+  /** player_state_id interno — usar en grants/API. */
+  player_id: string;
+  external_player_id: string;
+  level: number;
+  coins: string;
+  currency_code: string;
+}

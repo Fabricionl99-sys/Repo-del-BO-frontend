@@ -135,7 +135,4 @@ export interface ChestGrantManualPayload {
   notes?: string;
 }
 
-export interface PlayerSearchResult {
-  player_id: string;
-  player_handle: string;
-}
+export type { PlayerSearchResult } from '@/types/players';

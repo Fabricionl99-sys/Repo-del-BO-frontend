@@ -15,7 +15,6 @@ import type {
   ChestTypeCreatePayload,
   ChestTypeMetadataPayload,
   PlayerChestInventoryItem,
-  PlayerSearchResult,
 } from '@/types/chests';
 
 /**
@@ -362,20 +361,7 @@ export function useGrantChestManual() {
   });
 }
 
-export function usePlayerSearch(query: string) {
-  return useQuery({
-    queryKey: ['player-search', query],
-    enabled: query.trim().length >= 2,
-    queryFn: () =>
-      apiClient
-        .get(`/admin/players/search?q=${encodeURIComponent(query.trim())}`)
-        .then((r) => {
-          const data = unwrapData<PlayerSearchResult[]>(r.data);
-          trackEvent('player_searched');
-          return data;
-        }),
-  });
-}
+export { usePlayerSearch } from '@/features/players/playersApi';
 
 /** Compat dropdown para streak editor y referencias cruzadas. */
 export function useChestTypeOptions() {

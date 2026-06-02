@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { normalizeAdminPlayer, toPreviewPlayerSummary } from './normalizePlayer';
+import { normalizeAdminPlayer, normalizePlayerSearchResult, toPreviewPlayerSummary } from './normalizePlayer';
 
 describe('normalizeAdminPlayer', () => {
   it('parses backend player summary', () => {
@@ -29,6 +29,36 @@ describe('normalizeAdminPlayer', () => {
     } as Record<string, unknown>);
     expect(row.external_player_id).toBe('vip_roller');
     expect(row.current_level).toBe(28);
+  });
+});
+
+describe('normalizePlayerSearchResult', () => {
+  it('maps td-105 admin player search rows', () => {
+    const row = normalizePlayerSearchResult({
+      id: 'pl_mission',
+      external_player_id: 'crypto_king_88',
+      current_level: 14,
+      coins: [{ currency_code: 'main', balance: '2400' }],
+    });
+    expect(row).toEqual({
+      player_id: 'pl_mission',
+      external_player_id: 'crypto_king_88',
+      level: 14,
+      coins: '2400',
+      currency_code: 'main',
+    });
+  });
+
+  it('maps legacy player_handle rows', () => {
+    const row = normalizePlayerSearchResult({
+      player_id: 'pl_8821',
+      player_handle: 'crypto_king_88',
+      level: 10,
+      coins: 500,
+      currency_code: 'vip',
+    });
+    expect(row.external_player_id).toBe('crypto_king_88');
+    expect(row.player_id).toBe('pl_8821');
   });
 });
 

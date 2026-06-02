@@ -168,7 +168,4 @@ export interface SpinHistoryEntry {
   audit_log: Array<{ at: string; action: string; actor: string; detail?: string }>;
 }
 
-export interface PlayerSearchResult {
-  player_id: string;
-  player_handle: string;
-}
+export type { PlayerSearchResult } from '@/types/players';

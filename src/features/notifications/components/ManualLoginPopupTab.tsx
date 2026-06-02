@@ -83,7 +83,7 @@ export function ManualLoginPopupTab() {
           className="mb-3 mt-0"
           onSelect={(p) => {
             setPlayerId(p.player_id);
-            setPlayerQuery(p.player_handle);
+            setPlayerQuery(p.external_player_id);
           }}
         />
         <label className="mb-3 block">

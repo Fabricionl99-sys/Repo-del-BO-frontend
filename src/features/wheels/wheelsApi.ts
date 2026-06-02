@@ -475,14 +475,3 @@ export function useRetrySpinDelivery() {
     },
   });
 }
-
-export function usePlayerSearch(q: string) {
-  return useQuery({
-    queryKey: ['players', 'search', q],
-    enabled: q.length >= 2,
-    queryFn: () =>
-      apiClient
-        .get(`/admin/players/search?q=${encodeURIComponent(q)}`)
-        .then((r) => unwrapData<{ player_id: string; player_handle: string }[]>(r.data)),
-  });
-}

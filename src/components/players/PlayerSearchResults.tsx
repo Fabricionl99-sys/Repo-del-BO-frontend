@@ -1,8 +1,27 @@
 import { cn } from '@/lib/cn';
-import type { PlayerSearchResult } from '@/types/chests';
+import { formatNumber } from '@/lib/format';
+import type { PlayerSearchResult } from '@/types/players';
 
 const ITEM_CLASS =
   'w-full cursor-pointer rounded-md border border-border-subtle bg-bg-secondary p-3 text-left transition hover:border-border-default hover:bg-bg-tertiary';
+
+function PlayerSearchResultCard({
+  player,
+  onSelect,
+}: {
+  player: PlayerSearchResult;
+  onSelect: (player: PlayerSearchResult) => void;
+}) {
+  return (
+    <button type="button" className={ITEM_CLASS} onClick={() => onSelect(player)}>
+      <div className="font-medium text-text-primary">{player.external_player_id}</div>
+      <div className="mt-0.5 text-[13px] text-text-secondary">
+        Nivel {player.level} · {formatNumber(Number(player.coins) || 0)} {player.currency_code}
+      </div>
+      <div className="mt-0.5 font-mono text-[11px] text-text-tertiary">{player.player_id}</div>
+    </button>
+  );
+}
 
 export function PlayerSearchResults({
   results,
@@ -32,10 +51,7 @@ export function PlayerSearchResults({
     >
       {items.map((player) => (
         <li key={player.player_id} role="option">
-          <button type="button" className={ITEM_CLASS} onClick={() => onSelect(player)}>
-            <div className="font-medium text-text-primary">{player.player_handle}</div>
-            <div className="mt-0.5 font-mono text-[12px] text-text-secondary">{player.player_id}</div>
-          </button>
+          <PlayerSearchResultCard player={player} onSelect={onSelect} />
         </li>
       ))}
     </ul>
@@ -64,7 +80,7 @@ export function PlayerSearchChips({
           className="cursor-pointer rounded-full border border-border-subtle bg-bg-secondary px-2 py-0.5 text-[12px] text-text-primary transition hover:border-border-default hover:bg-bg-tertiary"
           onClick={() => onSelect(player)}
         >
-          + {player.player_handle}
+          + {player.external_player_id}
         </button>
       ))}
     </div>

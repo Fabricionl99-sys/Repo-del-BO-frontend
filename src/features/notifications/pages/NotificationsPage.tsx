@@ -464,7 +464,7 @@ export default function NotificationsPage() {
             className="mt-0"
             onSelect={(p) => {
               setManualPlayerStateId(p.player_id);
-              setManualPlayerQuery(p.player_handle);
+              setManualPlayerQuery(p.external_player_id);
             }}
           />
           <label className="block">

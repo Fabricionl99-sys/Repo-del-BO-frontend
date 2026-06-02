@@ -1481,8 +1481,9 @@ handlers.push(
 import {
   chestInventory,
   chestTypes,
-  playerSearchResults,
+  findPlayerSearchResult,
 } from '@/mocks/data/chests';
+import { searchAdminPlayers } from '@/mocks/data/adminPlayers';
 import type {
   ChestGrantManualPayload,
   ChestPrize,
@@ -1670,11 +1671,11 @@ handlers.push(
     await wait();
     const body = (await request.json()) as ChestGrantManualPayload;
     const type = findChestType(body.chest_type_code) ?? chestTypes[0];
-    const player = playerSearchResults.find((p) => p.player_id === body.player_id);
+    const player = findPlayerSearchResult(body.player_id);
     const item = {
       id: `chest_inv_${Date.now()}`,
       player_id: body.player_id,
-      player_handle: player?.player_handle ?? body.player_id,
+      player_handle: player?.external_player_id ?? body.player_id,
       chest_type_code: type.code,
       chest_type_name: type.name,
       acquired_at: new Date().toISOString(),
@@ -1692,13 +1693,9 @@ handlers.push(
   }),
   http.get('*/admin/players/search', async ({ request }) => {
     await wait();
-    const q = (new URL(request.url).searchParams.get('q') ?? '').toLowerCase();
-    const list = playerSearchResults.filter(
-      (p) =>
-        p.player_handle.toLowerCase().includes(q) ||
-        p.player_id.toLowerCase().includes(q),
-    );
-    return HttpResponse.json({ data: list.slice(0, 10) });
+    const q = new URL(request.url).searchParams.get('q') ?? '';
+    const list = searchAdminPlayers(q, 10);
+    return HttpResponse.json({ data: list });
   }),
 );
 

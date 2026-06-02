@@ -1,4 +1,5 @@
-import type { ChestType, PlayerChestInventoryItem, PlayerSearchResult } from '@/types/chests';
+import type { ChestType, PlayerChestInventoryItem } from '@/types/chests';
+import { adminPlayerSummaries, getPlayerSearchResultById } from '@/mocks/data/adminPlayers';
 
 const iso = (daysAgo: number) => new Date(Date.now() - daysAgo * 86400000).toISOString();
 const isoFuture = (daysAhead: number) => new Date(Date.now() + daysAhead * 86400000).toISOString();
@@ -281,20 +282,7 @@ export const chestTypes: ChestType[] = [
   },
 ];
 
-const players: PlayerSearchResult[] = [
-  { player_id: 'pl_8821', player_handle: 'crypto_king_88' },
-  { player_id: 'pl_4412', player_handle: 'MariaG_bet' },
-  { player_id: 'pl_1190', player_handle: 'slot_hunter' },
-  { player_id: 'pl_3301', player_handle: 'vip_roller' },
-  { player_id: 'pl_7720', player_handle: 'neon_player' },
-  { player_id: 'pl_9922', player_handle: 'theme_fan' },
-  { player_id: 'pl_5510', player_handle: 'retry_me' },
-  { player_id: 'pl_6611', player_handle: 'manual_ops' },
-  { player_id: 'pl_2244', player_handle: 'newbie_spin' },
-  { player_id: 'pl_7788', player_handle: 'high_roller_x' },
-];
-
-export const playerSearchResults = players;
+export { getPlayerSearchResultById as findPlayerSearchResult };
 
 const acquiredViaOptions = [
   'shop_purchase',
@@ -310,7 +298,7 @@ function buildInventory(): PlayerChestInventoryItem[] {
   const typeCodes = chestTypes.filter((t) => t.status === 'active').map((t) => t.code);
   let idx = 0;
   for (let day = 0; day < 45; day += 1) {
-    const player = players[idx % players.length];
+    const player = adminPlayerSummaries[idx % adminPlayerSummaries.length];
     const type = chestTypes[idx % typeCodes.length];
     const acquiredVia = acquiredViaOptions[idx % acquiredViaOptions.length];
     const opened = idx % 3 !== 0;
@@ -318,8 +306,8 @@ function buildInventory(): PlayerChestInventoryItem[] {
     const prize = opened ? (type.prizes?.[0] ?? null) : null;
     items.push({
       id: `chest_inv_${String(idx + 1).padStart(3, '0')}`,
-      player_id: player.player_id,
-      player_handle: player.player_handle,
+      player_id: player.id,
+      player_handle: player.external_player_id,
       chest_type_code: type.code,
       chest_type_name: type.name,
       acquired_at: iso(day),
