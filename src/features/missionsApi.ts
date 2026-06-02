@@ -36,6 +36,20 @@ export interface MissionDetail extends MissionFormValues {
   isActive: boolean;
 }
 
+export interface PlayerMissionAssignmentRow {
+  id: string;
+  mission_id: string;
+  player_state_id: string;
+  status: string;
+  expires_at: string | null;
+  reason?: string | null;
+  created_at?: string;
+}
+
+function filterMissionsForGrant(items: AdminMissionListItem[]): AdminMissionListItem[] {
+  return items.filter((m) => m.isActive && m.status !== 'archived');
+}
+
 function extractActions(raw: Record<string, unknown>): MissionActionFormValues[] {
   const steps = Array.isArray(raw.steps) ? (raw.steps as Array<Record<string, unknown>>) : [];
   const firstStep = steps[0] ?? {};
@@ -112,6 +126,18 @@ export function useMissions() {
     queryFn: async () => {
       const r = await apiClient.get('/admin/missions');
       return unwrapMissionList(r.data).map(normalizeListItem);
+    },
+  });
+}
+
+/** Lista para Asignación manual — activas no archivadas. */
+export function useMissionsForGrant() {
+  return useQuery({
+    queryKey: ['missions', 'grant-manual'],
+    queryFn: async () => {
+      const r = await apiClient.get('/admin/missions?status=active');
+      const items = unwrapMissionList(r.data).map(normalizeListItem);
+      return filterMissionsForGrant(items);
     },
   });
 }
@@ -207,6 +233,41 @@ export function useDeleteMissionPermanent() {
     onError: (error) => {
       if (getHttpStatus(error) === 409) return;
       toast.error(getApiErrorMessage(error, 'No se pudo eliminar la misión'));
+    },
+  });
+}
+
+export function useGrantMissionManual() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({
+      missionId,
+      playerStateId,
+      reason,
+    }: {
+      missionId: string;
+      playerStateId: string;
+      reason?: string;
+    }) => {
+      const trimmed = reason?.trim() ?? '';
+      return apiClient
+        .post(`/admin/missions/${missionId}/grant-manual`, {
+          player_state_id: playerStateId,
+          ...(trimmed ? { reason: trimmed } : {}),
+        })
+        .then((r) => unwrapData<PlayerMissionAssignmentRow>(r.data));
+    },
+    onSuccess: (result) => {
+      toast.success(`Misión asignada · estado ${result.status}`);
+      qc.invalidateQueries({ queryKey: ['missions'] });
+      qc.invalidateQueries({ queryKey: ['missions', 'grant-manual'] });
+    },
+    onError: (error) => {
+      if (getHttpStatus(error) === 409) {
+        toast.error('El jugador ya tiene una asignación activa para esta misión');
+        return;
+      }
+      toast.error(getApiErrorMessage(error, 'No se pudo asignar la misión'));
     },
   });
 }

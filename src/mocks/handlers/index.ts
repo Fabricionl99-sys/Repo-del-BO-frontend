@@ -301,7 +301,7 @@ handlers.push(
   }),
 );
 
-import { adminMissions } from '@/mocks/data/adminMissions';
+import { adminMissions, grantMissionManual } from '@/mocks/data/adminMissions';
 import { streakPrograms } from '@/mocks/data/streakPrograms';
 import { playerStreakDetails, playerStreakSummaries } from '@/mocks/data/playerStreaks';
 import { pendingDeliveries } from '@/mocks/data/deliveries';
@@ -316,9 +316,15 @@ function crudHandlers<T extends { id: string }>(key: string, path: string, data:
   );
 }
 handlers.push(
-  http.get('*/admin/missions', async () => {
+  http.get('*/admin/missions', async ({ request }) => {
     await wait();
-    return HttpResponse.json({ data: adminMissions });
+    const url = new URL(request.url);
+    const status = url.searchParams.get('status');
+    let list = [...adminMissions];
+    if (status === 'active') {
+      list = list.filter((m) => m.is_active && m.status !== 'archived');
+    }
+    return HttpResponse.json({ data: list });
   }),
   http.get('*/admin/missions/:id', async ({ params }) => {
     await wait();
@@ -423,6 +429,28 @@ handlers.push(
   http.get('*/admin/missions/:id/progress', async () => {
     await wait();
     return HttpResponse.json({ started: 4821, completed: 1847, percent: 38.3 });
+  }),
+  http.post('*/admin/missions/:id/grant-manual', async ({ params, request }) => {
+    await wait();
+    const body = (await request.json()) as { player_state_id: string; reason?: string };
+    const playerStateId = String(body.player_state_id ?? '');
+    if (!playerStateId) {
+      return HttpResponse.json({ message: 'player_state_id required' }, { status: 400 });
+    }
+    const result = grantMissionManual(String(params.id), playerStateId, body.reason);
+    if (result === 'mission_not_found' || result === 'player_not_found') {
+      return new HttpResponse(null, { status: 404 });
+    }
+    if (result === 'inactive') {
+      return HttpResponse.json({ message: 'Mission is archived or inactive' }, { status: 400 });
+    }
+    if (result === 'duplicate') {
+      return HttpResponse.json(
+        { message: 'Player already has an active assignment for this mission' },
+        { status: 409 },
+      );
+    }
+    return HttpResponse.json({ data: result });
   }),
 );
 // streak-programs: shapes con wrapper { data } (api-shapes.md §5)

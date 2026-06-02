@@ -59,4 +59,25 @@ describe('MissionsPage', () => {
     wrap(<MissionsPage />, '/misiones?mockState=empty');
     expect(await screen.findByText('No hay misiones')).toBeInTheDocument();
   });
+
+  it('tab asignación manual con búsqueda de jugador y misiones activas', async () => {
+    wrap(<MissionsPage />);
+    await screen.findByText(/Apostá \$500 esta semana/);
+    fireEvent.click(screen.getByRole('button', { name: 'Asignación manual' }));
+    expect(screen.getByText('Mensaje al jugador (aparece en su notificación)')).toBeInTheDocument();
+    fireEvent.change(screen.getByPlaceholderText('external_player_id (mín. 2 chars)...'), {
+      target: { value: 'crypto' },
+    });
+    const listbox = await screen.findByRole('listbox');
+    fireEvent.click(listbox.querySelector('button')!);
+    await waitFor(() => {
+      expect(screen.getByDisplayValue('pl_mission')).toBeInTheDocument();
+    });
+    const missionSelect = document.querySelector('select.field') as HTMLSelectElement;
+    fireEvent.change(missionSelect, { target: { value: 'mission_weekly_bet_500' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Asignar' }));
+    await waitFor(() => {
+      expect(screen.getByPlaceholderText('external_player_id (mín. 2 chars)...')).toHaveValue('');
+    });
+  });
 });

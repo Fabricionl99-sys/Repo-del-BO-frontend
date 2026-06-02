@@ -13,7 +13,21 @@ export function adminSummaryToPlayerSearchResult(player: AdminPlayerSummary): Pl
 }
 
 export function normalizePlayerSearchResult(raw: Record<string, unknown>): PlayerSearchResult {
-  if (raw.external_player_id != null || raw.id != null) {
+  if (raw.player_id != null && raw.external_player_id != null && raw.id == null) {
+    return {
+      player_id: String(raw.player_id),
+      external_player_id: String(raw.external_player_id),
+      level: Number(raw.level ?? raw.current_level ?? 1),
+      coins: Array.isArray(raw.coins)
+        ? String((raw.coins[0] as Record<string, unknown>)?.balance ?? '0')
+        : String(raw.coins ?? '0'),
+      currency_code: Array.isArray(raw.coins)
+        ? String((raw.coins[0] as Record<string, unknown>)?.currency_code ?? 'main')
+        : String(raw.currency_code ?? 'main'),
+    };
+  }
+
+  if (raw.external_player_id != null && raw.id != null) {
     return adminSummaryToPlayerSearchResult(normalizeAdminPlayer(raw));
   }
 
@@ -47,7 +61,7 @@ export function normalizeAdminPlayer(raw: Record<string, unknown>): AdminPlayerS
   if (raw.external_player_id != null) {
     const coinsRaw = Array.isArray(raw.coins) ? raw.coins : [];
     return {
-      id: String(raw.id),
+      id: String(raw.id ?? raw.player_id ?? raw.player_state_id ?? ''),
       external_player_id: String(raw.external_player_id),
       total_xp: String(raw.total_xp ?? '0'),
       current_level: Number(raw.current_level ?? 1),

@@ -49,6 +49,18 @@ describe('normalizePlayerSearchResult', () => {
     });
   });
 
+  it('maps pre-normalized search rows with player_id only', () => {
+    const row = normalizePlayerSearchResult({
+      player_id: 'pl_mission',
+      external_player_id: 'crypto_king_88',
+      level: 14,
+      coins: '2400',
+      currency_code: 'main',
+    });
+    expect(row.player_id).toBe('pl_mission');
+    expect(row.external_player_id).toBe('crypto_king_88');
+  });
+
   it('maps legacy player_handle rows', () => {
     const row = normalizePlayerSearchResult({
       player_id: 'pl_8821',

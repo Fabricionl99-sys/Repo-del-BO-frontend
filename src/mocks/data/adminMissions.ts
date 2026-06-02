@@ -1,3 +1,5 @@
+import { adminPlayerSummaries } from '@/mocks/data/adminPlayers';
+
 const ago = (days: number) => new Date(Date.now() - days * 86400000).toISOString();
 
 export type BackendMissionRecord = Record<string, unknown>;
@@ -134,4 +136,64 @@ export const seedAdminMissions: BackendMissionRecord[] = JSON.parse(JSON.stringi
 export function resetAdminMissions() {
   adminMissions.length = 0;
   adminMissions.push(...JSON.parse(JSON.stringify(seedAdminMissions)));
+  missionManualAssignments.length = 0;
+}
+
+export type MissionGrantManualResult =
+  | {
+      id: string;
+      mission_id: string;
+      player_state_id: string;
+      status: string;
+      expires_at: string | null;
+      reason?: string;
+      created_at: string;
+    }
+  | 'mission_not_found'
+  | 'player_not_found'
+  | 'inactive'
+  | 'duplicate';
+
+const missionManualAssignments: Array<{
+  id: string;
+  mission_id: string;
+  player_state_id: string;
+  status: string;
+  expires_at: string | null;
+  reason?: string;
+  created_at: string;
+}> = [];
+
+export function grantMissionManual(
+  missionId: string,
+  playerStateId: string,
+  reason?: string,
+): MissionGrantManualResult {
+  const mission = adminMissions.find((m) => m.id === missionId);
+  if (!mission) return 'mission_not_found';
+  if (mission.status === 'archived' || !mission.is_active) return 'inactive';
+
+  const player = adminPlayerSummaries.find((p) => p.id === playerStateId);
+  if (!player) return 'player_not_found';
+
+  const duplicate = missionManualAssignments.some(
+    (a) =>
+      a.mission_id === missionId &&
+      a.player_state_id === playerStateId &&
+      a.status === 'active',
+  );
+  if (duplicate) return 'duplicate';
+
+  const validityHours = typeof mission.daily_validity_hours === 'number' ? mission.daily_validity_hours : 24;
+  const row = {
+    id: `pma_${Date.now()}`,
+    mission_id: missionId,
+    player_state_id: playerStateId,
+    status: 'active',
+    expires_at: new Date(Date.now() + validityHours * 3600000).toISOString(),
+    reason,
+    created_at: new Date().toISOString(),
+  };
+  missionManualAssignments.push(row);
+  return row;
 }
