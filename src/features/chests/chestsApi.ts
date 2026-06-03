@@ -364,6 +364,17 @@ export function adaptChestGrantManualPayload(
   };
 }
 
+export interface ChestGrantManualBatchPayload {
+  player_ids: string[];
+  chest_type_code: string;
+  reason: string;
+}
+
+export interface ChestGrantManualBatchResult {
+  granted: number;
+  failed: number;
+}
+
 export function useGrantChestManual() {
   const qc = useQueryClient();
   return useMutation({
@@ -377,6 +388,48 @@ export function useGrantChestManual() {
     },
     onError: (err) => {
       toast.error(getApiErrorMessage(err, 'No se pudo entregar el cofre'));
+    },
+  });
+}
+
+export function useGrantChestManualBatch() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (payload: ChestGrantManualBatchPayload): Promise<ChestGrantManualBatchResult> => {
+      let granted = 0;
+      let failed = 0;
+      for (const player_id of payload.player_ids) {
+        try {
+          await apiClient.post(
+            '/admin/chests/grant-manual',
+            adaptChestGrantManualPayload({
+              player_id,
+              chest_type_code: payload.chest_type_code,
+              reason: payload.reason,
+            }),
+          );
+          granted += 1;
+        } catch {
+          failed += 1;
+        }
+      }
+      return { granted, failed };
+    },
+    onSuccess: (result) => {
+      if (result.granted > 0) {
+        toast.success(
+          result.granted === 1
+            ? 'Cofre entregado correctamente'
+            : `Cofres entregados: ${result.granted} jugador(es)`,
+        );
+      }
+      if (result.failed > 0) {
+        toast.warning(`${result.failed} entrega(s) fallaron — revisá inventario o reintentá`);
+      }
+      qc.invalidateQueries({ queryKey: ['chest-inventory'] });
+    },
+    onError: (err) => {
+      toast.error(getApiErrorMessage(err, 'No se pudo completar la entrega'));
     },
   });
 }

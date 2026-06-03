@@ -2,7 +2,7 @@ import { Gift, Package, Plus } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 
-import { PlayerSearchPicker } from '@/components/players/PlayerSearchPicker';
+import { PlayerGrantQueuePicker } from '@/components/players/PlayerGrantQueuePicker';
 import { Button } from '@/components/ui/Button';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { ErrorState } from '@/components/ui/ErrorState';
@@ -19,7 +19,7 @@ import { ChestTypeFormModal } from '@/features/chests/components/ChestTypeFormMo
 import {
   useChestInventory,
   useChestTypes,
-  useGrantChestManual,
+  useGrantChestManualBatch,
 } from '@/features/chests/chestsApi';
 import { chestCatalogState } from '@/features/chests/chestTypeShape';
 import { useDebounce } from '@/hooks/useDebounce';
@@ -37,6 +37,7 @@ import {
   isGrantManualReasonValid,
 } from '@/types/chests';
 import { GRANT_PLAYER_MESSAGE_LABEL, GRANT_PLAYER_MESSAGE_PLACEHOLDER } from '@/types/avatars';
+import type { PlayerSearchResult } from '@/types/players';
 
 const tabs = ['Tipos de Cofre', 'Inventario', 'Entregar manual'] as const;
 type Tab = (typeof tabs)[number];
@@ -85,7 +86,7 @@ export default function ChestsPage() {
   const [invTo, setInvTo] = useState('');
   const debouncedPlayerSearch = useDebounce(invPlayerSearch, 250);
 
-  const [grantPlayerId, setGrantPlayerId] = useState('');
+  const [grantPlayers, setGrantPlayers] = useState<PlayerSearchResult[]>([]);
   const [grantChestCode, setGrantChestCode] = useState('');
   const [grantReason, setGrantReason] = useState('Entrega manual desde BO');
 
@@ -110,7 +111,7 @@ export default function ChestsPage() {
     offset: 0,
   });
 
-  const grantManual = useGrantChestManual();
+  const grantManualBatch = useGrantChestManualBatch();
 
   const typesRaw = mock === 'empty' ? [] : (typesQ.data ?? []);
   const types = useMemo(() => {
@@ -216,19 +217,20 @@ export default function ChestsPage() {
   ];
 
   const handleGrant = async () => {
-    if (!grantPlayerId.trim() || !grantChestCode || !isGrantManualReasonValid(grantReason)) return;
-    await grantManual.mutateAsync({
-      player_id: grantPlayerId.trim(),
+    if (grantPlayers.length === 0 || !grantChestCode || !isGrantManualReasonValid(grantReason)) return;
+    await grantManualBatch.mutateAsync({
+      player_ids: grantPlayers.map((p) => p.player_id),
       chest_type_code: grantChestCode,
       reason: grantReason.trim(),
     });
-    setGrantPlayerId('');
+    setGrantPlayers([]);
     setGrantChestCode('');
     setGrantReason('Entrega manual desde BO');
     setTab('Inventario');
   };
 
   const grantReasonValid = isGrantManualReasonValid(grantReason);
+  const grantCount = grantPlayers.length;
 
   return (
     <>
@@ -396,12 +398,11 @@ export default function ChestsPage() {
       )}
 
       {tab === 'Entregar manual' && (
-        <div className="max-w-lg space-y-4 rounded-xl border border-border-subtle bg-bg-secondary p-6">
-          <PlayerSearchPicker
+        <div className="max-w-xl space-y-4 rounded-xl border border-border-subtle bg-bg-secondary p-6">
+          <PlayerGrantQueuePicker
             enabled={tab === 'Entregar manual'}
-            selectedPlayerId={grantPlayerId}
-            onSelectedPlayerIdChange={setGrantPlayerId}
-            showSelectedIdField
+            players={grantPlayers}
+            onPlayersChange={setGrantPlayers}
           />
           <div>
             <label className="mb-1.5 block text-[14px] text-text-secondary">Tipo de cofre</label>
@@ -430,11 +431,15 @@ export default function ChestsPage() {
           </div>
           <Button
             variant="primary"
-            loading={grantManual.isPending}
-            disabled={!grantPlayerId.trim() || !grantChestCode || !grantReasonValid}
+            loading={grantManualBatch.isPending}
+            disabled={grantCount === 0 || !grantChestCode || !grantReasonValid}
             onClick={handleGrant}
           >
-            Entregar
+            {grantCount === 0
+              ? 'Entregar'
+              : grantCount === 1
+                ? 'Entregar a 1 jugador'
+                : `Entregar a ${grantCount} jugadores`}
           </Button>
         </div>
       )}

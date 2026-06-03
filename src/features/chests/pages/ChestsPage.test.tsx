@@ -85,7 +85,7 @@ describe('ChestsPage', () => {
     const chestSelect = screen.getByText('Tipo de cofre').parentElement?.querySelector('select');
     expect(chestSelect).toBeTruthy();
     fireEvent.change(chestSelect!, { target: { value: 'bronce' } });
-    fireEvent.click(screen.getByText('Entregar'));
+    fireEvent.click(screen.getByRole('button', { name: 'Entregar a 1 jugador' }));
     await waitFor(() => {
       expect(screen.getByRole('button', { name: 'Inventario' })).toBeInTheDocument();
     });
