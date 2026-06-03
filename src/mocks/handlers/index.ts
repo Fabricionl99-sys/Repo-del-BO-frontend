@@ -1851,13 +1851,17 @@ handlers.push(
   }),
   http.post('*/admin/chests/grant-manual', async ({ request }) => {
     await wait();
-    const body = (await request.json()) as ChestGrantManualPayload;
+    const body = (await request.json()) as ChestGrantManualPayload & {
+      player_state_id?: string;
+      reason?: string;
+    };
+    const playerId = String(body.player_state_id ?? body.player_id ?? '');
     const type = findChestType(body.chest_type_code) ?? chestTypes[0];
-    const player = findPlayerSearchResult(body.player_id);
+    const player = findPlayerSearchResult(playerId);
     const item = {
       id: `chest_inv_${Date.now()}`,
-      player_id: body.player_id,
-      player_handle: player?.external_player_id ?? body.player_id,
+      player_id: playerId,
+      player_handle: player?.external_player_id ?? playerId,
       chest_type_code: type.code,
       chest_type_name: type.name,
       acquired_at: new Date().toISOString(),

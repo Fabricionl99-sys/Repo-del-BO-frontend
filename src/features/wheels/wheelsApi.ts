@@ -10,6 +10,7 @@ import type {
   SpinHistoryEntry,
   SpinHistoryQuery,
   WheelCatalogResponse,
+  WheelGrantManualBackendPayload,
   WheelGrantManualPayload,
   WheelManualGrantHistoryItem,
   WheelPrize,
@@ -447,12 +448,24 @@ export function useManualGrantHistory(_limit = 20) {
   });
 }
 
+/** UI payload (player_id) → shape canónico backend (player_state_id). */
+export function adaptWheelGrantManualPayload(
+  payload: WheelGrantManualPayload,
+): WheelGrantManualBackendPayload {
+  return {
+    player_state_id: payload.player_id,
+    wheel_code: payload.wheel_code,
+    quantity: payload.quantity,
+    reason: payload.reason,
+  };
+}
+
 export function useGrantWheelManual() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: (payload: WheelGrantManualPayload) =>
       apiClient
-        .post('/admin/wheels/grant-manual', payload)
+        .post('/admin/wheels/grant-manual', adaptWheelGrantManualPayload(payload))
         .then((r) => unwrapData<WheelManualGrantHistoryItem>(r.data)),
     onSuccess: () => {
       toast.success('Spins asignados');

@@ -7,6 +7,7 @@ import { unwrapData } from '@/api/response';
 import { normalizeChestType, normalizeChestTypes } from '@/features/chests/chestTypeShape';
 import { toast } from '@/stores/toastStore';
 import type {
+  ChestGrantManualBackendPayload,
   ChestGrantManualPayload,
   ChestInventoryQuery,
   ChestPrize,
@@ -349,11 +350,24 @@ export function useChestInventory(_params: ChestInventoryQuery = {}) {
   });
 }
 
+/** UI payload (player_id/notes) → shape canónico backend (player_state_id/reason). */
+export function adaptChestGrantManualPayload(
+  payload: ChestGrantManualPayload,
+): ChestGrantManualBackendPayload {
+  return {
+    player_state_id: payload.player_id,
+    chest_type_code: payload.chest_type_code,
+    reason: payload.notes ?? '',
+  };
+}
+
 export function useGrantChestManual() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: (payload: ChestGrantManualPayload) =>
-      apiClient.post('/admin/chests/grant-manual', payload).then((r) => unwrapData<PlayerChestInventoryItem>(r.data)),
+      apiClient
+        .post('/admin/chests/grant-manual', adaptChestGrantManualPayload(payload))
+        .then((r) => unwrapData<PlayerChestInventoryItem>(r.data)),
     onSuccess: () => {
       toast.success('Cofre entregado correctamente');
       qc.invalidateQueries({ queryKey: ['chest-inventory'] });

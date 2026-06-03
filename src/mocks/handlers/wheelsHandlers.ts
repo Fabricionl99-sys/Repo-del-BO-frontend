@@ -216,13 +216,14 @@ export const wheelsHandlers = [
 
   http.post('*/admin/wheels/grant-manual', async ({ request }) => {
     await wait();
-    const body = (await request.json()) as WheelGrantManualPayload;
+    const body = (await request.json()) as WheelGrantManualPayload & { player_state_id?: string };
+    const playerId = String(body.player_state_id ?? body.player_id ?? '');
     const wheel = findWheel(body.wheel_code) ?? wheelTypes[0];
-    const player = findPlayerSearchResult(body.player_id);
+    const player = findPlayerSearchResult(playerId);
     const entry = {
       id: `grant_${Date.now()}`,
-      player_id: body.player_id,
-      player_handle: player?.external_player_id ?? body.player_id,
+      player_id: playerId,
+      player_handle: player?.external_player_id ?? playerId,
       wheel_code: wheel.code,
       wheel_name: wheel.name,
       quantity: body.quantity,

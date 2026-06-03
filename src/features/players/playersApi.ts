@@ -3,6 +3,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { apiClient } from '@/api/client';
 import { getApiErrorMessage } from '@/api/errors';
 import { unwrapData, unwrapDataList } from '@/api/response';
+import { adaptChestGrantManualPayload } from '@/features/chests/chestsApi';
 import { normalizeAdminPlayer, normalizePlayerSearchResult } from '@/features/players/normalizePlayer';
 import { toast } from '@/stores/toastStore';
 import { trackEvent } from '@/lib/analytics';
@@ -118,11 +119,11 @@ export function useGrantChestsManual() {
       let failed = 0;
       for (const chest_type_code of payload.chest_type_codes) {
         try {
-          await apiClient.post('/admin/chests/grant-manual', {
+          await apiClient.post('/admin/chests/grant-manual', adaptChestGrantManualPayload({
             player_id: payload.player_state_id,
             chest_type_code,
             notes: payload.notes,
-          });
+          }));
           granted += 1;
         } catch {
           failed += 1;

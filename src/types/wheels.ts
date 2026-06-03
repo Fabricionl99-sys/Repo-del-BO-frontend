@@ -121,6 +121,14 @@ export interface WheelGrantManualPayload {
   reason: string;
 }
 
+/** Shape canónico POST /admin/wheels/grant-manual (backend prod). */
+export interface WheelGrantManualBackendPayload {
+  player_state_id: string;
+  wheel_code: string;
+  quantity: number;
+  reason: string;
+}
+
 export interface WheelManualGrantHistoryItem {
   id: string;
   player_id: string;

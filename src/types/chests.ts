@@ -135,4 +135,11 @@ export interface ChestGrantManualPayload {
   notes?: string;
 }
 
+/** Shape canónico POST /admin/chests/grant-manual (backend prod). */
+export interface ChestGrantManualBackendPayload {
+  player_state_id: string;
+  chest_type_code: string;
+  reason: string;
+}
+
 export type { PlayerSearchResult } from '@/types/players';
