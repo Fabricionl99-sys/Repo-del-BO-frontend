@@ -30,17 +30,17 @@ describe('MissionActionCurrencySelect', () => {
     wrap();
     expect(await screen.findByRole('combobox')).toBeInTheDocument();
     await waitFor(() => {
-      expect(screen.getByText(/GLD —/)).toBeInTheDocument();
+      expect(screen.getByText(/CLP —/)).toBeInTheDocument();
     });
   });
 
   it('keeps existing currency_code on edit', async () => {
     wrap({
-      actions: [{ type: 'bet_amount', amount: 500, currency_code: 'RBY', aggregation_mode: 'cumulative' }],
+      actions: [{ type: 'bet_amount', amount: 500, currency_code: 'CLP', aggregation_mode: 'cumulative' }],
     });
     const select = await screen.findByRole('combobox');
     await waitFor(() => {
-      expect((select as HTMLSelectElement).value).toBe('RBY');
+      expect((select as HTMLSelectElement).value).toBe('CLP');
     });
   });
 });

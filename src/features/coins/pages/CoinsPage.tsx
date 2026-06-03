@@ -1,151 +1,49 @@
 import { useState } from 'react';
-import { Download, Pencil, Plus, Trash2 } from 'lucide-react';
 import { useSearchParams } from 'react-router-dom';
-import { Button } from '@/components/ui/Button';
-import { EmptyState } from '@/components/ui/EmptyState';
-import { ErrorState } from '@/components/ui/ErrorState';
-import { IconButton } from '@/components/ui/IconButton';
-import { Loading } from '@/components/ui/Loading';
-import { PageHeader } from '@/components/ui/PageHeader';
-import { StatCard } from '@/components/ui/StatCard';
-import { Switch } from '@/components/ui/Switch';
-import { Table, type Column } from '@/components/ui/Table';
-import { formatNumber } from '@/lib/format';
-import { useCoins, useDeleteCoin, useSetCoinActive } from '@/features/coinsApi';
-import type { Coin, CoinDeliveryMode } from '@/types/coins';
-import { CurrencyEditorModal } from '../components/CurrencyEditorModal';
-import { CurrencyIcon } from '../components/CurrencyIcon';
 
-const modeLabel = (m: CoinDeliveryMode) => (m === 'auto_xp' ? 'Por XP' : 'Manual');
+import { cn } from '@/lib/cn';
+import { PageHeader } from '@/components/ui/PageHeader';
+
+import { RealCurrenciesTab } from '../components/RealCurrenciesTab';
+import { VirtualCurrenciesTab } from '../components/VirtualCurrenciesTab';
+
+const TABS = ['Monedas Reales', 'Monedas Virtuales del Juego'] as const;
+type Tab = (typeof TABS)[number];
 
 export default function CoinsPage() {
   const [params] = useSearchParams();
   const mock = params.get('mockState');
-  const q = useCoins();
-  const setActive = useSetCoinActive();
-  const del = useDeleteCoin();
-  const coins = mock === 'empty' ? [] : (q.data ?? []);
-  const [editor, setEditor] = useState(false);
-  const [editing, setEditing] = useState<Coin | null>(null);
-
-  const openNew = () => {
-    setEditing(null);
-    setEditor(true);
-  };
-  const openEdit = (coin: Coin) => {
-    setEditing(coin);
-    setEditor(true);
-  };
-
-  const columns: Column<Coin>[] = [
-    {
-      key: 'icon',
-      header: 'Ícono',
-      width: '64px',
-      render: (c) => <CurrencyIcon coin={c} />,
-    },
-    { key: 'name', header: 'Moneda', render: (c) => <span className="font-medium">{c.name}</span> },
-    { key: 'sym', header: 'Símbolo', render: (c) => <span className="text-mono text-text-secondary">{c.symbol}</span> },
-    { key: 'mode', header: 'Modo', render: (c) => <span>{modeLabel(c.deliveryMode)}</span> },
-    {
-      key: 'on',
-      header: 'Activa',
-      render: (c) => (
-        <Switch
-          checked={c.active}
-          disabled={setActive.isPending}
-          onChange={(active) => setActive.mutate({ id: c.id, active })}
-          aria-label={`activar ${c.name}`}
-        />
-      ),
-    },
-    {
-      key: 'circ',
-      header: 'En circulación',
-      render: (c) => <span className="text-mono text-[15px]">{formatNumber(c.totalInCirculation, { compact: true })}</span>,
-    },
-    {
-      key: 'actions',
-      header: '',
-      align: 'right',
-      render: (c) => (
-        <div className="flex justify-end gap-1">
-          <IconButton icon={Pencil} title="editar" size="sm" onClick={() => openEdit(c)} />
-          {!c.isDefault ? (
-            <IconButton
-              icon={Trash2}
-              title="eliminar"
-              size="sm"
-              onClick={() => {
-                if (confirm(`¿Desactivar moneda ${c.name}?`)) del.mutate(c.id);
-              }}
-            />
-          ) : null}
-        </div>
-      ),
-    },
-  ];
+  const [tab, setTab] = useState<Tab>('Monedas Reales');
 
   return (
     <>
       <PageHeader
-        title="Monedas"
-        subtitle="Configurá los tipos de monedas virtuales, modo de entrega y reglas anti-abuso."
-        actions={
-          <>
-            <Button icon={<Download size={14} />}>exportar</Button>
-            <Button variant="primary" icon={<Plus size={14} />} onClick={openNew}>
-              nueva moneda
-            </Button>
-          </>
-        }
+        title="Configuración de Monedas"
+        subtitle="Activá monedas reales del catálogo global y gestioná monedas virtuales de tu juego."
       />
 
-      <div className="mb-7 grid grid-cols-4 gap-4 max-md:grid-cols-2">
-        <StatCard label="monedas activas" value={coins.filter((c) => c.active).length} hint="config por moneda" />
-        <StatCard label="modo automático" value={coins.filter((c) => c.deliveryMode === 'auto_xp').length} />
-        <StatCard label="modo manual" value={coins.filter((c) => c.deliveryMode === 'manual').length} />
-        <StatCard label="P2P habilitado" value={coins.filter((c) => c.p2p.enabled).length} />
+      <div className="mb-6 flex flex-wrap gap-2 border-b border-border-subtle">
+        {TABS.map((t) => (
+          <button
+            key={t}
+            type="button"
+            role="tab"
+            aria-selected={tab === t}
+            onClick={() => setTab(t)}
+            className={cn(
+              'px-4 py-2 text-sm font-semibold transition-colors',
+              tab === t ? 'border-b-2 border-accent text-accent' : 'text-text-secondary hover:text-text-primary',
+            )}
+          >
+            {t}
+          </button>
+        ))}
       </div>
 
-      {mock === 'empty' && coins.length === 0 && (
-        <EmptyState
-          title="No hay monedas configuradas"
-          description="Creá tu moneda principal para conectar reglas, tienda y recompensas."
-          action={
-            <Button variant="primary" onClick={openNew}>
-              Crear moneda
-            </Button>
-          }
-        />
-      )}
-      {(mock === 'loading' || q.isLoading) && <Loading label="Cargando monedas..." />}
-      {(mock === 'error' || q.isError) && <ErrorState onRetry={() => q.refetch()} />}
-      {mock !== 'empty' && mock !== 'loading' && mock !== 'error' && !q.isLoading && !q.isError && coins.length === 0 && (
-        <EmptyState
-          title="No hay monedas configuradas"
-          description="Creá tu moneda principal para conectar reglas, tienda y recompensas."
-          action={
-            <Button variant="primary" onClick={openNew}>
-              Crear moneda
-            </Button>
-          }
-        />
-      )}
-      {coins.length > 0 && (
-        <div className="card p-5">
-          <Table columns={columns} rows={coins} rowKey={(c) => c.id} />
-        </div>
-      )}
-
-      <CurrencyEditorModal
-        open={editor}
-        onClose={() => {
-          setEditor(false);
-          setEditing(null);
-        }}
-        initial={editing}
-      />
+      {tab === 'Monedas Reales' ? <RealCurrenciesTab /> : null}
+      {tab === 'Monedas Virtuales del Juego' ? (
+        <VirtualCurrenciesTab forceEmpty={mock === 'empty'} />
+      ) : null}
     </>
   );
 }

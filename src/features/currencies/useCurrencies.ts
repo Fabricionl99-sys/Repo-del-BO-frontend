@@ -12,10 +12,11 @@ export interface Currency {
 }
 
 function adaptCurrency(raw: Record<string, unknown>): Currency {
+  const code = String(raw.code ?? '');
   return {
-    id: String(raw.id ?? ''),
-    code: String(raw.code ?? ''),
-    name: String(raw.name ?? raw.code ?? 'Moneda'),
+    id: String(raw.id ?? code),
+    code,
+    name: String(raw.name ?? code ?? 'Moneda'),
     iconUrl: typeof raw.icon_url === 'string' ? raw.icon_url : null,
   };
 }

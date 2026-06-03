@@ -63,6 +63,10 @@ function normalizeBackendCoin(raw: Record<string, unknown>): Coin {
     raw.earning_mode === 'manual' ? 'manual' : 'auto_xp';
   return {
     id: String(raw.id ?? raw.code ?? ''),
+    globalCurrencyId:
+      raw.global_currency_id != null && raw.global_currency_id !== ''
+        ? String(raw.global_currency_id)
+        : null,
     name: String(raw.name ?? raw.code ?? 'Coin'),
     symbol: String(raw.code ?? ''),
     imageUrl: readCoinIconUrl(raw),
@@ -107,6 +111,15 @@ export function useCoins() {
       return arr.map((raw) => normalizeBackendCoin(raw as Record<string, unknown>));
     },
   });
+}
+
+/** Monedas virtuales legacy (sin global_currency_id). */
+export function useVirtualCoins() {
+  const q = useCoins();
+  return {
+    ...q,
+    data: (q.data ?? []).filter((coin) => !coin.globalCurrencyId),
+  };
 }
 
 /** Moneda fiat por defecto del operador (CLP, PEN, USD, …). Solo presentación en UI. */

@@ -31,6 +31,13 @@ import {
   ruleListItems,
   xpRules,
 } from '@/mocks/data/tier2';
+import {
+  buildActiveCurrencyResponse,
+  findCatalogItem,
+  getDefaultActiveCode,
+  globalCurrencyCatalog,
+  operatorActiveRealCurrencies,
+} from '@/mocks/data/currencyCatalog';
 import { categoryIdFromSlug, mockGameCategories } from '@/mocks/data/gameCategories';
 
 handlers.push(
@@ -189,20 +196,121 @@ handlers.push(
   http.post('*/admin/coins/upload-image', async () => { await wait(); return HttpResponse.json({ url: 'https://images.unsplash.com/photo-1529626455594-4ff0802cfb7e?w=64&h=64&fit=crop' }); }),
   http.get('*/admin/currencies/default', async () => {
     await wait();
-    return HttpResponse.json({ data: { code: 'CLP', symbol: '$', name: 'Peso chileno' } });
+    const code = getDefaultActiveCode() ?? 'CLP';
+    const catalog = findCatalogItem(code);
+    return HttpResponse.json({
+      data: {
+        code,
+        symbol: catalog?.symbol ?? '$',
+        name: catalog?.name ?? code,
+      },
+    });
+  }),
+  http.get('*/admin/currencies/catalog', async () => {
+    await wait();
+    return HttpResponse.json({ data: globalCurrencyCatalog });
   }),
   http.get('*/admin/currencies/active', async () => {
     await wait();
+    return HttpResponse.json({ data: buildActiveCurrencyResponse() });
+  }),
+  http.post('*/admin/currencies/activate', async ({ request }) => {
+    await wait();
+    const body = (await request.json()) as { currency_code?: string };
+    const code = String(body.currency_code ?? '').toUpperCase();
+    const catalog = findCatalogItem(code);
+    if (!catalog) {
+      return HttpResponse.json({ detail: 'Moneda no encontrada en el catálogo' }, { status: 404 });
+    }
+    const existing = operatorActiveRealCurrencies.find((row) => row.code === code);
+    if (existing) {
+      return HttpResponse.json({ detail: 'La moneda ya está activa' }, { status: 409 });
+    }
+    const row = {
+      code,
+      xp_per_unit: 0.1,
+      is_default: operatorActiveRealCurrencies.length === 0,
+      activated_at: new Date().toISOString(),
+    };
+    operatorActiveRealCurrencies.push(row);
+    return HttpResponse.json(
+      {
+        data: {
+          code: catalog.code,
+          name: catalog.name,
+          symbol: catalog.symbol,
+          type: catalog.type,
+          decimals: catalog.decimals,
+          is_default: row.is_default,
+          xp_per_unit: row.xp_per_unit,
+          activated_at: row.activated_at,
+        },
+      },
+      { status: 201 },
+    );
+  }),
+  http.delete('*/admin/currencies/active/:code', async ({ params }) => {
+    await wait();
+    const code = String(params.code ?? '').toUpperCase();
+    const index = operatorActiveRealCurrencies.findIndex((row) => row.code === code);
+    if (index < 0) {
+      return HttpResponse.json({ detail: 'Moneda no activa' }, { status: 404 });
+    }
+    if (operatorActiveRealCurrencies[index].is_default) {
+      return HttpResponse.json(
+        { detail: 'No podés desactivar la moneda default. Elegí otra moneda default primero.' },
+        { status: 409 },
+      );
+    }
+    operatorActiveRealCurrencies.splice(index, 1);
+    return new HttpResponse(null, { status: 204 });
+  }),
+  http.post('*/admin/currencies/default', async ({ request }) => {
+    await wait();
+    const body = (await request.json()) as { currency_code?: string };
+    const code = String(body.currency_code ?? '').toUpperCase();
+    const row = operatorActiveRealCurrencies.find((item) => item.code === code);
+    if (!row) {
+      return HttpResponse.json({ detail: 'Activá la moneda antes de marcarla como default' }, { status: 404 });
+    }
+    for (const item of operatorActiveRealCurrencies) item.is_default = item.code === code;
+    const catalog = findCatalogItem(code)!;
     return HttpResponse.json({
-      data: coins
-        .filter((c) => c.active)
-        .map((c) => ({
-          id: c.id,
-          code: c.symbol,
-          name: c.name,
-          is_active: true,
-          kind: c.deliveryMode === 'manual' ? 'virtual' : 'fiat',
-        })),
+      data: {
+        code: catalog.code,
+        name: catalog.name,
+        symbol: catalog.symbol,
+        type: catalog.type,
+        decimals: catalog.decimals,
+        is_default: true,
+        xp_per_unit: row.xp_per_unit,
+        activated_at: row.activated_at,
+      },
+    });
+  }),
+  http.patch('*/admin/currencies/active/:code', async ({ params, request }) => {
+    await wait();
+    const code = String(params.code ?? '').toUpperCase();
+    const body = (await request.json()) as { xp_per_unit?: number };
+    const row = operatorActiveRealCurrencies.find((item) => item.code === code);
+    if (!row) {
+      return HttpResponse.json({ detail: 'Moneda no activa' }, { status: 404 });
+    }
+    if (typeof body.xp_per_unit === 'number' && body.xp_per_unit > 0) {
+      row.xp_per_unit = body.xp_per_unit;
+    }
+    const catalog = findCatalogItem(code)!;
+    return HttpResponse.json({
+      data: {
+        code: catalog.code,
+        name: catalog.name,
+        symbol: catalog.symbol,
+        type: catalog.type,
+        decimals: catalog.decimals,
+        is_default: row.is_default,
+        xp_per_unit: row.xp_per_unit,
+        activated_at: row.activated_at,
+      },
     });
   }),
   http.get('*/admin/currencies', async () => {
@@ -218,6 +326,7 @@ handlers.push(
         is_active: c.active,
         is_default: c.isDefault,
         expiration_days: c.caps?.expiryDays ?? null,
+        global_currency_id: null,
       })),
     });
   }),

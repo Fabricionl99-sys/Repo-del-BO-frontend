@@ -21,6 +21,8 @@ export interface CoinP2PConfig {
 
 export interface Coin {
   id: string;
+  /** Si está ligada al catálogo global (moneda real activada). Null = virtual legacy. */
+  globalCurrencyId?: string | null;
   name: string;
   symbol: string;
   imageUrl?: string;
