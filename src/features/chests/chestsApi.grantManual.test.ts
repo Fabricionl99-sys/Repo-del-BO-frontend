@@ -19,16 +19,32 @@ describe('grant-manual payload adapters', () => {
     });
   });
 
-  it('adaptChestGrantManualPayload defaults reason to empty string', () => {
+  it('adaptChestGrantManualPayload prefers reason over notes', () => {
     expect(
       adaptChestGrantManualPayload({
         player_id: 'state-uuid',
         chest_type_code: 'WELCOME',
+        reason: 'Premio torneo fin de semana',
+        notes: 'ignored',
       }),
     ).toEqual({
       player_state_id: 'state-uuid',
       chest_type_code: 'WELCOME',
-      reason: '',
+      reason: 'Premio torneo fin de semana',
+    });
+  });
+
+  it('adaptChestGrantManualPayload maps notes to reason when reason omitted', () => {
+    expect(
+      adaptChestGrantManualPayload({
+        player_id: 'state-uuid',
+        chest_type_code: 'WELCOME',
+        notes: 'Entrega manual desde BO',
+      }),
+    ).toEqual({
+      player_state_id: 'state-uuid',
+      chest_type_code: 'WELCOME',
+      reason: 'Entrega manual desde BO',
     });
   });
 

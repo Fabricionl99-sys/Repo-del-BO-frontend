@@ -123,7 +123,7 @@ export function useGrantChestsManual() {
           await apiClient.post('/admin/chests/grant-manual', adaptChestGrantManualPayload({
             player_id: payload.player_state_id,
             chest_type_code,
-            notes: payload.notes,
+            reason: payload.reason ?? payload.notes,
           }));
           granted += 1;
         } catch {

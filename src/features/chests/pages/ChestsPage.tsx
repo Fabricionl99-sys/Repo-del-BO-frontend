@@ -32,6 +32,11 @@ import type {
   ChestType,
   PlayerChestInventoryItem,
 } from '@/types/chests';
+import {
+  GRANT_MANUAL_REASON_MIN_LENGTH,
+  isGrantManualReasonValid,
+} from '@/types/chests';
+import { GRANT_PLAYER_MESSAGE_LABEL, GRANT_PLAYER_MESSAGE_PLACEHOLDER } from '@/types/avatars';
 
 const tabs = ['Tipos de Cofre', 'Inventario', 'Entregar manual'] as const;
 type Tab = (typeof tabs)[number];
@@ -82,7 +87,7 @@ export default function ChestsPage() {
 
   const [grantPlayerId, setGrantPlayerId] = useState('');
   const [grantChestCode, setGrantChestCode] = useState('');
-  const [grantNotes, setGrantNotes] = useState('');
+  const [grantReason, setGrantReason] = useState('Entrega manual desde BO');
 
   const typesQ = useChestTypes({
     status:
@@ -211,17 +216,19 @@ export default function ChestsPage() {
   ];
 
   const handleGrant = async () => {
-    if (!grantPlayerId.trim() || !grantChestCode) return;
+    if (!grantPlayerId.trim() || !grantChestCode || !isGrantManualReasonValid(grantReason)) return;
     await grantManual.mutateAsync({
       player_id: grantPlayerId.trim(),
       chest_type_code: grantChestCode,
-      notes: grantNotes.trim() || undefined,
+      reason: grantReason.trim(),
     });
     setGrantPlayerId('');
     setGrantChestCode('');
-    setGrantNotes('');
+    setGrantReason('Entrega manual desde BO');
     setTab('Inventario');
   };
+
+  const grantReasonValid = isGrantManualReasonValid(grantReason);
 
   return (
     <>
@@ -406,13 +413,25 @@ export default function ChestsPage() {
             </select>
           </div>
           <div>
-            <label className="mb-1.5 block text-[14px] text-text-secondary">Observaciones (opcional)</label>
-            <textarea className="field min-h-16" value={grantNotes} onChange={(e) => setGrantNotes(e.target.value)} />
+            <label className="mb-1.5 block text-[14px] text-text-secondary">{GRANT_PLAYER_MESSAGE_LABEL}</label>
+            <textarea
+              className="field min-h-20"
+              placeholder={GRANT_PLAYER_MESSAGE_PLACEHOLDER}
+              value={grantReason}
+              onChange={(e) => setGrantReason(e.target.value)}
+              required
+            />
+            {!grantReasonValid && grantReason.trim().length > 0 ? (
+              <p className="mt-1 text-[13px] text-danger">
+                Mínimo {GRANT_MANUAL_REASON_MIN_LENGTH} caracteres (faltan{' '}
+                {GRANT_MANUAL_REASON_MIN_LENGTH - grantReason.trim().length})
+              </p>
+            ) : null}
           </div>
           <Button
             variant="primary"
             loading={grantManual.isPending}
-            disabled={!grantPlayerId.trim() || !grantChestCode}
+            disabled={!grantPlayerId.trim() || !grantChestCode || !grantReasonValid}
             onClick={handleGrant}
           >
             Entregar

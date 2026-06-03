@@ -4,6 +4,8 @@ import { Button } from '@/components/ui/Button';
 import { Modal } from '@/components/ui/Modal';
 import { useChestTypes } from '@/features/chests/chestsApi';
 import { useGrantChestsManual } from '@/features/players/playersApi';
+import { GRANT_PLAYER_MESSAGE_LABEL, GRANT_PLAYER_MESSAGE_PLACEHOLDER } from '@/types/avatars';
+import { isGrantManualReasonValid } from '@/types/chests';
 
 export function GrantChestsModal({
   open,
@@ -21,6 +23,8 @@ export function GrantChestsModal({
   const [selected, setSelected] = useState<string[]>([]);
   const [notes, setNotes] = useState('Entrega manual desde BO');
 
+  const reasonValid = isGrantManualReasonValid(notes);
+
   const toggle = (code: string) => {
     setSelected((current) =>
       current.includes(code) ? current.filter((x) => x !== code) : [...current, code],
@@ -34,11 +38,11 @@ export function GrantChestsModal({
   };
 
   const submit = async () => {
-    if (!playerId || selected.length === 0) return;
+    if (!playerId || selected.length === 0 || !reasonValid) return;
     await grant.mutateAsync({
       player_state_id: playerId,
       chest_type_codes: selected,
-      notes: notes.trim() || undefined,
+      reason: notes.trim(),
     });
     onGranted?.();
     handleClose();
@@ -60,7 +64,7 @@ export function GrantChestsModal({
           <Button
             variant="primary"
             loading={grant.isPending}
-            disabled={!playerId || selected.length === 0}
+            disabled={!playerId || selected.length === 0 || !reasonValid}
             onClick={submit}
           >
             Entregar ({selected.length})
@@ -93,8 +97,14 @@ export function GrantChestsModal({
           )}
         </div>
         <label className="block space-y-1">
-          <span className="text-[14px] font-medium text-text-secondary">Notas (opcional)</span>
-          <textarea className="field min-h-[72px]" value={notes} onChange={(e) => setNotes(e.target.value)} />
+          <span className="text-[14px] font-medium text-text-secondary">{GRANT_PLAYER_MESSAGE_LABEL}</span>
+          <textarea
+            className="field min-h-[72px]"
+            placeholder={GRANT_PLAYER_MESSAGE_PLACEHOLDER}
+            value={notes}
+            onChange={(e) => setNotes(e.target.value)}
+            required
+          />
         </label>
       </div>
     </Modal>

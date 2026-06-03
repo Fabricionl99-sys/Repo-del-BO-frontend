@@ -46,6 +46,8 @@ export interface GrantAvatarsManualResult {
 export interface GrantChestsManualPayload {
   player_state_id: string;
   chest_type_codes: string[];
+  reason?: string;
+  /** @deprecated usar reason */
   notes?: string;
 }
 

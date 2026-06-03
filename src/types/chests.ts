@@ -136,7 +136,17 @@ export interface ChestInventoryQuery {
 export interface ChestGrantManualPayload {
   player_id: string;
   chest_type_code: string;
+  /** Motivo visible en notificación — mín. 10 chars (backend). */
+  reason?: string;
+  /** @deprecated usar reason */
   notes?: string;
+}
+
+/** Mínimo exigido por POST /admin/chests/grant-manual */
+export const GRANT_MANUAL_REASON_MIN_LENGTH = 10;
+
+export function isGrantManualReasonValid(reason: string): boolean {
+  return reason.trim().length >= GRANT_MANUAL_REASON_MIN_LENGTH;
 }
 
 /** Shape canónico POST /admin/chests/grant-manual (backend prod). */

@@ -352,14 +352,15 @@ export function useChestInventory(_params: ChestInventoryQuery = {}) {
   });
 }
 
-/** UI payload (player_id/notes) → shape canónico backend (player_state_id/reason). */
+/** UI payload (player_id/reason) → shape canónico backend (player_state_id/reason). */
 export function adaptChestGrantManualPayload(
   payload: ChestGrantManualPayload,
 ): ChestGrantManualBackendPayload {
+  const reason = (payload.reason ?? payload.notes ?? '').trim();
   return {
     player_state_id: payload.player_id,
     chest_type_code: payload.chest_type_code,
-    reason: payload.notes ?? '',
+    reason,
   };
 }
 
@@ -373,6 +374,9 @@ export function useGrantChestManual() {
     onSuccess: () => {
       toast.success('Cofre entregado correctamente');
       qc.invalidateQueries({ queryKey: ['chest-inventory'] });
+    },
+    onError: (err) => {
+      toast.error(getApiErrorMessage(err, 'No se pudo entregar el cofre'));
     },
   });
 }
