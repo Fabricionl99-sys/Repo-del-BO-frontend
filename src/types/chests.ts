@@ -57,6 +57,8 @@ export interface ChestPrize {
   is_rare: boolean;
 }
 
+export type ChestVisualStyle = 'neon' | 'quantum' | 'obsidian' | 'holo' | 'plasma';
+
 export interface ChestType {
   id: string;
   code: string;
@@ -64,6 +66,7 @@ export interface ChestType {
   description: string;
   image_url: string;
   color_theme: string;
+  visual_style: ChestVisualStyle;
   is_active: boolean;
   archived_at: string | null;
   default_expiration_hours: number | null;
@@ -81,6 +84,7 @@ export interface ChestTypeMetadataPayload {
   description: string;
   image_url: string;
   color_theme: string;
+  visual_style: ChestVisualStyle;
   is_active: boolean;
   default_expiration_hours: number | null;
   has_pity_system: boolean;

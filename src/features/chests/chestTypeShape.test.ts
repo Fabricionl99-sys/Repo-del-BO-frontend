@@ -11,6 +11,7 @@ const sample: ChestType = {
   description: '',
   image_url: '',
   color_theme: '#CD7F32',
+  visual_style: 'neon',
   is_active: true,
   archived_at: null,
   default_expiration_hours: null,
@@ -40,5 +41,10 @@ describe('chestTypeShape', () => {
       prizes: [{ id: 'p1', name: 'Premio', probability_percent: null, reward_type: 'manual', reward_config: { description: 'x' }, is_rare: false, image_url: '' }],
     };
     expect(normalizeChestType(raw).prizes[0]?.probability_percent).toBe(0);
+  });
+
+  it('normaliza visual_style desconocido a neon', () => {
+    expect(normalizeChestType({ ...sample, visual_style: 'airdrop' }).visual_style).toBe('neon');
+    expect(normalizeChestType({ ...sample, visual_style: 'plasma' }).visual_style).toBe('plasma');
   });
 });

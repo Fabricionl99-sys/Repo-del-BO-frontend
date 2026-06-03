@@ -29,6 +29,7 @@ import { formatFixed } from '@/lib/format';
 import {
   chestTypeFormSchema,
   chestTypeToForm,
+  CHEST_VISUAL_STYLE_OPTIONS,
   defaultChestTypeForm,
   formToCreatePayload,
   formToMetadataPayload,
@@ -285,6 +286,19 @@ export function ChestTypeFormModal({
               <label className="mb-1.5 block text-[14px] text-text-secondary">color_theme</label>
               <ColorThemePicker value={colorTheme} onChange={(v) => setValue('color_theme', v)} />
               {errors.color_theme && <p className="mt-1 text-[13px] text-danger">{errors.color_theme.message}</p>}
+            </div>
+            <div className="mt-3">
+              <label className="mb-1.5 block text-[14px] text-text-secondary">Diseño del cofre (widget)</label>
+              <select className="field" {...register('visual_style')}>
+                {CHEST_VISUAL_STYLE_OPTIONS.map((opt) => (
+                  <option key={opt.value} value={opt.value}>
+                    {opt.label}
+                  </option>
+                ))}
+              </select>
+              {errors.visual_style && (
+                <p className="mt-1 text-[13px] text-danger">{errors.visual_style.message}</p>
+              )}
             </div>
             <div className="mt-3 grid gap-3 sm:grid-cols-2">
               {!isEdit && (

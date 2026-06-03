@@ -12,6 +12,7 @@ const baseType: ChestType = {
   description: 'Descripción',
   image_url: '',
   color_theme: '#CD7F32',
+  visual_style: 'neon',
   is_active: true,
   archived_at: null,
   default_expiration_hours: 72,

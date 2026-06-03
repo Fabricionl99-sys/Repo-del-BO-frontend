@@ -1726,6 +1726,7 @@ handlers.push(
       description: body.description,
       image_url: body.image_url,
       color_theme: body.color_theme,
+      visual_style: body.visual_style ?? 'neon',
       is_active: body.is_active,
       archived_at: null,
       default_expiration_hours: body.default_expiration_hours,

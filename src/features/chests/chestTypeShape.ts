@@ -2,6 +2,8 @@ import { asArray } from '@/lib/asArray';
 import { coerceNumber } from '@/lib/format';
 import type { ChestPrize, ChestType } from '@/types/chests';
 
+import { resolveChestVisualStyle } from './chestTypeForm';
+
 export type ChestCatalogState = 'active' | 'inactive' | 'archived';
 
 export function chestCatalogState(
@@ -57,6 +59,9 @@ export function normalizeChestType(type: ChestType | Record<string, unknown>): C
     description: String(raw.description ?? asChest.description ?? ''),
     image_url: String(raw.image_url ?? asChest.image_url ?? ''),
     color_theme: String(raw.color_theme ?? asChest.color_theme ?? '#CD7F32'),
+    visual_style: resolveChestVisualStyle(
+      typeof raw.visual_style === 'string' ? raw.visual_style : asChest.visual_style,
+    ),
     is_active: archivedAt ? false : isActive,
     archived_at: archivedAt,
     default_expiration_hours:

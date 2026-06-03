@@ -1,6 +1,6 @@
 import { z } from 'zod';
 
-import type { ChestPrize, ChestType, ChestTypeCreatePayload, ChestTypeMetadataPayload } from '@/types/chests';
+import type { ChestPrize, ChestType, ChestTypeCreatePayload, ChestTypeMetadataPayload, ChestVisualStyle } from '@/types/chests';
 
 import { probabilitiesValid } from './chestPrizeForm';
 
@@ -12,12 +12,26 @@ export const CHEST_COLOR_PRESETS = [
   { label: 'Legendario', value: '#9B59B6' },
 ] as const;
 
+export const CHEST_VISUAL_STYLE_OPTIONS = [
+  { label: 'Neón', value: 'neon' },
+  { label: 'Quantum', value: 'quantum' },
+  { label: 'Obsidiana', value: 'obsidian' },
+  { label: 'Holográfico', value: 'holo' },
+  { label: 'Plasma', value: 'plasma' },
+] as const;
+
+export function resolveChestVisualStyle(raw?: string | null): ChestVisualStyle {
+  const match = CHEST_VISUAL_STYLE_OPTIONS.find((o) => o.value === raw);
+  return match?.value ?? 'neon';
+}
+
 export interface ChestTypeFormValues {
   code: string;
   name: string;
   description: string;
   image_url: string;
   color_theme: string;
+  visual_style: ChestVisualStyle;
   is_active: boolean;
   no_expiration: boolean;
   default_expiration_hours: number;
@@ -39,6 +53,7 @@ export const chestTypeFormSchema = z
     description: z.string().max(2000, 'Máximo 2000 caracteres'),
     image_url: z.string().url('URL inválida').or(z.literal('')),
     color_theme: z.string().regex(/^#[0-9A-Fa-f]{6}$/, 'Color hex inválido'),
+    visual_style: z.enum(['neon', 'quantum', 'obsidian', 'holo', 'plasma']),
     is_active: z.boolean(),
     no_expiration: z.boolean(),
     default_expiration_hours: z.number().int().min(1, 'Mínimo 1 hora'),
@@ -63,6 +78,7 @@ export function defaultChestTypeForm(): ChestTypeFormValues {
     description: '',
     image_url: '',
     color_theme: CHEST_COLOR_PRESETS[0].value,
+    visual_style: 'neon',
     is_active: true,
     no_expiration: true,
     default_expiration_hours: 72,
@@ -79,6 +95,7 @@ export function chestTypeToForm(type: ChestType): ChestTypeFormValues {
     description: type.description,
     image_url: type.image_url,
     color_theme: type.color_theme,
+    visual_style: type.visual_style ?? 'neon',
     is_active: type.is_active,
     no_expiration: type.default_expiration_hours === null,
     default_expiration_hours: type.default_expiration_hours ?? 72,
@@ -94,6 +111,7 @@ export function formToMetadataPayload(values: ChestTypeFormValues): ChestTypeMet
     description: values.description.trim(),
     image_url: values.image_url.trim(),
     color_theme: values.color_theme,
+    visual_style: values.visual_style,
     is_active: values.is_active,
     default_expiration_hours: values.no_expiration ? null : values.default_expiration_hours,
     has_pity_system: values.has_pity_system,
