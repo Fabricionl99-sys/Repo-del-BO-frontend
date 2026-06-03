@@ -153,6 +153,13 @@ export interface AvatarGrantManualPayload {
   reason?: string;
 }
 
+/** Body POST /admin/avatars/grant-manual (canonical). */
+export type AvatarGrantManualBackendPayload = {
+  player_state_id: string;
+  avatar_ids: string[];
+  reason?: string;
+};
+
 export interface AvatarGrantManualResult {
   granted: number;
   alreadyOwned: number;

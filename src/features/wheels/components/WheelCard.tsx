@@ -1,4 +1,4 @@
-import { Archive, History, MoreVertical, Pencil, CircleDot } from 'lucide-react';
+import { Archive, Gift, History, MoreVertical, Pencil, CircleDot } from 'lucide-react';
 import { useState } from 'react';
 
 import { Button } from '@/components/ui/Button';
@@ -11,12 +11,14 @@ export function WheelCard({
   onEdit,
   onArchive,
   onViewHistory,
+  onGrantManual,
 }: {
   wheel: WheelType & { prizes_count?: number; active_occasions_count?: number };
   activeOccasionsCount?: number;
   onEdit: () => void;
   onArchive: () => void;
   onViewHistory: () => void;
+  onGrantManual?: () => void;
 }) {
   const [menuOpen, setMenuOpen] = useState(false);
   const archived = wheel.status === 'archived';
@@ -99,6 +101,18 @@ export function WheelCard({
             >
               <History size={14} /> Ver historial
             </button>
+            {!archived && onGrantManual ? (
+              <button
+                type="button"
+                className="flex w-full items-center gap-2 px-3 py-2 text-left text-[14px] hover:bg-bg-tertiary"
+                onClick={() => {
+                  setMenuOpen(false);
+                  onGrantManual();
+                }}
+              >
+                <Gift size={14} /> Entregar manual
+              </button>
+            ) : null}
             {!archived && (
               <button
                 type="button"

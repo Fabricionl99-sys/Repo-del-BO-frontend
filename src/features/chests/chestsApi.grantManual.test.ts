@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 
 import { adaptChestGrantManualPayload } from '@/features/chests/chestsApi';
 import { adaptWheelGrantManualPayload } from '@/features/wheels/wheelsApi';
+import { adaptAvatarGrantManualPayload } from '@/features/avatars/avatarsApi';
 
 describe('grant-manual payload adapters', () => {
   it('adaptChestGrantManualPayload maps player_id/notes to canonical fields', () => {
@@ -44,6 +45,20 @@ describe('grant-manual payload adapters', () => {
       wheel_code: 'DAILY',
       quantity: 3,
       reason: 'Compensación por incidencia',
+    });
+  });
+
+  it('adaptAvatarGrantManualPayload keeps canonical player_state_id and reason', () => {
+    expect(
+      adaptAvatarGrantManualPayload({
+        player_state_id: 'state-uuid',
+        avatar_ids: ['av_1', 'av_2'],
+        reason: 'Premio torneo',
+      }),
+    ).toEqual({
+      player_state_id: 'state-uuid',
+      avatar_ids: ['av_1', 'av_2'],
+      reason: 'Premio torneo',
     });
   });
 });

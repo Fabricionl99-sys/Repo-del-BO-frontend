@@ -4,6 +4,7 @@ import { apiClient } from '@/api/client';
 import { getApiErrorMessage } from '@/api/errors';
 import { unwrapData, unwrapDataList } from '@/api/response';
 import { adaptChestGrantManualPayload } from '@/features/chests/chestsApi';
+import { adaptAvatarGrantManualPayload } from '@/features/avatars/avatarsApi';
 import { normalizeAdminPlayer, normalizePlayerSearchResult } from '@/features/players/normalizePlayer';
 import { toast } from '@/stores/toastStore';
 import { trackEvent } from '@/lib/analytics';
@@ -96,7 +97,7 @@ export function useGrantAvatarsManual() {
   return useMutation({
     mutationFn: (payload: GrantAvatarsManualPayload) =>
       apiClient
-        .post('/admin/avatars/grant-manual', payload)
+        .post('/admin/avatars/grant-manual', adaptAvatarGrantManualPayload(payload))
         .then((r) => unwrapData<GrantAvatarsManualResult>(r.data)),
     onSuccess: (result, vars) => {
       toast.success(`Avatares entregados: ${result.granted} · ya tenía: ${result.alreadyOwned}`);

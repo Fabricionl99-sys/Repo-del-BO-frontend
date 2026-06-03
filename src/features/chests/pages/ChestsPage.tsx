@@ -2,7 +2,7 @@ import { Gift, Package, Plus } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 
-import { PlayerSearchResults } from '@/components/players/PlayerSearchResults';
+import { PlayerSearchPicker } from '@/components/players/PlayerSearchPicker';
 import { Button } from '@/components/ui/Button';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { ErrorState } from '@/components/ui/ErrorState';
@@ -20,7 +20,6 @@ import {
   useChestInventory,
   useChestTypes,
   useGrantChestManual,
-  usePlayerSearch,
 } from '@/features/chests/chestsApi';
 import { chestCatalogState } from '@/features/chests/chestTypeShape';
 import { useDebounce } from '@/hooks/useDebounce';
@@ -82,10 +81,8 @@ export default function ChestsPage() {
   const debouncedPlayerSearch = useDebounce(invPlayerSearch, 250);
 
   const [grantPlayerId, setGrantPlayerId] = useState('');
-  const [grantPlayerQuery, setGrantPlayerQuery] = useState('');
   const [grantChestCode, setGrantChestCode] = useState('');
   const [grantNotes, setGrantNotes] = useState('');
-  const debouncedGrantQuery = useDebounce(grantPlayerQuery, 250);
 
   const typesQ = useChestTypes({
     status:
@@ -108,7 +105,6 @@ export default function ChestsPage() {
     offset: 0,
   });
 
-  const playerSearchQ = usePlayerSearch(debouncedGrantQuery);
   const grantManual = useGrantChestManual();
 
   const typesRaw = mock === 'empty' ? [] : (typesQ.data ?? []);
@@ -222,7 +218,6 @@ export default function ChestsPage() {
       notes: grantNotes.trim() || undefined,
     });
     setGrantPlayerId('');
-    setGrantPlayerQuery('');
     setGrantChestCode('');
     setGrantNotes('');
     setTab('Inventario');
@@ -395,25 +390,12 @@ export default function ChestsPage() {
 
       {tab === 'Entregar manual' && (
         <div className="max-w-lg space-y-4 rounded-xl border border-border-subtle bg-bg-secondary p-6">
-          <div>
-            <label className="mb-1.5 block text-[14px] text-text-secondary">Buscar jugador</label>
-            <SearchInput
-              placeholder="handle o id (mín. 2 chars)..."
-              value={grantPlayerQuery}
-              onChange={(e) => setGrantPlayerQuery(e.target.value)}
-            />
-            <PlayerSearchResults
-              results={playerSearchQ.data}
-              onSelect={(p) => {
-                setGrantPlayerId(p.player_id);
-                setGrantPlayerQuery(p.external_player_id);
-              }}
-            />
-          </div>
-          <div>
-            <label className="mb-1.5 block text-[14px] text-text-secondary">player_id seleccionado</label>
-            <input className="field font-mono text-[14px]" value={grantPlayerId} onChange={(e) => setGrantPlayerId(e.target.value)} />
-          </div>
+          <PlayerSearchPicker
+            enabled={tab === 'Entregar manual'}
+            selectedPlayerId={grantPlayerId}
+            onSelectedPlayerIdChange={setGrantPlayerId}
+            showSelectedIdField
+          />
           <div>
             <label className="mb-1.5 block text-[14px] text-text-secondary">Tipo de cofre</label>
             <select className="field" value={grantChestCode} onChange={(e) => setGrantChestCode(e.target.value)}>

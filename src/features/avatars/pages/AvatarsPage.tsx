@@ -2,7 +2,7 @@ import { Plus, UserCircle2 } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 
-import { PlayerSearchResults } from '@/components/players/PlayerSearchResults';
+import { PlayerSearchPicker } from '@/components/players/PlayerSearchPicker';
 import { Button } from '@/components/ui/Button';
 import { ArchiveConfirmModal } from '@/components/lifecycle/ArchiveConfirmModal';
 import { PermanentDeleteModal } from '@/components/lifecycle/PermanentDeleteModal';
@@ -15,7 +15,6 @@ import { SearchInput } from '@/components/ui/SearchInput';
 import { Table, type Column } from '@/components/ui/Table';
 import { Toolbar } from '@/components/ui/Toolbar';
 import { isModuleActive } from '@/features/billing/moduleCatalog';
-import { usePlayerSearch } from '@/features/players/playersApi';
 import { useDebounce } from '@/hooks/useDebounce';
 import { cn } from '@/lib/cn';
 import { formatRelativeDate } from '@/lib/format';
@@ -89,10 +88,8 @@ export default function AvatarsPage() {
   const debouncedInvPlayer = useDebounce(invPlayerSearch, 250);
 
   const [grantPlayerId, setGrantPlayerId] = useState('');
-  const [grantPlayerQuery, setGrantPlayerQuery] = useState('');
   const [grantAvatarId, setGrantAvatarId] = useState('');
   const [grantReason, setGrantReason] = useState('');
-  const debouncedGrantQuery = useDebounce(grantPlayerQuery, 250);
 
   const categoriesQ = useAvatarCategories();
   const avatarsQ = useAvatars({
@@ -117,7 +114,6 @@ export default function AvatarsPage() {
   const reorderCategories = useReorderAvatarCategories();
   const archiveAvatar = useArchiveAvatar();
   const deleteAvatarPermanent = useDeleteAvatarPermanent();
-  const playerSearchQ = usePlayerSearch(debouncedGrantQuery);
   const grantManual = useGrantAvatarManual();
 
   const categories = mock === 'empty-categories' ? [] : (categoriesQ.data ?? []);
@@ -214,7 +210,6 @@ export default function AvatarsPage() {
       reason: grantReason.trim() || undefined,
     });
     setGrantPlayerId('');
-    setGrantPlayerQuery('');
     setGrantAvatarId('');
     setGrantReason('');
     setTab('Inventario');
@@ -454,25 +449,12 @@ export default function AvatarsPage() {
 
       {tab === 'Asignación manual' && (
         <div className="max-w-lg space-y-4 rounded-xl border border-border-subtle bg-bg-secondary p-6">
-          <div>
-            <label className="mb-1.5 block text-[14px] text-text-secondary">Buscar jugador</label>
-            <SearchInput
-              placeholder="handle o id (mín. 2 chars)..."
-              value={grantPlayerQuery}
-              onChange={(e) => setGrantPlayerQuery(e.target.value)}
-            />
-            <PlayerSearchResults
-              results={playerSearchQ.data}
-              onSelect={(p) => {
-                setGrantPlayerId(p.player_id);
-                setGrantPlayerQuery(p.external_player_id);
-              }}
-            />
-          </div>
-          <div>
-            <label className="mb-1.5 block text-[14px] text-text-secondary">player_id seleccionado</label>
-            <input className="field font-mono text-[14px]" value={grantPlayerId} onChange={(e) => setGrantPlayerId(e.target.value)} />
-          </div>
+          <PlayerSearchPicker
+            enabled={tab === 'Asignación manual'}
+            selectedPlayerId={grantPlayerId}
+            onSelectedPlayerIdChange={setGrantPlayerId}
+            showSelectedIdField
+          />
           <div>
             <label className="mb-1.5 block text-[14px] text-text-secondary">Avatar</label>
             <select className="field" value={grantAvatarId} onChange={(e) => setGrantAvatarId(e.target.value)}>

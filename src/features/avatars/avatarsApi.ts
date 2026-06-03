@@ -9,6 +9,8 @@ import {
   type AvatarCategory,
   type AvatarCategoryPayload,
   type AvatarCreatePayload,
+  type AvatarGrantManualPayload,
+  type AvatarGrantManualBackendPayload,
   type AvatarGrantManualResult,
   type AvatarInventoryQuery,
   type AvatarMetadataPayload,
@@ -225,6 +227,18 @@ export function useAvatarInventory(params: AvatarInventoryQuery = {}) {
   });
 }
 
+/** Canonical POST /admin/avatars/grant-manual body. */
+export function adaptAvatarGrantManualPayload(
+  payload: AvatarGrantManualPayload,
+): AvatarGrantManualBackendPayload {
+  const reason = payload.reason?.trim() ?? '';
+  return {
+    player_state_id: payload.player_state_id,
+    avatar_ids: payload.avatar_ids,
+    ...(reason ? { reason } : {}),
+  };
+}
+
 export function useGrantAvatarManual() {
   const qc = useQueryClient();
   return useMutation({
@@ -232,16 +246,17 @@ export function useGrantAvatarManual() {
       playerStateId: string;
       avatarIds: string[];
       reason?: string;
-    }) => {
-      const reason = payload.reason?.trim() ?? '';
-      return apiClient
-        .post('/admin/avatars/grant-manual', {
-          player_state_id: payload.playerStateId,
-          avatar_ids: payload.avatarIds,
-          ...(reason ? { reason } : {}),
-        })
-        .then((r) => unwrapData<AvatarGrantManualResult>(r.data));
-    },
+    }) =>
+      apiClient
+        .post(
+          '/admin/avatars/grant-manual',
+          adaptAvatarGrantManualPayload({
+            player_state_id: payload.playerStateId,
+            avatar_ids: payload.avatarIds,
+            reason: payload.reason,
+          }),
+        )
+        .then((r) => unwrapData<AvatarGrantManualResult>(r.data)),
     onSuccess: (result) => {
       const parts: string[] = [];
       if (result.granted > 0) parts.push(`${result.granted} entregados`);

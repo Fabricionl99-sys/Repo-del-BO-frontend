@@ -3,7 +3,7 @@ import { useMemo, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 
 import { Button } from '@/components/ui/Button';
-import { PlayerSearchResults } from '@/components/players/PlayerSearchResults';
+import { PlayerSearchPicker } from '@/components/players/PlayerSearchPicker';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { ErrorState } from '@/components/ui/ErrorState';
 import { FilterPill } from '@/components/ui/FilterPill';
@@ -18,11 +18,11 @@ import { ArchiveWheelModal } from '@/features/wheels/components/ArchiveWheelModa
 import { SpinDetailModal } from '@/features/wheels/components/SpinDetailModal';
 import { WheelCard } from '@/features/wheels/components/WheelCard';
 import { WheelFormModal } from '@/features/wheels/components/WheelFormModal';
+import { WheelGrantManualModal } from '@/features/wheels/components/WheelGrantManualModal';
 import {
   OCCASION_TYPE_LABELS,
   SPIN_DELIVERY_LABELS,
 } from '@/features/wheels/wheelForm';
-import { usePlayerSearch } from '@/features/players/playersApi';
 import {
   useGrantWheelManual,
   useManualGrantHistory,
@@ -72,11 +72,10 @@ export default function WheelsPage() {
   const debouncedHistPlayer = useDebounce(histPlayer, 250);
 
   const [grantPlayerId, setGrantPlayerId] = useState('');
-  const [grantPlayerQuery, setGrantPlayerQuery] = useState('');
   const [grantWheelCode, setGrantWheelCode] = useState('');
   const [grantQty, setGrantQty] = useState(1);
   const [grantReason, setGrantReason] = useState('');
-  const debouncedGrantQuery = useDebounce(grantPlayerQuery, 250);
+  const [grantModalWheel, setGrantModalWheel] = useState<WheelType | null>(null);
 
   const catalogQ = useWheelsCatalog({
     status: statusFilter,
@@ -92,7 +91,6 @@ export default function WheelsPage() {
   });
   const grantsQ = useManualGrantHistory(20);
   const wheelOptionsQ = useWheelOptions();
-  const playerSearchQ = usePlayerSearch(debouncedGrantQuery);
   const grantManual = useGrantWheelManual();
 
   const catalog = mock === 'empty' ? { items: [], stats: { total_active: 0, total_spins_granted: 0, top_wheel_code: null, top_wheel_name: null } } : catalogQ.data;
@@ -239,6 +237,7 @@ export default function WheelsPage() {
                   onEdit={() => setEditorWheel(wheel)}
                   onArchive={() => setArchiveWheel(wheel)}
                   onViewHistory={() => openHistoryForWheel(wheel.code)}
+                  onGrantManual={() => setGrantModalWheel(wheel)}
                 />
               ))}
             </div>
@@ -317,24 +316,12 @@ export default function WheelsPage() {
             }}
           >
             <h3 className="text-[16px] font-bold">Asignar spins</h3>
-            <div>
-              <label className="mb-1.5 block text-[14px] text-text-secondary">Jugador</label>
-              <input
-                className="field"
-                placeholder="Buscar handle o ID..."
-                value={grantPlayerQuery}
-                onChange={(e) => setGrantPlayerQuery(e.target.value)}
-              />
-              <PlayerSearchResults
-                results={playerSearchQ.data}
-                maxHeight="max-h-32"
-                className="mt-1"
-                onSelect={(p) => {
-                  setGrantPlayerId(p.player_id);
-                  setGrantPlayerQuery(p.external_player_id);
-                }}
-              />
-            </div>
+            <PlayerSearchPicker
+              enabled={tab === 'Asignación Manual'}
+              selectedPlayerId={grantPlayerId}
+              onSelectedPlayerIdChange={setGrantPlayerId}
+              showSelectedIdField
+            />
             <div>
               <label className="mb-1.5 block text-[14px] text-text-secondary">Rueda</label>
               <select
@@ -406,6 +393,12 @@ export default function WheelsPage() {
         onClose={() => setArchiveWheel(null)}
       />
       <SpinDetailModal open={spinDetail !== null} entry={spinDetail} onClose={() => setSpinDetail(null)} />
+      <WheelGrantManualModal
+        open={grantModalWheel !== null}
+        wheel={grantModalWheel}
+        onClose={() => setGrantModalWheel(null)}
+        onGranted={() => grantsQ.refetch()}
+      />
     </>
   );
 }
