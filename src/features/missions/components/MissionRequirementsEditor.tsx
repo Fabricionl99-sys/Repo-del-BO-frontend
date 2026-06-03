@@ -19,6 +19,8 @@ import {
 } from '@/features/missions/missionActions';
 import type { MissionFormValues } from '@/features/missions/missionForm';
 
+import { MissionActionCurrencySelect } from './MissionActionCurrencySelect';
+
 export function MissionRequirementsEditor() {
   const {
     control,
@@ -96,8 +98,11 @@ export function MissionRequirementsEditor() {
                     <p className="mt-1 text-[13px] text-danger">{String(actionErrors.amount.message)}</p>
                   )}
                 </div>
+                {(type === 'bet_amount' || type === 'deposit_amount') && (
+                  <MissionActionCurrencySelect index={index} />
+                )}
                 {type === 'bet_amount' && (
-                  <div>
+                  <div className="sm:col-span-2">
                     <label className="mb-1 block text-[13px] text-text-secondary">Modo de agregación</label>
                     <select className="field" {...register(`actions.${index}.aggregation_mode`)}>
                       <option value="cumulative">Acumulado (total del período)</option>
@@ -141,7 +146,7 @@ export function MissionRequirementsEditor() {
                 )}
                 <div className="mt-3">
                   <label className="mb-1 block text-[13px] text-text-secondary">
-                    Monto en categoría (opcional, USD)
+                    Monto en categoría (opcional)
                   </label>
                   <input
                     className="field"
@@ -150,6 +155,9 @@ export function MissionRequirementsEditor() {
                     step={0.01}
                     {...register(`actions.${index}.amount`, { valueAsNumber: true })}
                   />
+                </div>
+                <div className="mt-3">
+                  <MissionActionCurrencySelect index={index} />
                 </div>
               </div>
             )}

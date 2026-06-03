@@ -191,6 +191,20 @@ handlers.push(
     await wait();
     return HttpResponse.json({ data: { code: 'CLP', symbol: '$', name: 'Peso chileno' } });
   }),
+  http.get('*/admin/currencies/active', async () => {
+    await wait();
+    return HttpResponse.json({
+      data: coins
+        .filter((c) => c.active)
+        .map((c) => ({
+          id: c.id,
+          code: c.symbol,
+          name: c.name,
+          is_active: true,
+          kind: c.deliveryMode === 'manual' ? 'virtual' : 'fiat',
+        })),
+    });
+  }),
   http.get('*/admin/currencies', async () => {
     await wait();
     return HttpResponse.json({

@@ -47,9 +47,9 @@ export function actionIsBinaryFlag(type: MissionActionType): boolean {
 export function actionValueLabel(type: MissionActionType): string | null {
   switch (type) {
     case 'bet_amount':
-      return 'Monto a apostar (USD)';
+      return 'Monto a apostar';
     case 'deposit_amount':
-      return 'Monto a depositar (USD)';
+      return 'Monto a depositar';
     case 'bet_category':
       return 'Categoría de juego';
     case 'cumulative_bets':
@@ -75,6 +75,7 @@ export function newMissionAction(type: MissionActionType = 'bet_amount'): Missio
   return {
     type,
     amount: type === 'bet_amount' || type === 'deposit_amount' ? 100 : undefined,
+    currency_code: type === 'bet_amount' || type === 'deposit_amount' ? 'USD' : undefined,
     aggregation_mode: type === 'bet_amount' ? 'cumulative' : undefined,
     category_slug: type === 'bet_category' ? 'casino' : undefined,
     count: type === 'cumulative_bets' ? 10 : undefined,
@@ -106,6 +107,7 @@ export function buildActionConfig(action: MissionActionFormValues): Record<strin
         type: 'bet_category',
         category_slug: action.category_slug ?? 'casino',
         amount: action.amount && action.amount > 0 ? action.amount : undefined,
+        currency_code: action.currency_code?.trim() || undefined,
       });
     case 'cumulative_bets':
       return {
@@ -165,7 +167,8 @@ export function summarizeActions(actions: MissionActionFormValues[], categoryNam
     .map((a) => {
       const label = actionTypeLabel(a.type);
       if (a.type === 'bet_amount' || a.type === 'deposit_amount') {
-        return `${label} ${a.amount ?? '?'} USD`;
+        const code = a.currency_code?.trim() || 'USD';
+        return `${label} ${a.amount ?? '?'} ${code}`;
       }
       if (a.type === 'bet_category') {
         const cat = categoryNames?.[a.category_slug ?? ''] ?? a.category_slug ?? '?';

@@ -2,7 +2,7 @@ import { useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
 
 import { apiClient } from '@/api/client';
-import { unwrapData } from '@/api/response';
+import { unwrapData, unwrapDataList } from '@/api/response';
 
 export interface Currency {
   id: string;
@@ -25,8 +25,21 @@ export function useCurrencies() {
     queryKey: ['currencies'],
     queryFn: async () => {
       const res = await apiClient.get('/admin/currencies');
-      const arr = unwrapData<unknown[]>(res.data) ?? [];
-      return arr.map((row) => adaptCurrency(row as Record<string, unknown>));
+      const arr = unwrapDataList<Record<string, unknown>>(res.data);
+      return arr.map((row) => adaptCurrency(row));
+    },
+    staleTime: 5 * 60_000,
+  });
+}
+
+/** Monedas activas del operador — para selects en misiones, shop, etc. */
+export function useActiveCurrencies() {
+  return useQuery({
+    queryKey: ['currencies', 'active'],
+    queryFn: async () => {
+      const res = await apiClient.get('/admin/currencies/active');
+      const arr = unwrapDataList<Record<string, unknown>>(res.data);
+      return arr.map((row) => adaptCurrency(row));
     },
     staleTime: 5 * 60_000,
   });
