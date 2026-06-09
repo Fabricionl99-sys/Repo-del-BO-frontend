@@ -53,4 +53,9 @@ describe('ChestTypeCard', () => {
     fireEvent.click(screen.getByText('editar'));
     expect(onEdit).toHaveBeenCalled();
   });
+
+  it('muestra badge de estado activo', () => {
+    render(<ChestTypeCard type={baseType} onEdit={vi.fn()} />);
+    expect(screen.getByText('Activo')).toBeInTheDocument();
+  });
 });

@@ -1,5 +1,7 @@
 import { Archive, Pencil, Trash2, UserCircle2 } from 'lucide-react';
 
+import { resolveCatalogStatus } from '@/components/shared/catalogStatus';
+import { StatusBadge } from '@/components/shared/StatusBadge';
 import { Button } from '@/components/ui/Button';
 import { CardActionItem, CardActionsMenu } from '@/components/lifecycle/CardActionsMenu';
 import { cn } from '@/lib/cn';
@@ -18,14 +20,14 @@ export function AvatarCard({
   onArchive?: () => void;
   onDeletePermanent?: () => void;
 }) {
-  const archived = avatar.status === 'archived';
+  const catalogStatus = resolveCatalogStatus(avatar);
   const imageUrl = getAvatarImageUrl(avatar);
 
   return (
     <div
       className={cn(
         'relative overflow-hidden rounded-xl border border-border-subtle bg-bg-secondary text-left transition hover:-translate-y-0.5 hover:border-border-default',
-        archived && 'opacity-70',
+        catalogStatus === 'archived' && 'opacity-70',
       )}
     >
       <button type="button" onClick={onEdit} className="block w-full text-left">
@@ -36,16 +38,6 @@ export function AvatarCard({
             <div className="flex h-full items-center justify-center text-text-tertiary">
               <UserCircle2 size={40} />
             </div>
-          )}
-          {archived && (
-            <span className="absolute right-2 top-2 rounded bg-bg-primary/80 px-2 py-0.5 text-[12px] font-semibold uppercase">
-              archivado
-            </span>
-          )}
-          {!archived && !avatar.is_active && (
-            <span className="absolute right-2 top-2 rounded bg-warning/90 px-2 py-0.5 text-[12px] font-semibold text-text-onAccent">
-              inactivo
-            </span>
           )}
           {avatar.is_premium && (
             <span className="absolute left-2 top-2 rounded bg-accent/90 px-2 py-0.5 text-[12px] font-semibold text-text-onAccent">
@@ -72,7 +64,7 @@ export function AvatarCard({
       <CardActionsMenu>
         {(close) => (
           <>
-            {!archived && (
+            {catalogStatus !== 'archived' && (
               <>
                 <CardActionItem label="Editar" icon={<Pencil size={14} />} onClick={() => { close(); onEdit(); }} />
                 {onArchive && (
@@ -85,7 +77,7 @@ export function AvatarCard({
                 )}
               </>
             )}
-            {archived && onDeletePermanent && (
+            {catalogStatus === 'archived' && onDeletePermanent && (
               <CardActionItem
                 label="Eliminar definitivo"
                 icon={<Trash2 size={14} />}
@@ -99,8 +91,11 @@ export function AvatarCard({
 
       <div className="border-t border-border-subtle px-4 pb-4">
         <Button size="sm" variant="ghost" className="w-full" onClick={onEdit}>
-          {archived ? 'ver detalle' : 'editar'}
+          {catalogStatus === 'archived' ? 'ver detalle' : 'editar'}
         </Button>
+        <div className="mt-2 flex justify-center">
+          <StatusBadge status={catalogStatus} />
+        </div>
       </div>
     </div>
   );

@@ -75,6 +75,23 @@ export function useSaveShopProduct() {
   });
 }
 
+export function useToggleShopProductActive() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ id, active }: { id: string; active: boolean }) => {
+      const res = await apiClient.patch(`/admin/shop/products/${id}`, { is_active: active });
+      return unwrapData<ShopProduct>(res.data);
+    },
+    onSuccess: (_data, { active }) => {
+      toast.success(active ? 'Producto activado' : 'Producto desactivado');
+      qc.invalidateQueries({ queryKey: ['shop-products'] });
+    },
+    onError: (error) => {
+      toast.error(getApiErrorMessage(error, 'No se pudo cambiar el estado del producto'));
+    },
+  });
+}
+
 export function useArchiveShopProduct() {
   const qc = useQueryClient();
   return useMutation({

@@ -14,7 +14,7 @@ import { Loading } from '@/components/ui/Loading';
 import { PageHeader } from '@/components/ui/PageHeader';
 import { RowContextMenu, openRowContextMenu, type RowContextMenuAnchor } from '@/components/ui/RowContextMenu';
 import { SearchInput } from '@/components/ui/SearchInput';
-import { StatusPill } from '@/components/ui/StatusPill';
+import { StatusBadge } from '@/components/shared/StatusBadge';
 import { Switch } from '@/components/ui/Switch';
 import { Table, type Column } from '@/components/ui/Table';
 import { Toolbar } from '@/components/ui/Toolbar';
@@ -167,9 +167,16 @@ export default function MissionsPage() {
       key: 'status',
       header: 'estado',
       render: (m) => (
-        <StatusPill
-          status={m.status === 'archived' ? 'archived' : m.isActive ? 'active' : 'draft'}
-          label={m.status === 'archived' ? 'archivada' : m.isActive ? 'activa' : 'inactiva'}
+        <StatusBadge
+          status={
+            m.status === 'archived' ? 'archived' : m.isActive ? 'active' : 'inactive'
+          }
+          onActivate={
+            !m.isActive && m.status !== 'archived'
+              ? () => setActive.mutate({ id: m.id, active: true })
+              : undefined
+          }
+          activating={setActive.isPending && setActive.variables?.id === m.id}
         />
       ),
     },

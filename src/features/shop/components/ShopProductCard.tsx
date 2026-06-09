@@ -1,5 +1,7 @@
 import { PackageX } from 'lucide-react';
 
+import { resolveCatalogStatus } from '@/components/shared/catalogStatus';
+import { StatusBadge } from '@/components/shared/StatusBadge';
 import { Button } from '@/components/ui/Button';
 import { formatNumber } from '@/lib/format';
 import type { ShopProduct } from '@/types/shop';
@@ -7,18 +9,22 @@ import type { ShopProduct } from '@/types/shop';
 export function ShopProductCard({
   product,
   onEdit,
+  onActivate,
+  activating = false,
 }: {
   product: ShopProduct;
   onEdit: () => void;
+  onActivate?: () => void;
+  activating?: boolean;
 }) {
-  const archived = product.status === 'archived';
+  const catalogStatus = resolveCatalogStatus(product);
   const outOfStock = product.stock !== null && product.stock <= 0;
   const lowStock = product.stock !== null && product.stock > 0 && product.stock <= 10;
 
   return (
     <div
       className={`overflow-hidden rounded-xl border border-border-subtle bg-bg-secondary transition hover:-translate-y-0.5 hover:border-border-default ${
-        archived || !product.is_active ? 'opacity-70' : ''
+        catalogStatus !== 'active' ? 'opacity-70' : ''
       }`}
     >
       <div className="relative aspect-square bg-bg-tertiary">
@@ -29,17 +35,7 @@ export function ShopProductCard({
             <PackageX size={32} />
           </div>
         )}
-        {archived && (
-          <span className="absolute left-2 top-2 rounded bg-bg-primary/80 px-2 py-0.5 text-[12px] font-semibold uppercase">
-            archivado
-          </span>
-        )}
-        {!archived && !product.is_active && (
-          <span className="absolute left-2 top-2 rounded bg-warning/90 px-2 py-0.5 text-[12px] font-semibold text-text-onAccent">
-            inactivo
-          </span>
-        )}
-        {outOfStock && !archived && (
+        {outOfStock && catalogStatus !== 'archived' && (
           <span className="absolute left-2 top-2 rounded bg-danger/90 px-2 py-0.5 text-[12px] font-semibold text-text-onAccent">
             sin stock
           </span>
@@ -65,8 +61,15 @@ export function ShopProductCard({
           </span>
         </div>
         <Button size="sm" variant="ghost" className="mt-3 w-full" onClick={onEdit}>
-          {archived ? 'ver detalle' : 'editar'}
+          {catalogStatus === 'archived' ? 'ver detalle' : 'editar'}
         </Button>
+        <div className="mt-2 flex justify-center">
+          <StatusBadge
+            status={catalogStatus}
+            onActivate={catalogStatus === 'inactive' ? onActivate : undefined}
+            activating={activating}
+          />
+        </div>
       </div>
     </div>
   );

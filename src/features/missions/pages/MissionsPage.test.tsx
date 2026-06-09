@@ -22,6 +22,8 @@ describe('MissionsPage', () => {
     wrap(<MissionsPage />);
     expect(await screen.findByText(/Apostá \$500 esta semana/)).toBeInTheDocument();
     expect(screen.getByText(/Apostar monto 500 USD/)).toBeInTheDocument();
+    expect(screen.getAllByText('Activo').length).toBeGreaterThan(0);
+    expect(screen.getAllByText('Inactivo').length).toBeGreaterThan(0);
   });
 
   it('filtra por requisito verify_kyc', async () => {

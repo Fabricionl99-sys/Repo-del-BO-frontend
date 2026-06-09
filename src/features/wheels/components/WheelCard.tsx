@@ -1,6 +1,8 @@
 import { Archive, Gift, History, MoreVertical, Pencil, CircleDot } from 'lucide-react';
 import { useState } from 'react';
 
+import { resolveCatalogStatus } from '@/components/shared/catalogStatus';
+import { StatusBadge } from '@/components/shared/StatusBadge';
 import { Button } from '@/components/ui/Button';
 import { IconButton } from '@/components/ui/IconButton';
 import type { WheelType } from '@/types/wheels';
@@ -21,14 +23,17 @@ export function WheelCard({
   onGrantManual?: () => void;
 }) {
   const [menuOpen, setMenuOpen] = useState(false);
-  const archived = wheel.status === 'archived';
+  const catalogStatus = resolveCatalogStatus(wheel);
   const prizeCount = wheel.prizes_count ?? wheel.prizes?.length ?? 0;
-  const occasionsCount = activeOccasionsCount ?? wheel.active_occasions_count ?? wheel.occasions.filter((o) => o.is_active).length;
+  const occasionsCount =
+    activeOccasionsCount ??
+    wheel.active_occasions_count ??
+    wheel.occasions.filter((o) => o.is_active).length;
 
   return (
     <div
       className={`relative overflow-hidden rounded-xl border-2 bg-bg-secondary text-left transition hover:-translate-y-0.5 hover:border-border-default ${
-        archived ? 'opacity-70' : ''
+        catalogStatus === 'archived' ? 'opacity-70' : ''
       }`}
       style={{ borderColor: wheel.color_theme }}
     >
@@ -45,16 +50,6 @@ export function WheelCard({
             className="absolute left-2 top-2 h-3 w-3 rounded-full border border-white/30"
             style={{ backgroundColor: wheel.color_theme }}
           />
-          {archived && (
-            <span className="absolute right-2 top-2 rounded bg-bg-primary/80 px-2 py-0.5 text-[12px] font-semibold uppercase">
-              archivada
-            </span>
-          )}
-          {!archived && !wheel.is_active && (
-            <span className="absolute right-2 top-2 rounded bg-warning/90 px-2 py-0.5 text-[12px] font-semibold text-text-onAccent">
-              inactiva
-            </span>
-          )}
         </div>
         <div className="p-4">
           <h4 className="text-[16px] font-bold">{wheel.name}</h4>
@@ -101,7 +96,7 @@ export function WheelCard({
             >
               <History size={14} /> Ver historial
             </button>
-            {!archived && onGrantManual ? (
+            {catalogStatus !== 'archived' && onGrantManual ? (
               <button
                 type="button"
                 className="flex w-full items-center gap-2 px-3 py-2 text-left text-[14px] hover:bg-bg-tertiary"
@@ -113,7 +108,7 @@ export function WheelCard({
                 <Gift size={14} /> Entregar manual
               </button>
             ) : null}
-            {!archived && (
+            {catalogStatus !== 'archived' && (
               <button
                 type="button"
                 className="flex w-full items-center gap-2 px-3 py-2 text-left text-[14px] text-danger hover:bg-bg-tertiary"
@@ -130,8 +125,11 @@ export function WheelCard({
       </div>
       <div className="border-t border-border-subtle px-4 pb-4">
         <Button size="sm" variant="ghost" className="w-full" onClick={onEdit}>
-          {archived ? 'Ver detalle' : 'Editar'}
+          {catalogStatus === 'archived' ? 'Ver detalle' : 'Editar'}
         </Button>
+        <div className="mt-2 flex justify-center">
+          <StatusBadge status={catalogStatus} />
+        </div>
       </div>
     </div>
   );

@@ -26,6 +26,8 @@ describe('ShopPage', () => {
   it('muestra catálogo, filtra y abre modal nuevo producto', async () => {
     wrap();
     expect(await screen.findByText('25 Free Spins · Book of Dead')).toBeInTheDocument();
+    expect(screen.getAllByText('Activo').length).toBeGreaterThan(0);
+    expect(screen.getByText('Inactivo')).toBeInTheDocument();
     fireEvent.click(screen.getByText('Nuevo producto'));
     expect(screen.getByText('Nuevo producto', { selector: 'h2' })).toBeInTheDocument();
     fireEvent.change(screen.getByPlaceholderText('Buscar por nombre o code...'), {

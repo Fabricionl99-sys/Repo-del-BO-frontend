@@ -11,6 +11,7 @@ import {
   useStreakPrograms,
 } from '@/features/streakProgramsApi';
 import type { PlayerStreakSummary, StreakProgram } from '@/types/streakPrograms';
+import { StatusBadge } from '@/components/shared/StatusBadge';
 import { Button } from '@/components/ui/Button';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { ErrorState } from '@/components/ui/ErrorState';
@@ -60,7 +61,11 @@ export default function StreaksPage() {
       key: 'active',
       header: 'activo',
       render: (p) => (
-        <span className={p.is_active ? 'text-success' : 'text-text-tertiary'}>{p.is_active ? 'sí' : 'no'}</span>
+        <StatusBadge
+          status={p.is_active ? 'active' : 'inactive'}
+          onActivate={!p.is_active ? () => activate.mutate(p.id) : undefined}
+          activating={activate.isPending && activate.variables === p.id}
+        />
       ),
     },
     {

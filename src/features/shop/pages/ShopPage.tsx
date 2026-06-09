@@ -17,7 +17,7 @@ import { ShopProductFormModal } from '@/features/shop/components/ShopProductForm
 import { ShopProductFormErrorBoundary } from '@/features/shop/components/ShopProductFormErrorBoundary';
 import { ShopPurchaseDetailModal } from '@/features/shop/components/ShopPurchaseDetailModal';
 import { SHOP_CURRENCY_CODES, SHOP_REWARD_TYPES } from '@/features/shop/shopProductForm';
-import { useShopProducts, useShopPurchases } from '@/features/shop/shopApi';
+import { useShopProducts, useShopPurchases, useToggleShopProductActive } from '@/features/shop/shopApi';
 import { useDebounce } from '@/hooks/useDebounce';
 import { cn } from '@/lib/cn';
 import { formatNumber, formatRelativeDate } from '@/lib/format';
@@ -60,6 +60,7 @@ export default function ShopPage() {
   const [purchaseFrom, setPurchaseFrom] = useState('');
   const [purchaseTo, setPurchaseTo] = useState('');
   const debouncedPlayerSearch = useDebounce(purchasePlayerSearch, 250);
+  const toggleProductActive = useToggleShopProductActive();
 
   const productsQ = useShopProducts({
     status: statusFilter,
@@ -268,7 +269,17 @@ export default function ShopPage() {
           ) : (
             <div className="grid grid-cols-4 gap-4 max-[1300px]:grid-cols-3 max-md:grid-cols-1">
               {products.map((p) => (
-                <ShopProductCard key={p.id} product={p} onEdit={() => setEditorProduct(p)} />
+                <ShopProductCard
+                  key={p.id}
+                  product={p}
+                  onEdit={() => setEditorProduct(p)}
+                  onActivate={
+                    !p.is_active && p.status !== 'archived'
+                      ? () => toggleProductActive.mutate({ id: p.id, active: true })
+                      : undefined
+                  }
+                  activating={toggleProductActive.isPending && toggleProductActive.variables?.id === p.id}
+                />
               ))}
               <button
                 type="button"

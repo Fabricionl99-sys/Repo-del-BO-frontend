@@ -20,6 +20,7 @@ import {
   useChestInventory,
   useChestTypes,
   useGrantChestManualBatch,
+  useToggleChestActive,
 } from '@/features/chests/chestsApi';
 import { chestCatalogState } from '@/features/chests/chestTypeShape';
 import { useDebounce } from '@/hooks/useDebounce';
@@ -112,6 +113,7 @@ export default function ChestsPage() {
   });
 
   const grantManualBatch = useGrantChestManualBatch();
+  const toggleChestActive = useToggleChestActive();
 
   const typesRaw = mock === 'empty' ? [] : (typesQ.data ?? []);
   const types = useMemo(() => {
@@ -307,7 +309,17 @@ export default function ChestsPage() {
           ) : (
             <div className="grid grid-cols-4 gap-4 max-[1300px]:grid-cols-3 max-md:grid-cols-1">
               {types.map((t) => (
-                <ChestTypeCard key={t.code} type={t} onEdit={() => setEditorType(t)} />
+                <ChestTypeCard
+                  key={t.code}
+                  type={t}
+                  onEdit={() => setEditorType(t)}
+                  onActivate={
+                    chestCatalogState(t) === 'inactive'
+                      ? () => toggleChestActive.mutate({ id: t.id, active: true, code: t.code })
+                      : undefined
+                  }
+                  activating={toggleChestActive.isPending && toggleChestActive.variables?.id === t.id}
+                />
               ))}
               <button
                 type="button"

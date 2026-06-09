@@ -9,6 +9,8 @@ import { FilterPill } from '@/components/ui/FilterPill';
 import { Loading } from '@/components/ui/Loading';
 import { PageHeader } from '@/components/ui/PageHeader';
 import { SearchInput } from '@/components/ui/SearchInput';
+import { resolveCatalogStatus } from '@/components/shared/catalogStatus';
+import { StatusBadge } from '@/components/shared/StatusBadge';
 import { StatusPill } from '@/components/ui/StatusPill';
 import { Toolbar } from '@/components/ui/Toolbar';
 import { isModuleActive } from '@/features/billing/moduleCatalog';
@@ -229,6 +231,9 @@ export default function TournamentsPage() {
                       {formatNumber(t.participants_count)} participantes ·{' '}
                       {AUDIENCE_LABELS[t.participants.audience_type]}
                     </p>
+                    <div className="mt-3 flex justify-end">
+                      <StatusBadge status={resolveCatalogStatus(t)} />
+                    </div>
                   </div>
                 </button>
               ))}
